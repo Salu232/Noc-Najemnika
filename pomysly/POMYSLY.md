@@ -8,6 +8,19 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 22 XI 2026 | Patryk | Widok z góry pod skosem, jak w Tibii: widać dach i ściany z drzwiami | w planie | wszystkie obrazy w tym samym kącie i skali; próba w scenie „Próba chaty”, potem decyzja 003 |
+| 22 XI 2026 | Gemini | Czytelność: tła ciemne i gęste, bohater i wrogowie jaśniejsi, z wyraźnym obrysem | w planie | wejdzie do decyzji 003 i [docs/grafika.md](../docs/grafika.md) |
+| 22 XI 2026 | Claude | Obrazy do mapy w równym świetle dnia, a noc, deszcz i ogień dodaje gra | nowy | „Próba chaty” pokazuje, że nocny obraz pod nocą gry jest podwójnie ciemny; do wyboru Patryka |
+| 22 XI 2026 | Claude | Budynek, płot i podwórko jako osobne obrazy | nowy | w „Próbie chaty” płot jest wklejony w obraz chaty, więc bohater wchodzi na płot zamiast za niego |
+| 22 XI 2026 | Claude | Postacie z Gemini w częściach (głowa, tułów, ręce, nogi, miecz), którymi porusza gra | nowy | sposób na postacie w ruchu w stylu Gemini |
+| 22 XI 2026 | Gemini | Mniejszy start rozwoju: najpierw tylko poziom 1 prawej ręki i nóg | nowy | Claude popiera; do decyzji Patryka |
+| 22 XI 2026 | Gemini | Koszty ścieżek mają zmieniać ryzyko, a nie psuć sterowanie | nowy | Claude: koszt w celności zostaje, ale ma być widoczny i przewidywalny, np. szerszy rozrzut strzał |
+| 22 XI 2026 | Gemini | Zastawienie odzyskanego wspomnienia za atak specjalny w środku hordy | nowy | |
+| 22 XI 2026 | Gemini | Łuk jako pamięć Jadwigi i ścieżka człowieczeństwa, miecz jako ścieżka klątwy | nowy | łuk zostaje bronią dodatkową |
+| 22 XI 2026 | Gemini | Bez narratora, bo stary bohater, który pamięta, psuje zagadkę utraconej pamięci | nowy | Claude popiera; odpowiedź na pytanie 3 z [fabula/zarys.md](../fabula/zarys.md) |
+| 22 XI 2026 | Gemini | Zdrada D: przyjaciel wezwał Bractwo, żeby zatrzymać Radomira w szale, zanim dotrze do córki, a potem sam wykopał cztery groby | nowy | Claude poleca, bo tłumaczy hak z czterema grobami; do decyzji Patryka |
+| 22 XI 2026 | Gemini | Pierwszy cichy dobry uczynek w lesie: odcięcie wisielca | nowy | |
+| 22 XI 2026 | Gemini | Otwarcie w 5 minut, z pierwszą hordą koło 4. minuty | nowy | kłóci się ze spokojnym początkiem; Claude proponuje pojedynczego wroga koło 3. minuty i hordę koło 10.; do decyzji Patryka |
 | 22 XI 2026 | Patryk | Bohater odczuwa klimat mrocznego świata, a gracz poznaje postać razem z nim | w planie | [fabula/zarys.md](../fabula/zarys.md), „Bohater czuje świat” |
 | 22 XI 2026 | Claude | Klimat przez ciało bohatera: drżenie w deszczu, oddech i serce w ciemności, ulga przy ogniu, krótkie myśli przy miejscach | nowy | do decyzji Patryka |
 | 22 XI 2026 | Patryk | Walka nie od pierwszej minuty: bohater budzi się z samym mieczem, najpierw odnajduje się w lesie, a umiejętności rozwija stopniowo | w planie | [docs/walka.md](../docs/walka.md), punkt 1; [fabula/zarys.md](../fabula/zarys.md) |
