@@ -1,12 +1,15 @@
 # 002: Technologia gry
 
-**Data:** 22 XI 2026 · **Proponuje:** Claude · **Status:** propozycja, czeka na akceptację Patryka
+**Data:** 22 XI 2026 · **Zaproponował:** Claude · **Zdecydował:** Patryk (22 XI) · **Status:** obowiązuje
 
 ## Pytanie
 
 Na czym budujemy nową wersję?
 
-## Propozycja
+## Wybór
+
+Patryk przyjął propozycję Claude 22 XI.
+
 
 Zwykły JavaScript w przeglądarce, podzielony na małe moduły, z grafiką rysowaną na płótnie (Canvas). Bez dużego silnika i bez instalowania czegokolwiek, żeby zagrać. Gra jest publikowana automatycznie przez GitHub Pages pod stałym adresem, na przykład `salu232.github.io/Noc-Najemnika`.
 
@@ -26,6 +29,7 @@ Testy działają osobno i grają w grę jak człowiek, w prawdziwej przeglądarc
 2. **Rdzeń walki już mamy.** Napisaliśmy go w zwykłym JavaScripcie i ludzie go chwalą. Przeniesiemy go do modułów zamiast pisać od zera.
 3. **Telefon:** prawdziwa strona pod własnym adresem pozwala włączyć pełny ekran i dodać grę do ekranu głównego jak aplikację. W podglądzie w ramce to często było zablokowane.
 4. **Nauka:** każdy moduł to krótki plik o jednej rzeczy (`walka.js`, `wrogowie.js`, `dialog.js`). Łatwo zajrzeć i zrozumieć.
+5. **Silnik i pliki z danymi, jak w Tibii.** Claude pisze silnik gry, a wrogowie, broń i ścieżki ciała są w prostych plikach z danymi. Patryk może je zmieniać sam, tak jak potwory i przedmioty na swoim serwerze Tibii.
 
 ## Ryzyko i co z nim robimy
 
