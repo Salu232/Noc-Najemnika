@@ -8,6 +8,10 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 22 XI 2026 | Patryk | Walka nie od pierwszej minuty: bohater budzi się z samym mieczem, najpierw odnajduje się w lesie, a umiejętności rozwija stopniowo | w planie | [docs/walka.md](../docs/walka.md), punkt 1; [fabula/zarys.md](../fabula/zarys.md) |
+| 22 XI 2026 | Patryk | Gracz budzi się jako postać, której nie zna; bohater zbudowany na wzór Gutsa | w planie | bierzemy charakter, a wygląd i historia są nasze: [fabula/zarys.md](../fabula/zarys.md) |
+| 22 XI 2026 | Claude | Umiejętności wracają razem ze wspomnieniami, na przykład blok przy grobie Borysa | nowy | do decyzji Patryka |
+| 22 XI 2026 | Claude | Bohater pierwszy raz widzi swoją twarz w kałuży i nie poznaje samego siebie | nowy | do decyzji Patryka |
 | 22 XI 2026 | Patryk | Opowieść zaczyna się od przebudzenia w lesie | w planie | [fabula/zarys.md](../fabula/zarys.md) |
 | 22 XI 2026 | Patryk | Bohater stracił kompanię, bo przyjaciel wystawił wszystkich na śmierć. Każdego dnia odpiera klątwę | w planie | rdzeń opowieści; porównanie z Berserkiem w [fabula/zarys.md](../fabula/zarys.md) |
 | 22 XI 2026 | Patryk | Inspiracja Gabrielem de Leónem z „Wampirzego cesarstwa” | w planie | co bierzemy, a czego nie: [fabula/zarys.md](../fabula/zarys.md) |
@@ -27,7 +31,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 | 22 XI 2026 | Claude | Czarna krew z wrogów jako waluta wzmocnień, płacona klątwie przy ognisku | nowy | |
 | 22 XI 2026 | Claude | Łuk jako broń dodatkowa, strzały do podniesienia z ciał | w planie | Patryk 22 XI: łuk jest bronią dodatkową, skupiamy się na mieczu; strzały z ciał to wciąż propozycja |
 | 22 XI 2026 | Jozz | Mieszkańcy wiosek, z którymi da się naprawdę porozmawiać | w planie | etap wzorcowego rozdziału |
-| 22 XI 2026 | Jozz | Więcej wrogów od początku: hordy, krew, pożoga | w planie | [docs/walka.md](../docs/walka.md), punkt 2 |
+| 22 XI 2026 | Jozz | Więcej wrogów od początku: hordy, krew, pożoga | w planie | [docs/walka.md](../docs/walka.md), punkt 2; Patryk 22 XI: hordy wcześnie, ale po spokojnym początku w lesie |
 | 22 XI 2026 | Jozz | Pełny ekran | w planie | od pierwszego szkieletu gry |
 | 22 XI 2026 | Jozz | Osobna kampania dopracowania grafiki | odłożony | po wzorcowym rozdziale, kiedy znany jest styl |
 | 21 XI 2026 | Patryk | Podróż statkiem na nową wyspę | odłożony | istnieje w wersji 1 (Ostrów Mnichów); wróci jako rozdział, jeśli pasuje do fabuły |

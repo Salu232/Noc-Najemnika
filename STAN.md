@@ -17,7 +17,7 @@ Aktualizowany przy każdej zmianie. Historia jest w gicie, tutaj tylko to, co ob
 
 1. Test 100 wrogów na telefonie średniej klasy, czyli bramka techniczna z [docs/walka.md](docs/walka.md), punkt 2.
 2. Szkielet gry: bohater chodzi, tnie i blokuje na telefonie i komputerze. Gra jest od razu dostępna pod stałym adresem.
-3. Rdzeń walki z wersji 1, przeniesiony i poprawiony: cięcia kierunkowe, blok, unik, hordy od pierwszej minuty.
+3. Rdzeń walki z wersji 1, przeniesiony i poprawiony: cięcia kierunkowe, blok, unik i hordy, a do tego umiejętności, które wracają stopniowo.
 4. Specjalizacje ciała w pierwszej wersji: prawa ręka i nogi, po 2 ścieżki.
 5. Rozdział I według fabuły Patryka, od przebudzenia w lesie.
 

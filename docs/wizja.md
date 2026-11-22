@@ -2,14 +2,14 @@
 
 ## W jednym zdaniu
 
-Przeklęty najemnik przebija się przez hordy w krainie wiecznej nocy, chroni ludzi, którzy go nienawidzą, i kawałek po kawałku odzyskuje pamięć o tym, kim był i co stracił.
+Przeklęty najemnik budzi się w lesie bez wspomnień, przebija się przez hordy, chroni ludzi, którzy go nienawidzą, i kawałek po kawałku odzyskuje to, kim był i co stracił.
 
 ## Pięć filarów
 
 Każda zmiana w grze ma wzmacniać przynajmniej jeden filar. Jeśli nie wzmacnia żadnego, czeka w [dzienniku pomysłów](../pomysly/POMYSLY.md).
 
-1. **Mięsista walka z hordami.** Od pierwszej minuty jest dużo wrogów, którzy padają od jednego lub dwóch cięć. Krew i ciała zostają na ziemi. Co jakiś czas pojawia się twardy przeciwnik, który wymaga uwagi. Każdy cios ma ciężar.
-2. **Ciało, które się zmienia.** Ulepszenia nie są tylko liczbami. Klątwa przejmuje kolejne części ciała najemnika: rękę, nogi, oczy. Każde wzmocnienie coś daje i coś zabiera, a wybory budują własny styl walki.
+1. **Mięsista walka z hordami.** Wrogów jest dużo i padają od jednego lub dwóch cięć, ale hordy przychodzą wtedy, gdy bohater ma już czym walczyć. Początek należy do lasu i do poznawania bohatera. Krew i ciała zostają na ziemi. Co jakiś czas pojawia się twardy przeciwnik, który wymaga uwagi. Każdy cios ma ciężar.
+2. **Postać, która rośnie i się zmienia.** Bohater zaczyna z samym mieczem i odzyskuje umiejętności razem z pamięcią. Ulepszenia nie są tylko liczbami. Klątwa przejmuje kolejne części ciała najemnika: rękę, nogi, oczy. Każde wzmocnienie coś daje i coś zabiera, a wybory budują własny styl walki.
 3. **Opowieść z początkiem i końcem.** Każdy rozdział ma swoją historię, którą da się opowiedzieć po zagraniu. Fabuła jest podawana grą i miejscami, a dopiero potem tekstem. Tekst nigdy nie zostawia gracza bezbronnego.
 4. **Czytelność.** Na pierwszy rzut oka widać, kto atakuje, gdzie iść i co jest ważne. Ten sam znak zawsze znaczy to samo.
 5. **Telefon jest pełnoprawny.** Gra działa na pełnym ekranie, sterowanie leży pod kciukami i nic nie zasłania akcji. Komputer jest drugi, ale też ważny.
@@ -22,7 +22,7 @@ Dark fantasy: zimno, deszcz, popiół, ogień w nocy, ludzie zmęczeni wojną i 
 
 - Nie jest zbiorem funkcji. Lepszy jest jeden dopracowany rozdział niż cztery szkice.
 - Nie jest powieścią z przerwami na walkę. Dialog nie może zatrzymywać gry bez potrzeby.
-- Nie jest kopią cudzego dzieła. Inspiracje są w klimacie, nie w postaciach, nazwach ani symbolach.
+- Nie jest kopią cudzego dzieła. Inspiracje są w klimacie i w charakterze bohatera (wzorem jest Guts), a nie w wyglądzie postaci, nazwach, symbolach ani wydarzeniach.
 
 ## Jak sprawdzamy, czy idziemy dobrze
 

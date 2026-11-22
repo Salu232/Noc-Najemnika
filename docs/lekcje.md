@@ -10,7 +10,7 @@ Zebrane z dwóch źródeł: z pierwszej wersji tej gry i jej testów oraz z hist
 | Dialog zatrzymywał bohatera, a potwory dalej atakowały | Jozz, potwierdzone w kodzie | rozmowa zatrzymuje cały świat; w biegu są tylko krótkie dymki |
 | Opowieść mówiła do gracza na 4 różne sposoby, bez wspólnych zasad | analiza kodu | dwa tryby: rozmowa i dymek, z jasnymi zasadami |
 | Mapy były losowane, a drogi nie prowadziły wzroku | Jozz | każda mapa jest projektowana ręcznie |
-| Hordy pojawiały się dopiero w połowie gry | Jozz i Przemek | dużo słabych wrogów od pierwszej minuty |
+| Hordy pojawiały się dopiero w połowie gry | Jozz i Przemek | hordy wcześnie, zaraz gdy bohater ma czym walczyć; spokojny początek w lesie nie może być pusty (Patryk, 22 XI) |
 | Testy sprawdzały tylko, czy gra się nie wysypuje. Automat przeskakiwał dialogi i teleportował bohatera | przegląd własnych testów | testy grają jak człowiek, a ostatecznie sprawdza człowiek na telefonie |
 | Cały kod był w jednym pliku z 2 700 liniami | historia pracy | kod podzielony na małe moduły z jasnymi nazwami |
 

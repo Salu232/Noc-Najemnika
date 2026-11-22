@@ -14,11 +14,24 @@ Przemek i Jozz chwalili walkę, więc jej rdzeń przenosimy prawie w całości:
 - **Ataki specjalne:** na przykład Rozłupanie ziemi, Wicher stali, Skok kata i Krwawy półksiężyc. Zostają, ale w nowej wersji wiążą się z ciałem (punkt 3).
 - **Czytelni wrogowie:** każdy wróg zapowiada atak (zamach, błysk, znak nad głową). Tarczownik zasłania jedną stronę i trzeba go obejść albo uderzyć z innej strony.
 
+### Umiejętności rosną stopniowo
+
+**Decyzja Patryka (22 XI):** walka nie zaczyna się od razu. Bohater budzi się z samym mieczem i na początku umie niewiele. Umiejętności rozwija w trakcie gry.
+
+**Propozycja Claude:** umiejętności wracają razem ze wspomnieniami. Bohater był weteranem, a klątwa zabrała mu też to, czego się nauczył. Proponowana kolejność: cięcie, blok, unik, parowanie, pełne cięcia kierunkowe. Przykład: przy grobie Borysa, który nauczył go trzymać miecz, wraca blok. Szał klątwy nie wraca ze wspomnień. Daje go klątwa, pierwszy raz wtedy, gdy bohaterowi zabraknie sił.
+
+Dzięki temu postać ma dwie osie rozwoju:
+
+| Oś | Skąd się bierze | Co znaczy |
+| --- | --- | --- |
+| Umiejętności | wspomnienia odzyskane za dobre uczynki | to, co bohater odzyskuje z siebie |
+| Ścieżki ciała (punkt 3) | czarna krew płacona klątwie | to, co bohater oddaje klątwie |
+
 ## 2. Hordy
 
 Najważniejsza zmiana względem wersji 1.
 
-- Od pierwszej minuty 15–25 słabych wrogów naraz. Padają od jednego lub dwóch cięć.
+- Hordy przychodzą, gdy bohater ma już czym walczyć. Początek rozdziału to las, ślady i pojedyncze spotkania (decyzja Patryka, 22 XI). Potem 15–25 słabych wrogów naraz, którzy padają od jednego lub dwóch cięć.
 - Szeroki cios trafia kilku wrogów naraz, a każde trafienie ma odczuwalny ciężar: krótkie zatrzymanie, odrzut, krew i ciało, które zostaje na ziemi.
 - Co kilka minut pojawia się twardy przeciwnik, przy którym trzeba myśleć: tarczownik, kolos, rycerz.
 - **Bramka techniczna:** 100 wrogów na ekranie przy płynnych 60 klatkach na sekundę na telefonie średniej klasy. Sprawdzamy to, zanim zbudujemy cokolwiek innego.
@@ -77,8 +90,10 @@ Propozycja Claude: im więcej ciała przejmuje klątwa, tym silniejszy jest boha
 | Ile części ciała w pierwszej wersji? | dwie: prawa ręka i nogi |
 | Czy wybór ścieżki da się cofnąć? | ścieżki skupiają się na wyborach i są połączone z fabułą |
 | Czy wzmocnienia zostają między rozdziałami? | trzeba to pomieszać: część zostaje, część nie |
+| Czy walka zaczyna się od pierwszej minuty? | nie; najpierw las i budowanie postaci, a umiejętności rosną stopniowo |
 
 ## 6. Pytania otwarte
 
 1. **Co dokładnie zostaje między rozdziałami.** Propozycja Claude do potwierdzenia: ścieżki ciała zostają na stałe, bo klątwa nie oddaje tego, co wzięła. Relikwie i przedmioty należą do rozdziału, a w nowym zbiera się nowe.
 2. **Jak wybór ścieżki łączy się z fabułą.** Na przykład: wybór pojawia się w ważnej scenie rozdziału, a postacie reagują na to, czym stał się bohater. Ustalimy razem z fabułą rozdziału I.
+3. **Które wspomnienie oddaje którą umiejętność.** Ustalimy razem z fabułą rozdziału I.
