@@ -41,6 +41,8 @@ Wzmocnienie widać na postaci: czarne żyły na ręce, świecące oko, zmieniony
 | **Tułów** | **Żelazne żebra:** więcej życia i mniej obrażeń. **Koszt:** wytrzymałość wolniej się odnawia. | **Oddech bestii:** wytrzymałość odnawia się dużo szybciej. **Koszt:** mniej życia. |
 | **Oczy** | **Oko kruka:** widzisz zamach wroga wcześniej i dalej w ciemności. **Koszt:** klątwa szepcze częściej i pokazuje fałszywe cienie. | **Oko kata:** widzisz słabe punkty wrogów, a trafienie w nie zadaje podwójne obrażenia. **Koszt:** węższe pole widzenia. |
 
+**Pierwsza wersja (decyzja Patryka, 22 XI):** budujemy tylko **prawą rękę** i **nogi**. Pozostałe części czekają, aż sprawdzimy w grze, czy wybory są ciekawe.
+
 ### Poziomy
 
 Każda część ciała ma 3 poziomy:
@@ -55,19 +57,28 @@ Tak ataki specjalne z wersji 1 zostają, ale wynikają z tego, kim stał się bo
 
 Propozycja: z zabitych wrogów zbiera się czarną krew. Przy ognisku albo kapliczce klątwa „bierze zapłatę” i wzmacnia wybraną część ciała. Przedmioty znalezione po drodze (dawne relikwie, na przykład Wilczy kieł albo Ciężka rękojeść) zostają jako dodatkowe, mniejsze ulepszenia.
 
-### Związek z fabułą (pytanie do Patryka)
+### Związek z fabułą
 
-Im więcej ciała przejmuje klątwa, tym silniejszy jest bohater i tym mniej zostaje z człowieka. To może wpływać na zakończenie albo na to, jak reagują ludzie. Fabuła należy do Patryka, więc to tylko propozycja.
+**Patryk (22 XI):** wybór ścieżki ma być wyborem połączonym z fabułą, a nie tylko statystyką.
+
+Propozycja Claude: im więcej ciała przejmuje klątwa, tym silniejszy jest bohater i tym mniej zostaje z człowieka. To może wpływać na zakończenie albo na to, jak reagują ludzie. Szczegóły ustalimy razem z fabułą rozdziału I ([fabula/zarys.md](../fabula/zarys.md)).
 
 ## 4. Broń
 
 - **Miecz:** broń główna, cały rdzeń walki.
-- **Łuk:** broń dodatkowa, o którą pyta Patryk w przykładzie z prawą ręką. Propozycja: ograniczona liczba strzał, które można podnieść z ciał. Celowanie: przytrzymanie przycisku łuku i kierunek kciukiem.
+- **Łuk:** broń dodatkowa (decyzja Patryka, 22 XI). Skupiamy się na mieczu. Propozycja: ograniczona liczba strzał, które można podnieść z ciał. Celowanie: przytrzymanie przycisku łuku i kierunek kciukiem.
 - **Przedmioty:** bomby, noże do rzucania i olej na ostrze z wersji 1 zostają.
 
-## 5. Pytania otwarte
+## 5. Odpowiedzi Patryka (22 XI)
 
-1. Czy łuk ma być bronią dodatkową, czy osobną drogą gry na równi z mieczem?
-2. Ile części ciała w pierwszej wersji? Propozycja: zacząć od 2 (prawa ręka i nogi), sprawdzić, czy wybory są ciekawe, i dopiero wtedy dodać resztę.
-3. Czy wybór ścieżki da się kiedyś cofnąć, na przykład za wysoką cenę w fabule?
-4. Czy wzmocnienia zostają między rozdziałami, czy każdy rozdział zaczyna się od nowa?
+| Pytanie | Odpowiedź |
+| --- | --- |
+| Łuk: broń dodatkowa czy osobna droga gry? | broń dodatkowa; skupiamy się na mieczu |
+| Ile części ciała w pierwszej wersji? | dwie: prawa ręka i nogi |
+| Czy wybór ścieżki da się cofnąć? | ścieżki skupiają się na wyborach i są połączone z fabułą |
+| Czy wzmocnienia zostają między rozdziałami? | trzeba to pomieszać: część zostaje, część nie |
+
+## 6. Pytania otwarte
+
+1. **Co dokładnie zostaje między rozdziałami.** Propozycja Claude do potwierdzenia: ścieżki ciała zostają na stałe, bo klątwa nie oddaje tego, co wzięła. Relikwie i przedmioty należą do rozdziału, a w nowym zbiera się nowe.
+2. **Jak wybór ścieżki łączy się z fabułą.** Na przykład: wybór pojawia się w ważnej scenie rozdziału, a postacie reagują na to, czym stał się bohater. Ustalimy razem z fabułą rozdziału I.
