@@ -8,6 +8,8 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 22 XI 2026 | Patryk | Bohater odczuwa klimat mrocznego świata, a gracz poznaje postać razem z nim | w planie | [fabula/zarys.md](../fabula/zarys.md), „Bohater czuje świat” |
+| 22 XI 2026 | Claude | Klimat przez ciało bohatera: drżenie w deszczu, oddech i serce w ciemności, ulga przy ogniu, krótkie myśli przy miejscach | nowy | do decyzji Patryka |
 | 22 XI 2026 | Patryk | Walka nie od pierwszej minuty: bohater budzi się z samym mieczem, najpierw odnajduje się w lesie, a umiejętności rozwija stopniowo | w planie | [docs/walka.md](../docs/walka.md), punkt 1; [fabula/zarys.md](../fabula/zarys.md) |
 | 22 XI 2026 | Patryk | Gracz budzi się jako postać, której nie zna; bohater zbudowany na wzór Gutsa | w planie | bierzemy charakter, a wygląd i historia są nasze: [fabula/zarys.md](../fabula/zarys.md) |
 | 22 XI 2026 | Claude | Umiejętności wracają razem ze wspomnieniami, na przykład blok przy grobie Borysa | nowy | do decyzji Patryka |

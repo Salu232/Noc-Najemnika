@@ -70,6 +70,17 @@ Od Gutsa bierzemy charakter. Wygląd, broń i wydarzenia mamy własne (tabela wy
 
 Gracz poznaje bohatera razem z nim samym, bo na początku obaj nie wiedzą, kim on jest. Charakter pokazujemy tym, co bohater robi, i krótkimi myślami, a nie długimi opisami.
 
+### Bohater czuje świat
+
+**Patryk (22 XI):** bohater ma odczuwać klimat mrocznego świata, a gracz poznaje postać razem z nim.
+
+Klimat dociera więc do gracza przez to, co czuje bohater, a nie przez opisy:
+
+- **Ciało reaguje na świat.** W deszczu bohater się kuli i drży, po walce ciężko oddycha, a przy ognisku się rozluźnia.
+- **Krótkie myśli przy miejscach.** Jedno zdanie, gdy coś zobaczy: spalone drzewo, wisielca, pusty dom. Z tych myśli gracz składa sobie, kim jest bohater.
+- **Dźwięk.** W ciemności słychać jego oddech i serce, coraz głośniej, gdy wróg jest blisko.
+- **Ogień jako schronienie.** Poza światłem ognia jest zimno i niebezpiecznie. Przy ognisku bohater odpoczywa, płaci klątwie i wspomina.
+
 ## Propozycja Claude: pamięć jako klucz do zdrady
 
 Przebudzenie w lesie to świetny początek, bo od razu zadaje pytanie: co się stało? Proponuję, żeby bohater tego nie pamiętał. Klątwa zjadła mu ostatnią noc. Pamięta twarze przyjaciół, ale nie wie, jak zginęli ani kto ich wydał.
