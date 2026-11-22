@@ -34,7 +34,8 @@ Najważniejsza zmiana względem wersji 1.
 - Hordy przychodzą, gdy bohater ma już czym walczyć. Początek rozdziału to las, ślady i pojedyncze spotkania (decyzja Patryka, 22 XI). Potem 15–25 słabych wrogów naraz, którzy padają od jednego lub dwóch cięć.
 - Szeroki cios trafia kilku wrogów naraz, a każde trafienie ma odczuwalny ciężar: krótkie zatrzymanie, odrzut, krew i ciało, które zostaje na ziemi.
 - Co kilka minut pojawia się twardy przeciwnik, przy którym trzeba myśleć: tarczownik, kolos, rycerz.
-- **Bramka techniczna:** 100 wrogów na ekranie przy płynnych 60 klatkach na sekundę na telefonie średniej klasy. Sprawdzamy to, zanim zbudujemy cokolwiek innego.
+- **Wrogów przybywa etapami** (Patryk, 23 XI): najpierw pojedynczy wróg, potem kilku naraz, a dopiero potem horda. Liczba rośnie razem z umiejętnościami bohatera.
+- **Bramka techniczna:** 100 wrogów na ekranie przy płynnych 60 klatkach na sekundę na telefonie średniej klasy. Sprawdzamy to, zanim zbudujemy cokolwiek innego. Te 100 wrogów to próba wytrzymałości telefonu, a nie liczba z gry.
 
 ## 3. Przeklęte ciało: specjalizacje
 

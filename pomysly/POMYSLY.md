@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 23 XI 2026 | Patryk | Wrogów przybywa etapami: pojedynczy, potem kilku, potem horda | w planie | [docs/walka.md](../docs/walka.md), punkt 2 |
 | 22 XI 2026 | Patryk | Widok z góry pod skosem, jak w Tibii: widać dach i ściany z drzwiami | w planie | wszystkie obrazy w tym samym kącie i skali; próba w scenie „Próba chaty”, potem decyzja 003 |
 | 22 XI 2026 | Gemini | Czytelność: tła ciemne i gęste, bohater i wrogowie jaśniejsi, z wyraźnym obrysem | w planie | wejdzie do decyzji 003 i [docs/grafika.md](../docs/grafika.md) |
 | 22 XI 2026 | Claude | Obrazy do mapy w równym świetle dnia, a noc, deszcz i ogień dodaje gra | nowy | „Próba chaty” pokazuje, że nocny obraz pod nocą gry jest podwójnie ciemny; do wyboru Patryka |
