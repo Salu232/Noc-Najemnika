@@ -8,7 +8,6 @@ import * as O from './obrazki.js';
 const TAU = Math.PI * 2;
 const PERSP = 0.62;            // świat widziany z ukosa: pion jest spłaszczony
 const OB = 0x0b0a09;           // kolor obrysu
-const MIECZ_DL = 70;           // długość ostrza w jednostkach świata (bohater ma około 80)
 const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
@@ -212,28 +211,37 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
   // ---------- bohater ----------
   const stanRys = { upadlOd: -1, poprzZycie: BOHATER.zycie, slad: [], poprzStan: 'wolny' };
 
+  const latwo = q => 1 - (1 - q) * (1 - q);
+  const ku = (a, b2, t) => a + Math.atan2(Math.sin(b2 - a), Math.cos(b2 - a)) * t;   // obrót o część kąta najkrótszą drogą
+
   function poza(b, gra) {
+    const bron = gra.bron, L = bron.dlugosc, ciezar = bron.obrazenia;
     const sx = Math.cos(b.kat) >= 0 ? 1 : -1;
-    const p = { sx, a: b.kat + 0.65 * sx, lift: 16, drgaj: 0, smuga: null, blok: false, reka: 13 };
+    const spoczynek = b.kat + (0.6 + 0.1 * ciezar) * sx;              // ciężki miecz wisi niżej, prawie wlecze się po ziemi
+    const p = { sx, a: spoczynek, lift: 10 + 6 * ciezar, drgaj: 0, smuga: null, blok: false, reka: 13, blask: 0, L, szer: bron.szerokosc };
     if (b.stan === 'cios' && b.cios) {
-      const c = b.cios, cfg = BOHATER.ciosy[c.typ], kat = c.kat;
-      const p0 = Math.cos(kat) >= 0 ? 1 : -1;
-      p.sx = p0;
-      const od = kat + cfg.od * p0, doK = kat + cfg.do * p0;
-      const start = cfg.zamach * 0.5, dl = cfg.zamach * 0.5 + (cfg.ciezki ? 0.13 : 0.09);
-      let q = ogr((c.t - start) / dl, 0, 1);
-      if (c.utknal) { q = Math.min(q, 0.42); p.drgaj = 1.6; }
-      const e = 1 - Math.pow(1 - q, 3);
-      if (c.t < start) {                          // zamach: miecz cofa się przed cięciem
-        const w = c.t / Math.max(0.001, start);
-        p.a = od - 0.3 * p0 * w; p.lift = cfg.ciezki ? -MIECZ_DL * 0.85 * w : 2;
-      } else {
-        p.a = od + (doK - od) * e;
-        p.lift = cfg.ciezki ? -MIECZ_DL * 0.85 * (1 - e) + 10 * e : 2;
+      const c = b.cios, kier = Math.sign(c.do - c.od) || 1;
+      p.sx = Math.cos(c.kat) >= 0 ? 1 : -1;
+      const cofniecie = 0.45 + 0.15 * ciezar;                          // jak daleko miecz idzie do tyłu przed cięciem
+      const unies = -L * (0.2 + 0.15 * ciezar);                        // i jak wysoko się unosi (cięższy wyżej)
+      if (c.faza === 'zamach') {
+        const w = latwo(Math.min(1, c.t / Math.max(0.001, c.czasZamachu)));
+        p.a = c.od - kier * cofniecie * w; p.lift = p.lift + (unies - p.lift) * w;
+      } else if (c.faza === 'laduje') {
+        p.a = c.od - kier * (cofniecie + 0.2 * c.naladowanie); p.lift = unies * (1 + 0.2 * c.naladowanie);
+        p.drgaj = 0.4 + c.naladowanie * 1.2; p.blask = c.naladowanie;
+      } else if (c.faza === 'ciecie') {
+        const q = Math.min(1, c.t / c.czasCiecia), r = (1 - q) * (1 - q);
+        p.a = c.aktualny - kier * cofniecie * r; p.lift = unies * r + 6 * (1 - r);
+        p.smuga = { od: c.od - kier * cofniecie, do: p.a, alfa: 1, mocny: c.mocny, utknal: c.utknal, l0: unies, l1: p.lift };
+        if (c.mocny) p.blask = 1 - q;
+      } else {                                                          // powrót: miecz ciągnie dalej, potem wraca do ręki
+        const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0), k = Math.min(1, c.t / Math.max(0.001, koniec));
+        const cel = c.utknal ? c.aktualny : c.do + kier * 0.18 * Math.min(1, k * 3);
+        p.a = k < 0.6 ? cel : ku(cel, spoczynek, (k - 0.6) / 0.4); p.lift = 6 + (p.lift - 6) * Math.max(0, (k - 0.6) / 0.4);
+        if (c.utknal) p.drgaj = 1.6;
+        if (c.t < 0.12) p.smuga = { od: c.od - kier * cofniecie, do: c.utknal ? c.aktualny : c.do, alfa: 1 - c.t / 0.12, mocny: c.mocny, utknal: c.utknal, l0: unies, l1: 6 };
       }
-      const poKoncu = c.t - (start + dl);
-      const alfa = q < 1 ? 1 : Math.max(0, 1 - poKoncu / 0.1);
-      if (c.t >= start && alfa > 0) p.smuga = { od, do: p.a, ciezki: !!cfg.ciezki, alfa, utknal: c.utknal, q: e };
     } else if (b.blok) {
       p.blok = true; p.reka = 16;
     } else if (b.stan === 'unik') {
@@ -261,15 +269,16 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
     if (p.blok) {
       hx = srodek.x + Math.cos(b.kat) * p.reka; hy = srodek.y + Math.sin(b.kat) * p.reka * PERSP - 6;
       const kp = b.kat - sx * (Math.PI / 2 - 0.55);
-      tx2 = hx + Math.cos(kp) * MIECZ_DL * 0.85; ty2 = hy + Math.sin(kp) * MIECZ_DL * 0.85 * PERSP - 14;
+      tx2 = hx + Math.cos(kp) * p.L * 0.85; ty2 = hy + Math.sin(kp) * p.L * 0.85 * PERSP - 14;
     } else {
       hx = srodek.x + Math.cos(p.a) * p.reka; hy = srodek.y + Math.sin(p.a) * p.reka * PERSP;
-      tx2 = hx + Math.cos(p.a) * MIECZ_DL; ty2 = hy + Math.sin(p.a) * MIECZ_DL * PERSP + p.lift;
+      tx2 = hx + Math.cos(p.a) * p.L; ty2 = hy + Math.sin(p.a) * p.L * PERSP + p.lift;
     }
     const mieczZa = ty2 < hy - 8;              // ostrze w górę ekranu: chowa się za plecami
+    p.ostrze = { hx, hy: hy, tx: tx2, ty: ty2 };
 
     const ramie = { x: X(8) + dj, y: -56 + oy };
-    if (mieczZa) { rysujMiecz(g, hx, hy, tx2, ty2, alfaCala); rysujReke(g, ramie, hx, hy, alfaCala); }
+    if (mieczZa) { rysujMiecz(g, hx, hy, tx2, ty2, alfaCala, p); rysujReke(g, ramie, hx, hy, alfaCala); }
 
     // futro zwisające z pleców
     ksztalt([-8, -62, -17, -50, -21, -30, -19, -14, -15, -19, -12, -11, -8, -18, -4, -13, -2, -56], 0x2f2b28);
@@ -305,7 +314,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
     g.lineStyle(0); g.beginFill(0x1a1310, alfaCala); g.drawCircle(X(7.2) + dj, -71.5 + oy, 1.1); g.endFill();
     g.lineStyle(1.1, 0x7a3a30, alfaCala); g.moveTo(X(4.5) + dj, -69 + oy); g.lineTo(X(8.5) + dj, -66 + oy);   // blizna na policzku
 
-    if (!mieczZa) { rysujReke(g, ramie, hx, hy, alfaCala); rysujMiecz(g, hx, hy, tx2, ty2, alfaCala); }
+    if (!mieczZa) { rysujReke(g, ramie, hx, hy, alfaCala); rysujMiecz(g, hx, hy, tx2, ty2, alfaCala, p); }
     return p;
   }
 
@@ -320,7 +329,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
     g.lineStyle(5.4, 0x4a3c30, al); g.moveTo(hx + (ramie.x - hx) * 0.22, hy + (ramie.y - hy) * 0.22); g.lineTo(hx + (ramie.x - hx) * 0.08, hy + (ramie.y - hy) * 0.08);
   }
 
-  function rysujMiecz(g, hx, hy, tx2, ty2, al) {
+  function rysujMiecz(g, hx, hy, tx2, ty2, al, p) {
     const dx = tx2 - hx, dy = ty2 - hy, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, px = -uy, py = ux;
     // łańcuch od głowicy do nadgarstka
     const gx = hx - ux * 10, gy = hy - uy * 10;
@@ -336,7 +345,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
     g.lineStyle(5, OB, al); g.moveTo(jx - px * 8, jy - py * 8); g.lineTo(jx + px * 8, jy + py * 8);
     g.lineStyle(3, 0x4d4842, al); g.moveTo(jx - px * 8, jy - py * 8); g.lineTo(jx + px * 8, jy + py * 8);
     // ostrze: ciemne żelazo z jasną krawędzią i wyszczerbieniem
-    const bx = hx + ux * 6, by = hy + uy * 6, sz = 3.6;
+    const bx = hx + ux * 6, by = hy + uy * 6, sz = p.szer;
     const pts = [bx + px * sz, by + py * sz, tx2 - ux * 8 + px * sz * 0.8, ty2 - uy * 8 + py * sz * 0.8, tx2, ty2,
       tx2 - ux * 8 - px * sz * 0.8, ty2 - uy * 8 - py * sz * 0.8,
       bx + ux * L * 0.55 - px * sz * 0.95, by + uy * L * 0.55 - py * sz * 0.95,
@@ -345,7 +354,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
       bx - px * sz, by - py * sz];
     g.lineStyle(1.6, OB, al); g.beginFill(0x5c6067, al); g.drawPolygon(pts); g.endFill();
     g.lineStyle(1, 0x34373c, al); g.moveTo(bx, by); g.lineTo(bx + ux * L * 0.7, by + uy * L * 0.7);
-    g.lineStyle(1.1, 0xdfe3e8, 0.9 * al); g.moveTo(bx + px * sz * 0.8, by + py * sz * 0.8); g.lineTo(tx2 - ux * 6 + px * sz * 0.6, ty2 - uy * 6 + py * sz * 0.6);
+    g.lineStyle(1.1 + p.blask * 1.6, p.blask > 0.05 ? 0xffd890 : 0xdfe3e8, 0.9 * al); g.moveTo(bx + px * sz * 0.8, by + py * sz * 0.8); g.lineTo(tx2 - ux * 6 + px * sz * 0.6, ty2 - uy * 6 + py * sz * 0.6);
   }
 
   // ---------- jedna klatka ----------
@@ -361,7 +370,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
       if (z.typ === 'parowanie') { napis('Sparowane!', b.x, b.y - 96, 0xffe2a0); pierscienie.push({ x: b.x, y: b.y - 40, r0: 20, r1: 90, t: 0, czas: 0.3, kolor: 0xfff0c0 }); }
       else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
-      else if (z.typ === 'trafienie' && z.ile >= 3) napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);
+      else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);
+      else if (z.typ === 'naladowany') pierscienie.push({ x: b.x, y: b.y, r0: 50, r1: 20, t: 0, czas: 0.22, kolor: 0xffd890, ziemia: true });
+      else if (z.typ === 'zamach' && z.mocny) pierscienie.push({ x: b.x, y: b.y, r0: 30, r1: gra.bron.zasieg * 1.1, t: 0, czas: 0.3, kolor: 0xffe8c0, ziemia: true });
     }
     // „Krew za krew”: życie wróciło po ciosie
     if (b.stan !== 'upadl' && b.zycie > stanRys.poprzZycie + 0.5 && gra.faza !== 'przerwa') napis(`+${Math.round(b.zycie - stanRys.poprzZycie)}`, b.x + 18, b.y - 84, 0xff6a5a);
@@ -414,14 +425,36 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
     // smuga cięcia i garda
     smugi.clear(); znaki.clear(); znakiZiemia.clear();
     if (pz && pz.smuga) {
-      const s = pz.smuga, cx = b.x, cy = b.y - 44, n = 12, r1 = 22, r2 = MIECZ_DL + 16;
-      const kol = s.utknal ? 0xffd090 : 0xe6ecf2;
+      const s = pz.smuga, cx = b.x, cy = b.y - 44, n = 14, r1 = s.mocny ? 14 : 24, r2 = pz.L + 16;
+      const kol = s.utknal ? 0xffd090 : (s.mocny ? 0xfff0d0 : 0xe6ecf2);
+      const brzeg = i => { const f = i / n, a = s.od + (s.do - s.od) * f, l = s.l0 + (s.l1 - s.l0) * f; return [cx + Math.cos(a) * r2, cy + Math.sin(a) * r2 * PERSP + l]; };
       const pts = [];
-      for (let i = 0; i <= n; i++) { const a = s.od + (s.do - s.od) * i / n, l = s.ciezki ? -MIECZ_DL * 0.85 * (1 - s.q * i / n) : 0; pts.push(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2 * PERSP + l); }
+      for (let i = 0; i <= n; i++) pts.push(...brzeg(i));
       for (let i = n; i >= 0; i--) { const a = s.od + (s.do - s.od) * i / n; pts.push(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1 * PERSP); }
-      smugi.lineStyle(0); smugi.beginFill(kol, (s.ciezki ? 0.42 : 0.3) * s.alfa); smugi.drawPolygon(pts); smugi.endFill();
-      smugi.lineStyle(2, 0xffffff, 0.55 * s.alfa);
-      for (let i = 0; i <= n; i++) { const a = s.od + (s.do - s.od) * i / n, l = s.ciezki ? -MIECZ_DL * 0.85 * (1 - s.q * i / n) : 0; const x = cx + Math.cos(a) * r2, y = cy + Math.sin(a) * r2 * PERSP + l; if (i) smugi.lineTo(x, y); else smugi.moveTo(x, y); }
+      smugi.lineStyle(0); smugi.beginFill(kol, (s.mocny ? 0.5 : 0.32) * s.alfa); smugi.drawPolygon(pts); smugi.endFill();
+      smugi.lineStyle(s.mocny ? 3.5 : 2, 0xffffff, 0.6 * s.alfa);
+      for (let i = 0; i <= n; i++) { const [x, y] = brzeg(i); if (i) smugi.lineTo(x, y); else smugi.moveTo(x, y); }
+    }
+    // ładowany miecz żarzy się nad ciemnością
+    if (pz && pz.blask > 0.02 && pz.ostrze && b.stan !== 'upadl') {
+      const o = pz.ostrze, x1 = b.x + o.hx, y1 = b.y + o.hy, x2 = b.x + o.tx, y2 = b.y + o.ty;
+      smugi.lineStyle(9, 0xff9a30, 0.28 * pz.blask); smugi.moveTo(x1, y1); smugi.lineTo(x2, y2);
+      smugi.lineStyle(3, 0xfff0c8, 0.85 * pz.blask); smugi.moveTo(x1, y1); smugi.lineTo(x2, y2);
+    }
+    // gdzie pójdzie cięcie: łuk na ziemi, dopóki miecz jest w zamachu albo się ładuje
+    if (b.stan === 'cios' && b.cios && (b.cios.faza === 'zamach' || b.cios.faza === 'laduje')) {
+      const c = b.cios, pelny = c.naladowanie >= 1;
+      const zas = gra.bron.zasieg * (pelny ? 1.15 : 1), luk = gra.bron.luk + (pelny ? 0.7 : 0);
+      const pts = [b.x, b.y];
+      for (let i = 0; i <= 16; i++) { const a = c.kat - luk + 2 * luk * i / 16; pts.push(b.x + Math.cos(a) * zas, b.y + Math.sin(a) * zas * PERSP); }
+      znakiZiemia.lineStyle(2.5, pelny ? 0xffd890 : 0xe6ecf2, pelny ? 0.7 : 0.45); znakiZiemia.beginFill(pelny ? 0xffd890 : 0xe6ecf2, pelny ? 0.18 : 0.1);
+      znakiZiemia.drawPolygon(pts); znakiZiemia.endFill();
+      if (c.faza === 'laduje') {                                       // ładowanie: krąg pod stopami zapełnia się
+        znakiZiemia.lineStyle(4, 0x2a2018, 0.6); znakiZiemia.beginFill(0, 0); znakiZiemia.drawEllipse(b.x, b.y, 30, 30 * PERSP); znakiZiemia.endFill();
+        znakiZiemia.lineStyle(4, pelny ? 0xfff0c0 : 0xffb050, pelny ? 0.95 : 0.85);
+        const kon = -Math.PI / 2 + TAU * c.naladowanie;
+        for (let i = 0; i <= 24; i++) { const a = -Math.PI / 2 + (kon + Math.PI / 2) * i / 24, x = b.x + Math.cos(a) * 30, y = b.y + Math.sin(a) * 30 * PERSP; if (i) znakiZiemia.lineTo(x, y); else znakiZiemia.moveTo(x, y); }
+      }
     }
     if (b.blok) {
       const parowanie = gra.czas - b.blokOd < BOHATER.blok.oknoParowania;

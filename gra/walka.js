@@ -1,13 +1,14 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, WROGOWIE, ETAPY, NOC } from './dane.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, WROGOWIE, ETAPY, NOC } from './dane.js';
 import { START, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
 const rozn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
-export function nowaGra() {
+export function nowaGra(bron = DOMYSLNA_BRON) {
   const gra = {
+    bronKlucz: BRONIE[bron] ? bron : DOMYSLNA_BRON, bron: BRONIE[BRONIE[bron] ? bron : DOMYSLNA_BRON],
     czas: 0, zatrzymanie: 0, wstrzas: 0, mroczek: NOC.mroczek,
     bohater: null, wrogowie: [], krew: [], iskry: [], slady: [], zdarzenia: [],
     etap: 0, faza: 'przerwa', fazaCzas: NOC.przerwa, walkaCzas: 0, kolejka: [],
@@ -25,13 +26,20 @@ function postawBohatera(gra) {
     zycie: BOHATER.zycie, smuga: 0, smugaCzas: 0,
     sila: BOHATER.sila, odnowaZa: 0,
     kat: -Math.PI / 2, stan: 'wolny', t: 0, trwanie: 0,
-    cios: null, seria: 0, seriaCzas: 0, kolejkaAtaku: false,
+    cios: null, strona: 1, rozped: 0, seriaCzas: 0, kolejkaAtaku: false,
     blok: false, blokOd: -9, nietykalny: 0, unikKat: 0,
     odrzutX: 0, odrzutY: 0, chod: 0, idzie: false, flash: 0,
   };
 }
 
 export function powiedz(gra, tekst, czas = 3.5) { gra.mysl.tekst = tekst; gra.mysl.czas = czas; }
+
+// Zmiana miecza w trakcie gry (z menu pauzy): działa od następnego ciosu.
+export function ustawBron(gra, klucz) {
+  if (!BRONIE[klucz]) return;
+  gra.bronKlucz = klucz; gra.bron = BRONIE[klucz];
+  const b = gra.bohater; if (b.stan === 'cios') { b.stan = 'wolny'; b.cios = null; }
+}
 
 // ---------- jedna klatka ----------
 export function aktualizuj(gra, dt, w) {
@@ -58,8 +66,23 @@ function najblizszyWrog(gra, zasieg) {
   return naj;
 }
 
-function aktualizujBohatera(gra, dt, w) {
+// Kierunek cięcia: palec przeciągnięty po ekranie, potem mysz, a gdy nic nie celuje, najbliższy wróg albo kierunek patrzenia.
+function celKat(gra, w) {
   const b = gra.bohater;
+  if (w.atakKat != null) return w.atakKat;
+  if (w.kat != null) return w.kat;
+  const e = najblizszyWrog(gra, gra.bron.zasieg + 70);
+  if (e) return Math.atan2(e.y - b.y, e.x - b.x);
+  return b.kat;
+}
+
+function ustawLuk(gra, c) {
+  const luk = gra.bron.luk + (c.mocny ? MOCNY.luk : 0);
+  c.od = c.kat - c.kier * luk; c.do = c.kat + c.kier * luk; c.aktualny = c.od;
+}
+
+function aktualizujBohatera(gra, dt, w) {
+  const b = gra.bohater, bron = gra.bron;
   if (b.stan === 'upadl') return;
   b.flash = Math.max(0, b.flash - dt);
   b.nietykalny = Math.max(0, b.nietykalny - dt);
@@ -67,28 +90,51 @@ function aktualizujBohatera(gra, dt, w) {
   // kierunek patrzenia: myszka, a bez niej ruch
   let rx = w.ruchX, ry = w.ruchY; const rl = Math.hypot(rx, ry);
   if (rl > 1) { rx /= rl; ry /= rl; }
-  if (w.kat != null) b.kat = w.kat;
-  else if (rl > 0.2 && b.stan !== 'cios') b.kat = Math.atan2(ry, rx);
+  if (b.stan !== 'cios') {
+    if (w.kat != null) b.kat = w.kat;
+    else if (rl > 0.2) b.kat = Math.atan2(ry, rx);
+  }
 
-  // blok trzymany przyciskiem
-  const chceBlok = w.blok && (b.stan === 'wolny');
+  // blok przerywa branie zamachu i ładowanie, ale nie samo cięcie ani powrót miecza
+  if (w.blok && b.stan === 'cios' && (b.cios.faza === 'zamach' || b.cios.faza === 'laduje')) { b.stan = 'wolny'; b.cios = null; b.kolejkaAtaku = false; }
+  const chceBlok = w.blok && b.stan === 'wolny';
   if (chceBlok && !b.blok) b.blokOd = gra.czas;
   b.blok = chceBlok;
 
-  if (w.atak) b.kolejkaAtaku = true;
+  if (w.atakStart) b.kolejkaAtaku = true;
+  const mozeUnik = w.unik && b.sila >= BOHATER.unik.koszt * 0.5;
 
   if (b.stan === 'wolny') {
-    if (w.unik && b.sila >= BOHATER.unik.koszt * 0.5) zacznijUnik(gra, rx, ry, rl);
+    if (mozeUnik) zacznijUnik(gra, rx, ry, rl);
     else if (b.kolejkaAtaku && !b.blok) zacznijCios(gra, w);
   } else if (b.stan === 'cios') {
-    const c = b.cios, cfg = BOHATER.ciosy[c.typ];
+    const c = b.cios;
     c.t += dt;
-    if (!c.trafil && c.t >= cfg.zamach) rozstrzygnijCios(gra);
-    const koniec = cfg.czas + (c.utknal ? BOHATER.miecz.grzeznie : 0);
-    if (w.unik && c.trafil && !c.utknal && b.sila >= BOHATER.unik.koszt * 0.5) zacznijUnik(gra, rx, ry, rl);   // unik przerywa ciosy
-    else if (c.t >= koniec) {
-      b.stan = 'wolny'; b.cios = null; b.seriaCzas = BOHATER.oknoSerii;
-      if (b.kolejkaAtaku) zacznijCios(gra, w);
+    if (c.faza === 'zamach' || c.faza === 'laduje') {
+      // dopóki miecz się nie rusza, można jeszcze wycelować
+      c.kat = celKat(gra, w); b.kat = c.kat; ustawLuk(gra, c);
+      if (mozeUnik) { zacznijUnik(gra, rx, ry, rl); }
+      else if (c.faza === 'zamach' && c.t >= c.czasZamachu) {
+        if (w.atakTrzyma) { c.faza = 'laduje'; c.t = 0; }
+        else zacznijCiecie(gra, false);
+      } else if (c.faza === 'laduje') {
+        c.naladowanie = Math.min(1, c.t / bron.ladowanie);
+        if (c.naladowanie >= 1 && !c.pelny) { c.pelny = true; gra.zdarzenia.push({ typ: 'naladowany' }); }
+        if (!w.atakTrzyma) zacznijCiecie(gra, c.naladowanie >= 1);
+      }
+    } else if (c.faza === 'ciecie') {
+      tnij(gra, dt);
+      if (c.utknal || c.t >= c.czasCiecia) {
+        c.faza = 'powrot'; c.t = 0;
+        if (c.trafienia >= 3) gra.zdarzenia.push({ typ: 'przeciete', ile: c.trafienia });
+      }
+    } else if (c.faza === 'powrot') {
+      const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0);
+      if (mozeUnik && !c.utknal) zacznijUnik(gra, rx, ry, rl);           // unik przerywa powrót miecza
+      else if (c.t >= koniec) {
+        b.stan = 'wolny'; b.cios = null; b.seriaCzas = BOHATER.oknoSerii;
+        if (b.kolejkaAtaku && !w.blok) zacznijCios(gra, w, true);
+      }
     }
   } else if (b.stan === 'unik') {
     b.t += dt;
@@ -99,11 +145,11 @@ function aktualizujBohatera(gra, dt, w) {
     b.t += dt; if (b.t >= b.trwanie) b.stan = 'wolny';
   }
 
-  // ruch
+  // ruch: z ciężkim mieczem w ręku idzie się wolniej
   let v = 0;
   if (b.stan === 'wolny') v = BOHATER.szybkosc * (b.blok ? BOHATER.blok.spowolnienie : 1);
-  else if (b.stan === 'cios') v = BOHATER.szybkosc * 0.25;
-  if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl); }
+  else if (b.stan === 'cios') v = BOHATER.szybkosc * (b.cios.faza === 'laduje' ? MOCNY.ruchLadowania : bron.ruch);
+  if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl) * (v / BOHATER.szybkosc + 0.3); }
   else b.idzie = false;
   b.x += b.odrzutX * dt; b.y += b.odrzutY * dt;
   b.odrzutX *= Math.max(0, 1 - dt * 8); b.odrzutY *= Math.max(0, 1 - dt * 8);
@@ -113,7 +159,7 @@ function aktualizujBohatera(gra, dt, w) {
   if (b.odnowaZa > 0) b.odnowaZa -= dt;
   else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * dt * (b.blok ? 0.3 : 1));
   if (b.smugaCzas > 0) b.smugaCzas -= dt; else b.smuga = Math.max(0, b.smuga - 60 * dt);
-  if (b.seriaCzas > 0) { b.seriaCzas -= dt; if (b.seriaCzas <= 0) b.seria = 0; }
+  if (b.seriaCzas > 0) { b.seriaCzas -= dt; if (b.seriaCzas <= 0) b.rozped = 0; }
 }
 
 function zuzyjSile(b, ile) { b.sila = Math.max(0, b.sila - ile); b.odnowaZa = BOHATER.opoznienieOdnowy; }
@@ -123,58 +169,80 @@ function zacznijUnik(gra, rx, ry, rl) {
   b.stan = 'unik'; b.t = 0; b.cios = null; b.blok = false;
   b.unikKat = rl > 0.2 ? Math.atan2(ry, rx) : b.kat + Math.PI;     // bez kierunku: odskok do tyłu
   b.nietykalny = BOHATER.unik.nietykalny;
-  b.kolejkaAtaku = false;
+  b.kolejkaAtaku = false; b.rozped = 0;
   zuzyjSile(b, BOHATER.unik.koszt);
 }
 
-function zacznijCios(gra, w) {
-  const b = gra.bohater;
+// Branie zamachu. Cios zadany zaraz po poprzednim ma rozpęd i idzie w drugą stronę.
+function zacznijCios(gra, w, zaraz = false) {
+  const b = gra.bohater, bron = gra.bron;
   b.kolejkaAtaku = false;
-  const typ = BOHATER.seria[b.seriaCzas > 0 ? b.seria : 0];
-  const cfg = BOHATER.ciosy[typ];
-  if (b.sila < cfg.koszt * 0.4) return;                            // brak sił: bohater nie podniesie miecza
-  let kat = w.atakKat;
-  if (kat == null && w.kat == null) { const e = najblizszyWrog(gra, 150); if (e) kat = Math.atan2(e.y - b.y, e.x - b.x); }
-  if (kat == null) kat = b.kat;
+  if (b.sila < bron.koszt * 0.4) return;                            // brak sił: bohater nie podniesie miecza
+  const seria = zaraz || b.seriaCzas > 0;
+  b.rozped = seria ? Math.min(BOHATER.rozped.max, b.rozped + 1) : 0;
+  b.strona = seria ? -b.strona : 1;
+  b.seriaCzas = 0;
+  const kat = celKat(gra, w);
   b.kat = kat;
-  b.stan = 'cios'; b.cios = { typ, t: 0, trafil: false, utknal: false, kat };
-  b.seria = (BOHATER.seria.indexOf(typ) + 1) % BOHATER.seria.length;
-  zuzyjSile(b, cfg.koszt);
-  gra.zdarzenia.push({ typ: 'zamach', ciezki: !!cfg.ciezki });
+  const c = {
+    faza: 'zamach', t: 0, kat, kier: b.strona, mocny: false, naladowanie: 0, pelny: false,
+    utknal: false, trafieni: new Set(), trafienia: 0, wTejKlatce: 0,
+    czasZamachu: bron.zamach * (1 - BOHATER.rozped.skrocenie * b.rozped), czasCiecia: bron.ciecie, czasPowrotu: bron.powrot,
+  };
+  ustawLuk(gra, c);
+  b.stan = 'cios'; b.cios = c;
+  zuzyjSile(b, bron.koszt);
 }
 
-function rozstrzygnijCios(gra) {
-  const b = gra.bohater, c = b.cios, cfg = BOHATER.ciosy[c.typ];
-  c.trafil = true;
-  b.odrzutX += Math.cos(c.kat) * 90; b.odrzutY += Math.sin(c.kat) * 90;   // krok za ciosem
+// Miecz rusza: od tej chwili kierunek jest ustalony.
+function zacznijCiecie(gra, mocny) {
+  const b = gra.bohater, c = b.cios, bron = gra.bron;
+  c.faza = 'ciecie'; c.t = 0; c.mocny = mocny;
+  if (mocny) { zuzyjSile(b, bron.koszt * MOCNY.koszt); c.czasCiecia = bron.ciecie * MOCNY.ciecie; b.rozped = 0; }
+  ustawLuk(gra, c);
+  b.odrzutX += Math.cos(c.kat) * bron.krok * 5; b.odrzutY += Math.sin(c.kat) * bron.krok * 5;   // krok za ciosem
+  gra.zdarzenia.push({ typ: 'zamach', ciezki: mocny || bron.obrazenia >= 3, mocny });
+}
+
+// Ostrze przechodzi po łuku i trafia wrogów po kolei, tak jak ich mija.
+// „Miecz, który waży”: słabych przecina na wylot, w ciężkim grzęźnie i dalej nie leci.
+function tnij(gra, dt) {
+  const b = gra.bohater, c = b.cios, bron = gra.bron;
+  const q = Math.min(1, c.t / c.czasCiecia), e = 1 - (1 - q) * (1 - q);
+  c.aktualny = c.od + (c.do - c.od) * e;
+  const przeszlo = Math.abs(c.aktualny - c.od), kier = Math.sign(c.do - c.od) || 1;
+  const zasieg = bron.zasieg * (c.mocny ? MOCNY.zasieg : 1);
+  let nowe = 0;
   const cele = [];
-  for (const e of gra.wrogowie) {
-    if (e.stan === 'wynurza' || e.stan === 'martwy') continue;
-    const dx = e.x - b.x, dy = (e.y - b.y), d = Math.hypot(dx, dy) - e.promien;
-    if (d > cfg.zasieg) continue;
-    if (Math.abs(rozn(Math.atan2(dy, dx), c.kat)) > cfg.luk && d > 18) continue;
-    cele.push({ e, d });
+  for (const e2 of gra.wrogowie) {
+    if (e2.stan === 'wynurza' || e2.stan === 'martwy' || c.trafieni.has(e2)) continue;
+    const dx = e2.x - b.x, dy = e2.y - b.y, d = Math.hypot(dx, dy);
+    if (d - e2.promien > zasieg) continue;
+    const tol = Math.atan2(e2.promien, Math.max(d, 1)) + (d < b.promien + e2.promien + 10 ? 0.6 : 0);
+    let r = kier * (Math.atan2(dy, dx) - c.od); r = ((r % TAU) + TAU) % TAU; if (r > TAU - tol) r -= TAU;
+    if (r <= przeszlo + tol) cele.push({ e: e2, r, d });
   }
-  cele.sort((p, q) => p.d - q.d);
-  let trafien = 0;
-  // „Miecz, który waży”: słabych przecina na wylot, w ciężkim grzęźnie i dalej nie leci
-  for (const { e } of cele) {
-    const obr = cfg.obrazenia * (e.stan === 'ogluszony' ? 2 : 1);
-    zranWroga(gra, e, obr, c.kat, cfg.odrzut, !!cfg.ciezki);
-    trafien++;
+  cele.sort((p, q2) => p.r - q2.r);
+  for (const { e: wrog, d } of cele) {
+    c.trafieni.add(wrog);
+    const obr = Math.round(bron.obrazenia * (c.mocny ? MOCNY.obrazenia : 1)) * (wrog.stan === 'ogluszony' ? 2 : 1);
+    const katOd = Math.atan2(wrog.y - b.y, wrog.x - b.x);
+    zranWroga(gra, wrog, obr, katOd, bron.odrzut * (c.mocny ? MOCNY.odrzut : 1), bron.przerywa || c.mocny);
+    nowe++; c.trafienia++;
     krewZaKrew(b);
-    if (e.typ.ciezki && e.zycie > 0) {
+    if (wrog.typ.ciezki && wrog.zycie > 0 && !bron.przecinaCiezkich && !c.mocny) {
       c.utknal = true;
       gra.zatrzymanie = Math.max(gra.zatrzymanie, BOHATER.miecz.zatrzymanieGrzeznie);
-      iskry(gra, e.x - Math.cos(c.kat) * e.promien, e.y - 30 - Math.sin(c.kat) * e.promien, 10);
+      iskry(gra, wrog.x - Math.cos(katOd) * wrog.promien, wrog.y - 30 - Math.sin(katOd) * wrog.promien, 10);
       gra.zdarzenia.push({ typ: 'grzeznie' });
       break;
     }
   }
-  if (trafien) {
-    gra.zatrzymanie = Math.max(gra.zatrzymanie, BOHATER.miecz.zatrzymanie * (cfg.ciezki ? 1.6 : 1) * (trafien > 2 ? 1.4 : 1));
-    gra.wstrzas = Math.max(gra.wstrzas, cfg.ciezki ? 8 : 4);
-    gra.zdarzenia.push({ typ: 'trafienie', ile: trafien });
+  if (nowe) {
+    const ciezar = 0.6 + 0.4 * bron.obrazenia, pierwsze = c.trafienia === nowe;
+    gra.zatrzymanie = Math.max(gra.zatrzymanie, BOHATER.miecz.zatrzymanie * ciezar * (c.mocny ? 1.5 : 1) * (pierwsze ? 1 : 0.5));
+    gra.wstrzas = Math.max(gra.wstrzas, (c.mocny ? 10 : 2 + bron.obrazenia * 2));
+    gra.zdarzenia.push({ typ: 'trafienie', ile: nowe, mocny: c.mocny });
   }
 }
 
@@ -244,12 +312,12 @@ function nowyWrog(typNazwa, punkt) {
   };
 }
 
-function zranWroga(gra, e, ile, kat, odrzut, ciezkiCios) {
+function zranWroga(gra, e, ile, kat, odrzut, przerywa) {
   e.zycie -= ile; e.flash = 0.12;
   const sila = odrzut / (e.typ.ciezki ? 6 : 1);
   e.vx += Math.cos(kat) * sila; e.vy += Math.sin(kat) * sila;
-  // lekkie cięcie nie przerywa zamachu ghula: przerwie go tylko ciężki cios, parowanie albo śmierć
-  if (ciezkiCios && !e.typ.ciezki && e.stan === 'zamach') { e.stan = 'odpoczynek'; e.t = e.typ.odpoczynek - 0.35; }
+  // lekki miecz nie przerywa zamachu ghula: przerwie go cięższy miecz, mocny cios, parowanie albo śmierć
+  if (przerywa && !e.typ.ciezki && e.stan === 'zamach') { e.stan = 'odpoczynek'; e.t = e.typ.odpoczynek - 0.35; }
   const n = e.typ.ciezki ? 6 : 9;
   for (let i = 0; i < n; i++) gra.krew.push({ x: e.x, y: e.y, z: 22 * e.typ.skala, vx: Math.cos(kat) * losuj(40, 170) + losuj(-50, 50), vy: Math.sin(kat) * losuj(40, 170) + losuj(-50, 50), vz: losuj(40, 170), r: losuj(1.3, 2.8) });
   if (e.zycie <= 0) {
@@ -293,7 +361,7 @@ function aktualizujWrogow(gra, dt) {
       e.drzy = (Math.random() - 0.5) * 2.4;
       if (e.t >= typ.zamach) {
         e.stan = 'skok'; e.t = 0; e.drzy = 0; e.trafil = false;
-        if (!typ.ciezki) { e.vx = Math.cos(e.kat) * 360; e.vy = Math.sin(e.kat) * 360; }
+        if (!typ.ciezki) { e.vx = Math.cos(e.kat) * 400; e.vy = Math.sin(e.kat) * 400; }
         else { gra.wstrzas = Math.max(gra.wstrzas, 10); gra.zdarzenia.push({ typ: 'tapniecie' }); }
       }
     } else if (e.stan === 'skok') {

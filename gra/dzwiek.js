@@ -35,7 +35,11 @@ export function zagraj(z) {
   if (!ac || !wlaczony || ac.state !== 'running') return;
   const t = ac.currentTime;
   switch (z.typ) {
-    case 'zamach': z.ciezki ? szum(t, 0.22, 'bandpass', 350, 1300, 0.35, 1.2) : szum(t, 0.12, 'bandpass', 900, 2600, 0.22, 1.4); break;
+    case 'zamach':
+      if (z.mocny) { szum(t, 0.32, 'bandpass', 250, 1100, 0.5, 1); ton(t, 0.25, 'sawtooth', 110, 60, 0.08); }
+      else if (z.ciezki) szum(t, 0.22, 'bandpass', 350, 1300, 0.35, 1.2); else szum(t, 0.13, 'bandpass', 700, 2200, 0.25, 1.3);
+      break;
+    case 'naladowany': ton(t, 0.2, 'sine', 520, 980, 0.18); break;
     case 'trafienie': ton(t, 0.12, 'sine', 140, 45, 0.6); szum(t, 0.08, 'lowpass', 2200, 500, 0.35); break;
     case 'grzeznie': ton(t, 0.18, 'square', 190, 120, 0.12); szum(t, 0.16, 'bandpass', 1800, 900, 0.3, 3); break;
     case 'blok': ton(t, 0.12, 'triangle', 950, 700, 0.22); szum(t, 0.06, 'highpass', 3000, 2000, 0.2); break;

@@ -137,3 +137,35 @@ Pierwszy kod nowej gry. Patryk chciał zobaczyć walkę, mapę większą niż w 
 3. **Ogień musi stać w świecie, a nie nad nim.** Na pierwszych zrzutach płomienie przykrywały kolosa, który stał przed ogniskiem. Teraz ogień jest sortowany razem z postaciami.
 
 **Co jest prowizorką:** bohater, ghule, kolos i las są rysowane kodem, dopóki nie przyjdą obrazy z Gemini. Dźwięki też składa przeglądarka, bez plików. Płot nadal jest częścią obrazu chaty (pomysł „Budynek, płot i podwórko jako osobne obrazy” w dzienniku).
+
+## 9. Nowy styl walki: waga miecza i atak pod palcem (23 XI wieczorem)
+
+**Patryk, 23 XI, 21:22, dosłownie:** *„walka jest źle zachowana bo lewym muszę sterować mam unik i blok ale słabo wyszło z atakiem który wczęsniej wersji nie był zły ale nie był tez dobry brakowało mi w tym mojego wykorzystania, można tez wsiąść pod uwagę wagę broni bo jednak jest to gust, popraw styl walki ten mi się nie podoba”*
+
+**Jak to zrozumiałem** (do potwierdzenia przez Patryka): atak był najsłabszą częścią sterowania. Ruch i przyciski Blok i Unik były w porządku. Za to stuknięcia i przeciągnięcia po prawej stronie ekranu nie dawały poczucia, że to gracz prowadzi miecz, i tak samo było z gestami w wersji 1. Do tego miecz nie miał wagi, a waga to kwestia gustu, więc warto dać wybór.
+
+**Co się zmieniło:**
+
+1. **Przycisk Tnij działa jak drążek.** Stuknięcie tnie najbliższego wroga. Przeciągnięcie celuje: na ziemi widać łuk, który obejmie cięcie, a cios wychodzi po puszczeniu palca. Przytrzymanie ładuje mocny cios. Na komputerze jest tak samo z lewym przyciskiem myszy. Przytrzymanie ładowało cios już w wersji 1. Nowe jest celowanie palcem i widoczny łuk.
+2. **Miecz ma wagę.** Każdy cios ma trzy fazy: zamach (miecz idzie do tyłu i w górę, jeszcze można wycelować albo przerwać go blokiem lub unikiem), cięcie po łuku (ostrze trafia wrogów po kolei, tak jak ich mija) i powrót (miecz ciągnie dalej i wraca; przerwie go tylko unik). Bohater robi krok za ciosem i z mieczem w ręku chodzi wolniej.
+3. **Rozpęd.** Cios zadany od razu po poprzednim idzie w drugą stronę i ma krótszy zamach, do dwóch stopni. Ciężar pracuje dla gracza, jeśli nie da mieczowi stanąć. Zastępuje sztywną serię „prawo, lewo, góra”.
+4. **Mocny cios.** Po pełnym naładowaniu krąg pod stopami się zapełnia, a ostrze się żarzy. Mocny cios ma szerszy łuk, większe rany i przechodzi przez każdego wroga, także przez kolosa.
+5. **Trzy miecze do wyboru** (ekran startu i pauza, gra zapamiętuje wybór):
+
+| Miecz | Zamach | Rany | Zasięg | Co go wyróżnia |
+| --- | --- | --- | --- | --- |
+| Miecz | 0,09 s | 1 | 92 | szybki, nie przerywa ataku ghula, w kolosie grzęźnie |
+| Półtoraręczny (domyślny) | 0,17 s | 2 | 110 | złoty środek, w kolosie grzęźnie |
+| Wielki miecz | 0,30 s | 3 | 128 | wolny, ghula zabija jedno cięcie, przechodzi przez kolosa |
+
+**Próba botem** (`node testy/bot-noc.mjs <prosty|dobry> <miecz|poltorareczny|wielki>`, po 5 nocy). Wszystkie trzy miecze dochodzą do świtu, a liczba ran za noc wychodzi tak:
+
+| Miecz | Bot, który tylko tnie | Bot, który blokuje i odskakuje |
+| --- | --- | --- |
+| Miecz | 21 | 20 |
+| Półtoraręczny | 9 | 10 |
+| Wielki miecz | 1 | 0 |
+
+Wielki miecz jest dla bota prawie bezpieczny, bo sięga dalej, niż ghul skacze, i zabija jednym cięciem. Bot zawsze tnie we właściwej chwili, a człowiek nie, więc zostawiam to do oceny Patryka. Gdyby był za łatwy, w [gra/dane.js](../gra/dane.js) wystarczy zmienić jedną liczbę: zasięg albo rany.
+
+**Czego się nauczyliśmy:** przerywanie zamachu ghula każdym trafieniem robiło z cięższych mieczy tarczę. Przy takim przerywaniu bot z półtoraręcznym dostawał 1 ranę za noc, a bez niego dostaje 9. Dlatego atak ghula przerywa teraz tylko mocny cios, parowanie albo śmierć.

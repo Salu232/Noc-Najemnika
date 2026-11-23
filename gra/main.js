@@ -1,5 +1,6 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj } from './walka.js';
+import { nowaGra, aktualizuj, ustawBron } from './walka.js';
+import { BRONIE, DOMYSLNA_BRON } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
@@ -42,11 +43,26 @@ async function start() {
 
   const wejscie = przygotujWejscie(cv, {
     ekranNaSwiat: rys.ekranNaSwiat,
-    elementy: { przyciski: $('przyciski'), blok: $('przycisk-blok'), unik: $('przycisk-unik'), drazekTlo: $('drazek-tlo'), drazekGalka: $('drazek-galka') },
+    elementy: { przyciski: $('przyciski'), tnij: $('przycisk-tnij'), blok: $('przycisk-blok'), unik: $('przycisk-unik'), drazekTlo: $('drazek-tlo'), drazekGalka: $('drazek-galka'), celTlo: $('cel-tlo'), celGalka: $('cel-galka') },
   });
   const hud = przygotujHud();
 
-  let gra = nowaGra(), pauza = true, zaczeta = false;
+  // wybór miecza: waga to gust; zapamiętany w tej przeglądarce
+  let bron = DOMYSLNA_BRON;
+  try { const z = localStorage.getItem('noc-bron'); if (z && BRONIE[z]) bron = z; } catch (e) { /* bez pamięci */ }
+  let gra = nowaGra(bron), pauza = true, zaczeta = false;
+  function pokazBronie() {
+    for (const grupa of document.querySelectorAll('.bronie')) {
+      if (!grupa.children.length) for (const k in BRONIE) {
+        const b = document.createElement('button'); b.type = 'button'; b.dataset.bron = k; b.textContent = BRONIE[k].nazwa;
+        b.addEventListener('click', () => { bron = k; ustawBron(gra, k); try { localStorage.setItem('noc-bron', k); } catch (e) { /* */ } pokazBronie(); });
+        grupa.appendChild(b);
+      }
+      for (const b of grupa.children) b.setAttribute('aria-pressed', String(b.dataset.bron === bron));
+    }
+    for (const o of document.querySelectorAll('.opis-broni')) o.textContent = `${BRONIE[bron].nazwa}. ${BRONIE[bron].opis}`;
+  }
+  pokazBronie();
   window.__gra = () => gra;                       // do testów: podgląd stanu z konsoli
 
   addEventListener('resize', () => rys.rozmiar());
@@ -71,7 +87,7 @@ async function start() {
     const wl = przelaczDzwiek(); for (const x of document.querySelectorAll('.przycisk-dzwiek')) x.textContent = wl ? 'Dźwięk: włączony' : 'Dźwięk: wyłączony';
   });
   $('jeszcze-raz').addEventListener('click', () => {
-    gra = nowaGra(); rys.wyczysc(); pokaz('ekran-konca', false); pauza = false;
+    gra = nowaGra(bron); rys.wyczysc(); pokaz('ekran-konca', false); pauza = false;
   });
 
   function pokazKoniec() {

@@ -8,8 +8,12 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 23 XI 2026 | Patryk | Waga broni, bo to kwestia gustu | zrobiony | trzy miecze do wyboru: lekki, półtoraręczny i wielki; [docs/walka.md](../docs/walka.md), punkt 9 |
+| 23 XI 2026 | Claude | Przycisk Tnij jak drążek: stuknięcie, celowanie przeciągnięciem z łukiem na ziemi, przytrzymanie ładuje mocny cios | zrobiony | po uwadze Patryka, że brakowało mu w ataku „swojego wykorzystania”; ładowanie przytrzymaniem było już w wersji 1 |
+| 23 XI 2026 | Claude | Cios w trzech fazach: zamach, cięcie po łuku (trafia wrogów po kolei), powrót | zrobiony | waga miecza widoczna w ruchu; [docs/walka.md](../docs/walka.md), punkt 9 |
+| 23 XI 2026 | Claude | Rozpęd: cios zaraz po poprzednim idzie w drugą stronę i ma krótszy zamach | zrobiony | zastępuje sztywną serię „prawo, lewo, góra” |
 | 23 XI 2026 | Claude | Bot, który gra całą noc samą logiką i liczy rany, upadki i czas | zrobiony | [testy/bot-noc.mjs](../testy/bot-noc.mjs); znalazł, że ghule prawie nie trafiały |
-| 23 XI 2026 | Claude | Lekkie cięcie nie przerywa zamachu ghula, przerywa go tylko ciężki cios, parowanie albo śmierć | zrobiony | wniosek z bota, [docs/walka.md](../docs/walka.md), punkt 8 |
+| 23 XI 2026 | Claude | Zwykłe cięcie nie przerywa zamachu ghula, przerywa go tylko mocny cios, parowanie albo śmierć | zrobiony | wniosek z bota, [docs/walka.md](../docs/walka.md), punkty 8 i 9 |
 | 23 XI 2026 | Claude | Napisy nad głową: „Sparowane!”, „Miecz grzęźnie”, „Unik”, odzyskana krew | zrobiony | żeby było widać, która zasada walki właśnie zadziałała; można je później wyłączyć |
 | 23 XI 2026 | Claude | Zarys bohatera widać przez chatę i drzewa, gdy za nimi stoi | zrobiony | jak w „Próbie chaty” |
 | 23 XI 2026 | Claude | Licznik klatek i rodzaj rysowania w rogu ekranu | zrobiony | gra sama mówi, czy telefon rysuje kartą graficzną |
@@ -77,6 +81,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Kto | Co powiedział (skrót) | Co z tym zrobiliśmy |
 | --- | --- | --- | --- |
+| 23 XI 2026 | Patryk | „Polana we mgle”: ruch, unik i blok w porządku, ale atak słaby, brakowało mu w nim „swojego wykorzystania”; styl walki mu się nie podoba; waga broni to gust | nowy styl walki: przycisk Tnij jak drążek, miecz z wagą, trzy miecze do wyboru; [docs/walka.md](../docs/walka.md), punkt 9 |
 | 23 XI 2026 | Patryk | Bardzo spodobała mu się „Próba chaty”: fajny klimat | kierunek grafiki się potwierdza; czekamy na kolejne obrazy z Gemini |
 | 22 XI 2026 | Przemek | Pochwalił scenę z chatą z Gemini („Próba chaty”) | pierwszy dobry znak dla obrazów z Gemini w grze; czekamy na kolejne obrazy |
 | 22 XI 2026 | Przemek | Walczyło się fajnie, ale jest bardzo dużo błędów | rdzeń walki przenosimy, resztę budujemy od nowa |

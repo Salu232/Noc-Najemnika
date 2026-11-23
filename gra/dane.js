@@ -12,32 +12,62 @@ export const BOHATER = {
   unik: { koszt: 24, czas: 0.32, dystans: 150, nietykalny: 0.24 },
   blok: { kosztNaCios: 14, oknoParowania: 0.18, spowolnienie: 0.45, kat: 1.35 },
 
-  // Seria trzech ciosów: w prawo, w lewo i ciężki z góry.
-  ciosy: {
-    prawo: { koszt: 10, zamach: 0.07, czas: 0.26, zasieg: 98, luk: 1.25, obrazenia: 1, odrzut: 170, od: -1.35, do: 1.35 },
-    lewo: { koszt: 10, zamach: 0.07, czas: 0.26, zasieg: 98, luk: 1.25, obrazenia: 1, odrzut: 170, od: 1.35, do: -1.35 },
-    gora: { koszt: 18, zamach: 0.16, czas: 0.40, zasieg: 116, luk: 0.95, obrazenia: 2, odrzut: 430, od: -1.0, do: 1.0, ciezki: true },
-  },
-  seria: ['prawo', 'lewo', 'gora'],
-  oknoSerii: 0.45,         // ile czasu po ciosie można dołożyć następny w serii
+  // Ciosy idą na zmianę: w prawo, w lewo, w prawo… Każdy następny zadany od razu po poprzednim
+  // ma rozpęd: krótszy zamach (ciężar miecza pracuje dla ciebie, jeśli nie dasz mu stanąć).
+  rozped: { max: 2, skrocenie: 0.22 },   // do 2 stopni, każdy skraca zamach o 22%
+  oknoSerii: 0.35,         // ile czasu po powrocie miecza można dołożyć następny cios z rozpędem
 
   // Pomysł „Krew za krew” (docs/walka.md, punkt 7.2)
   krewZaKrew: { czas: 3, zaTrafienie: 7 },
 
-  // Pomysł „Miecz, który waży” (docs/walka.md, punkt 7.3)
+  // Pomysł „Miecz, który waży” (docs/walka.md, punkt 7.3): ile trwa wyrywanie miecza z kolosa
+  // i jak długo gra staje przy trafieniu
   miecz: { grzeznie: 0.32, zatrzymanie: 0.05, zatrzymanieGrzeznie: 0.13 },
 };
+
+// Broń: waga to gust (Patryk, 23 XI), więc są trzy miecze do wyboru w menu gry.
+// zamach: ile trwa wzięcie miecza do ciosu; ciecie: jak szybko ostrze przechodzi łuk; powrot: ile trwa,
+// zanim miecz znów jest gotowy. luk: połowa szerokości cięcia (w radianach), krok: ile bohater idzie za ciosem.
+// ruch: jak szybko bohater chodzi w trakcie ciosu (część zwykłej szybkości). przerywa: czy cios przerywa zamach ghula.
+// przecinaCiezkich: czy przechodzi przez kolosa zamiast w nim grzęznąć. ladowanie: ile trzymać, żeby cios był mocny.
+export const BRONIE = {
+  miecz: {
+    nazwa: 'Miecz', opis: 'Lekki i szybki. Dużo cięć, małe rany, nie przerywa ataku ghula.',
+    dlugosc: 58, szerokosc: 3,
+    zamach: 0.09, ciecie: 0.11, powrot: 0.16, zasieg: 92, luk: 0.95,
+    obrazenia: 1, odrzut: 160, koszt: 8, krok: 30, ruch: 0.5,
+    przerywa: false, przecinaCiezkich: false, ladowanie: 0.45,
+  },
+  poltorareczny: {
+    nazwa: 'Półtoraręczny', opis: 'Złoty środek. Ghul pada od jednego albo dwóch cięć, a w kolosie miecz grzęźnie.',
+    dlugosc: 72, szerokosc: 3.8,
+    zamach: 0.17, ciecie: 0.13, powrot: 0.26, zasieg: 110, luk: 1.05,
+    obrazenia: 2, odrzut: 260, koszt: 13, krok: 50, ruch: 0.35,
+    przerywa: false, przecinaCiezkich: false, ladowanie: 0.6,
+  },
+  wielki: {
+    nazwa: 'Wielki miecz', opis: 'Ciężki i wolny. Ghula zabija jedno cięcie, a miecz przechodzi nawet przez kolosa.',
+    dlugosc: 92, szerokosc: 5.6,
+    zamach: 0.3, ciecie: 0.17, powrot: 0.42, zasieg: 128, luk: 1.2,
+    obrazenia: 3, odrzut: 420, koszt: 20, krok: 70, ruch: 0.2,
+    przerywa: false, przecinaCiezkich: true, ladowanie: 0.8,
+  },
+};
+export const DOMYSLNA_BRON = 'poltorareczny';
+
+// Mocny cios: przytrzymaj atak, aż miecz się naładuje, i puść. Szerszy łuk, większe rany, przechodzi przez wszystko.
+export const MOCNY = { luk: 0.7, zasieg: 1.15, obrazenia: 2.5, odrzut: 1.8, koszt: 0.8, ciecie: 1.25, ruchLadowania: 0.3 };
 
 export const WROGOWIE = {
   ghul: {
     nazwa: 'ghul',
-    zycie: [2, 3],         // losowo od-do (seria trzech ciosów zabija każdego)
+    zycie: [2, 3],         // losowo od-do
     szybkosc: [80, 105],
     promien: 13,
     skala: 1.25,
-    zasiegAtaku: 58,
+    zasiegAtaku: 72,
     zamach: 0.45,          // jak długo zapowiada atak
-    skok: 0.18,
+    skok: 0.22,
     obrazenia: 12,
     odpoczynek: 1.1,
     ciezki: false,
@@ -53,7 +83,7 @@ export const WROGOWIE = {
     skok: 0.25,
     obrazenia: 30,
     odpoczynek: 1.7,
-    ciezki: true,          // miecz w nim grzęźnie
+    ciezki: true,          // miecz w nim grzęźnie (chyba że to wielki miecz albo mocny cios)
     strefa: 78,            // promień uderzenia w ziemię
   },
 };

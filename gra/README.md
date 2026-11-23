@@ -4,12 +4,12 @@ Każdy plik robi jedną rzecz. Logika nie wie nic o rysowaniu, a rysowanie nicze
 
 | Plik | Co robi |
 | --- | --- |
-| [dane.js](dane.js) | **liczby gry:** bohater, ciosy, blok, unik, ghul, kolos, etapy nocy. Tu zmieniamy siłę i trudność |
+| [dane.js](dane.js) | **liczby gry:** bohater, trzy miecze, mocny cios, blok, unik, ghul, kolos, etapy nocy. Tu zmieniamy siłę i trudność |
 | [swiat.js](swiat.js) | mapa: wielkość, chata, płot, ognisko, mgły, las i zderzenia z nimi |
-| [walka.js](walka.js) | logika: ruch, cięcia, blok, parowanie, unik, Krew za krew, Miecz który waży, wrogowie i etapy nocy |
+| [walka.js](walka.js) | logika: ruch, cios w fazach (zamach, cięcie po łuku, powrót), rozpęd, mocny cios, blok, parowanie, unik, Krew za krew, Miecz który waży, wrogowie i etapy nocy |
 | [rysowanie.js](rysowanie.js) | obraz w PixiJS: ziemia, las, chata, postacie, krew, mgła, noc z wyciętym światłem, deszcz |
 | [obrazki.js](obrazki.js) | rysunki robione kodem, dopóki nie ma obrazów z Gemini: sosny, ghul, kolos, światło, mgła |
-| [wejscie.js](wejscie.js) | sterowanie: klawiatura i mysz, kciuki i przyciski na telefonie |
+| [wejscie.js](wejscie.js) | sterowanie: klawiatura i mysz, drążek ruchu, przycisk Tnij jak drążek (stuknij, celuj, ładuj) oraz Blok i Unik |
 | [hud.js](hud.js) | pasek życia i sił, nazwa etapu, myśl bohatera, licznik klatek |
 | [dzwiek.js](dzwiek.js) | dźwięki składane w przeglądarce, bez plików |
 | [main.js](main.js) | składa wszystko razem: wczytuje PixiJS i obraz chaty, prowadzi pętlę gry, pauzę i koniec nocy |

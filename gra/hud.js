@@ -21,7 +21,7 @@ export function przygotujHud() {
     ustaw('smuga', `${z.toFixed(1)}|${s.toFixed(1)}`, () => { el.smuga.style.left = z + '%'; el.smuga.style.width = s + '%'; });
     ustaw('smugaZyje', b.smugaCzas > 0 && b.smuga > 0, v => el.smuga.classList.toggle('zywa', v));
     ustaw('sila', (b.sila / BOHATER.sila * 100).toFixed(0), v => { el.sila.style.width = v + '%'; });
-    ustaw('slaby', b.sila < BOHATER.ciosy.prawo.koszt, v => el.sila.classList.toggle('pusta', v));
+    ustaw('slaby', b.sila < gra.bron.koszt, v => el.sila.classList.toggle('pusta', v));
     ustaw('etap', etapNazwa(gra), v => { el.etap.textContent = v; });
     const pokazMysl = gra.mysl.czas > 0 ? gra.mysl.tekst : '';
     ustaw('mysl', pokazMysl, v => { el.mysl.textContent = v; el.mysl.classList.toggle('widac', !!v); });
