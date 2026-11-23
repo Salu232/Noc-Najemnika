@@ -21,24 +21,31 @@ async function zaladujPixi() {
   for (const a of PIXI_ADRESY) { try { await zaladujSkrypt(a); if (window.PIXI) return; } catch (e) { /* następny adres */ } }
   throw new Error('nie udało się pobrać biblioteki PixiJS');
 }
-function zaladujObraz(url) {
-  return new Promise((ok, zle) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => zle(new Error('brak obrazu chaty')); i.src = url; });
+function zaladujObraz(url, co) {
+  return new Promise((ok, zle) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => zle(new Error('brak obrazu: ' + co)); i.src = url; });
 }
 
 function pokaz(id, widac) { $(id).hidden = !widac; }
 
 async function start() {
   const cv = $('gra');
-  let obraz;
+  let obraz, obrazBohatera;
   try {
-    [, obraz] = await Promise.all([zaladujPixi(), zaladujObraz(new URL('../grafika/chata.webp', import.meta.url).href)]);
+    [, obraz, obrazBohatera] = await Promise.all([
+      zaladujPixi(), zaladujObraz(new URL('../grafika/chata.webp', import.meta.url).href, 'chata'),
+      zaladujObraz(new URL('../grafika/bohater.webp', import.meta.url).href, 'bohater').catch(() => null),   // bez niego gra rysuje bohatera kodem
+    ]);
   } catch (e) {
     $('ladowanie').textContent = 'Nie udało się wczytać gry: ' + e.message + '. Odśwież stronę.';
     return;
   }
 
   let rys;
-  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search) }); }
+  // bohater: obraz z Gemini albo rysowany kodem; wybór zapamiętany w tej przeglądarce (do porównania)
+  let wyglad = 'gemini';
+  try { if (localStorage.getItem('noc-bohater') === 'rysowany') wyglad = 'rysowany'; } catch (e) { /* bez pamięci */ }
+  if (/bohater=rysowany/.test(location.search)) wyglad = 'rysowany';
+  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, bohater: wyglad }); }
   catch (e) { $('ladowanie').textContent = 'Ta przeglądarka nie umie narysować gry: ' + (e && e.message || e); return; }
 
   const wejscie = przygotujWejscie(cv, {
@@ -83,6 +90,13 @@ async function start() {
   $('przycisk-pauza').addEventListener('click', zatrzymaj);
   addEventListener('keydown', e => { if (e.key === 'Escape' || e.key.toLowerCase() === 'p') { if (pauza && zaczeta && gra.faza !== 'koniec') wznow(); else zatrzymaj(); } });
   document.addEventListener('visibilitychange', () => { if (document.hidden) zatrzymaj(); });
+  const napisBohatera = () => { for (const x of document.querySelectorAll('.przycisk-bohater')) { x.hidden = !rys.maBohateraZGemini; x.textContent = rys.bohater === 'gemini' ? 'Bohater: z Gemini' : 'Bohater: rysowany kodem'; } };
+  napisBohatera();
+  for (const b of document.querySelectorAll('.przycisk-bohater')) b.addEventListener('click', () => {
+    const t = rys.ustawBohatera(rys.bohater === 'gemini' ? 'rysowany' : 'gemini');
+    try { localStorage.setItem('noc-bohater', t); } catch (e) { /* */ }
+    napisBohatera();
+  });
   for (const b of document.querySelectorAll('.przycisk-dzwiek')) b.addEventListener('click', () => {
     const wl = przelaczDzwiek(); for (const x of document.querySelectorAll('.przycisk-dzwiek')) x.textContent = wl ? 'Dźwięk: włączony' : 'Dźwięk: wyłączony';
   });
@@ -99,10 +113,12 @@ async function start() {
     pokaz('ekran-konca', true);
   }
 
+  // ?tempo=0.25 zwalnia grę czterokrotnie: do oglądania animacji klatka po klatce i do testów
+  const tempo = Math.min(1, Math.max(0.05, Number(new URLSearchParams(location.search).get('tempo')) || 1));
   let ostatni = performance.now();
   function klatka(teraz) {
     requestAnimationFrame(klatka);
-    const dt = Math.min(0.05, Math.max(0, (teraz - ostatni) / 1000)); ostatni = teraz;
+    const dt = Math.min(0.05, Math.max(0, (teraz - ostatni) / 1000)) * tempo; ostatni = teraz;
     const w = wejscie.odczytaj(gra);
     if (!pauza && gra.faza !== 'koniec') aktualizuj(gra, dt, w);
     const zd = gra.zdarzenia.splice(0);

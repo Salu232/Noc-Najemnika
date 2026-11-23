@@ -169,3 +169,22 @@ Pierwszy kod nowej gry. Patryk chciał zobaczyć walkę, mapę większą niż w 
 Wielki miecz jest dla bota prawie bezpieczny, bo sięga dalej, niż ghul skacze, i zabija jednym cięciem. Bot zawsze tnie we właściwej chwili, a człowiek nie, więc zostawiam to do oceny Patryka. Gdyby był za łatwy, w [gra/dane.js](../gra/dane.js) wystarczy zmienić jedną liczbę: zasięg albo rany.
 
 **Czego się nauczyliśmy:** przerywanie zamachu ghula każdym trafieniem robiło z cięższych mieczy tarczę. Przy takim przerywaniu bot z półtoraręcznym dostawał 1 ranę za noc, a bez niego dostaje 9. Dlatego atak ghula przerywa teraz tylko mocny cios, parowanie albo śmierć.
+
+## 10. Animacje walki i bohater z Gemini (23 XI, wieczorem)
+
+**Patryk, 23 XI, 23:05, dosłownie:** *„ciekawe ale jednak główny bohater to jest jeszcze nie ten wygląd jest zbyt prosty, nie wyróżnia się niczym szczególnym ale powiem ze walka juz jest ciekawa może nie do konca to co chce, możemy dodać, animacje do naszych walk, ale charakter postaci musimy jeszcze dopracować, co najlepsze mam do tego gemina”*. O 23:10 przysłał arkusz bohatera z Gemini w sześciu pozach walki.
+
+**Co się zmieniło:**
+
+1. **Bohater z Gemini.** Gra pokazuje pozę z arkusza według fazy ciosu: zamach, cięcie, uderzenie, a do tego spoczynek, plecy i wypad. Rozpisane w [docs/grafika.md](grafika.md), punkt 7. Bohatera rysowanego kodem da się włączyć przyciskiem na ekranie startu i w pauzie.
+2. **Ciało idzie za mieczem.** Przy zamachu bohater odchyla się i ugina nogi, przy cięciu pochyla się do przodu z wykrokiem, a potem wraca. Cięższy miecz mocniej rzuca ciałem. W bloku stoi nisko na szerokich nogach. Po ranie odchyla się od ciosu, po bloku cofa, po parowaniu robi krok do przodu.
+3. **Uderzenie czuć.** W miejscu cięcia błyska krótka jasna kreska. Kamera drga w stronę cięcia, a mocny cios na chwilę ją przybliża. Spod stóp przy zamachu i uniku wzbija się kurz. Unik zostawia za bohaterem przygaszone kopie.
+4. **Wrogowie reagują.** Trafiony wróg odchyla się od miecza. Ghul w skoku się wyciąga, kolos przed uderzeniem się wznosi, a przy uderzeniu przysiada. Ogłuszony się chwieje.
+5. **Śmierć trwa chwilę.** Zabity pada od bohatera i ślizga się, a dopiero potem zostaje na ziemi. **Mocny cios albo wielki miecz przecina wroga na pół:** górna połowa leci łukiem, dolna chwilę stoi i pada, tryska krew. Przewrócony kolos wzbija kurz.
+6. **Oddech.** W nocy przy każdym wydechu widać obłoczek pary. Po walce bohater oddycha szybciej i ciężej, a w spoczynku się pochyla. To kawałek pomysłu „bohater czuje świat” z [fabula/zarys.md](../fabula/zarys.md).
+
+Liczby walki się nie zmieniły. Bot po zmianach (`node testy/bot-noc.mjs dobry miecz|wielki`) daje to samo co w punkcie 9: około 18 ran za noc z lekkim mieczem i 0 z wielkim.
+
+**Do oglądania animacji** adres gry przyjmuje `?tempo=0.25`: gra idzie wtedy cztery razy wolniej.
+
+**Otwarte pytanie do Patryka:** walka jest „ciekawa”, ale „może nie do końca to co chcę”. Czego w niej brakuje?

@@ -8,6 +8,16 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 23 XI 2026 | Patryk | Animacje w walkach | zrobiony | pierwsza wersja: [docs/walka.md](../docs/walka.md), punkt 10 |
+| 23 XI 2026 | Patryk | Wygląd bohatera z Gemini: arkusz sześciu póz w walce | w planie | w grze na próbę, [docs/grafika.md](../docs/grafika.md), punkt 7; brakuje chodu, bloku, uniku i rany (polecenia w punkcie 8) |
+| 23 XI 2026 | Claude | Ciało idzie za mieczem: odchylenie przy zamachu, wykrok przy cięciu, cięższy miecz mocniej rzuca ciałem | zrobiony | działa dla obu wersji bohatera |
+| 23 XI 2026 | Claude | Mocny cios albo wielki miecz przecina wroga na pół | zrobiony | górna połowa leci łukiem, dolna pada |
+| 23 XI 2026 | Claude | Zabity wróg pada i ślizga się, zanim zostanie śladem na ziemi | zrobiony | |
+| 23 XI 2026 | Claude | Błysk w miejscu cięcia, drgnięcie kamery w stronę cięcia, przybliżenie przy mocnym ciosie, kurz spod stóp | zrobiony | |
+| 23 XI 2026 | Claude | Para z ust w zimnej nocy; po walce bohater oddycha ciężej | zrobiony | z pomysłu „bohater czuje świat” (22 XI) |
+| 23 XI 2026 | Claude | Przełącznik „bohater z Gemini / rysowany kodem” do porównania | zrobiony | ekran startu i pauza |
+| 23 XI 2026 | Claude | Potwory z Gemini w tym samym stylu co bohater | nowy | dziś bohater jest malowany, a potwory rysowane kodem grubą kreską |
+| 23 XI 2026 | Claude | Znak rozpoznawczy widoczny z daleka, np. czerwony strzęp sztandaru kompanii albo czarna ręka klątwy, która tli się w nocy | nowy | Patryk: bohater „nie wyróżnia się niczym szczególnym”; na małym ekranie postać czyta się po sylwetce i jednym kolorze |
 | 23 XI 2026 | Patryk | Waga broni, bo to kwestia gustu | zrobiony | trzy miecze do wyboru: lekki, półtoraręczny i wielki; [docs/walka.md](../docs/walka.md), punkt 9 |
 | 23 XI 2026 | Claude | Przycisk Tnij jak drążek: stuknięcie, celowanie przeciągnięciem z łukiem na ziemi, przytrzymanie ładuje mocny cios | zrobiony | po uwadze Patryka, że brakowało mu w ataku „swojego wykorzystania”; ładowanie przytrzymaniem było już w wersji 1 |
 | 23 XI 2026 | Claude | Cios w trzech fazach: zamach, cięcie po łuku (trafia wrogów po kolei), powrót | zrobiony | waga miecza widoczna w ruchu; [docs/walka.md](../docs/walka.md), punkt 9 |
@@ -81,6 +91,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Kto | Co powiedział (skrót) | Co z tym zrobiliśmy |
 | --- | --- | --- | --- |
+| 23 XI 2026 | Patryk | Nowy styl walki „ciekawy”, walka „już jest ciekawa”, ale „może nie do końca to co chce”; bohater zbyt prosty, nie wyróżnia się | bohater z Gemini w grze na próbę i pierwsze animacje walki ([docs/walka.md](../docs/walka.md), punkt 10); pytanie, czego w walce brakuje, czeka na odpowiedź |
 | 23 XI 2026 | Patryk | „Polana we mgle”: ruch, unik i blok w porządku, ale atak słaby, brakowało mu w nim „swojego wykorzystania”; styl walki mu się nie podoba; waga broni to gust | nowy styl walki: przycisk Tnij jak drążek, miecz z wagą, trzy miecze do wyboru; [docs/walka.md](../docs/walka.md), punkt 9 |
 | 23 XI 2026 | Patryk | Bardzo spodobała mu się „Próba chaty”: fajny klimat | kierunek grafiki się potwierdza; czekamy na kolejne obrazy z Gemini |
 | 22 XI 2026 | Przemek | Pochwalił scenę z chatą z Gemini („Próba chaty”) | pierwszy dobry znak dla obrazów z Gemini w grze; czekamy na kolejne obrazy |

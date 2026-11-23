@@ -11,6 +11,8 @@ To druga wersja gry. Pierwsza powstała w kilka dni jako szybki prototyp, a ludz
 | [STAN.md](STAN.md) | jeden ekran: co jest teraz, co dalej, na co czekamy |
 | [index.html](index.html) i [gra/](gra/README.md) | gra: „Polana we mgle”, pierwsza grywalna walka, i opis każdego pliku z kodem |
 | [testy/](testy/) | bot, który gra całą noc samą logiką, żeby sprawdzić trudność |
+| [narzedzia/](narzedzia/) | narzędzie, które wycina pozy bohatera z arkusza Gemini i składa je dla gry |
+| [grafika/](grafika/) | obrazy z Gemini użyte w grze: chata, bohater i oryginalny arkusz bohatera |
 | [docs/wizja.md](docs/wizja.md) | czym gra ma być i czym nie ma być |
 | [docs/walka.md](docs/walka.md) | projekt walki: ciosy, obrona, hordy, ulepszenia i specjalizacje ciała |
 | [docs/grafika.md](docs/grafika.md) | styl grafiki, praca z Gemini i pierwsza próbka: karczma |

@@ -88,6 +88,8 @@ Gracz poznaje bohatera razem z nim samym, bo na początku obaj nie wiedzą, kim 
 
 Polecenie dla Gemini jest w [docs/grafika.md](../docs/grafika.md), w punktach 5 i 6.
 
+**Patryk (23 XI, 23:05)** o bohaterze rysowanym kodem: *„jest zbyt prosty, nie wyróżnia się niczym szczególnym (…) charakter postaci musimy jeszcze dopracować, co najlepsze mam do tego gemina”*. Tego samego wieczoru przysłał z Gemini arkusz sześciu póz w walce. Od teraz to jest obowiązujący wygląd bohatera i stoi w grze na próbę ([docs/grafika.md](../docs/grafika.md), punkt 7). Z listy wyżej na arkuszu jest prawie wszystko poza kapturem i czarnymi żyłami. Znak rozpoznawczy z daleka wciąż jest do ustalenia: na małym ekranie postać czyta się po sylwetce.
+
 ### Bohater czuje świat
 
 **Patryk (22 XI):** bohater ma odczuwać klimat mrocznego świata, a gracz poznaje postać razem z nim.

@@ -7,14 +7,15 @@ Każdy plik robi jedną rzecz. Logika nie wie nic o rysowaniu, a rysowanie nicze
 | [dane.js](dane.js) | **liczby gry:** bohater, trzy miecze, mocny cios, blok, unik, ghul, kolos, etapy nocy. Tu zmieniamy siłę i trudność |
 | [swiat.js](swiat.js) | mapa: wielkość, chata, płot, ognisko, mgły, las i zderzenia z nimi |
 | [walka.js](walka.js) | logika: ruch, cios w fazach (zamach, cięcie po łuku, powrót), rozpęd, mocny cios, blok, parowanie, unik, Krew za krew, Miecz który waży, wrogowie i etapy nocy |
-| [rysowanie.js](rysowanie.js) | obraz w PixiJS: ziemia, las, chata, postacie, krew, mgła, noc z wyciętym światłem, deszcz |
-| [obrazki.js](obrazki.js) | rysunki robione kodem, dopóki nie ma obrazów z Gemini: sosny, ghul, kolos, światło, mgła |
+| [rysowanie.js](rysowanie.js) | obraz w PixiJS: ziemia, las, chata, postacie i ich animacje (pochylenie, padanie, cięcie na pół), krew, mgła, noc z wyciętym światłem, deszcz |
+| [obrazki.js](obrazki.js) | rysunki robione kodem, dopóki nie ma obrazów z Gemini: sosny, ghul, kolos, światło, mgła (bohatera rysowanego kodem rysuje rysowanie.js) |
+| [klatki-bohatera.js](klatki-bohatera.js) | gdzie w [../grafika/bohater.webp](../grafika/bohater.webp) leży każda poza bohatera z Gemini i gdzie ma stopy; plik robi [../narzedzia/wytnij-bohatera.py](../narzedzia/wytnij-bohatera.py) |
 | [wejscie.js](wejscie.js) | sterowanie: klawiatura i mysz, drążek ruchu, przycisk Tnij jak drążek (stuknij, celuj, ładuj) oraz Blok i Unik |
 | [hud.js](hud.js) | pasek życia i sił, nazwa etapu, myśl bohatera, licznik klatek |
 | [dzwiek.js](dzwiek.js) | dźwięki składane w przeglądarce, bez plików |
 | [main.js](main.js) | składa wszystko razem: wczytuje PixiJS i obraz chaty, prowadzi pętlę gry, pauzę i koniec nocy |
 
-Strona gry to [../index.html](../index.html). Obraz chaty leży w [../grafika/chata.webp](../grafika/chata.webp).
+Strona gry to [../index.html](../index.html). Obrazy z Gemini leżą w [../grafika/](../grafika/): chata i bohater. Adres z `?tempo=0.25` puszcza grę cztery razy wolniej, do oglądania animacji.
 
 **Jak to działa w jednej klatce:** `main.js` pyta `wejscie.js`, co gracz wcisnął, `walka.js` przesuwa świat o ułamek sekundy, a `rysowanie.js` i `hud.js` pokazują, co z tego wyszło. Zdarzenia z walki (cięcie, trafienie, parowanie, rana) idą do dźwięków i do napisów nad głową.
 

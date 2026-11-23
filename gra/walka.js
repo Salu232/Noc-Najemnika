@@ -223,11 +223,13 @@ function tnij(gra, dt) {
     if (r <= przeszlo + tol) cele.push({ e: e2, r, d });
   }
   cele.sort((p, q2) => p.r - q2.r);
+  const gdzie = [];                       // gdzie ostrze weszło w ciało: dla obrazu (błysk cięcia)
   for (const { e: wrog, d } of cele) {
     c.trafieni.add(wrog);
     const obr = Math.round(bron.obrazenia * (c.mocny ? MOCNY.obrazenia : 1)) * (wrog.stan === 'ogluszony' ? 2 : 1);
     const katOd = Math.atan2(wrog.y - b.y, wrog.x - b.x);
-    zranWroga(gra, wrog, obr, katOd, bron.odrzut * (c.mocny ? MOCNY.odrzut : 1), bron.przerywa || c.mocny);
+    gdzie.push({ x: wrog.x, y: wrog.y, wys: 20 * wrog.typ.skala, kat: katOd + kier * Math.PI / 2 });
+    zranWroga(gra, wrog, obr, katOd, bron.odrzut * (c.mocny ? MOCNY.odrzut : 1), bron.przerywa || c.mocny, c.mocny || bron.przecinaCiezkich);
     nowe++; c.trafienia++;
     krewZaKrew(b);
     if (wrog.typ.ciezki && wrog.zycie > 0 && !bron.przecinaCiezkich && !c.mocny) {
@@ -242,7 +244,7 @@ function tnij(gra, dt) {
     const ciezar = 0.6 + 0.4 * bron.obrazenia, pierwsze = c.trafienia === nowe;
     gra.zatrzymanie = Math.max(gra.zatrzymanie, BOHATER.miecz.zatrzymanie * ciezar * (c.mocny ? 1.5 : 1) * (pierwsze ? 1 : 0.5));
     gra.wstrzas = Math.max(gra.wstrzas, (c.mocny ? 10 : 2 + bron.obrazenia * 2));
-    gra.zdarzenia.push({ typ: 'trafienie', ile: nowe, mocny: c.mocny });
+    gra.zdarzenia.push({ typ: 'trafienie', ile: nowe, mocny: c.mocny, gdzie });
   }
 }
 
@@ -312,7 +314,8 @@ function nowyWrog(typNazwa, punkt) {
   };
 }
 
-function zranWroga(gra, e, ile, kat, odrzut, przerywa) {
+// przecina: cios, który zabija, rozcina ciało na dwie części (mocny cios albo wielki miecz)
+function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false) {
   e.zycie -= ile; e.flash = 0.12;
   const sila = odrzut / (e.typ.ciezki ? 6 : 1);
   e.vx += Math.cos(kat) * sila; e.vy += Math.sin(kat) * sila;
@@ -323,7 +326,10 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa) {
   if (e.zycie <= 0) {
     e.stan = 'martwy';
     gra.statystyki.zabici++;
-    gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: losuj(-0.8, 0.8), sx: Math.cos(kat) >= 0 ? 1 : -1 });
+    // ciało pada od bohatera (rysowanie najpierw pokazuje upadek, potem zostawia ślad na ziemi)
+    const odBoh = Math.cos(kat) >= 0 ? 1 : -1;
+    gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: odBoh * losuj(0.75, 1.3), sx: -odBoh, kat, pada: true, przeciety: przecina });
+    if (przecina) for (let i = 0; i < 10; i++) gra.krew.push({ x: e.x, y: e.y, z: 18 * e.typ.skala, vx: losuj(-60, 60), vy: losuj(-40, 40), vz: losuj(160, 300), r: losuj(1.5, 3.2) });
     gra.slady.push({ typ: 'kaluza', x: e.x, y: e.y, duza: true });
     gra.zdarzenia.push({ typ: 'smierc', ciezki: !!e.typ.ciezki });
   }

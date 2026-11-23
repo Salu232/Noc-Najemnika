@@ -21,7 +21,7 @@ W poleceniach dla Gemini nie wpisujemy nazw cudzych dzieł ani artystów. Powody
 | Widoki miejsc | dobrze | wzór dla map, tło menu |
 | Ikony przedmiotów i ścieżek ciała | dość dobrze, trzeba pilnować jednego stylu | ekwipunek, wybór ścieżki |
 | Budynki widziane z góry | niepewnie, bo modele wolą widok z ukosa | mapa; to sprawdza próbka |
-| Postacie w ruchu | słabo, bo każda klatka wychodzi trochę inna | na razie rysuje je kod |
+| Postacie w ruchu | słabo, bo każda klatka wychodzi trochę inna | 23 XI: arkusz sześciu póz bohatera wyszedł spójny i jest w grze na próbę (punkt 7) |
 
 Wniosek: obrazy z Gemini dajemy tam, gdzie gracz się zatrzymuje i patrzy. W ruchu zostaje grafika rysowana kodem, ale w tych samych kolorach i z tym samym światłem.
 
@@ -74,6 +74,45 @@ Ten sam kąt kamery co chata w widoku jak w Tibii, równe światło dnia i jedno
 > Full-body character design of the same lone mercenary, standing, seen from above at the same three-quarter angle as a top-down 2D game. Tall, heavy, broad-shouldered, slightly hunched with exhaustion. Worn grey wolf pelt over the shoulders, patched dark leather, mismatched scavenged armor: one pauldron, a bracer, mail underneath. A long dark-iron bastard sword with a notched blade, held low in the right hand; a rusty chain is wrapped around the hilt and his right wrist. Black veins creep from his right hand up the forearm, partly under a dirty bandage. Even, dim daylight, no night, no glow. Plain flat magenta background (#FF00FF), no checkerboard, no shadow on the background.
 
 Przy bohaterze unikamy znaków Gutsa: miecza wielkiego jak płyta, protezy ręki, ślepego oka, blizny w poprzek nosa i czarnej zbroi.
+
+### 7. Bohater w ruchu walki: arkusz od Patryka (23 XI)
+
+**Patryk (23 XI, 23:05):** *„główny bohater to jest jeszcze nie ten wygląd jest zbyt prosty, nie wyróżnia się niczym szczególnym (…) możemy dodać animacje do naszych walk, ale charakter postaci musimy jeszcze dopracować, co najlepsze mam do tego gemina”*. Uwaga dotyczyła bohatera rysowanego kodem. O 23:10 Patryk przysłał arkusz z Gemini: *„napisałem do niego zeby wygenerował nam grafike w ruchu walki”*. Dokładnego polecenia nie mamy, więc tego obrazu nie da się powtórzyć jednym poleceniem; kolejne robimy z nim jako wzorem (punkt 8).
+
+Arkusz leży w [grafika/bohater-arkusz-gemini.jpg](../grafika/bohater-arkusz-gemini.jpg) (848 × 1264 px). Jest na nim sześć póz na różowym tle: stoi (przód), plecy, zamach, w połowie cięcia, uderzenie i wypad. Wygląd zgadza się z punktem 6: wilcze futro, połatana skóra, kolczuga, jeden naramiennik, bandaże, łańcuch na prawym nadgarstku i długi wyszczerbiony miecz.
+
+**Jak trafił do gry (Claude, 23 XI).** Narzędzie [narzedzia/wytnij-bohatera.py](../narzedzia/wytnij-bohatera.py) zdejmuje różowe tło, usuwa półprzezroczyste smugi ruchu, wycina pozy bez podpisów i strzałek, zmniejsza je i składa w [grafika/bohater.webp](../grafika/bohater.webp) (40 KB). Miejsce stóp każdej pozy jest wpisane w narzędziu ręcznie. Gra wybiera pozę według fazy walki, a ruch dokłada kod: pochylenie, przysiad, odbicie w lewo i prawo, drżenie przy ładowaniu i powidoki przy uniku.
+
+| Poza z arkusza | Kiedy w grze |
+| --- | --- |
+| stoi (przód) | spokój, chód, zachwianie, upadek |
+| plecy | gdy patrzy w górę ekranu |
+| zamach | zamach i ładowanie mocnego ciosu; też blok i odskok do tyłu, bo nie ma dla nich pozy |
+| w połowie cięcia | pierwsza połowa cięcia |
+| uderzenie | druga połowa cięcia i początek powrotu miecza |
+| wypad | unik w bok albo do przodu |
+
+**Czego brakuje i co jest nie tak:**
+
+1. Nie ma chodu, bloku, uniku, rany ani upadku. Chód udaje teraz kołysanie stojącej pozy.
+2. W pozie „w połowie cięcia” Gemini narysował dwa miecze naraz, w górze i przy ziemi. W ruchu trwa to ułamek sekundy, więc zostawiliśmy, ale kolejne polecenia mówią „exactly one sword”.
+3. Stojąca poza patrzy w lewo, a pozy ataku w prawo. Gra je odbija, ale przy przejściu ze spoczynku do ataku postać się „przekręca”. Pomoże stojąca poza z boku (punkt 8).
+4. Na arkuszu są podpisy i strzałki, choć dopisek stylu mówi „no text”. Wycina je narzędzie.
+5. Bohater jest malowany, a potwory rysuje kod grubą kreską, więc wyglądają jak z dwóch gier. Następny krok to potwory z Gemini w tym samym stylu.
+
+Przycisk „Bohater: z Gemini / rysowany kodem” na ekranie startu i w pauzie przełącza obie wersje, żeby dało się je porównać. Wybór zostaje w przeglądarce.
+
+### 8. Brakujące klatki bohatera (polecenia do Gemini)
+
+Przed każdym poleceniem dołącz w Gemini arkusz z punktu 7 jako obraz wzorcowy. Te polecenia nie mają stałego dopisku stylu, bo styl ma przyjść z obrazu wzorcowego; dopisek mógłby go zmienić.
+
+**8a. Spoczynek z boku i chód**
+
+> Using the attached character sheet as the reference, draw the same mercenary in exactly the same drawing style: same face, grey wolf-fur collar, patched brown leather, chainmail, one steel pauldron, bandaged forearms, a chain on the right wrist, and the long dark-iron sword with a notched blade. Draw 5 frames in one row, all facing right, seen from the same slightly elevated three-quarter angle as the attack poses in the reference: frame 1 standing still with the sword held low in the right hand, frames 2 to 5 a walk cycle. Same size in every frame, feet on one common baseline, wide gaps so the frames do not touch. Exactly one sword per frame. No motion lines, no trails, no sparks, no text, no labels, no arrows. Even, dim daylight. Plain flat magenta background (#FF00FF), no shadow on the background.
+
+**8b. Obrona, unik i rana**
+
+> Using the attached character sheet as the reference, draw the same mercenary in exactly the same drawing style and at the same scale. Draw 6 poses in two rows, all facing right, from the same slightly elevated three-quarter angle as the attack poses: 1. guard: sword held diagonally across the body to catch a blow; 2. hit by a blow: flinching backwards, head turned away; 3. dodge roll, start: crouching low and pushing off; 4. dodge roll, end: rising from the roll; 5. sword stuck in something heavy, pulling it with both hands; 6. falling to one knee, leaning on the sword. Feet on one baseline in each row, wide gaps between poses. Exactly one sword per pose. No motion lines, no trails, no sparks, no text, no labels, no arrows. Even, dim daylight. Plain flat magenta background (#FF00FF), no shadow on the background.
 
 ## Jak ocenimy próbkę
 

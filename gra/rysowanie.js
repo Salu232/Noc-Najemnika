@@ -2,7 +2,8 @@
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
 import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA } from './swiat.js';
-import { BOHATER } from './dane.js';
+import { BOHATER, WROGOWIE } from './dane.js';
+import { KLATKI as KB, SKALA as SKALA_B } from './klatki-bohatera.js';
 import * as O from './obrazki.js';
 
 const TAU = Math.PI * 2;
@@ -11,7 +12,9 @@ const OB = 0x0b0a09;           // kolor obrysu
 const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {}) {
+const CIECIE_WYS = { ghul: 17, kolos: 30 };   // na jakiej wysokości miecz przecina ciało wroga
+
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini' } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -39,8 +42,23 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
   for (const [nazwa, wzor, rysuj] of [['ghul', O.GHUL, O.rysujGhula], ['kolos', O.KOLOS, O.rysujKolosa]]) {
     const a = O.atlasWroga(wzor, rysuj), baza = new P.BaseTexture(a.canvas), klatki = [];
     for (let w = 0; w < 8; w++) for (let k = 0; k < wzor.klatki; k++) klatki.push(new P.Texture(baza, new P.Rectangle(k * a.cw, w * a.ch, a.cw, a.ch)));
-    atlasy[nazwa] = { wzor, klatki, martwy: tx(O.obrazMartwego(wzor, rysuj)) };
+    // połówki do cięcia na pół: żywa klatka 0 w każdym wierszu i martwe ciało
+    const cut = Math.round((wzor.oy - CIECIE_WYS[nazwa]) * O.PX), martwy = tx(O.obrazMartwego(wzor, rysuj)), mb = martwy.baseTexture;
+    const polowki = [];
+    for (let w = 0; w < 8; w++) polowki.push({ gora: new P.Texture(baza, new P.Rectangle(0, w * a.ch, a.cw, cut)), dol: new P.Texture(baza, new P.Rectangle(0, w * a.ch + cut, a.cw, a.ch - cut)) });
+    atlasy[nazwa] = {
+      wzor, klatki, martwy, polowki,
+      martweGora: new P.Texture(mb, new P.Rectangle(0, 0, mb.width, cut)), martweDol: new P.Texture(mb, new P.Rectangle(0, cut, mb.width, mb.height - cut)),
+      ax: wzor.ox / wzor.w, ay: wzor.oy / wzor.h, ayDol: (wzor.oy * O.PX - cut) / (a.ch - cut),
+    };
   }
+  // bohater z Gemini: jedna klatka na fazę walki (grafika/bohater.webp, wycięty narzędziem z arkusza)
+  const klatkiB = {};
+  if (obrazBohatera) {
+    const baza = new P.BaseTexture(obrazBohatera); baza.mipmap = P.MIPMAP_MODES.ON;
+    for (const k in KB) klatkiB[k] = { ...KB[k], t: new P.Texture(baza, new P.Rectangle(KB[k].x, KB[k].y, KB[k].w, KB[k].h)) };
+  }
+  let trybBohatera = klatkiB.stoi ? bohater : 'rysowany';
 
   // ---------- warstwy ----------
   const scena = new P.Container();
@@ -54,10 +72,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
   const slady = new P.Sprite(sladyRT);
   const cienie = new P.Container();
   const aktorzy = new P.Container(); aktorzy.sortableChildren = true;
-  const echa = new P.Graphics();                 // powidoki uniku
+  const echa = new P.Graphics();                 // powidoki uniku bohatera rysowanego kodem
+  const echaS = new P.Container();               // powidoki uniku bohatera z Gemini: przygaszone kopie obrazu
   const powietrze = new P.Container();           // krew w locie
   const znakiZiemia = new P.Graphics();          // zapowiedź uderzenia kolosa i fala po nim: leżą na ziemi
-  swiat.addChild(ziemia, plamy, slady, znakiZiemia, cienie, aktorzy, echa, powietrze);
+  const para = new P.Graphics();                 // oddech w zimnej nocy
+  swiat.addChild(ziemia, plamy, slady, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
 
   // drzewa
   const drzewa = DRZEWA.map((d, i) => {
@@ -82,8 +102,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
   }
   aktorzy.addChild(kamienie);
 
-  // bohater: jedna grafika, rysowana co klatkę
+  // bohater: obraz z Gemini (bohS) albo grafika rysowana kodem co klatkę (bohG)
   const bohG = new P.Graphics(); aktorzy.addChild(bohG);
+  const bohS = new P.Sprite(); aktorzy.addChild(bohS);
   const bohCien = new P.Sprite(T.cien); bohCien.anchor.set(0.5); cienie.addChild(bohCien);
 
   // nad ciemnością
@@ -108,8 +129,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
   const iskry = new P.Container();
   const smugi = new P.Graphics();
   const duch = new P.Graphics(); duch.alpha = 0.33;
+  const duchS = new P.Sprite(); duchS.alpha = 0.33;
+  const blaskBoh = new P.Sprite(T.cieplo); blaskBoh.anchor.set(0.5); blaskBoh.blendMode = P.BLEND_MODES.ADD; blaski.addChild(blaskBoh);
   const napisy = new P.Container();
-  nad.addChild(mgla, znaki, blaski, oczy, smugi, iskry, duch, napisy);
+  nad.addChild(mgla, znaki, blaski, oczy, smugi, iskry, duch, duchS, napisy);
 
   // ciemność z wyciętym światłem (rysowana do osobnej tekstury w połowie rozdzielczości)
   const ciemnoscC = new P.Container();
@@ -145,14 +168,36 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
   }
   rozmiar();
 
-  const ekranNaSwiat = (px, py) => ({ x: (px - swiat.x) / zoom, y: (py - swiat.y) / zoom });
-  const swiatNaEkran = (x, y) => ({ x: swiat.x + x * zoom, y: swiat.y + y * zoom });
+  const ekranNaSwiat = (px, py) => ({ x: (px - swiat.x) / swiat.scale.x, y: (py - swiat.y) / swiat.scale.y });
+  const swiatNaEkran = (x, y) => ({ x: swiat.x + x * swiat.scale.x, y: swiat.y + y * swiat.scale.y });
+
+  // ---------- krótkie animacje: padające ciała, błyski cięć, kurz i oddech ----------
+  const padajace = [], ciecia = [], obloczki = [];
+  function nowyPadajacy(s) {
+    const typ = WROGOWIE[s.wrog];
+    return { s, at: atlasy[s.wrog], sk: typ.skala, ciezki: !!typ.ciezki, dir: -s.sx, wiersz: s.sx < 0 ? 1 : 0, t: 0, czas: typ.ciezki ? 0.65 : 0.42, gasnie: -1, kon: null };
+  }
+  // ciało zostaje na ziemi: rysujemy je raz do tekstury śladów
+  function utrwal(lista) {
+    const c = new P.Container();
+    for (const k of lista) { const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy); c.addChild(sp); }
+    renderer.render(c, { renderTexture: sladyRT, clear: false });
+    c.destroy({ children: true });
+  }
+  function obloczek(x, y, vx, vy, r0, r1, czas, alfa, kolor, ziemia) { if (obloczki.length < 80) obloczki.push({ x, y, vx, vy, r0, r1, t: 0, czas, alfa, kolor, ziemia }); }
+  function kurz(x, y, kat, ile, moc = 1) {
+    for (let i = 0; i < ile; i++) {
+      const a = kat + losuj(-0.6, 0.6), v = losuj(20, 60) * moc;
+      obloczek(x + losuj(-6, 6), y + losuj(-3, 3), Math.cos(a) * v, Math.sin(a) * v * PERSP, 3, losuj(9, 15) * moc, losuj(0.35, 0.55), 0.32 * Math.min(1.4, moc), 0x8a7f6c, true);
+    }
+  }
 
   // ---------- ślady na ziemi (krew, ciała, cienie drzew) ----------
   function dorysujSlady(lista) {
     if (!lista.length) return;
     const c = new P.Container();
     for (const s of lista) {
+      if (s.typ === 'cialo' && s.pada) { padajace.push(nowyPadajacy(s)); continue; }      // najpierw upadek, ślad później
       if (s.typ === 'cialo') {
         const at = atlasy[s.wrog], w = at.wzor, sk = (s.wrog === 'kolos' ? 2.3 : 1.25) / O.PX;
         const sp = new P.Sprite(at.martwy); sp.anchor.set(w.ox / w.w, w.oy / w.h);
@@ -175,6 +220,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
     lista.length = 0;
   }
   function wyczysc() {
+    padajace.length = 0; ciecia.length = 0; obloczki.length = 0;
     renderer.render(new P.Container(), { renderTexture: sladyRT, clear: true });
     dorysujSlady(DRZEWA.map(d => ({ typ: 'cien', x: d.x + 14, y: d.y + 3, w: d.h * 0.42, h: d.h * 0.12, alfa: 0.8 })));
   }
@@ -192,6 +238,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
   const pulaWrogow = pula(aktorzy, () => new P.Sprite());
   const pulaCieni = pula(cienie, () => { const s = new P.Sprite(T.cien); s.anchor.set(0.5); return s; });
   const pulaOczu = pula(oczy, () => { const s = new P.Sprite(T.okoCzerwone); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; return s; });
+  const pulaKawalkow = pula(aktorzy, () => new P.Sprite());
+  const pulaEch = pula(echaS, () => { const s = new P.Sprite(); s.tint = 0x9fb4cc; return s; });
   const pulaKrwi = pula(powietrze, () => { const s = new P.Sprite(T.krew[0]); s.anchor.set(0.5); return s; });
   const pulaIskier = pula(iskry, () => { const s = new P.Sprite(T.iskra); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; return s; });
 
@@ -209,16 +257,24 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
   const pierscienie = [];
 
   // ---------- bohater ----------
-  const stanRys = { upadlOd: -1, poprzZycie: BOHATER.zycie, slad: [], poprzStan: 'wolny' };
+  const stanRys = {
+    upadlOd: -1, poprzZycie: BOHATER.zycie, slad: [], poprzStan: 'wolny',
+    zadyszka: 0, oddech: 0, cykl: 0,          // po walce oddycha ciężej i szybciej
+    odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
+    kop: { x: 0, y: 0 }, ucisk: 0,             // kamera drgnie w stronę cięcia; mocny cios lekko przybliża
+  };
 
   const latwo = q => 1 - (1 - q) * (1 - q);
   const ku = (a, b2, t) => a + Math.atan2(Math.sin(b2 - a), Math.cos(b2 - a)) * t;   // obrót o część kąta najkrótszą drogą
 
+  // Poza bohatera: gdzie jest miecz i jak ustawione jest ciało.
+  // pochyl: > 0 pochyla się do przodu, < 0 odchyla do tyłu; przysiad: < 1 przykuca, > 1 wyciąga się; wykrok: przednia noga idzie naprzód.
+  // Cięższy miecz (waga) mocniej rzuca ciałem.
   function poza(b, gra) {
-    const bron = gra.bron, L = bron.dlugosc, ciezar = bron.obrazenia;
+    const bron = gra.bron, L = bron.dlugosc, ciezar = bron.obrazenia, waga = 0.8 + 0.12 * ciezar;
     const sx = Math.cos(b.kat) >= 0 ? 1 : -1;
     const spoczynek = b.kat + (0.6 + 0.1 * ciezar) * sx;              // ciężki miecz wisi niżej, prawie wlecze się po ziemi
-    const p = { sx, a: spoczynek, lift: 10 + 6 * ciezar, drgaj: 0, smuga: null, blok: false, reka: 13, blask: 0, L, szer: bron.szerokosc };
+    const p = { sx, a: spoczynek, lift: 10 + 6 * ciezar, drgaj: 0, smuga: null, blok: false, reka: 13, blask: 0, L, szer: bron.szerokosc, pochyl: 0, przysiad: 1, wykrok: 0, wstecz: false };
     if (b.stan === 'cios' && b.cios) {
       const c = b.cios, kier = Math.sign(c.do - c.od) || 1;
       p.sx = Math.cos(c.kat) >= 0 ? 1 : -1;
@@ -227,36 +283,69 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
       if (c.faza === 'zamach') {
         const w = latwo(Math.min(1, c.t / Math.max(0.001, c.czasZamachu)));
         p.a = c.od - kier * cofniecie * w; p.lift = p.lift + (unies - p.lift) * w;
+        p.pochyl = -0.13 * w * waga; p.przysiad = 1 - 0.07 * w; p.wykrok = 0.35 * w;      // bierze zamach: odchyla się i ugina nogi
       } else if (c.faza === 'laduje') {
         p.a = c.od - kier * (cofniecie + 0.2 * c.naladowanie); p.lift = unies * (1 + 0.2 * c.naladowanie);
         p.drgaj = 0.4 + c.naladowanie * 1.2; p.blask = c.naladowanie;
+        p.pochyl = -(0.15 + 0.07 * c.naladowanie) * waga; p.przysiad = 0.92 - 0.04 * c.naladowanie; p.wykrok = 0.45;
       } else if (c.faza === 'ciecie') {
-        const q = Math.min(1, c.t / c.czasCiecia), r = (1 - q) * (1 - q);
+        const q = Math.min(1, c.t / c.czasCiecia), r = (1 - q) * (1 - q), e = latwo(q);
         p.a = c.aktualny - kier * cofniecie * r; p.lift = unies * r + 6 * (1 - r);
         p.smuga = { od: c.od - kier * cofniecie, do: p.a, alfa: 1, mocny: c.mocny, utknal: c.utknal, l0: unies, l1: p.lift };
         if (c.mocny) p.blask = 1 - q;
+        p.pochyl = (-0.14 + (c.mocny ? 0.46 : 0.36) * e) * waga;                          // tnie: całe ciało idzie za mieczem
+        p.przysiad = 1 + 0.07 * Math.sin(q * Math.PI) - 0.04 * e; p.wykrok = 0.45 + 0.55 * e;
       } else {                                                          // powrót: miecz ciągnie dalej, potem wraca do ręki
         const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0), k = Math.min(1, c.t / Math.max(0.001, koniec));
         const cel = c.utknal ? c.aktualny : c.do + kier * 0.18 * Math.min(1, k * 3);
         p.a = k < 0.6 ? cel : ku(cel, spoczynek, (k - 0.6) / 0.4); p.lift = 6 + (p.lift - 6) * Math.max(0, (k - 0.6) / 0.4);
-        if (c.utknal) p.drgaj = 1.6;
+        if (c.utknal) { p.drgaj = 1.6; p.pochyl = -0.12 * waga; p.wykrok = 0.9; p.przysiad = 0.95; }   // wyszarpuje miecz z cielska
+        else { const r2 = Math.max(0, (k - 0.25) / 0.75); p.pochyl = 0.22 * waga * (1 - latwo(r2)); p.wykrok = 1 - latwo(r2); p.przysiad = 0.96 + 0.04 * r2; }
         if (c.t < 0.12) p.smuga = { od: c.od - kier * cofniecie, do: c.utknal ? c.aktualny : c.do, alfa: 1 - c.t / 0.12, mocny: c.mocny, utknal: c.utknal, l0: unies, l1: 6 };
       }
     } else if (b.blok) {
-      p.blok = true; p.reka = 16;
+      p.blok = true; p.reka = 16; p.pochyl = 0.06; p.przysiad = 0.94; p.wykrok = 0.4;    // garda: nisko, na szerokich nogach
     } else if (b.stan === 'unik') {
-      p.a = b.unikKat + Math.PI * 0.85 * sx; p.lift = 10;
+      const q = ogr(b.t / BOHATER.unik.czas, 0, 1);
+      p.wstecz = Math.cos(b.unikKat - b.kat) < -0.3;                                     // odskok do tyłu: dalej patrzy na wroga
+      if (!p.wstecz) p.sx = Math.cos(b.unikKat) >= 0 ? 1 : -1;
+      p.a = b.unikKat + Math.PI * 0.85 * p.sx; p.lift = 10;
+      p.pochyl = (p.wstecz ? -0.22 : 0.32) * Math.sin(Math.min(1, q * 1.6) * Math.PI / 2) * (1 - q * 0.6);
+      p.przysiad = 0.84 + 0.16 * q; p.wykrok = 0.8 * (1 - q);
     } else if (b.stan === 'zachwiany') {
-      p.a = b.kat + 1.35 * sx; p.lift = 24; p.drgaj = 2.2;
-    }
+      p.a = b.kat + 1.35 * sx; p.lift = 24; p.drgaj = 2.2; p.pochyl = -0.22; p.przysiad = 0.93;
+    } else if (b.idzie) p.pochyl = 0.07;
     return p;
   }
 
-  // rysuje bohatera do grafiki g, stopy w (0,0)
-  function rysujBohatera(g, b, gra, alfaCala = 1) {
-    const p = poza(b, gra), sx = p.sx, X = v => v * sx;
-    const krok = b.idzie ? Math.sin(b.chod) : 0;
-    const pod = b.idzie ? Math.abs(Math.cos(b.chod)) * 2 : Math.sin(gra.czas * 2.2) * 0.6;
+  // klatka bohatera z Gemini dla tej pozy
+  function klatkaBohatera(b, p) {
+    if (b.stan === 'upadl' || b.stan === 'zachwiany') return 'stoi';
+    if (b.stan === 'cios' && b.cios) {
+      const c = b.cios;
+      if (c.faza === 'zamach' || c.faza === 'laduje') return 'zamach';
+      if (c.faza === 'ciecie') return c.t / c.czasCiecia < 0.5 ? 'ciecie' : 'uderzenie';
+      const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0);
+      return c.utknal || c.t < koniec * 0.55 ? 'uderzenie' : 'stoi';
+    }
+    if (b.blok) return 'zamach';
+    if (b.stan === 'unik') return p.wstecz ? 'zamach' : 'wypad';
+    if (Math.sin(b.kat) < -0.6) return 'plecy';                    // patrzy w górę ekranu: widać plecy
+    return 'stoi';
+  }
+  // ustawia obraz bohatera: stopy w (x, y), pochylenie lx, przysiad sy (szerokość zmienia się odwrotnie, żeby ciało nie traciło masy)
+  function ustawPostac(sp, k, sx, x, y, lx, sy, obrot) {
+    sp.texture = k.t; sp.anchor.set(k.ax, k.ay);
+    sp.scale.set(SKALA_B * (k.patrzy === sx ? 1 : -1) / Math.sqrt(sy), SKALA_B * sy);
+    sp.skew.set(-lx, 0); sp.rotation = obrot; sp.position.set(x, y);
+  }
+
+  // rysuje bohatera kodem do grafiki g, stopy w (0,0); p to poza z poza()
+  function rysujBohatera(g, b, gra, p, alfaCala = 1) {
+    const sx = p.sx, X = v => v * sx;
+    const krok = b.idzie && b.stan !== 'unik' ? Math.sin(b.chod) : 0;
+    const pod = b.idzie && b.stan !== 'unik' ? Math.abs(Math.cos(b.chod)) * 2 : 0;
+    const wk = p.wykrok;
     const dj = p.drgaj ? (Math.random() - 0.5) * p.drgaj : 0;
     const oy = -pod;
     const wiel = (pts) => { const w = new Array(pts.length); for (let i = 0; i < pts.length; i += 2) { w[i] = X(pts[i]) + dj; w[i + 1] = pts[i + 1] + oy; } return w; };
@@ -286,9 +375,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
     // druga ręka
     g.lineStyle(6.2, OB, alfaCala); g.moveTo(X(-8) + dj, -56 + oy); g.lineTo(X(-11 - krok * 2) + dj, -36 + oy);
     g.lineStyle(4, 0x5a4a3c, alfaCala); g.moveTo(X(-8) + dj, -56 + oy); g.lineTo(X(-11 - krok * 2) + dj, -36 + oy);
-    // nogi i buty
-    for (const [cx, kol] of [[-5 + krok * 4, 0x37302a], [4 - krok * 4, 0x433a32]]) {
-      ksztalt([cx - 3.6, -34, cx + 3.6, -34, cx + 3.3, -7, cx - 3.3, -7], kol);
+    // nogi i buty: od bioder do stóp; w wykroku przednia noga idzie naprzód, tylna się zapiera
+    for (const [bx0, cx, kol] of [[-4, -5 + krok * 4 - wk * 6, 0x37302a], [4, 4 - krok * 4 + wk * 8, 0x433a32]]) {
+      ksztalt([bx0 - 3.8, -34, bx0 + 3.8, -34, cx + 3.3, -7, cx - 3.3, -7], kol);
       ksztalt([cx - 4, -9, cx + 4, -9, cx + 7.5, -1, cx - 4.2, -1], 0x2a231d);
     }
     // tułów: połatana skórzana kurta
@@ -373,7 +462,24 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
       else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);
       else if (z.typ === 'naladowany') pierscienie.push({ x: b.x, y: b.y, r0: 50, r1: 20, t: 0, czas: 0.22, kolor: 0xffd890, ziemia: true });
       else if (z.typ === 'zamach' && z.mocny) pierscienie.push({ x: b.x, y: b.y, r0: 30, r1: gra.bron.zasieg * 1.1, t: 0, czas: 0.3, kolor: 0xffe8c0, ziemia: true });
+      // animacje ciała i uderzenia
+      if (z.typ === 'zamach') {
+        stanRys.zadyszka += z.mocny ? 0.1 : 0.04 + 0.015 * gra.bron.obrazenia;
+        const ka = b.cios ? b.cios.kat : b.kat;
+        kurz(b.x - Math.cos(ka) * 10, b.y - Math.sin(ka) * 5, ka + Math.PI, z.mocny ? 5 : 2 + gra.bron.obrazenia, z.mocny ? 1.4 : 0.8 + 0.15 * gra.bron.obrazenia);
+      } else if (z.typ === 'trafienie') {
+        for (const m of z.gdzie || []) ciecia.push({ x: m.x, y: m.y - m.wys, kat: m.kat, t: 0, czas: z.mocny ? 0.2 : 0.14, dl: z.mocny ? 78 : 40 + 9 * gra.bron.obrazenia });
+        const ka = b.cios ? b.cios.kat : b.kat, sila = z.mocny ? 9 : 2.5 + gra.bron.obrazenia * 1.5;
+        stanRys.kop.x += Math.cos(ka) * sila; stanRys.kop.y += Math.sin(ka) * sila * PERSP;
+        if (z.mocny) stanRys.ucisk = 1;
+      } else if (z.typ === 'rana') { stanRys.ranaKier = Math.sign(b.odrzutX) || -(Math.cos(b.kat) >= 0 ? 1 : -1); stanRys.zadyszka += 0.12; }
+      else if (z.typ === 'blok') stanRys.odepchniecie = 1;
+      else if (z.typ === 'parowanie') stanRys.pchniecie = 1;
     }
+    stanRys.zadyszka = ogr(stanRys.zadyszka - dt * 0.05, 0, 1);
+    stanRys.oddech += dt * (2 + 2.8 * stanRys.zadyszka);
+    stanRys.odepchniecie = Math.max(0, stanRys.odepchniecie - dt * 5); stanRys.pchniecie = Math.max(0, stanRys.pchniecie - dt * 5);
+    if (b.stan === 'unik' && stanRys.poprzStan !== 'unik') kurz(b.x, b.y, b.unikKat + Math.PI, 4, 1.1);
     // „Krew za krew”: życie wróciło po ciosie
     if (b.stan !== 'upadl' && b.zycie > stanRys.poprzZycie + 0.5 && gra.faza !== 'przerwa') napis(`+${Math.round(b.zycie - stanRys.poprzZycie)}`, b.x + 18, b.y - 84, 0xff6a5a);
     stanRys.poprzZycie = b.zycie;
@@ -386,46 +492,87 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
     const celX = b.x + Math.cos(b.kat) * 36, celY = b.y - 40 + Math.sin(b.kat) * 24;
     if (!kam.gotowa) { kam.x = celX; kam.y = celY; kam.gotowa = true; }
     const k = Math.min(1, dt * 5); kam.x += (celX - kam.x) * k; kam.y += (celY - kam.y) * k;
-    const pw = vw / 2 / zoom, ph = vh / 2 / zoom;
+    const zg = Math.exp(-dt * 16); stanRys.kop.x *= zg; stanRys.kop.y *= zg; stanRys.ucisk = Math.max(0, stanRys.ucisk - dt * 5);
+    const zz = zoom * (1 + 0.045 * stanRys.ucisk * stanRys.ucisk);   // mocny cios: kamera na chwilę się przybliża
+    const pw = vw / 2 / zz, ph = vh / 2 / zz;
     const kx = ogr(kam.x, pw, SZER - pw), ky = ogr(kam.y, ph, WYS - ph);
     const drz = gra.wstrzas * 0.8;
-    const ox = Math.round((vw / 2 - kx * zoom + (Math.random() - 0.5) * drz * zoom) * 2) / 2;
-    const oy = Math.round((vh / 2 - ky * zoom + (Math.random() - 0.5) * drz * zoom) * 2) / 2;
-    for (const w of [swiat, nad]) { w.scale.set(zoom); w.position.set(ox, oy); }
+    const ox = Math.round((vw / 2 - kx * zz + ((Math.random() - 0.5) * drz + stanRys.kop.x) * zz) * 2) / 2;
+    const oy = Math.round((vh / 2 - ky * zz + ((Math.random() - 0.5) * drz + stanRys.kop.y) * zz) * 2) / 2;
+    for (const w of [swiat, nad]) { w.scale.set(zz); w.position.set(ox, oy); }
 
     // widoczny kawałek świata (z zapasem na wysokie drzewa)
-    const L = -ox / zoom - 140, R = (vw - ox) / zoom + 140, G = -oy / zoom - 60, D = (vh - oy) / zoom + 380;
+    const L = -ox / zz - 140, R = (vw - ox) / zz + 140, G = -oy / zz - 60, D = (vh - oy) / zz + 380;
     for (let i = 0; i < drzewa.length; i++) { const d = DRZEWA[i]; drzewa[i].visible = d.x > L && d.x < R && d.y > G && d.y < D; }
 
-    // bohater
-    bohG.clear(); bohG.position.set(b.x, b.y); bohG.zIndex = b.y; bohG.rotation = 0; bohG.alpha = b.nietykalny > 0 ? 0.75 : 1;
-    bohG.tint = b.flash > 0 ? 0xff8080 : 0xffffff;
-    let pz = null;
-    if (b.stan === 'upadl') {
-      const t = Math.min(1, (czas - stanRys.upadlOd) / 0.35), sx = Math.cos(b.kat) >= 0 ? 1 : -1;
-      pz = rysujBohatera(bohG, b, gra); bohG.rotation = -sx * 1.45 * t; bohG.alpha = 1 - Math.max(0, czas - stanRys.upadlOd - 1.4) * 0.6;
-    } else pz = rysujBohatera(bohG, b, gra);
-    bohCien.position.set(b.x, b.y + 1); bohCien.width = 40; bohCien.height = 15;
+    // bohater: poza, potem ciało (pochylenie, przysiad, oddech, odrzut po ranie i bloku)
+    const pz = poza(b, gra), zad = stanRys.zadyszka;
+    let lx = pz.sx * pz.pochyl, sy = pz.przysiad;
+    if (b.flash > 0 && b.stan !== 'upadl') lx += stanRys.ranaKier * 0.32 * (b.flash / 0.25);
+    lx += pz.sx * (0.14 * stanRys.pchniecie - 0.2 * stanRys.odepchniecie);
+    const spokoj = b.stan === 'wolny' && !b.idzie && !b.blok;
+    if (spokoj) { sy *= 1 + Math.sin(stanRys.oddech) * (0.008 + 0.025 * zad); lx += pz.sx * 0.05 * zad; }
+    lx = ogr(lx, -0.5, 0.5);
+    const sxs = 1 / Math.sqrt(sy);
+    const wSwiecie = (x, y) => ({ x: b.x + sxs * x - Math.sin(lx) * sy * y, y: b.y + Math.cos(lx) * sy * y });   // punkt ciała (stopy w 0,0) na świecie
+    const upadl = b.stan === 'upadl', tUp = upadl ? Math.min(1, (czas - stanRys.upadlOd) / 0.35) : 0;
+    const obrot = upadl ? -pz.sx * 1.45 * tUp : 0, alfaB = upadl ? 1 - Math.max(0, czas - stanRys.upadlOd - 1.4) * 0.6 : (b.nietykalny > 0 ? 0.75 : 1);
+    const tint = b.flash > 0 ? 0xff8080 : (pz.blask > 0.05 ? 0xffe6c0 : 0xffffff);
+    const gem = trybBohatera === 'gemini' && !!klatkiB.stoi;
+    bohG.visible = !gem; bohS.visible = gem;
+    let kB = null;
+    if (gem) {
+      kB = klatkiB[klatkaBohatera(b, pz)];
+      const idzie = b.idzie && b.stan === 'wolny', pod = idzie ? Math.abs(Math.cos(b.chod)) * 2.4 : 0;
+      const dj = pz.drgaj ? (Math.random() - 0.5) * pz.drgaj : 0;
+      ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y - pod, lx, sy, obrot + (idzie ? Math.sin(b.chod) * 0.05 : 0));
+      bohS.zIndex = b.y; bohS.alpha = alfaB; bohS.tint = tint;
+    } else {
+      bohG.clear(); rysujBohatera(bohG, b, gra, pz);
+      bohG.position.set(b.x, b.y); bohG.skew.set(-lx, 0); bohG.scale.set(sxs, sy); bohG.rotation = obrot;
+      bohG.zIndex = b.y; bohG.alpha = alfaB; bohG.tint = tint;
+    }
+    bohCien.position.set(b.x, b.y + 1); bohCien.width = kB ? Math.max(40, kB.w * SKALA_B * 0.55) : 40; bohCien.height = 15;
+    // ciepły blask, gdy ładuje mocny cios
+    const sr = wSwiecie(0, -50);
+    blaskBoh.position.set(sr.x, sr.y); blaskBoh.width = blaskBoh.height = 150; blaskBoh.alpha = upadl ? 0 : pz.blask * 0.75;
+    // oddech w zimnej nocy: obłoczek przy każdym wydechu, gęstszy po walce
+    const cykl = Math.floor(stanRys.oddech / TAU);
+    if (cykl !== stanRys.cykl) {
+      stanRys.cykl = cykl;
+      if (!upadl && gra.mroczek > 0.3) { const u = gem ? wSwiecie(pz.sx * 7, -80) : wSwiecie(pz.sx * 9, -67); obloczek(u.x, u.y, pz.sx * 16, -8, 2, 9 + 7 * zad, 0.9, 0.1 + 0.25 * zad, 0xd8dde4, false); }
+    }
 
     // powidoki uniku
+    // (czas gry, więc w zwolnionym tempie i w pauzie powidoki stoją razem z grą)
     echa.clear();
-    if (b.stan === 'unik') { stanRys.slad.push({ x: b.x, y: b.y, t: czas }); }
-    while (stanRys.slad.length && czas - stanRys.slad[0].t > 0.18) stanRys.slad.shift();
-    for (const s of stanRys.slad) {
-      const al = 0.28 * (1 - (czas - s.t) / 0.18);
-      echa.lineStyle(0); echa.beginFill(0x9fb4cc, al); echa.drawEllipse(s.x, s.y - 40, 13, 34); echa.endFill();
+    const sl = stanRys.slad, ost = sl[sl.length - 1];
+    if (b.stan === 'unik' && (!ost || gra.czas - ost.t > 0.03)) {
+      sl.push(gem ? { x: bohS.x, y: bohS.y, t: gra.czas, tex: bohS.texture, ax: bohS.anchor.x, ay: bohS.anchor.y, sx: bohS.scale.x, sy: bohS.scale.y, skx: bohS.skew.x } : { x: b.x, y: b.y, t: gra.czas });
     }
+    while (sl.length && (gra.czas - sl[0].t > 0.16 || gra.czas < sl[0].t)) sl.shift();
+    pulaEch.start();
+    for (const s of sl) {
+      const al = 1 - (gra.czas - s.t) / 0.16;
+      if (s.tex) { const e = pulaEch.wez(); e.texture = s.tex; e.anchor.set(s.ax, s.ay); e.position.set(s.x, s.y); e.scale.set(s.sx, s.sy); e.skew.set(s.skx, 0); e.alpha = 0.4 * al; }
+      else { echa.lineStyle(0); echa.beginFill(0x9fb4cc, 0.22 * al); echa.drawEllipse(s.x, s.y - 40, 11, 30); echa.endFill(); }
+    }
+    pulaEch.koniec();
 
     // duch bohatera, gdy zasłania go chata albo drzewo
     duch.clear();
     let zasloniety = b.y < CHATA.podstawa && b.y > CHATA.y + 120 * CHATA.skala && b.x > CHATA.x + 150 * CHATA.skala && b.x < CHATA.x + 860 * CHATA.skala;
     if (!zasloniety) for (const d of DRZEWA) { if (d.y > b.y && d.y - b.y < d.h * 0.85 && Math.abs(d.x - b.x) < d.h * 0.22) { zasloniety = true; break; } }
-    if (zasloniety && b.stan !== 'upadl') { duch.position.set(b.x, b.y); rysujBohatera(duch, b, gra); }
+    duchS.visible = false;
+    if (zasloniety && b.stan !== 'upadl') {
+      if (gem) { duchS.visible = true; ustawPostac(duchS, kB, pz.sx, bohS.x, bohS.y, lx, sy, bohS.rotation); }
+      else { rysujBohatera(duch, b, gra, pz); duch.position.set(b.x, b.y); duch.skew.set(-lx, 0); duch.scale.set(sxs, sy); }
+    }
 
     // smuga cięcia i garda
     smugi.clear(); znaki.clear(); znakiZiemia.clear();
     if (pz && pz.smuga) {
-      const s = pz.smuga, cx = b.x, cy = b.y - 44, n = 14, r1 = s.mocny ? 14 : 24, r2 = pz.L + 16;
+      const s = pz.smuga, sc = wSwiecie(0, -44), cx = sc.x, cy = sc.y, n = 14, r1 = s.mocny ? 14 : 24, r2 = pz.L + 16;
       const kol = s.utknal ? 0xffd090 : (s.mocny ? 0xfff0d0 : 0xe6ecf2);
       const brzeg = i => { const f = i / n, a = s.od + (s.do - s.od) * f, l = s.l0 + (s.l1 - s.l0) * f; return [cx + Math.cos(a) * r2, cy + Math.sin(a) * r2 * PERSP + l]; };
       const pts = [];
@@ -436,8 +583,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
       for (let i = 0; i <= n; i++) { const [x, y] = brzeg(i); if (i) smugi.lineTo(x, y); else smugi.moveTo(x, y); }
     }
     // ładowany miecz żarzy się nad ciemnością
-    if (pz && pz.blask > 0.02 && pz.ostrze && b.stan !== 'upadl') {
-      const o = pz.ostrze, x1 = b.x + o.hx, y1 = b.y + o.hy, x2 = b.x + o.tx, y2 = b.y + o.ty;
+    if (!gem && pz.blask > 0.02 && pz.ostrze && b.stan !== 'upadl') {
+      const o = pz.ostrze, p1 = wSwiecie(o.hx, o.hy), p2 = wSwiecie(o.tx, o.ty), x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
       smugi.lineStyle(9, 0xff9a30, 0.28 * pz.blask); smugi.moveTo(x1, y1); smugi.lineTo(x2, y2);
       smugi.lineStyle(3, 0xfff0c8, 0.85 * pz.blask); smugi.moveTo(x1, y1); smugi.lineTo(x2, y2);
     }
@@ -476,14 +623,23 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
       const sp = pulaWrogow.wez();
       sp.texture = at.klatki[wiersz * w.klatki + klatka]; sp.anchor.set(w.ox / w.w, w.oy / w.h);
       const kucniecie = e.stan === 'zamach' && !e.typ.ciezki ? 0.88 : 1;
-      sp.scale.set(sk / O.PX, sk / O.PX * kucniecie);
+      // ciało reaguje: odchyla się od ciosu, ghul wyciąga się w skoku, kolos wznosi się i przysiada przy uderzeniu
+      const odB = e.x >= b.x ? 1 : -1;
+      let rot = 0, skx = 1, sky = kucniecie;
+      if (e.flash > 0) { const f = e.flash / 0.12; rot += odB * (e.typ.ciezki ? 0.1 : 0.34) * f; sky *= 1 - 0.12 * f; skx *= 1 + 0.1 * f; }
+      if (e.stan === 'skok' && !e.typ.ciezki) { rot -= odB * 0.22; sky *= 1.08; skx *= 0.93; }
+      if (e.stan === 'zamach' && e.typ.ciezki) { const q = ogr(e.t / e.typ.zamach, 0, 1); sky *= 1 + 0.06 * q; skx *= 1 - 0.03 * q; rot += odB * 0.08 * q; }
+      if (e.stan === 'skok' && e.typ.ciezki) { const u = Math.sin(Math.min(1, e.t / e.typ.skok * 3) * Math.PI / 2); sky *= 1.06 - 0.16 * u; skx *= 0.97 + 0.12 * u; rot -= odB * 0.12 * (1 - u); }
+      if (e.stan === 'ogluszony') rot += Math.sin(czas * 11 + e.anim) * 0.14;
+      sp.scale.set(sk / O.PX * skx, sk / O.PX * sky); sp.rotation = rot;
       sp.position.set(e.x + (e.drzy || 0), e.y); sp.zIndex = e.y;
       sp.alpha = e.stan === 'wynurza' ? e.widac : 1;
       const cs = pulaCieni.wez(); cs.position.set(e.x, e.y + 1); cs.width = e.promien * 2.8; cs.height = e.promien * 1.05; cs.alpha = sp.alpha;
       // oczy świecą w ciemności; przed atakiem rozbłyskują
       const oko = pulaOczu.wez();
       oko.texture = e.typ.ciezki ? T.okoBursztyn : T.okoCzerwone;
-      oko.position.set(e.x + (e.drzy || 0) + w.oko.x * sx * sk, e.y + w.oko.y * sk * kucniecie);
+      const okx = w.oko.x * sx * sk * skx, oky = w.oko.y * sk * sky;
+      oko.position.set(e.x + (e.drzy || 0) + okx * Math.cos(rot) - oky * Math.sin(rot), e.y + okx * Math.sin(rot) + oky * Math.cos(rot));
       const mocOka = e.stan === 'zamach' ? 1.7 + Math.sin(czas * 40) * 0.3 : (e.stan === 'ogluszony' ? 0.5 : 1);
       oko.width = oko.height = (e.typ.ciezki ? 16 : 11) * mocOka; oko.alpha = (e.stan === 'wynurza' ? e.widac : 1) * 0.8;
       // ogłuszony po parowaniu: wiruje mu w głowie (i dostaje podwójne obrażenia)
@@ -508,6 +664,61 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
       if (e.stan !== 'skok') e._uderzyl = false;
     }
     pulaWrogow.koniec(); pulaCieni.koniec(); pulaOczu.koniec();
+
+    // martwi padają od bohatera; mocny cios albo wielki miecz przecina ich na pół
+    pulaKawalkow.start();
+    for (let i = padajace.length - 1; i >= 0; i--) {
+      const f = padajace[i], at = f.at, s = f.s;
+      f.t += dt;
+      const q = Math.min(1, f.t / f.czas), sk = f.sk / O.PX, w = f.wiersz | (f.t < 0.07 ? 4 : 0);
+      const dx = Math.cos(s.kat), dy = Math.sin(s.kat), slizg = (f.ciezki ? 10 : 24) * latwo(q);
+      const al = f.gasnie >= 0 ? Math.max(0, 1 - f.gasnie / 0.15) : 1;
+      const kawalek = (tex, ax, ay, x, y, r) => { const k = pulaKawalkow.wez(); k.texture = tex; k.anchor.set(ax, ay); k.position.set(x, y); k.rotation = r; k.scale.set(sk, sk); k.zIndex = y; k.alpha = al; };
+      if (!s.przeciety) {
+        const x = s.x + dx * slizg, y = s.y + dy * slizg;
+        kawalek(at.klatki[w * at.wzor.klatki], at.ax, at.ay, x, y, s.obrot * q * q);
+        f.kon = [{ tex: at.martwy, ax: at.ax, ay: at.ay, x, y, rot: s.obrot, sx: sk * s.sx, sy: sk }];
+      } else {
+        // górna połowa leci łukiem i obraca się, dolna chwilę stoi, potem pada
+        const h0 = CIECIE_WYS[s.wrog] * f.sk, T = f.czas, g = 900, vz = (0.5 * g * T * T - h0) / T, tt = Math.min(f.t, T);
+        const hz = Math.max(0, h0 + vz * tt - 0.5 * g * tt * tt), lot = (f.ciezki ? 30 : 48) * q;
+        const gx = s.x + dx * lot, gy = s.y + dy * lot, rKon = f.dir * 1.4, rDol = f.dir * 1.1;
+        const rG = f.ciezki ? rKon * latwo(q) : f.dir * (TAU + 1.4) * latwo(q);
+        const dxD = s.x + dx * slizg * 0.3, dyD = s.y + dy * slizg * 0.3, rD = rDol * Math.pow(Math.max(0, (q - 0.25) / 0.75), 2);
+        kawalek(at.polowki[w].dol, at.ax, at.ayDol, dxD, dyD, rD);
+        kawalek(at.polowki[w].gora, at.ax, 1, gx, gy - hz, rG);
+        f.kon = [{ tex: at.martweDol, ax: at.ax, ay: at.ayDol, x: dxD, y: dyD, rot: rDol, sx: sk * s.sx, sy: sk },
+          { tex: at.martweGora, ax: at.ax, ay: 1, x: gx, y: gy, rot: rKon, sx: sk * s.sx, sy: sk }];
+      }
+      if (q >= 1 && f.gasnie < 0) {                                  // leży: zostaje na ziemi, żywa klatka gaśnie nad śladem
+        utrwal(f.kon); f.gasnie = 0;
+        if (f.ciezki) { pierscienie.push({ x: s.x, y: s.y, r0: 20, r1: 90, t: 0, czas: 0.35, kolor: 0xb8a890, ziemia: true }); kurz(s.x, s.y, s.kat, 7, 1.6); stanRys.kop.y += 5; }
+        else kurz(s.x + dx * 20, s.y + dy * 20, s.kat, 2, 0.7);
+      } else if (f.gasnie >= 0) { f.gasnie += dt; if (f.gasnie > 0.15) padajace.splice(i, 1); }
+    }
+    pulaKawalkow.koniec();
+
+    // błysk cięcia tam, gdzie ostrze weszło w ciało
+    for (let i = ciecia.length - 1; i >= 0; i--) {
+      const c = ciecia[i]; c.t += dt; const q = c.t / c.czas;
+      if (q >= 1) { ciecia.splice(i, 1); continue; }
+      const ux = Math.cos(c.kat), uy = Math.sin(c.kat) * PERSP, d = Math.hypot(ux, uy) || 1, vx = ux / d, vy = uy / d;
+      const dl = c.dl * (0.55 + 0.45 * Math.min(1, q * 4)) / 2, gr = 4.5 * (1 - q);
+      smugi.lineStyle(0); smugi.beginFill(0xfff4e0, 0.95 * (1 - q));
+      smugi.drawPolygon([c.x - vx * dl, c.y - vy * dl, c.x - vy * gr, c.y + vx * gr, c.x + vx * dl, c.y + vy * dl, c.x + vy * gr, c.y - vx * gr]);
+      smugi.endFill();
+      if (q < 0.5) { smugi.beginFill(0xffffff, 0.45 * (1 - q * 2)); smugi.drawCircle(c.x, c.y, 6 + 16 * q); smugi.endFill(); }
+    }
+
+    // kurz spod stóp i oddech
+    para.clear();
+    for (let i = obloczki.length - 1; i >= 0; i--) {
+      const o = obloczki[i]; o.t += dt; const q = o.t / o.czas;
+      if (q >= 1) { obloczki.splice(i, 1); continue; }
+      o.x += o.vx * dt; o.y += o.vy * dt; o.vx *= Math.exp(-dt * 3); o.vy *= Math.exp(-dt * 3);
+      const gz = o.ziemia ? znakiZiemia : para, r = o.r0 + (o.r1 - o.r0) * latwo(q);
+      gz.lineStyle(0); gz.beginFill(o.kolor, o.alfa * (1 - q)); gz.drawEllipse(o.x, o.y, r, r * (o.ziemia ? PERSP : 0.8)); gz.endFill();
+    }
 
     // krew w powietrzu i iskry
     pulaKrwi.start();
@@ -558,7 +769,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
     // ciemność: zalewamy ekran nocą i wycinamy światło
     ciemnoscG.clear(); ciemnoscG.beginFill(0x05060b, gra.mroczek); ciemnoscG.drawRect(0, 0, vw, vh); ciemnoscG.endFill();
     kreski.alpha = 0.55 * gra.mroczek / 0.8;
-    const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zoom, oy + y * zoom); s.width = s.height = r * 2 * zoom; s.alpha = al; };
+    const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zz, oy + y * zz); s.width = s.height = r * 2 * zz; s.alpha = al; };
     stawStempel(swiatloBoh, b.x, b.y - 30, 250, 1);
     stawStempel(swiatloOgnia, fx, fy - 10, 380 * migot, 0.95);
     stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7);
@@ -583,6 +794,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false } = {
 
   return {
     rysuj, rozmiar, wyczysc, ekranNaSwiat, swiatNaEkran, karta,
+    get bohater() { return trybBohatera; },
+    ustawBohatera(t) { trybBohatera = t === 'gemini' && klatkiB.stoi ? 'gemini' : 'rysowany'; return trybBohatera; },
+    maBohateraZGemini: !!klatkiB.stoi,
     opis: karta ? 'karta graficzna' : 'procesor (bez karty graficznej)',
     get zoom() { return zoom; },
   };
