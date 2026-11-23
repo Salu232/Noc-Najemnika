@@ -8,6 +8,13 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 23 XI 2026 | Claude | Gniew i czułość: sam walczy w gniewie, a gdy ktoś stoi za jego plecami, przechodzi w osłonę | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
+| 23 XI 2026 | Claude | Krew za krew: część utraconego życia wraca za trafienia w ciągu około 3 sekund | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
+| 23 XI 2026 | Claude | Miecz, który waży: słabych przecina na wylot, w tarczy, kolosie i kości grzęźnie | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
+| 23 XI 2026 | Claude | Rany na częściach ciała, a część oddana klątwie nie czuje bólu | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
+| 23 XI 2026 | Claude | Krąg ognia: potwory słabną w świetle, bohater może podpalić teren albo nieść pochodnię zamiast bloku | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
+| 23 XI 2026 | Claude | Strach w hordzie: brutalne zabójstwo albo śmierć przywódcy płoszy słabszych | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
+| 23 XI 2026 | Claude | Oszczędzić czy dobić: ludzie z Bractwa błagają, oszczędzenie oddaje wspomnienie, dobicie daje czarną krew | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
 | 23 XI 2026 | Patryk | Wrogów przybywa etapami: pojedynczy, potem kilku, potem horda | w planie | [docs/walka.md](../docs/walka.md), punkt 2 |
 | 22 XI 2026 | Patryk | Widok z góry pod skosem, jak w Tibii: widać dach i ściany z drzwiami | w planie | wszystkie obrazy w tym samym kącie i skali; próba w scenie „Próba chaty”, potem decyzja 003 |
 | 22 XI 2026 | Gemini | Czytelność: tła ciemne i gęste, bohater i wrogowie jaśniejsi, z wyraźnym obrysem | w planie | wejdzie do decyzji 003 i [docs/grafika.md](../docs/grafika.md) |

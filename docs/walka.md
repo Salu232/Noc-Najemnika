@@ -98,3 +98,17 @@ Propozycja Claude: im więcej ciała przejmuje klątwa, tym silniejszy jest boha
 1. **Co dokładnie zostaje między rozdziałami.** Propozycja Claude do potwierdzenia: ścieżki ciała zostają na stałe, bo klątwa nie oddaje tego, co wzięła. Relikwie i przedmioty należą do rozdziału, a w nowym zbiera się nowe.
 2. **Jak wybór ścieżki łączy się z fabułą.** Na przykład: wybór pojawia się w ważnej scenie rozdziału, a postacie reagują na to, czym stał się bohater. Ustalimy razem z fabułą rozdziału I.
 3. **Które wspomnienie oddaje którą umiejętność.** Ustalimy razem z fabułą rozdziału I.
+
+## 7. Nowe pomysły Claude (23 XI)
+
+Do wyboru Patryka. Żaden nie powtarza tego, co już mamy: gesty cięć na telefonie, obrona Olszynki i noc do świtu są już w wersji 1 i zostają.
+
+1. **Gniew i czułość.** Charakter bohatera widać w dłoniach. Gdy jest sam i otoczony, walczy w gniewie: ciosy są mocniejsze, a szał rośnie szybciej. Gdy za jego plecami stoi ktoś bezbronny, przechodzi w osłonę: blok chroni też tę osobę, a parowanie odrzuca wroga dalej. *Ryzyko:* potrzebuje scen z ludźmi do ochrony, więc pasuje dopiero do rozdziału I.
+2. **Krew za krew.** Część utraconego życia nie znika od razu, tylko zostaje na pasku jako czarna smuga przez około 3 sekundy. Każde trafienie w tym czasie oddaje kawałek. Klątwa oddaje życie za krew, a gracz uczy się rzucać na hordę zamiast uciekać. *Ryzyko:* małe, to prosta zasada.
+3. **Miecz, który waży.** Słabych wrogów cięcie przechodzi na wylot i leci dalej. W tarczy, w kolosie albo w kości miecz grzęźnie, a wyrwanie go to krótka chwila odsłonięcia. Gracz czuje ciężar broni i uczy się, kogo ciąć najpierw. *Ryzyko:* trzeba dobrze dobrać czas grzęźnięcia, żeby nie frustrował.
+4. **Rany zamiast samego paska życia.** Silny cios rani konkretną część ciała. Ranna noga skraca unik, a ranna prawa ręka spowalnia cięcia, dopóki bohater nie opatrzy się przy ognisku. Haczyk: część ciała oddana klątwie nie czuje bólu i nie kuleje. Klątwa staje się kuszącym lekarstwem. *Ryzyko:* więcej do pokazania na ekranie; najpierw tylko ręka i nogi.
+5. **Krąg ognia.** Światło jest polem bitwy. Potwory w kręgu ogniska słabną albo się wahają. Bohater może kopnąć płonącą głownię, rozlać olej i podpalić trawę albo nieść pochodnię w lewej ręce zamiast bloku, czyli wybrać światło kosztem obrony. *Ryzyko:* zależy od świateł w grze, które już sprawdzamy w próbach.
+6. **Strach w hordzie.** Horda ma ducha walki. Brutalne zabójstwo albo ścięcie przywódcy płoszy słabszych: cofają się, wahają albo uciekają. Dzięki temu hordy nie są niekończącą się sieczką. *Ryzyko:* trzeba pokazać strach czytelnie, na przykład cofnięciem i zgaszonymi oczami.
+7. **Oszczędzić czy dobić.** Ludzie z Bractwa Popiołu, w odróżnieniu od potworów, czasem padają na kolana i błagają. Oszczędzenie może oddać wspomnienie, bo dobro jest okupem, a dobicie daje czarną krew dla klątwy. To wybór w środku walki, a nie w menu. *Ryzyko:* wymaga zasad, które gracz zrozumie bez tłumaczenia.
+
+**Propozycja kolejności.** Do pierwszej grywalnej wersji: **Krew za krew** i **Miecz, który waży**, bo są tanie, a najbardziej zmieniają to, jak walka czuje się w dłoni. Do rozdziału I: **Gniew i czułość** oraz **Oszczędzić czy dobić**, bo wiążą walkę z charakterem bohatera i fabułą. Resztę później.
