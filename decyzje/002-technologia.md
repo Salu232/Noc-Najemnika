@@ -29,7 +29,7 @@ Testy działają osobno i grają w grę jak człowiek, w prawdziwej przeglądarc
 2. **Rdzeń walki już mamy.** Napisaliśmy go w zwykłym JavaScripcie i ludzie go chwalą. Przeniesiemy go do modułów zamiast pisać od zera.
 3. **Telefon:** prawdziwa strona pod własnym adresem pozwala włączyć pełny ekran i dodać grę do ekranu głównego jak aplikację. W podglądzie w ramce to często było zablokowane.
 4. **Nauka:** każdy moduł to krótki plik o jednej rzeczy (`walka.js`, `wrogowie.js`, `dialog.js`). Łatwo zajrzeć i zrozumieć.
-5. **Silnik i pliki z danymi, jak w Tibii.** Claude pisze silnik gry, a wrogowie, broń i ścieżki ciała są w prostych plikach z danymi. Patryk może je zmieniać sam, tak jak potwory i przedmioty na swoim serwerze Tibii.
+5. **Silnik i pliki z danymi, jak w Tibii.** Claude pisze silnik gry, a wrogowie, broń i ścieżki ciała są w prostych plikach z danymi. Patryk może je zmieniać sam, tak jak potwory i przedmioty na swoim serwerze Tibii. **Patryk (23 XI):** sam kodu nie zmienia, zmiany robi Claude na jego prośbę. Pliki danych zostają, bo dzięki nim zmiana wroga albo broni to jedna linijka, którą łatwo pokazać i sprawdzić.
 
 ## Ryzyko i co z nim robimy
 

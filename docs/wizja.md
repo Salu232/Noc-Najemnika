@@ -4,6 +4,10 @@
 
 Przeklęty najemnik budzi się w lesie bez wspomnień, przebija się przez hordy, chroni ludzi, którzy go nienawidzą, i kawałek po kawałku odzyskuje to, kim był i co stracił.
 
+## Dla kogo
+
+Na razie dla Patryka i jego znajomych (Patryk, 23 XI). Nie celujemy w sklep. Chcemy zobaczyć, co z tego wyjdzie. Gra z drugą osobą byłaby fajna, ale to temat na później.
+
 ## Pięć filarów
 
 Każda zmiana w grze ma wzmacniać przynajmniej jeden filar. Jeśli nie wzmacnia żadnego, czeka w [dzienniku pomysłów](../pomysly/POMYSLY.md).

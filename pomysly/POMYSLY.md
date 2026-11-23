@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 23 XI 2026 | Patryk | Gra z drugą osobą | odłożony | do omówienia później; jeśli ma kiedyś być, lepiej wiedzieć wcześnie, bo zmienia budowę gry |
 | 23 XI 2026 | Claude | Gniew i czułość: sam walczy w gniewie, a gdy ktoś stoi za jego plecami, przechodzi w osłonę | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
 | 23 XI 2026 | Claude | Krew za krew: część utraconego życia wraca za trafienia w ciągu około 3 sekund | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
 | 23 XI 2026 | Claude | Miecz, który waży: słabych przecina na wylot, w tarczy, kolosie i kości grzęźnie | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
@@ -67,6 +68,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Kto | Co powiedział (skrót) | Co z tym zrobiliśmy |
 | --- | --- | --- | --- |
+| 23 XI 2026 | Patryk | Bardzo spodobała mu się „Próba chaty”: fajny klimat | kierunek grafiki się potwierdza; czekamy na kolejne obrazy z Gemini |
 | 22 XI 2026 | Przemek | Pochwalił scenę z chatą z Gemini („Próba chaty”) | pierwszy dobry znak dla obrazów z Gemini w grze; czekamy na kolejne obrazy |
 | 22 XI 2026 | Przemek | Walczyło się fajnie, ale jest bardzo dużo błędów | rdzeń walki przenosimy, resztę budujemy od nowa |
 | 22 XI 2026 | Jozz | Dialogi blokują grę, potwory w niedostępnej wodzie, chaos poziomów, słaba mapa i drogi, za mało wrogów na początku, potrzebny pełny ekran, słabe okno dialogu, NPC bez rozmowy, wszystko od podstaw | nowy start, [docs/lekcje.md](../docs/lekcje.md) |
