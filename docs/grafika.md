@@ -77,11 +77,13 @@ Przy bohaterze unikamy znaków Gutsa: miecza wielkiego jak płyta, protezy ręki
 
 ### 7. Bohater w ruchu walki: arkusz od Patryka (23 XI)
 
+**Od 24 XI w grze jest bohater z filmów Przemka (punkt 9).** Ten punkt zostaje jako zapis pierwszej próby i jej wniosków.
+
 **Patryk (23 XI, 23:05):** *„główny bohater to jest jeszcze nie ten wygląd jest zbyt prosty, nie wyróżnia się niczym szczególnym (…) możemy dodać animacje do naszych walk, ale charakter postaci musimy jeszcze dopracować, co najlepsze mam do tego gemina”*. Uwaga dotyczyła bohatera rysowanego kodem. O 23:10 Patryk przysłał arkusz z Gemini: *„napisałem do niego zeby wygenerował nam grafike w ruchu walki”*. Dokładnego polecenia nie mamy, więc tego obrazu nie da się powtórzyć jednym poleceniem; kolejne robimy z nim jako wzorem (punkt 8).
 
-Arkusz leży w [grafika/bohater-arkusz-gemini.jpg](../grafika/bohater-arkusz-gemini.jpg) (848 × 1264 px). Jest na nim sześć póz na różowym tle: stoi (przód), plecy, zamach, w połowie cięcia, uderzenie i wypad. Wygląd zgadza się z punktem 6: wilcze futro, połatana skóra, kolczuga, jeden naramiennik, bandaże, łańcuch na prawym nadgarstku i długi wyszczerbiony miecz.
+Arkusz leży w [grafika/zrodla/arkusz-patryka.jpg](../grafika/zrodla/arkusz-patryka.jpg) (848 × 1264 px; do 24 XI nazywał się `grafika/bohater-arkusz-gemini.jpg`). Jest na nim sześć póz na różowym tle: stoi (przód), plecy, zamach, w połowie cięcia, uderzenie i wypad. Wygląd zgadza się z punktem 6: wilcze futro, połatana skóra, kolczuga, jeden naramiennik, bandaże, łańcuch na prawym nadgarstku i długi wyszczerbiony miecz.
 
-**Jak trafił do gry (Claude, 23 XI).** Narzędzie [narzedzia/wytnij-bohatera.py](../narzedzia/wytnij-bohatera.py) zdejmuje różowe tło, usuwa półprzezroczyste smugi ruchu, wycina pozy bez podpisów i strzałek, zmniejsza je i składa w [grafika/bohater.webp](../grafika/bohater.webp) (40 KB). Miejsce stóp każdej pozy jest wpisane w narzędziu ręcznie. Gra wybiera pozę według fazy walki, a ruch dokłada kod: pochylenie, przysiad, odbicie w lewo i prawo, drżenie przy ładowaniu i powidoki przy uniku.
+**Jak trafił do gry (Claude, 23 XI).** Narzędzie `narzedzia/wytnij-bohatera.py` (usunięte 24 XI, jest w historii gita w commicie `c18d042`) zdejmowało różowe tło, usuwało półprzezroczyste smugi ruchu, wycinało pozy bez podpisów i strzałek, zmniejszało je i składało w `grafika/bohater.webp` (40 KB). Miejsce stóp każdej pozy jest wpisane w narzędziu ręcznie. Gra wybiera pozę według fazy walki, a ruch dokłada kod: pochylenie, przysiad, odbicie w lewo i prawo, drżenie przy ładowaniu i powidoki przy uniku.
 
 | Poza z arkusza | Kiedy w grze |
 | --- | --- |
@@ -104,6 +106,8 @@ Przycisk „Bohater: z Gemini / rysowany kodem” na ekranie startu i w pauzie p
 
 ### 8. Brakujące klatki bohatera (polecenia do Gemini)
 
+**Nieaktualne od 24 XI (Claude):** chód, rana i blok przyszły w filmach Przemka (punkt 9), a filmy sprawdzają się lepiej niż arkusze póz. Czego jeszcze brakuje i jak o to prosić, jest w punkcie 9. Polecenia niżej zostają jako zapis.
+
 Przed każdym poleceniem dołącz w Gemini arkusz z punktu 7 jako obraz wzorcowy. Te polecenia nie mają stałego dopisku stylu, bo styl ma przyjść z obrazu wzorcowego; dopisek mógłby go zmienić.
 
 **8a. Spoczynek z boku i chód**
@@ -113,6 +117,41 @@ Przed każdym poleceniem dołącz w Gemini arkusz z punktu 7 jako obraz wzorcowy
 **8b. Obrona, unik i rana**
 
 > Using the attached character sheet as the reference, draw the same mercenary in exactly the same drawing style and at the same scale. Draw 6 poses in two rows, all facing right, from the same slightly elevated three-quarter angle as the attack poses: 1. guard: sword held diagonally across the body to catch a blow; 2. hit by a blow: flinching backwards, head turned away; 3. dodge roll, start: crouching low and pushing off; 4. dodge roll, end: rising from the roll; 5. sword stuck in something heavy, pulling it with both hands; 6. falling to one knee, leaning on the sword. Feet on one baseline in each row, wide gaps between poses. Exactly one sword per pose. No motion lines, no trails, no sparks, no text, no labels, no arrows. Even, dim daylight. Plain flat magenta background (#FF00FF), no shadow on the background.
+
+### 9. Bohater z filmów Przemka (24 XI)
+
+**Patryk (24 XI, 00:08):** *„przemek wygenerował nam grafike na prompcie naszego bohatera do gemina, mozesz wykorzystać to w 100% spodobałą mi się grafika (…) jestem ciekaw co można by zrobić w tym z animacją, ale zostawiamy ją narazie, męczenie nas tylko zniechęci (…) zebyś skupił się na tych plikach co Ci wysłałem i postarał się przenieść to do gry, ale bedziemy to poprawiać”*. O 00:12: *„i przede wszytkim chodzenie musisz poprawić”*.
+
+Przemek zrobił w Gemini pięć obrazów i sześć filmów (1280 × 720, 24 klatki na sekundę, po 4 sekundy) z polecenia na bohatera z punktów 5 i 6. Wszystko leży w [grafika/zrodla/](../grafika/zrodla/), razem z arkuszem z punktu 7.
+
+| Plik | Co na nim jest | Gdzie w grze |
+| --- | --- | --- |
+| `film-oddech.mp4` | bohater stoi i oddycha, białe tło | spoczynek |
+| `film-chod.mp4` | chód w miejscu, białe tło | chód, unik (jedna klatka wykroku) |
+| `film-ciecie.mp4` | zamach, cięcie w prawo ze smugą, powrót | zamach, ładowanie mocnego ciosu, cięcie, powrót miecza |
+| `film-rana.mp4` | cios w pierś, odrzut, potem miecz trzymany poziomo | rana, zachwianie, upadek, blok |
+| `film-magia.mp4` | przykuca, wokół fioletowe pioruny i czarne odłamki | jeszcze nie: pasuje do mocy klątwy albo mocnego ciosu |
+| `film-zbroja.mp4` | wojownik w hełmie tnie w nocy przy chacie | jeszcze nie: inna postać i film ze sceną, nie na białym tle |
+| `przemek-1-portret.jpg` | twarz w deszczu, las | ekran startu (`grafika/portret.webp`) i twarz przy myślach (`grafika/portret-maly.webp`) |
+| `przemek-2-wojownik-w-zbroi.jpg` | wojownik w hełmie, trzy pozy | jeszcze nie: kandydat na przyszłą postać |
+| `przemek-3-las.jpg` | nocny las | tło ekranu startu (`grafika/las.webp`) |
+| `przemek-4-widok-z-ukosa.jpg` | bohater na kawałku ziemi w widoku z ukosa | jeszcze nie: wzór, jak bohater wygląda z góry |
+| `przemek-5-biale-tlo.jpg` | bohater w całej postaci, białe tło | jeszcze nie: wzór do kolejnych filmów |
+
+**Jak trafia do gry (Claude, 24 XI).** Narzędzie [narzedzia/wytnij-z-filmow.py](../narzedzia/wytnij-z-filmow.py) wyjmuje z filmów wybrane klatki (ffmpeg), zdejmuje białe tło i szary cień pod stopami, składa 78 klatek w [grafika/bohater.webp](../grafika/bohater.webp) (630 KB) i zapisuje [gra/klatki-bohatera.js](../gra/klatki-bohatera.js): gdzie leży każda klatka, gdzie ma stopy i które klatki tworzą którą animację. Które klatki filmu idą do której animacji, jest wpisane na górze narzędzia. Kto zmieni wybór, uruchamia narzędzie jeszcze raz.
+
+- **Kierunek.** We wszystkich filmach bohater stoi bokiem do nas, patrzy w prawo, w prawo idzie i w prawo tnie. Gra odbija go, gdy celujesz w lewo.
+- **Cios idzie za fazą, nie za zegarem.** Zamach to klatki 4–37 filmu cięcia (unosi miecz i odprowadza go nisko za siebie), cięcie to 39–55, powrót 58–94. Dzięki temu ten sam film pasuje do lekkiego i do wielkiego miecza.
+- **Smuga z filmu.** W klatkach 39–49 jasna smuga przecina biodra i po jej zdjęciu zostawała dziura. Narzędzie bierze ten pas z klatki 55, w której bohater stoi w tym samym rozkroku, a smugi już nie ma. Smugę cięcia rysuje gra.
+- **Chód.** Klatki biegną z przebytą drogą, a nie z zegarem, więc stoją, gdy bohater stoi. Idąc tyłem (od celu albo w górę ekranu) film leci wstecz. Bohater rusza i staje w chwili, gdy nogi się mijają, więc nie przeskakuje z pół kroku do stania.
+- **Chód: czego się nie da (zmierzone).** W filmie stopa na ziemi przesuwa się o około 60 jednostek gry na cykl (dwa kroki), a cykl trwa 1,7 sekundy. To spokojny marsz, około 37 jednostek na sekundę. Bohater w grze idzie 165 jednostek na sekundę, czyli prawie biegnie. Gdyby nogi miały nadążyć bez ślizgu, przebierałby 5 kroków na sekundę. Gra robi cykl co 110 jednostek drogi: 3 kroki na sekundę, dwa i pół raza szybciej niż w filmie, a stopy trochę się ślizgają. Pomiar (Claude, 24 XI): stopa śledzona na klatkach 64–75 filmu chodu przesuwa się o 5,2 piksela na klatkę w filmie zmniejszonym do 640 × 360, w którym bohater ma 340 pikseli wzrostu, a w grze 100 jednostek.
+
+**Czego brakuje** (do Przemka, kiedy będzie ochota; Patryk prosił, żeby animacją się teraz nie męczyć):
+
+1. **Bieg w miejscu, z boku, białe tło.** Najważniejsze dla chodzenia: dopiero bieg pasuje do szybkości bohatera w grze i zdejmie ślizganie stóp.
+2. **Chód tyłem do kamery** (w górę ekranu). Teraz bohater idzie w górę przodem do nas, z filmem puszczonym wstecz.
+3. **Unik:** odskok albo przewrót w bok.
+4. Tak jak w tych filmach: białe tło, kamera stoi, bohater w miejscu i tej samej wielkości, bez smug i iskier (smugi gra rysuje sama).
 
 ## Jak ocenimy próbkę
 

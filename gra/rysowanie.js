@@ -3,7 +3,7 @@
 
 import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA } from './swiat.js';
 import { BOHATER, WROGOWIE } from './dane.js';
-import { KLATKI as KB, SKALA as SKALA_B } from './klatki-bohatera.js';
+import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import * as O from './obrazki.js';
 
 const TAU = Math.PI * 2;
@@ -52,13 +52,20 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       ax: wzor.ox / wzor.w, ay: wzor.oy / wzor.h, ayDol: (wzor.oy * O.PX - cut) / (a.ch - cut),
     };
   }
-  // bohater z Gemini: jedna klatka na fazę walki (grafika/bohater.webp, wycięty narzędziem z arkusza)
+  // bohater z filmów Przemka (Gemini): klatki animacji w grafika/bohater.webp, wycięte narzędziem narzedzia/wytnij-z-filmow.py
   const klatkiB = {};
   if (obrazBohatera) {
     const baza = new P.BaseTexture(obrazBohatera); baza.mipmap = P.MIPMAP_MODES.ON;
     for (const k in KB) klatkiB[k] = { ...KB[k], t: new P.Texture(baza, new P.Rectangle(KB[k].x, KB[k].y, KB[k].w, KB[k].h)) };
   }
-  let trybBohatera = klatkiB.stoi ? bohater : 'rysowany';
+  const maObraz = Object.keys(klatkiB).length > 0;
+  let trybBohatera = maObraz ? bohater : 'rysowany';
+  // Chód z filmu Przemka to spokojny marsz: stopa na ziemi przesuwa się o około 60 jednostek na cykl (dwa kroki).
+  // Bohater w grze idzie prawie biegiem (165 jednostek na sekundę). Gdyby nogi miały nadążyć bez ślizgu, przebierałyby
+  // 5 kroków na sekundę. Stąd kompromis: cykl co 110 jednostek drogi, czyli w pełnym marszu 3 kroki na sekundę,
+  // dwa i pół raza szybciej niż w filmie. Stopy trochę się ślizgają; zniknie to dopiero przy filmie biegu.
+  const DROGA_KROKU = 110;
+  const MIJANIE = [0.25, 0.75];  // chwile cyklu, w których nogi się mijają (klatki 57 i 77 filmu): od nich zaczyna i na nich kończy krok
 
   // ---------- warstwy ----------
   const scena = new P.Container();
@@ -262,6 +269,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     zadyszka: 0, oddech: 0, cykl: 0,          // po walce oddycha ciężej i szybciej
     odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
     kop: { x: 0, y: 0 }, ucisk: 0,             // kamera drgnie w stronę cięcia; mocny cios lekko przybliża
+    px: null, py: null, krok: 0, szedl: false, dochodzi: 0, kierKroku: 1,   // gdzie był klatkę temu, ile cykli chodu przeszedł, czy dokańcza krok po zatrzymaniu
   };
 
   const latwo = q => 1 - (1 - q) * (1 - q);
@@ -318,25 +326,31 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     return p;
   }
 
-  // klatka bohatera z Gemini dla tej pozy
-  function klatkaBohatera(b, p) {
-    if (b.stan === 'upadl' || b.stan === 'zachwiany') return 'stoi';
+  // Klatka animacji bohatera z filmów. Cios idzie za fazą (zamach, cięcie, powrót), a nie za zegarem,
+  // więc ten sam film pasuje do lekkiego i do wielkiego miecza. Chód idzie za przebytą drogą.
+  const klatkaZ = (n, q) => { const l = AB[n]; return l[Math.min(l.length - 1, Math.max(0, Math.floor(q * l.length)))]; };
+  const klatkaPetli = (n, cykle) => { const l = AB[n]; return l[((Math.floor(cykle * l.length) % l.length) + l.length) % l.length]; };
+  function klatkaBohatera(b, tUp) {
+    if (b.stan === 'upadl') return klatkaZ('rana', 0.4 + 0.6 * tUp);
+    if (b.stan === 'zachwiany') return klatkaZ('rana', 0.15 + 0.8 * Math.min(1, b.t / Math.max(0.01, b.trwanie)));
     if (b.stan === 'cios' && b.cios) {
       const c = b.cios;
-      if (c.faza === 'zamach' || c.faza === 'laduje') return 'zamach';
-      if (c.faza === 'ciecie') return c.t / c.czasCiecia < 0.5 ? 'ciecie' : 'uderzenie';
+      if (c.faza === 'zamach') return klatkaZ('zamach', c.t / Math.max(0.001, c.czasZamachu));
+      if (c.faza === 'laduje') return klatkaZ('zamach', 1);
+      if (c.faza === 'ciecie') return klatkaZ('ciecie', c.t / Math.max(0.001, c.czasCiecia));
       const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0);
-      return c.utknal || c.t < koniec * 0.55 ? 'uderzenie' : 'stoi';
+      return klatkaZ('powrot', c.utknal ? 0 : c.t / Math.max(0.001, koniec));
     }
-    if (b.blok) return 'zamach';
-    if (b.stan === 'unik') return p.wstecz ? 'zamach' : 'wypad';
-    if (Math.sin(b.kat) < -0.6) return 'plecy';                    // patrzy w górę ekranu: widać plecy
-    return 'stoi';
+    if (b.blok) return klatkaZ('blok', 0.5);
+    if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
+    if (b.stan === 'unik') return AB.chod[0];                              // unik: jeden długi wykrok, resztę robią powidoki
+    if (b.idzie || stanRys.dochodzi > 0) return klatkaPetli('chod', stanRys.krok);
+    return klatkaPetli('spoczynek', czas * 8 / AB.spoczynek.length);       // oddech jak w filmie: 8 klatek na sekundę
   }
   // ustawia obraz bohatera: stopy w (x, y), pochylenie lx, przysiad sy (szerokość zmienia się odwrotnie, żeby ciało nie traciło masy)
   function ustawPostac(sp, k, sx, x, y, lx, sy, obrot) {
     sp.texture = k.t; sp.anchor.set(k.ax, k.ay);
-    sp.scale.set(SKALA_B * (k.patrzy === sx ? 1 : -1) / Math.sqrt(sy), SKALA_B * sy);
+    sp.scale.set(SKALA_B * (PATRZY_B === sx ? 1 : -1) / Math.sqrt(sy), SKALA_B * sy);
     sp.skew.set(-lx, 0); sp.rotation = obrot; sp.position.set(x, y);
   }
 
@@ -518,14 +532,39 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const upadl = b.stan === 'upadl', tUp = upadl ? Math.min(1, (czas - stanRys.upadlOd) / 0.35) : 0;
     const obrot = upadl ? -pz.sx * 1.45 * tUp : 0, alfaB = upadl ? 1 - Math.max(0, czas - stanRys.upadlOd - 1.4) * 0.6 : (b.nietykalny > 0 ? 0.75 : 1);
     const tint = b.flash > 0 ? 0xff8080 : (pz.blask > 0.05 ? 0xffe6c0 : 0xffffff);
-    const gem = trybBohatera === 'gemini' && !!klatkiB.stoi;
+    const gem = trybBohatera === 'gemini' && maObraz;
     bohG.visible = !gem; bohS.visible = gem;
+    // chód: klatki biegną z przebytą drogą. W filmie bohater idzie w bok i trochę do nas, więc idąc tyłem
+    // (od celu albo w górę ekranu) film leci wstecz. Rusza i staje w chwili, gdy nogi się mijają, bez przeskoku.
+    if (stanRys.px === null) { stanRys.px = b.x; stanRys.py = b.y; }
+    const ddx = b.x - stanRys.px, ddy = b.y - stanRys.py, dd = Math.hypot(ddx, ddy);
+    stanRys.px = b.x; stanRys.py = b.y;
+    const faza = () => ((stanRys.krok % 1) + 1) % 1;
+    const doMijania = (kier) => { const d = Math.min(...MIJANIE.map(m => ((kier * (m - faza())) % 1 + 1) % 1)); return d > 0.995 ? 0 : d; };   // ile cyklu do najbliższego mijania nóg
+    const chodzi = b.idzie && b.stan === 'wolny' && !b.blok;
+    if (chodzi && !stanRys.szedl && stanRys.dochodzi <= 0) {                 // rusza: od nóg razem, nie z pół kroku
+      const f = faza(), m = MIJANIE.reduce((a, c) => Math.abs(c - f) < Math.abs(a - f) ? c : a);
+      stanRys.krok += m - f;
+    }
+    if (b.idzie && b.stan !== 'unik' && dd > 0 && dd < 40) {
+      stanRys.kierKroku = ddx * pz.sx + 0.3 * ddy >= -0.15 * dd ? 1 : -1;
+      stanRys.krok += stanRys.kierKroku * dd / DROGA_KROKU;
+      stanRys.dochodzi = 0;
+    } else if (stanRys.szedl && !chodzi && b.stan === 'wolny' && !b.blok && b.flash <= 0) {
+      stanRys.dochodzi = doMijania(stanRys.kierKroku) > 0.02 ? 0.3 : 0;      // stanął w pół kroku: dostawia nogę
+    }
+    if (stanRys.dochodzi > 0) {
+      const ile = Math.min(doMijania(stanRys.kierKroku), 1.6 * dt);       // dostawia w tempie marszu, najdłużej 0,3 s
+      stanRys.krok += stanRys.kierKroku * ile;
+      stanRys.dochodzi = doMijania(stanRys.kierKroku) < 0.005 || b.idzie || b.stan !== 'wolny' ? 0 : stanRys.dochodzi - dt;
+    }
+    stanRys.szedl = chodzi;
     let kB = null;
     if (gem) {
-      kB = klatkiB[klatkaBohatera(b, pz)];
-      const idzie = b.idzie && b.stan === 'wolny', pod = idzie ? Math.abs(Math.cos(b.chod)) * 2.4 : 0;
+      kB = klatkiB[klatkaBohatera(b, tUp)];
+      lx *= 0.5;                                     // film sam porusza ciałem, kod tylko dodaje trochę wagi
       const dj = pz.drgaj ? (Math.random() - 0.5) * pz.drgaj : 0;
-      ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y - pod, lx, sy, obrot + (idzie ? Math.sin(b.chod) * 0.05 : 0));
+      ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y, lx, sy, obrot);
       bohS.zIndex = b.y; bohS.alpha = alfaB; bohS.tint = tint;
     } else {
       bohG.clear(); rysujBohatera(bohG, b, gra, pz);
@@ -540,7 +579,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const cykl = Math.floor(stanRys.oddech / TAU);
     if (cykl !== stanRys.cykl) {
       stanRys.cykl = cykl;
-      if (!upadl && gra.mroczek > 0.3) { const u = gem ? wSwiecie(pz.sx * 7, -80) : wSwiecie(pz.sx * 9, -67); obloczek(u.x, u.y, pz.sx * 16, -8, 2, 9 + 7 * zad, 0.9, 0.1 + 0.25 * zad, 0xd8dde4, false); }
+      if (!upadl && gra.mroczek > 0.3) { const u = gem ? wSwiecie(pz.sx * 8, -85) : wSwiecie(pz.sx * 9, -67); obloczek(u.x, u.y, pz.sx * 16, -8, 2, 9 + 7 * zad, 0.9, 0.1 + 0.25 * zad, 0xd8dde4, false); }
     }
 
     // powidoki uniku
@@ -795,8 +834,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   return {
     rysuj, rozmiar, wyczysc, ekranNaSwiat, swiatNaEkran, karta,
     get bohater() { return trybBohatera; },
-    ustawBohatera(t) { trybBohatera = t === 'gemini' && klatkiB.stoi ? 'gemini' : 'rysowany'; return trybBohatera; },
-    maBohateraZGemini: !!klatkiB.stoi,
+    ustawBohatera(t) { trybBohatera = t === 'gemini' && maObraz ? 'gemini' : 'rysowany'; return trybBohatera; },
+    maBohateraZGemini: maObraz,
     opis: karta ? 'karta graficzna' : 'procesor (bez karty graficznej)',
     get zoom() { return zoom; },
   };

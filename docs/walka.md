@@ -188,3 +188,5 @@ Liczby walki się nie zmieniły. Bot po zmianach (`node testy/bot-noc.mjs dobry 
 **Do oglądania animacji** adres gry przyjmuje `?tempo=0.25`: gra idzie wtedy cztery razy wolniej.
 
 **Otwarte pytanie do Patryka:** walka jest „ciekawa”, ale „może nie do końca to co chcę”. Czego w niej brakuje?
+
+**24 XI: bohater z filmów Przemka.** Arkusz póz zastąpiły klatki z filmów Gemini: chód, oddech, zamach, cięcie, powrót, rana i blok ([docs/grafika.md](grafika.md), punkt 9). Cios dalej idzie za fazą, a chód za przebytą drogą. Patryk prosił przede wszystkim o lepsze chodzenie; ograniczenie jest zmierzone w tamtym punkcie: film to spokojny marsz, a bohater w grze prawie biegnie. Liczby walki bez zmian (bot `dobry miecz`: 20,6 rany za noc, wszystkie noce do świtu).

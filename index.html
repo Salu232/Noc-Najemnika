@@ -62,6 +62,10 @@ body {
   color: var(--tekst); text-shadow: 0 2px 6px #000, 0 0 18px #000; opacity: 0; transition: opacity 0.6s; pointer-events: none;
 }
 #mysl.widac { opacity: 1; }
+#mysl::before {               /* myśli bohatera mają jego twarz (portret od Przemka) */
+  content: ""; display: block; width: 56px; height: 56px; margin: 0 auto 8px; border-radius: 50%;
+  background: url("grafika/portret-maly.webp") center / cover; border: 1px solid var(--linia); box-shadow: 0 2px 10px #000;
+}
 #info { position: fixed; z-index: 2; left: max(10px, env(safe-area-inset-left, 0px)); bottom: calc(6px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 11px; color: rgba(235, 227, 213, 0.45); pointer-events: none; }
 @media (max-width: 560px) { #etap { top: calc(44px + env(safe-area-inset-top, 0px)); left: auto; right: max(16px, env(safe-area-inset-right, 0px)); transform: none; font-size: 13px; } }
 
@@ -102,6 +106,9 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
   width: min(520px, 100%); background: var(--panel); border: 1px solid var(--linia); border-radius: 6px;
   padding: 22px 22px 20px; display: grid; gap: 12px;
 }
+/* ekran startu: las i twarz bohatera (obrazy od Przemka) */
+#ekran-startu { background: linear-gradient(rgba(5, 5, 7, 0.5), rgba(5, 5, 7, 0.82)), url("grafika/las.webp") center / cover; }
+.portret { display: block; width: calc(100% + 44px); margin: -22px -22px 0; height: auto; aspect-ratio: 13 / 5; max-height: 26vh; object-fit: cover; object-position: 50% 30%; border-radius: 6px 6px 0 0; }
 h1, h2 { margin: 0; font-family: var(--font-tytul); font-weight: 700; letter-spacing: 0.04em; text-wrap: balance; }
 h1 { font-size: 30px; }
 h2 { font-size: 24px; }
@@ -145,6 +152,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 <div class="ekran" id="ekran-startu">
   <div class="karta">
+    <img class="portret" src="grafika/portret.webp" alt="Twarz najemnika w deszczu, w nocnym lesie" width="1040" height="400">
     <h1>Polana we mgle</h1>
     <p class="wstep">Noc przy chacie w lesie. Z mgły na skraju polany wychodzą potwory, najpierw jeden, potem coraz więcej. Dotrwaj do świtu.</p>
     <div class="sterowanie">
@@ -178,7 +186,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
       <button type="button" class="drugi przycisk-bohater" hidden>Bohater: z Gemini</button>
       <span id="ladowanie">Wczytuję grę…</span>
     </div>
-    <p class="zrodlo">Próbna wersja walki. Chata i bohater: obrazy z Gemini (bohatera rysowanego kodem włączysz przyciskiem obok). Potwory, las i światło: rysuje je kod.</p>
+    <p class="zrodlo">Próbna wersja walki. Bohater, jego twarz i las w tle: obrazy i filmy z Gemini od Przemka. Chata: obraz z Gemini. Potwory, las na mapie i światło rysuje kod. Bohatera rysowanego kodem włączysz przyciskiem obok.</p>
   </div>
 </div>
 

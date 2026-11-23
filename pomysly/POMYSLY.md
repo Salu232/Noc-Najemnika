@@ -8,8 +8,12 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 24 XI 2026 | Patryk | Przenieść do gry obrazy i filmy bohatera od Przemka („mozesz wykorzystać to w 100%”), przede wszystkim poprawić chodzenie | zrobiony | pierwsza wersja: [docs/grafika.md](../docs/grafika.md), punkt 9; chód z filmu, cięcie w stronę celu, portret i las na ekranie startu |
+| 24 XI 2026 | Patryk | Animacją na razie się nie męczyć, żeby nie zniechęcić | w planie | kolejne filmy tylko, gdy Przemek ma ochotę; lista, czego brakuje, w [docs/grafika.md](../docs/grafika.md), punkt 9 |
+| 24 XI 2026 | Claude | Film biegu bohatera w miejscu, z boku, na białym tle | nowy | chód z filmu to spokojny marsz, a bohater w grze prawie biegnie; dopiero bieg zdejmie ślizganie stóp |
+| 24 XI 2026 | Claude | Film „magia” (fioletowe pioruny) jako moc klątwy albo mocny cios; wojownik w hełmie jako przyszła postać | nowy | materiał Przemka, jeszcze nieużyty |
 | 23 XI 2026 | Patryk | Animacje w walkach | zrobiony | pierwsza wersja: [docs/walka.md](../docs/walka.md), punkt 10 |
-| 23 XI 2026 | Patryk | Wygląd bohatera z Gemini: arkusz sześciu póz w walce | w planie | w grze na próbę, [docs/grafika.md](../docs/grafika.md), punkt 7; brakuje chodu, bloku, uniku i rany (polecenia w punkcie 8) |
+| 23 XI 2026 | Patryk | Wygląd bohatera z Gemini: arkusz sześciu póz w walce | zrobiony | 24 XI zastąpiony filmami Przemka ([docs/grafika.md](../docs/grafika.md), punkt 9); arkusz został jako wzór w `grafika/zrodla/` |
 | 23 XI 2026 | Claude | Ciało idzie za mieczem: odchylenie przy zamachu, wykrok przy cięciu, cięższy miecz mocniej rzuca ciałem | zrobiony | działa dla obu wersji bohatera |
 | 23 XI 2026 | Claude | Mocny cios albo wielki miecz przecina wroga na pół | zrobiony | górna połowa leci łukiem, dolna pada |
 | 23 XI 2026 | Claude | Zabity wróg pada i ślizga się, zanim zostanie śladem na ziemi | zrobiony | |
@@ -91,6 +95,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Kto | Co powiedział (skrót) | Co z tym zrobiliśmy |
 | --- | --- | --- | --- |
+| 24 XI 2026 | Patryk | Spodobała mu się grafika Przemka i ten styl; najpierw chodzenie, animacją się na razie nie męczyć | bohater z filmów Przemka w grze, chód zgrany z drogą ([docs/grafika.md](../docs/grafika.md), punkt 9) |
 | 23 XI 2026 | Patryk | Nowy styl walki „ciekawy”, walka „już jest ciekawa”, ale „może nie do końca to co chce”; bohater zbyt prosty, nie wyróżnia się | bohater z Gemini w grze na próbę i pierwsze animacje walki ([docs/walka.md](../docs/walka.md), punkt 10); pytanie, czego w walce brakuje, czeka na odpowiedź |
 | 23 XI 2026 | Patryk | „Polana we mgle”: ruch, unik i blok w porządku, ale atak słaby, brakowało mu w nim „swojego wykorzystania”; styl walki mu się nie podoba; waga broni to gust | nowy styl walki: przycisk Tnij jak drążek, miecz z wagą, trzy miecze do wyboru; [docs/walka.md](../docs/walka.md), punkt 9 |
 | 23 XI 2026 | Patryk | Bardzo spodobała mu się „Próba chaty”: fajny klimat | kierunek grafiki się potwierdza; czekamy na kolejne obrazy z Gemini |

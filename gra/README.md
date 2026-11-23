@@ -9,7 +9,7 @@ Każdy plik robi jedną rzecz. Logika nie wie nic o rysowaniu, a rysowanie nicze
 | [walka.js](walka.js) | logika: ruch, cios w fazach (zamach, cięcie po łuku, powrót), rozpęd, mocny cios, blok, parowanie, unik, Krew za krew, Miecz który waży, wrogowie i etapy nocy |
 | [rysowanie.js](rysowanie.js) | obraz w PixiJS: ziemia, las, chata, postacie i ich animacje (pochylenie, padanie, cięcie na pół), krew, mgła, noc z wyciętym światłem, deszcz |
 | [obrazki.js](obrazki.js) | rysunki robione kodem, dopóki nie ma obrazów z Gemini: sosny, ghul, kolos, światło, mgła (bohatera rysowanego kodem rysuje rysowanie.js) |
-| [klatki-bohatera.js](klatki-bohatera.js) | gdzie w [../grafika/bohater.webp](../grafika/bohater.webp) leży każda poza bohatera z Gemini i gdzie ma stopy; plik robi [../narzedzia/wytnij-bohatera.py](../narzedzia/wytnij-bohatera.py) |
+| [klatki-bohatera.js](klatki-bohatera.js) | gdzie w [../grafika/bohater.webp](../grafika/bohater.webp) leży każda klatka bohatera z filmów Przemka, gdzie ma stopy i które klatki tworzą którą animację; plik robi [../narzedzia/wytnij-z-filmow.py](../narzedzia/wytnij-z-filmow.py) |
 | [wejscie.js](wejscie.js) | sterowanie: klawiatura i mysz, drążek ruchu, przycisk Tnij jak drążek (stuknij, celuj, ładuj) oraz Blok i Unik |
 | [hud.js](hud.js) | pasek życia i sił, nazwa etapu, myśl bohatera, licznik klatek |
 | [dzwiek.js](dzwiek.js) | dźwięki składane w przeglądarce, bez plików |
