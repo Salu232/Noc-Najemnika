@@ -58,6 +58,15 @@ export const DOMYSLNA_BRON = 'poltorareczny';
 // Mocny cios: przytrzymaj atak, aż miecz się naładuje, i puść. Szerszy łuk, większe rany, przechodzi przez wszystko.
 export const MOCNY = { luk: 0.7, zasieg: 1.15, obrazenia: 2.5, odrzut: 1.8, koszt: 0.8, ciecie: 1.25, ruchLadowania: 0.3 };
 
+// Klątwa (R, na telefonie przycisk Klątwa): bohater unosi przeklętą prawą rękę i wali pięścią w ziemię.
+// Wszystko wokół dostaje i odlatuje, ghule zwykle giną, kolos się chwieje. Przez cały czas nikt go nie zrani.
+// Pasek klątwy napełnia się od trafień i zabitych; na początku nocy jest pełny, żeby dało się ją od razu wypróbować.
+export const KLATWA = {
+  ladowanie: 0.45, uderzenie: 0.25, wstawanie: 0.5,   // sekundy: unosi rękę, uderza, wstaje
+  zasieg: 190, obrazenia: 3, odrzut: 620,
+  zaTrafienie: 0.04, zaZabicie: 0.1, start: 1,
+};
+
 export const WROGOWIE = {
   ghul: {
     nazwa: 'ghul',

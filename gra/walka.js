@@ -1,5 +1,5 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, WROGOWIE, ETAPY, NOC } from './dane.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC } from './dane.js';
 import { START, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
@@ -29,6 +29,7 @@ function postawBohatera(gra) {
     cios: null, strona: 1, rozped: 0, seriaCzas: 0, kolejkaAtaku: false,
     blok: false, blokOd: -9, nietykalny: 0, unikKat: 0,
     odrzutX: 0, odrzutY: 0, chod: 0, idzie: false, flash: 0,
+    klatwa: KLATWA.start, klatwaUderzyla: false,
   };
 }
 
@@ -104,6 +105,9 @@ function aktualizujBohatera(gra, dt, w) {
   if (w.atakStart) b.kolejkaAtaku = true;
   const mozeUnik = w.unik && b.sila >= BOHATER.unik.koszt * 0.5;
 
+  // klątwa: z wolnego stanu albo w trakcie brania zamachu, gdy pasek jest pełny
+  if (w.klatwa && b.klatwa >= 1 && (b.stan === 'wolny' || (b.stan === 'cios' && (b.cios.faza === 'zamach' || b.cios.faza === 'laduje')))) zacznijKlatwe(gra);
+
   if (b.stan === 'wolny') {
     if (mozeUnik) zacznijUnik(gra, rx, ry, rl);
     else if (b.kolejkaAtaku && !b.blok) zacznijCios(gra, w);
@@ -143,6 +147,10 @@ function aktualizujBohatera(gra, dt, w) {
     if (b.t >= cfg.czas) { b.stan = 'wolny'; if (b.kolejkaAtaku) zacznijCios(gra, w); }
   } else if (b.stan === 'zachwiany') {
     b.t += dt; if (b.t >= b.trwanie) b.stan = 'wolny';
+  } else if (b.stan === 'klatwa') {
+    b.t += dt;
+    if (!b.klatwaUderzyla && b.t >= KLATWA.ladowanie) uderzKlatwa(gra);
+    if (b.t >= KLATWA.ladowanie + KLATWA.uderzenie + KLATWA.wstawanie) { b.stan = 'wolny'; b.kolejkaAtaku = false; }
   }
 
   // ruch: z ciężkim mieczem w ręku idzie się wolniej
@@ -160,6 +168,31 @@ function aktualizujBohatera(gra, dt, w) {
   else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * dt * (b.blok ? 0.3 : 1));
   if (b.smugaCzas > 0) b.smugaCzas -= dt; else b.smuga = Math.max(0, b.smuga - 60 * dt);
   if (b.seriaCzas > 0) { b.seriaCzas -= dt; if (b.seriaCzas <= 0) b.rozped = 0; }
+}
+
+// Klątwa: najpierw unosi rękę (można go wtedy obejść, ale nie zranić), potem uderza w ziemię.
+function zacznijKlatwe(gra) {
+  const b = gra.bohater;
+  b.stan = 'klatwa'; b.t = 0; b.cios = null; b.blok = false; b.kolejkaAtaku = false; b.rozped = 0;
+  b.klatwa = 0; b.klatwaUderzyla = false;
+  b.nietykalny = KLATWA.ladowanie + KLATWA.uderzenie + KLATWA.wstawanie;
+  gra.zdarzenia.push({ typ: 'klatwa_laduje' });
+}
+
+function uderzKlatwa(gra) {
+  const b = gra.bohater; b.klatwaUderzyla = true;
+  let ile = 0;
+  for (const e of gra.wrogowie) {
+    if (e.stan === 'wynurza' || e.stan === 'martwy') continue;
+    const dx = e.x - b.x, dy = e.y - b.y, d = Math.hypot(dx, dy) - e.promien;
+    if (d > KLATWA.zasieg) continue;
+    const kat = Math.atan2(dy, dx), blisko = 1 - Math.max(0, d) / KLATWA.zasieg;
+    zranWroga(gra, e, KLATWA.obrazenia, kat, KLATWA.odrzut * (0.5 + 0.5 * blisko), true, false, true);
+    if (e.zycie > 0) { e.stan = 'ogluszony'; e.t = 0; }                      // kto przeżył, chwieje się i dostaje podwójnie
+    ile++;
+  }
+  gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.12); gra.wstrzas = Math.max(gra.wstrzas, 16);
+  gra.zdarzenia.push({ typ: 'klatwa', x: b.x, y: b.y, zasieg: KLATWA.zasieg, ile });
 }
 
 function zuzyjSile(b, ile) { b.sila = Math.max(0, b.sila - ile); b.odnowaZa = BOHATER.opoznienieOdnowy; }
@@ -232,6 +265,7 @@ function tnij(gra, dt) {
     zranWroga(gra, wrog, obr, katOd, bron.odrzut * (c.mocny ? MOCNY.odrzut : 1), bron.przerywa || c.mocny, c.mocny || bron.przecinaCiezkich);
     nowe++; c.trafienia++;
     krewZaKrew(b);
+    b.klatwa = Math.min(1, b.klatwa + KLATWA.zaTrafienie);
     if (wrog.typ.ciezki && wrog.zycie > 0 && !bron.przecinaCiezkich && !c.mocny) {
       c.utknal = true;
       gra.zatrzymanie = Math.max(gra.zatrzymanie, BOHATER.miecz.zatrzymanieGrzeznie);
@@ -315,7 +349,7 @@ function nowyWrog(typNazwa, punkt) {
 }
 
 // przecina: cios, który zabija, rozcina ciało na dwie części (mocny cios albo wielki miecz)
-function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false) {
+function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy = false) {
   e.zycie -= ile; e.flash = 0.12;
   const sila = odrzut / (e.typ.ciezki ? 6 : 1);
   e.vx += Math.cos(kat) * sila; e.vy += Math.sin(kat) * sila;
@@ -326,6 +360,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false) {
   if (e.zycie <= 0) {
     e.stan = 'martwy';
     gra.statystyki.zabici++;
+    if (!zKlatwy) gra.bohater.klatwa = Math.min(1, gra.bohater.klatwa + KLATWA.zaZabicie);
     // ciało pada od bohatera (rysowanie najpierw pokazuje upadek, potem zostawia ślad na ziemi)
     const odBoh = Math.cos(kat) >= 0 ? 1 : -1;
     gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: odBoh * losuj(0.75, 1.3), sx: -odBoh, kat, pada: true, przeciety: przecina });

@@ -190,3 +190,13 @@ Liczby walki się nie zmieniły. Bot po zmianach (`node testy/bot-noc.mjs dobry 
 **Otwarte pytanie do Patryka:** walka jest „ciekawa”, ale „może nie do końca to co chcę”. Czego w niej brakuje?
 
 **24 XI: bohater z filmów Przemka.** Arkusz póz zastąpiły klatki z filmów Gemini: chód, oddech, zamach, cięcie, powrót, rana i blok ([docs/grafika.md](grafika.md), punkt 9). Cios dalej idzie za fazą, a chód za przebytą drogą. Patryk prosił przede wszystkim o lepsze chodzenie; ograniczenie jest zmierzone w tamtym punkcie: film to spokojny marsz, a bohater w grze prawie biegnie. Liczby walki bez zmian (bot `dobry miecz`: 20,6 rany za noc, wszystkie noce do świtu).
+
+## 11. Klątwa pod R (24 XI)
+
+**Patryk, 24 XI, 00:43:** *„możemy dodać, jakiś specjalny atak który przy wciśnięciu r się aktywuje”*. Przemek miał już film, w którym bohater unosi przeklętą prawą rękę i wali pięścią w ziemię, więc atak powstał z niego. Pasuje do fabuły: klątwa siedzi w prawej ręce, czarne żyły idą od dłoni w górę ([fabula/zarys.md](../fabula/zarys.md)).
+
+- **Sterowanie:** R na komputerze, przycisk Klątwa na telefonie (nad Blokiem). Działa z wolnego stanu albo w trakcie brania zamachu.
+- **Przebieg:** 0,45 s unosi rękę (żar w dłoni, krąg na ziemi zbiega się do stóp), uderzenie, 0,75 s wstaje. Przez cały ten czas nic go nie rani, ale nie może się ruszać.
+- **Uderzenie:** każdy wróg w promieniu 190 dostaje 3 rany i odlatuje (bliżej mocniej). Ghule zwykle giną, kolos traci 3 z 8 i chwieje się 1,2 s, a w tym czasie dostaje podwójnie. Na ziemi zostają fioletowe pęknięcia.
+- **Pasek klątwy** (fioletowy, pod wytrzymałością): każde trafienie mieczem dodaje 4%, każdy zabity mieczem 10%. Zabici klątwą nic nie dodają. Na początku nocy pasek jest pełny, żeby dało się ją od razu wypróbować.
+- Liczby są w [gra/dane.js](../gra/dane.js), w `KLATWA`. Bot klątwy nie używa, więc jego wyniki zostają porównywalne z wcześniejszymi (`dobry miecz`: 20,2 rany za noc).

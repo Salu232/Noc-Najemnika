@@ -48,5 +48,7 @@ export function zagraj(z) {
     case 'smierc': szum(t, 0.2, 'lowpass', 1000, 250, 0.4); break;
     case 'tapniecie': ton(t, 0.55, 'sine', 70, 28, 0.9); szum(t, 0.35, 'lowpass', 500, 80, 0.5); break;
     case 'unikniety': szum(t, 0.15, 'bandpass', 1400, 600, 0.15, 2); break;
+    case 'klatwa_laduje': ton(t, 0.45, 'sawtooth', 55, 140, 0.12); szum(t, 0.45, 'bandpass', 300, 1600, 0.12, 4); break;
+    case 'klatwa': ton(t, 0.8, 'sine', 62, 24, 1); szum(t, 0.5, 'lowpass', 1400, 90, 0.7); szum(t, 0.25, 'highpass', 5000, 2500, 0.18); break;
   }
 }

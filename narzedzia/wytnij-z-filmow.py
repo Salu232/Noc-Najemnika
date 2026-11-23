@@ -18,10 +18,17 @@ ANIMACJE = {
     'powrot':    ('ciecie', [58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94]),
     'rana':      ('rana',   [7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37]),
     'blok':      ('rana',   [49, 52, 55]),                    # miecz trzymany poziomo przed sobą
+    # atak klątwy (R): unosi przeklętą prawą rękę, wali pięścią w ziemię, wstaje. Wybuch rysuje gra:
+    # klatki 31–61 filmu pomijamy, bo fioletowy wybuch zasłania nogi.
+    'klatwa_lad':    ('magia', [4, 8, 12, 16, 19, 22, 25, 28]),
+    'klatwa_uderz':  ('magia', [64, 67, 70]),
+    'klatwa_wstaje': ('magia', [73, 76, 79, 82, 85, 88, 91]),
 }
 # W klatkach 39–49 cięcia smuga z filmu zasłania biodra i po jej zdjęciu zostaje dziura.
 # Pas z dziurą bierzemy z klatki 55, w której bohater stoi w tym samym rozkroku, a smugi już nie ma.
 LATKI = {('ciecie', k): 55 for k in (39, 41, 43, 45, 47, 49)}
+# W filmie magii pod bohaterem zostaje popękana, jasna ziemia z fioletem. Zdejmujemy ją od wiersza 235 w dół.
+ZIEMIA = {('magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 POL = 0.5                 # kluczowanie na filmie zmniejszonym o połowę (640 × 360)
 SKALA_OBRAZU = 0.5        # i jeszcze o połowę do gry: postać ma około 170 px wysokości
 STOPY = (295, 345)        # punkt między stopami w spoczynku, w pikselach filmu zmniejszonego o połowę
@@ -68,6 +75,24 @@ def klatki_filmu(film, numery, katalog):
     return [Image.open(os.path.join(katalog, f'{film}-{i + 1:03d}.png')).convert('RGB') for i in range(len(numery))]
 
 
+def zdejmij_ziemie(rgba, zrodlo, od=235):
+    """Od wiersza `od` w dół zostawia tylko ciemne (buty, spodnie) i ciepłe piksele (dłoń), bez fioletu i bez cienkich pęknięć."""
+    a = np.asarray(rgba).copy(); s = np.asarray(zrodlo).astype(np.float32)
+    lum = s.mean(2); sat = s.max(2) - s.min(2); r, g, b = s[..., 0], s[..., 1], s[..., 2]
+    fiolet = (b > g + 35) & (r > g + 10)
+    pas = np.zeros(lum.shape, bool); pas[od:] = True
+    m = (a[..., 3] > 0) & ~fiolet & ~(pas & ~((lum < 95) | ((r - b > 12) & (lum < 200))))
+    m = np.where(pas, ndimage.binary_opening(m, structure=np.ones((5, 5))), m)
+    lab, n = ndimage.label(m, structure=np.ones((3, 3)))
+    if n > 1: m = lab == np.argmax(ndimage.sum(m, lab, range(1, n + 1))) + 1
+    dz, nd = ndimage.label(~m)
+    if nd: m |= np.isin(dz, np.nonzero(ndimage.sum(~m, dz, range(1, nd + 1)) < 40)[0] + 1)
+    a[..., 3] = np.where(m, a[..., 3], 0)
+    dziury = m & (a[..., 3] == 0)                                            # zatkane dziurki: kolor z filmu
+    a[dziury, :3] = s[dziury].astype(np.uint8); a[dziury, 3] = 255
+    return Image.fromarray(a, 'RGBA')
+
+
 def latka(rgba, dawca):
     """Wiersze, w których klatce brakuje ciała, a dawca je ma, bierze w całości z dawcy (z zapasem 6 wierszy)."""
     a = np.asarray(rgba).copy(); d = np.asarray(dawca)
@@ -89,7 +114,8 @@ with tempfile.TemporaryDirectory() as kat:
     kluczowane = {}
     for film, numery in potrzebne.items():
         numery = sorted(numery)
-        for k, obr in zip(numery, klatki_filmu(film, numery, kat)): kluczowane[(film, k)] = kluczuj(obr)
+        for k, obr in zip(numery, klatki_filmu(film, numery, kat)):
+            kluczowane[(film, k)] = zdejmij_ziemie(kluczuj(obr), obr) if (film, k) in ZIEMIA else kluczuj(obr)
     for nazwa, (film, numery) in ANIMACJE.items():
         anim[nazwa] = []
         for k in numery:

@@ -50,7 +50,7 @@ async function start() {
 
   const wejscie = przygotujWejscie(cv, {
     ekranNaSwiat: rys.ekranNaSwiat,
-    elementy: { przyciski: $('przyciski'), tnij: $('przycisk-tnij'), blok: $('przycisk-blok'), unik: $('przycisk-unik'), drazekTlo: $('drazek-tlo'), drazekGalka: $('drazek-galka'), celTlo: $('cel-tlo'), celGalka: $('cel-galka') },
+    elementy: { przyciski: $('przyciski'), tnij: $('przycisk-tnij'), blok: $('przycisk-blok'), unik: $('przycisk-unik'), klatwa: $('przycisk-klatwa'), drazekTlo: $('drazek-tlo'), drazekGalka: $('drazek-galka'), celTlo: $('cel-tlo'), celGalka: $('cel-galka') },
   });
   const hud = przygotujHud();
 

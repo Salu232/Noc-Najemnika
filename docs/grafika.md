@@ -130,7 +130,7 @@ Przemek zrobił w Gemini pięć obrazów i sześć filmów (1280 × 720, 24 klat
 | `film-chod.mp4` | chód w miejscu, białe tło | chód, unik (jedna klatka wykroku) |
 | `film-ciecie.mp4` | zamach, cięcie w prawo ze smugą, powrót | zamach, ładowanie mocnego ciosu, cięcie, powrót miecza |
 | `film-rana.mp4` | cios w pierś, odrzut, potem miecz trzymany poziomo | rana, zachwianie, upadek, blok |
-| `film-magia.mp4` | przykuca, wokół fioletowe pioruny i czarne odłamki | jeszcze nie: pasuje do mocy klątwy albo mocnego ciosu |
+| `film-magia.mp4` | unosi przeklętą rękę, wali pięścią w ziemię, fioletowe pioruny | od 24 XI klątwa pod R: klatki 4–28, 64–70 i 73–91; wybuch z klatek 31–61 zasłania nogi, więc rysuje go gra |
 | `film-zbroja.mp4` | wojownik w hełmie tnie w nocy przy chacie | jeszcze nie: inna postać i film ze sceną, nie na białym tle |
 | `przemek-1-portret.jpg` | twarz w deszczu, las | ekran startu (`grafika/portret.webp`) i twarz przy myślach (`grafika/portret-maly.webp`) |
 | `przemek-2-wojownik-w-zbroi.jpg` | wojownik w hełmie, trzy pozy | jeszcze nie: kandydat na przyszłą postać |
@@ -152,6 +152,32 @@ Przemek zrobił w Gemini pięć obrazów i sześć filmów (1280 × 720, 24 klat
 2. **Chód tyłem do kamery** (w górę ekranu). Teraz bohater idzie w górę przodem do nas, z filmem puszczonym wstecz.
 3. **Unik:** odskok albo przewrót w bok.
 4. Tak jak w tych filmach: białe tło, kamera stoi, bohater w miejscu i tej samej wielkości, bez smug i iskier (smugi gra rysuje sama).
+
+### 10. Zamówienie dla Przemka (24 XI)
+
+**Patryk (24 XI, 00:43):** *„cholera naprawdę wyszło to dobrze (…) przemek się tym zaczą jarać, i ma pytanie co chciałbyś żeby jeszcze nam wygenerował (…) możemy dodać, jakiś specjalny atak który przy wciśnięciu r się aktywuje, można dodać jeszcze animacje rolla, i będę chciał dodać teraz jakąś grafikę do potworów bo niestety są zbyt powtarzalne i nie dają żadnej satysfakcji z bicia ich”*. O 00:49: *„przemek się tym zajmię więc jak będzie miał materiały to Ci wyślę”*.
+
+Wersja do wysłania Przemkowi (dokument z tymi samymi poleceniami): https://claude.ai/artifact/SV9SUTPNdgRDXHk1xK7XEq. Tu jest kopia do zapisu.
+
+**Kolejność:** ghul, kolos, potem bohater (przewrót, bieg, chód tyłem). Atak na R powstał z filmu magii, który już był (punkt 9). Każdy potwór: najpierw jeden obraz postaci (z obrazem bohatera na białym tle jako wzorem stylu), potem z tego obrazu cztery filmy: chód, atak, trafienie, śmierć.
+
+**Końcówka do każdego filmu** (poza przewrotem): *Pure white background, no floor, no shadow. Static camera: no zoom, no pan, no cut. The character stays in the same place in the frame, whole body visible including the feet, side view from slightly above, facing right. No motion trails, no sparks, no glow, no smoke, no text.*
+
+| Co | Polecenie |
+| --- | --- |
+| Ghul, obraz | Using the attached image of the mercenary as the style reference, draw a ghoul in exactly the same drawing style. A gaunt, hunched humanoid that crawled out of the night mist: grey-blue skin stretched over bones, long arms reaching to its knees with black claws, a lipless mouth with too many teeth, milky blind eyes, rags of a burial shroud, wet from rain. About as tall as the mercenary when upright, but crouched and ready to leap. Full body, side view from slightly above, facing right. Pure white background, no floor, no shadow, no text. |
+| Ghul, chód | The ghoul creeps forward on the spot in a loop, hunched low, claws swaying, like walking on a treadmill. The last frame matches the first. |
+| Ghul, atak | The ghoul crouches, then lunges forward slashing with both claws, lands and settles back into its crouch. |
+| Ghul, trafienie | The ghoul is struck hard from the front: it flinches and reels backwards, head snapping back, then recovers into its crouch. |
+| Ghul, śmierć | The ghoul is struck a fatal blow from the front: it staggers back, collapses onto the ground, twitches once and lies still. |
+| Kolos, obraz | Using the attached image of the mercenary as the style reference, draw a colossus in exactly the same drawing style. A hulking, hunched brute about twice the height of the mercenary: bloated grey flesh with plates of bone growing out of the skin like armour, a small head sunk between massive shoulders, huge fists hanging almost to the ground, a rusted iron collar with a broken chain around its neck, wet from rain. Full body, side view from slightly above, facing right. Pure white background, no floor, no shadow, no text. |
+| Kolos, chód | The colossus lumbers forward on the spot in a loop, slow and heavy, fists swinging, like walking on a treadmill. The last frame matches the first. |
+| Kolos, atak | The colossus raises both fists high above its head, then slams them into the ground in front of it, and slowly straightens up again. |
+| Kolos, trafienie | The colossus is struck hard from the front: it barely sways, grunts, shoulders jerking back, then steadies itself. |
+| Kolos, śmierć | The colossus is struck a fatal blow from the front: it drops to its knees, then falls forward face down and lies still. |
+| Bohater, przewrót (z własną końcówką) | The same mercenary does a quick combat roll to the right: drops low, rolls over his shoulder and comes back up into his standing pose with the sword in hand. Pure white background, no floor, no shadow. Static camera: no zoom, no pan, no cut. He may move across the frame but stays fully visible, feet included. Side view from slightly above. No motion trails, no sparks, no glow, no smoke, no text. |
+| Bohater, bieg | The same mercenary runs on the spot in a loop, like on a treadmill: a heavy, determined run, sword held low in his right hand, the wolf-fur cloak bouncing. The last frame matches the first. |
+| Bohater, chód tyłem (w końcówce „seen from behind” zamiast „facing right”) | The same mercenary walks away from the camera on the spot in a loop, like on a treadmill. We see his back: the wolf-fur cloak, the pauldron and the sword in his right hand. The last frame matches the first. |
 
 ## Jak ocenimy próbkę
 

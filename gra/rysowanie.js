@@ -2,7 +2,7 @@
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
 import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA } from './swiat.js';
-import { BOHATER, WROGOWIE } from './dane.js';
+import { BOHATER, WROGOWIE, KLATWA } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import * as O from './obrazki.js';
 
@@ -138,6 +138,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const duch = new P.Graphics(); duch.alpha = 0.33;
   const duchS = new P.Sprite(); duchS.alpha = 0.33;
   const blaskBoh = new P.Sprite(T.cieplo); blaskBoh.anchor.set(0.5); blaskBoh.blendMode = P.BLEND_MODES.ADD; blaski.addChild(blaskBoh);
+  const blaskKlatwy = new P.Sprite(T.cieplo); blaskKlatwy.anchor.set(0.5); blaskKlatwy.blendMode = P.BLEND_MODES.ADD; blaskKlatwy.tint = 0xa060ff; blaski.addChild(blaskKlatwy);
   const napisy = new P.Container();
   nad.addChild(mgla, znaki, blaski, oczy, smugi, iskry, duch, duchS, napisy);
 
@@ -179,7 +180,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const swiatNaEkran = (x, y) => ({ x: swiat.x + x * swiat.scale.x, y: swiat.y + y * swiat.scale.y });
 
   // ---------- krótkie animacje: padające ciała, błyski cięć, kurz i oddech ----------
-  const padajace = [], ciecia = [], obloczki = [];
+  const padajace = [], ciecia = [], obloczki = [], pioruny = [];
   function nowyPadajacy(s) {
     const typ = WROGOWIE[s.wrog];
     return { s, at: atlasy[s.wrog], sk: typ.skala, ciezki: !!typ.ciezki, dir: -s.sx, wiersz: s.sx < 0 ? 1 : 0, t: 0, czas: typ.ciezki ? 0.65 : 0.42, gasnie: -1, kon: null };
@@ -227,7 +228,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     lista.length = 0;
   }
   function wyczysc() {
-    padajace.length = 0; ciecia.length = 0; obloczki.length = 0;
+    padajace.length = 0; ciecia.length = 0; obloczki.length = 0; pioruny.length = 0;
     renderer.render(new P.Container(), { renderTexture: sladyRT, clear: true });
     dorysujSlady(DRZEWA.map(d => ({ typ: 'cien', x: d.x + 14, y: d.y + 3, w: d.h * 0.42, h: d.h * 0.12, alfa: 0.8 })));
   }
@@ -268,7 +269,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     upadlOd: -1, poprzZycie: BOHATER.zycie, slad: [], poprzStan: 'wolny',
     zadyszka: 0, oddech: 0, cykl: 0,          // po walce oddycha ciężej i szybciej
     odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
-    kop: { x: 0, y: 0 }, ucisk: 0,             // kamera drgnie w stronę cięcia; mocny cios lekko przybliża
+    kop: { x: 0, y: 0 }, ucisk: 0, fiolet: 0,      // fiolet: błysk ekranu i światła po uderzeniu klątwy
+                // kamera drgnie w stronę cięcia; mocny cios lekko przybliża
     px: null, py: null, krok: 0, szedl: false, dochodzi: 0, kierKroku: 1,   // gdzie był klatkę temu, ile cykli chodu przeszedł, czy dokańcza krok po zatrzymaniu
   };
 
@@ -322,6 +324,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       p.przysiad = 0.84 + 0.16 * q; p.wykrok = 0.8 * (1 - q);
     } else if (b.stan === 'zachwiany') {
       p.a = b.kat + 1.35 * sx; p.lift = 24; p.drgaj = 2.2; p.pochyl = -0.22; p.przysiad = 0.93;
+    } else if (b.stan === 'klatwa') {                                    // klątwa: drży, gdy unosi rękę, potem przykuca z pięścią w ziemi
+      const L = KLATWA.ladowanie, U = KLATWA.uderzenie;
+      if (b.t < L) { const w = b.t / L; p.drgaj = 0.7 * w; p.przysiad = 1 - 0.04 * w; p.pochyl = -0.06 * w; }
+      else if (b.t < L + U) { p.przysiad = 0.8; p.pochyl = 0.25; p.a = b.kat + 1.5 * sx; p.lift = 30; }
+      else { const q = latwo(Math.min(1, (b.t - L - U) / KLATWA.wstawanie)); p.przysiad = 0.8 + 0.2 * q; p.pochyl = 0.25 * (1 - q); p.a = b.kat + 1.5 * sx; p.lift = 30 * (1 - q) + 10 * q; }
     } else if (b.idzie) p.pochyl = 0.07;
     return p;
   }
@@ -331,6 +338,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const klatkaZ = (n, q) => { const l = AB[n]; return l[Math.min(l.length - 1, Math.max(0, Math.floor(q * l.length)))]; };
   const klatkaPetli = (n, cykle) => { const l = AB[n]; return l[((Math.floor(cykle * l.length) % l.length) + l.length) % l.length]; };
   function klatkaBohatera(b, tUp) {
+    if (b.stan === 'klatwa') {
+      const L = KLATWA.ladowanie, U = KLATWA.uderzenie;
+      if (b.t < L) return klatkaZ('klatwa_lad', b.t / L);
+      if (b.t < L + U) return klatkaZ('klatwa_uderz', (b.t - L) / U);
+      return klatkaZ('klatwa_wstaje', (b.t - L - U) / KLATWA.wstawanie);
+    }
     if (b.stan === 'upadl') return klatkaZ('rana', 0.4 + 0.6 * tUp);
     if (b.stan === 'zachwiany') return klatkaZ('rana', 0.15 + 0.8 * Math.min(1, b.t / Math.max(0.01, b.trwanie)));
     if (b.stan === 'cios' && b.cios) {
@@ -464,6 +477,33 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   let czas = 0;
   const krople = Array.from({ length: 220 }, () => ({ x: Math.random(), y: Math.random(), v: 0.9 + Math.random() * 0.6, d: 0.6 + Math.random() * 0.8 }));
 
+  // Uderzenie klątwy: fala po ziemi, pioruny w górę, odłamki, pęknięcia zostają na ziemi.
+  function uderzenieKlatwy(z) {
+    pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: z.zasieg * 1.15, t: 0, czas: 0.45, kolor: 0xb070ff, ziemia: true });
+    pierscienie.push({ x: z.x, y: z.y, r0: 10, r1: z.zasieg * 0.7, t: 0, czas: 0.22, kolor: 0xf0dcff, ziemia: true });
+    for (let i = 0; i < 9; i++) {
+      const a = losuj(0, TAU), r = losuj(20, z.zasieg * 0.9), x0 = z.x + Math.cos(a) * r, y0 = z.y + Math.sin(a) * r * PERSP;
+      const pkt = [x0, y0], wys = losuj(60, 150), n = 6;
+      for (let k = 1; k <= n; k++) pkt.push(x0 + losuj(-14, 14) + (z.x - x0) * 0.15 * k / n, y0 - wys * k / n);
+      pioruny.push({ pkt, t: 0, czas: losuj(0.18, 0.34) });
+    }
+    for (let i = 0; i < 14; i++) { const a = i / 14 * TAU; kurz(z.x + Math.cos(a) * 14, z.y + Math.sin(a) * 7, a, 1, 2.2); }
+    for (let i = 0; i < 10; i++) { const a = losuj(0, TAU), v = losuj(120, 260); obloczek(z.x, z.y - 6, Math.cos(a) * v, Math.sin(a) * v * PERSP, 2, 4, losuj(0.3, 0.5), 0.9, 0x1a0f24, true); }
+    // pęknięcia: rysowane raz do śladów na ziemi
+    const g = new P.Graphics();
+    for (let i = 0; i < 10; i++) {
+      let a = i / 10 * TAU + losuj(-0.25, 0.25), x = z.x, y = z.y; const dl = losuj(50, z.zasieg * 0.85);
+      const pk = [[x, y]];
+      for (let d = 0; d < dl; d += 16) { a += losuj(-0.5, 0.5); x += Math.cos(a) * 16; y += Math.sin(a) * 16 * PERSP; pk.push([x, y]); }
+      for (const [szer, kol, al] of [[5, 0x0b0710, 0.7], [2.2, 0x7a3cc8, 0.5]]) {      // ślady mają pół rozdzielczości, więc kreski grubsze
+        g.lineStyle(szer, kol, al); g.moveTo(pk[0][0], pk[0][1]); for (const [px, py] of pk.slice(1)) g.lineTo(px, py);
+      }
+    }
+    renderer.render(g, { renderTexture: sladyRT, clear: false }); g.destroy();
+    stanRys.kop.y += 10; stanRys.ucisk = 1.4; stanRys.fiolet = 1; stanRys.zadyszka += 0.15;
+    napis('Klątwa', z.x, z.y - 110, 0xc8a0ff);
+  }
+
   function rysuj(gra, dt, zdarzenia) {
     czas += dt;
     const b = gra.bohater;
@@ -489,6 +529,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       } else if (z.typ === 'rana') { stanRys.ranaKier = Math.sign(b.odrzutX) || -(Math.cos(b.kat) >= 0 ? 1 : -1); stanRys.zadyszka += 0.12; }
       else if (z.typ === 'blok') stanRys.odepchniecie = 1;
       else if (z.typ === 'parowanie') stanRys.pchniecie = 1;
+      else if (z.typ === 'klatwa_laduje') pierscienie.push({ x: b.x, y: b.y, r0: KLATWA.zasieg, r1: 24, t: 0, czas: KLATWA.ladowanie, kolor: 0x9a5cff, ziemia: true });
+      else if (z.typ === 'klatwa') uderzenieKlatwy(z);
     }
     stanRys.zadyszka = ogr(stanRys.zadyszka - dt * 0.05, 0, 1);
     stanRys.oddech += dt * (2 + 2.8 * stanRys.zadyszka);
@@ -575,6 +617,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // ciepły blask, gdy ładuje mocny cios
     const sr = wSwiecie(0, -50);
     blaskBoh.position.set(sr.x, sr.y); blaskBoh.width = blaskBoh.height = 150; blaskBoh.alpha = upadl ? 0 : pz.blask * 0.75;
+    // fioletowy żar przeklętej ręki: rośnie, gdy ją unosi, przy uderzeniu przechodzi w ziemię
+    stanRys.fiolet = Math.max(0, stanRys.fiolet - dt * 2.5);
+    if (b.stan === 'klatwa' && b.t < KLATWA.ladowanie) {
+      const w = b.t / KLATWA.ladowanie, rk = gem ? wSwiecie(-pz.sx * 16, -68) : wSwiecie(-pz.sx * 10, -48);
+      blaskKlatwy.position.set(rk.x, rk.y); blaskKlatwy.width = blaskKlatwy.height = 40 + 90 * w; blaskKlatwy.alpha = 0.35 + 0.55 * w;
+    } else {
+      blaskKlatwy.position.set(b.x, b.y - 10); blaskKlatwy.width = blaskKlatwy.height = 120 + 380 * stanRys.fiolet; blaskKlatwy.alpha = stanRys.fiolet;
+    }
     // oddech w zimnej nocy: obłoczek przy każdym wydechu, gęstszy po walce
     const cykl = Math.floor(stanRys.oddech / TAU);
     if (cykl !== stanRys.cykl) {
@@ -749,6 +799,17 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (q < 0.5) { smugi.beginFill(0xffffff, 0.45 * (1 - q * 2)); smugi.drawCircle(c.x, c.y, 6 + 16 * q); smugi.endFill(); }
     }
 
+    // pioruny klątwy
+    for (let i = pioruny.length - 1; i >= 0; i--) {
+      const p = pioruny[i]; p.t += dt; const q = p.t / p.czas;
+      if (q >= 1) { pioruny.splice(i, 1); continue; }
+      if (Math.random() < 0.25) continue;                                  // migocze
+      for (const [szer, kol, al] of [[4, 0x9a5cff, 0.75], [1.5, 0xf4e8ff, 0.95]]) {
+        smugi.lineStyle(szer, kol, al * (1 - q)); smugi.moveTo(p.pkt[0], p.pkt[1]);
+        for (let k = 2; k < p.pkt.length; k += 2) smugi.lineTo(p.pkt[k] + losuj(-2, 2), p.pkt[k + 1]);
+      }
+    }
+
     // kurz spod stóp i oddech
     para.clear();
     for (let i = obloczki.length - 1; i >= 0; i--) {
@@ -809,7 +870,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     ciemnoscG.clear(); ciemnoscG.beginFill(0x05060b, gra.mroczek); ciemnoscG.drawRect(0, 0, vw, vh); ciemnoscG.endFill();
     kreski.alpha = 0.55 * gra.mroczek / 0.8;
     const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zz, oy + y * zz); s.width = s.height = r * 2 * zz; s.alpha = al; };
-    stawStempel(swiatloBoh, b.x, b.y - 30, 250, 1);
+    stawStempel(swiatloBoh, b.x, b.y - 30, 250 + 260 * stanRys.fiolet, 1);
     stawStempel(swiatloOgnia, fx, fy - 10, 380 * migot, 0.95);
     stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7);
     renderer.render(ciemnoscC, { renderTexture: ciemnoscRT, clear: true });
@@ -827,6 +888,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
     bolG.clear();
     if (b.flash > 0) { bolG.beginFill(0x8a0000, b.flash * 0.9); bolG.drawRect(0, 0, vw, vh); bolG.endFill(); }
+    if (stanRys.fiolet > 0) { bolG.beginFill(0x6a2cc0, stanRys.fiolet * stanRys.fiolet * 0.35); bolG.drawRect(0, 0, vw, vh); bolG.endFill(); }
 
     renderer.render(scena);
   }

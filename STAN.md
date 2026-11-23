@@ -2,12 +2,12 @@
 
 Aktualizowany przy każdej zmianie. Historia jest w gicie, tutaj tylko to, co obowiązuje teraz.
 
-**Ostatnia zmiana:** 24 XI 2026 w nocy: bohater z filmów Przemka w grze (chód, oddech, cięcie, rana, blok), jego twarz i las na ekranie startu. Fundamenty i gra czekają w pull requeście nr 1.
+**Ostatnia zmiana:** 24 XI 2026 w nocy: klątwa pod R (z filmu magii Przemka) i zamówienie dla Przemka na potwory, przewrót i bieg. Wcześniej tej nocy bohater z filmów Przemka. Fundamenty i gra czekają w pull requeście nr 1.
 
 ## Teraz
 
 - Fundamenty repozytorium są gotowe: wizja, lekcje, projekt walki, dziennik pomysłów i zasady pracy.
-- **Pierwsza grywalna walka, „Polana we mgle”:** noc przy chacie, potwory wychodzą z mgły w czterech etapach aż do świtu. Są cięcia w serii, blok, parowanie, unik, „Krew za krew” i „Miecz, który waży”. Opis i wnioski są w [docs/walka.md](docs/walka.md), punkt 8, a kod w [gra/](gra/README.md). Wieczorem walka dostała nowy styl po uwagach Patryka (punkt 9): cios w fazach, rozpęd, mocny cios i wybór miecza. W nocy doszły animacje walki (punkt 10), a 24 XI bohater z filmów Przemka ([docs/grafika.md](docs/grafika.md), punkt 9).
+- **Pierwsza grywalna walka, „Polana we mgle”:** noc przy chacie, potwory wychodzą z mgły w czterech etapach aż do świtu. Są cięcia w serii, blok, parowanie, unik, „Krew za krew” i „Miecz, który waży”. Opis i wnioski są w [docs/walka.md](docs/walka.md), punkt 8, a kod w [gra/](gra/README.md). Wieczorem walka dostała nowy styl po uwagach Patryka (punkt 9): cios w fazach, rozpęd, mocny cios i wybór miecza. W nocy doszły animacje walki (punkt 10), a 24 XI bohater z filmów Przemka ([docs/grafika.md](docs/grafika.md), punkt 9) i klątwa pod R (punkt 11).
 - Pierwsza wersja gry jest w [archiwum/v1/](archiwum/v1/) razem z listą tego, co z niej bierzemy.
 - Technologia: zwykły JavaScript, bez silnika, przyjęta przez Patryka ([decyzje/002-technologia.md](decyzje/002-technologia.md)). Od 23 XI rysuje PixiJS, bo zwykłe płótno było na telefonie za wolne; zmiana jest w jednym pliku.
 - Walka: pierwsza wersja specjalizacji to prawa ręka i nogi, a łuk jest bronią dodatkową ([docs/walka.md](docs/walka.md)).
@@ -27,7 +27,8 @@ Równolegle: próbka stylu na karczmie, a po niej decyzja 003 o stylu grafiki.
 ## Czeka na Patryka
 
 - Zagranie w „Polanę we mgle” z bohaterem z Gemini i odpowiedź, czego w walce jeszcze brakuje.
-- Jak chodzi i tnie bohater z filmów Przemka. Gdy Przemek będzie miał ochotę: film biegu, chodu tyłem i uniku ([docs/grafika.md](docs/grafika.md), punkt 9).
+- Jak chodzi i tnie bohater z filmów Przemka i jak się gra klątwą pod R.
+- Materiały od Przemka: ghul, kolos, przewrót, bieg, chód tyłem ([docs/grafika.md](docs/grafika.md), punkt 10).
 - Przejrzenie i scalenie pull requesta nr 1 z fundamentami i grą.
 - Obrazy z Gemini według poleceń z [docs/grafika.md](docs/grafika.md).
 - Fabuła: kto zdradził i dlaczego, oraz pozostałe pytania z końca [fabula/zarys.md](fabula/zarys.md).
