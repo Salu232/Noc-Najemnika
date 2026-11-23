@@ -70,6 +70,24 @@ Od Gutsa bierzemy charakter. Wygląd, broń i wydarzenia mamy własne (tabela wy
 
 Gracz poznaje bohatera razem z nim samym, bo na początku obaj nie wiedzą, kim on jest. Charakter pokazujemy tym, co bohater robi, i krótkimi myślami, a nie długimi opisami.
 
+### Wygląd (propozycja Claude, 23 XI)
+
+**Patryk (23 XI):** wygląd w stylu Gutsa, ale nie jego kopia. Bohater musi się czymś wyróżniać, a jego strój ma być mroczny i nieść klimat dark fantasy.
+
+- **Sylwetka:** wysoki, ciężki, szeroki w barach, lekko pochylony ze zmęczenia. Ma być czytelny z daleka na małym ekranie.
+- **Wilcze futro na ramionach:** szare, wytarte i poplamione. To pamiątka po Szarych Wilkach i nasz znak rozpoznawczy.
+- **Strój:** połatana ciemna skóra i niedobrane kawałki zbroi zebrane z pól bitew: jeden naramiennik, karwasz i kolczuga pod spodem. Kaptur zwykle jest zsunięty.
+- **Miecz z ołtarza:** długi, półtoraręczny, z ciemnego żelaza i wyszczerbiony. Duży, ale nie wielki jak płyta. Łańcuch owija rękojeść i prawy nadgarstek, bo klątwa nie pozwala puścić miecza.
+- **Klątwa na ciele:** czarne żyły od prawej dłoni w górę ręki, częściowo pod brudnym bandażem. Z każdą ścieżką ciała żyły idą dalej ([docs/walka.md](../docs/walka.md), punkt 3).
+- **Twarz:** 30–35 lat, krótkie ciemne włosy, zarost, zapadnięte i zmęczone oczy. Drobne blizny, ale żadnej przez nos.
+- **Kolory:** popiel, brąz błota, ciemna stal i szare futro. Jedynym jasnym akcentem jest stal ostrza, ważna dla czytelności w walce.
+
+| Od Gutsa bierzemy | Od Gutsa nie bierzemy |
+| --- | --- |
+| ciężką, szeroką sylwetkę, zmęczenie, poobijany strój i broń, która jest częścią losu bohatera | miecza wielkiego jak płyta, protezy ręki z działem, ślepego oka, blizny w poprzek nosa i czarnej zbroi |
+
+Polecenie dla Gemini jest w [docs/grafika.md](../docs/grafika.md), w punktach 5 i 6.
+
 ### Bohater czuje świat
 
 **Patryk (22 XI):** bohater ma odczuwać klimat mrocznego świata, a gracz poznaje postać razem z nim.

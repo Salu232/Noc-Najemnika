@@ -61,11 +61,19 @@ Pięć poleceń. Każde kończy się dopiskiem stylu. Karczma nawiązuje do „P
 
 > Bust portrait of a medieval innkeeper: a heavy middle-aged man wiping his hands on a stained apron, an old burn scar on his forearm, tired suspicious eyes. Dark background lit by firelight from one side. He looks straight at the viewer.
 
-### 5. Bohater, portret (dodatkowo)
+### 5. Bohater, portret
 
-> Bust portrait of a lone mercenary in his thirties, exhausted hollow eyes, short dark hair wet from rain, stubble, worn leather and mismatched pieces of plate armor. Thin black veins creep from his right hand up the forearm and neck. He holds a plain, notched longsword. Dark forest background, cold moonlight.
+Wygląd opisuje [fabula/zarys.md](../fabula/zarys.md), punkt „Wygląd” (23 XI).
 
-Przy bohaterze unikamy znaków Gutsa: ogromnego miecza, protezy ręki, ślepego oka, blizny w poprzek nosa i czarnej zbroi.
+> Bust portrait of a lone mercenary in his early thirties, tall and broad-shouldered, exhausted hollow eyes, short dark hair wet from rain, stubble, small old scars. A worn grey wolf pelt over his shoulders, patched dark leather, one scavenged steel pauldron, mail underneath, hood down. Thin black veins creep from his right hand up the forearm, partly under a dirty bandage. A rusty chain is wrapped around his right wrist. Dark forest background, cold moonlight.
+
+### 6. Bohater w całej postaci, do gry (23 XI)
+
+Ten sam kąt kamery co chata w widoku jak w Tibii, równe światło dnia i jednolite tło, tak jak ustaliliśmy z Gemini.
+
+> Full-body character design of the same lone mercenary, standing, seen from above at the same three-quarter angle as a top-down 2D game. Tall, heavy, broad-shouldered, slightly hunched with exhaustion. Worn grey wolf pelt over the shoulders, patched dark leather, mismatched scavenged armor: one pauldron, a bracer, mail underneath. A long dark-iron bastard sword with a notched blade, held low in the right hand; a rusty chain is wrapped around the hilt and his right wrist. Black veins creep from his right hand up the forearm, partly under a dirty bandage. Even, dim daylight, no night, no glow. Plain flat magenta background (#FF00FF), no checkerboard, no shadow on the background.
+
+Przy bohaterze unikamy znaków Gutsa: miecza wielkiego jak płyta, protezy ręki, ślepego oka, blizny w poprzek nosa i czarnej zbroi.
 
 ## Jak ocenimy próbkę
 

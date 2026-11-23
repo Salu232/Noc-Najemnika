@@ -8,6 +8,10 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 23 XI 2026 | Patryk | Broń palna, na przykład prymitywna rusznica | nowy | Claude: tak, jako rzadki przedmiot na 1–3 strzały, nie zamiast miecza; w deszczu proch moknie i broń może nie wypalić; huk płoszy słabszych i ściąga resztę; nie jako działo w ręce, bo to znak Gutsa; po pierwszej wersji walki |
+| 23 XI 2026 | Patryk | Mgła w niektórych miejscach, a z mgły wychodzą potwory | w planie | grywalna polana |
+| 23 XI 2026 | Patryk | Wygląd bohatera w stylu Gutsa, ale z własnym znakiem i mrocznym strojem | w planie | szkic w [fabula/zarys.md](../fabula/zarys.md), punkt „Wygląd”: wilcze futro, miecz przykuty łańcuchem, czarne żyły |
+| 23 XI 2026 | Patryk | Gra dla jednej osoby; gra we dwóch zmieniłaby wszystko | w planie | obowiązuje teraz |
 | 23 XI 2026 | Patryk | Gra z drugą osobą | odłożony | do omówienia później; jeśli ma kiedyś być, lepiej wiedzieć wcześnie, bo zmienia budowę gry |
 | 23 XI 2026 | Claude | Gniew i czułość: sam walczy w gniewie, a gdy ktoś stoi za jego plecami, przechodzi w osłonę | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
 | 23 XI 2026 | Claude | Krew za krew: część utraconego życia wraca za trafienia w ciągu około 3 sekund | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
