@@ -35,6 +35,12 @@ Testy działają osobno i grają w grę jak człowiek, w prawdziwej przeglądarc
 
 Największe ryzyko to wydajność przy hordach. Dlatego pierwszym technicznym testem będzie 100 wrogów na ekranie telefonu. Rysowanie trzymamy w jednym osobnym module. Jeśli Canvas nie da rady, podmienimy tylko ten moduł na szybszy (na przykład PixiJS, który rysuje przez kartę graficzną), bez przepisywania reszty gry.
 
+## Zmiana 23 XI: rysowanie od razu w PixiJS
+
+**Zaproponował i zrobił:** Claude, w ramach tej decyzji (punkt „Ryzyko”). Patryk zobaczy to w pierwszej grywalnej walce.
+
+Próba hordy na telefonie Patryka pokazała, że zwykłe płótno rysuje tam bardzo wolno, nawet pusta scena (21 klatek na sekundę). Dlatego pierwsza walka rysuje od razu przez PixiJS 7.4.2, w wersji „legacy”, która bez karty graficznej sama wraca do zwykłego płótna. Logika gry dalej jest zwykłym JavaScriptem i nie wie o PixiJS. Cała zmiana siedzi w jednym pliku, [gra/rysowanie.js](../gra/rysowanie.js), więc cofnięcie to przepisanie tylko tego pliku.
+
 ## Jak to cofnąć
 
 Do pierwszego szkieletu gry zmiana technologii nic nie kosztuje. Później koszt rośnie, dlatego decydujemy teraz.

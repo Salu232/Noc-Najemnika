@@ -112,3 +112,28 @@ Do wyboru Patryka. Żaden nie powtarza tego, co już mamy: gesty cięć na telef
 7. **Oszczędzić czy dobić.** Ludzie z Bractwa Popiołu, w odróżnieniu od potworów, czasem padają na kolana i błagają. Oszczędzenie może oddać wspomnienie, bo dobro jest okupem, a dobicie daje czarną krew dla klątwy. To wybór w środku walki, a nie w menu. *Ryzyko:* wymaga zasad, które gracz zrozumie bez tłumaczenia.
 
 **Propozycja kolejności.** Do pierwszej grywalnej wersji: **Krew za krew** i **Miecz, który waży**, bo są tanie, a najbardziej zmieniają to, jak walka czuje się w dłoni. Do rozdziału I: **Gniew i czułość** oraz **Oszczędzić czy dobić**, bo wiążą walkę z charakterem bohatera i fabułą. Resztę później.
+
+## 8. Pierwsza grywalna walka: „Polana we mgle” (23 XI)
+
+Pierwszy kod nowej gry. Patryk chciał zobaczyć walkę, mapę większą niż w „Próbie chaty”, mgłę, z której wychodzą potwory, i zarys bohatera. Gra jest w [index.html](../index.html) i w folderze [gra/](../gra/README.md), a opis każdego pliku jest w [gra/README.md](../gra/README.md).
+
+**Co jest w środku:**
+
+- **Mapa:** polana 3200 na 2400 jednostek z chatą z Gemini i ogniskiem pośrodku, gęsty las dookoła i trzy mgły na skraju lasu: zachodnia, wschodnia i południowa.
+- **Noc w czterech etapach** (punkt 2 i pomysł Patryka z 23 XI): jeden ghul, potem trzech, potem horda 16, a na koniec kolos z 8 ghulami. Przed każdym etapem bohater myśli na głos, a po ostatnim wstaje świt i mgła się cofa.
+- **Seria trzech cięć** w kierunek myszy albo palca: w prawo, w lewo i ciężkie z góry. Ciężkie przerywa zamach ghula, lekkie nie.
+- **Blok i parowanie:** blok zatrzymuje cios i zjada wytrzymałość. Blok wciśnięty tuż przed ciosem (0,18 s) to parowanie: ghul się chwieje i dostaje podwójnie. Kolosa sparować się nie da, blok przyjmuje tylko połowę jego ciosu.
+- **Unik** z krótką chwilą nietykalności.
+- **Krew za krew** (punkt 7.2): po ranie część paska świeci przez 3 sekundy, a każde trafienie oddaje 7 punktów życia.
+- **Miecz, który waży** (punkt 7.3): cięcie przechodzi przez ghule na wylot, a w kolosie grzęźnie. Wtedy gra na chwilę staje, lecą iskry i nie da się od razu odskoczyć.
+- **Upadek:** „Klątwa nie pozwala ci umrzeć”. Bohater wstaje przy ognisku, a etap zaczyna się od nowa.
+
+**Liczby** są w [gra/dane.js](../gra/dane.js). To plik danych, o którym mówi decyzja 002, punkt 5: siłę ciosu, życie ghula albo liczbę wrogów w etapie zmienia jedna linijka.
+
+**Czego się nauczyliśmy przy budowie:**
+
+1. **Bot znalazł problem, zanim zagrał człowiek.** Bot gra całą noc samą logiką, bez rysowania ([testy/bot-noc.mjs](../testy/bot-noc.mjs)). W pierwszej wersji ghule nie trafiały prawie nigdy: każde lekkie cięcie przerywało ich zamach, a nasz miecz sięga dalej niż ich skok. Wystarczyło klikać. Poprawki: lekkie cięcie już nie przerywa zamachu, ghul trafia przez cały skok, a nie w jednej chwili, ma 2 lub 3 życia zamiast 1 lub 2 i jest trochę szybszy, a horda wychodzi gęściej. Po poprawkach bot, który tylko tnie, dostaje 4–10 ran za noc, ale dalej nie upada. Człowiek reaguje wolniej niż bot, więc to ma być wyzwanie, a nie ściana. Prawdziwy wynik da dopiero gra Patryka.
+2. **Gra działa także bez karty graficznej.** Używamy wersji PixiJS, która w razie potrzeby rysuje procesorem. W lewym dolnym rogu widać liczbę klatek na sekundę i to, czy rysuje karta graficzna, czy procesor. Z telefonu Patryka dostaniemy więc odpowiedź na pytanie z punktu 1 kolejności prac w [STAN.md](../STAN.md) przy zwykłym graniu.
+3. **Ogień musi stać w świecie, a nie nad nim.** Na pierwszych zrzutach płomienie przykrywały kolosa, który stał przed ogniskiem. Teraz ogień jest sortowany razem z postaciami.
+
+**Co jest prowizorką:** bohater, ghule, kolos i las są rysowane kodem, dopóki nie przyjdą obrazy z Gemini. Dźwięki też składa przeglądarka, bez plików. Płot nadal jest częścią obrazu chaty (pomysł „Budynek, płot i podwórko jako osobne obrazy” w dzienniku).

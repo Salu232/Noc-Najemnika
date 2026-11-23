@@ -8,19 +8,24 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 23 XI 2026 | Claude | Bot, który gra całą noc samą logiką i liczy rany, upadki i czas | zrobiony | [testy/bot-noc.mjs](../testy/bot-noc.mjs); znalazł, że ghule prawie nie trafiały |
+| 23 XI 2026 | Claude | Lekkie cięcie nie przerywa zamachu ghula, przerywa go tylko ciężki cios, parowanie albo śmierć | zrobiony | wniosek z bota, [docs/walka.md](../docs/walka.md), punkt 8 |
+| 23 XI 2026 | Claude | Napisy nad głową: „Sparowane!”, „Miecz grzęźnie”, „Unik”, odzyskana krew | zrobiony | żeby było widać, która zasada walki właśnie zadziałała; można je później wyłączyć |
+| 23 XI 2026 | Claude | Zarys bohatera widać przez chatę i drzewa, gdy za nimi stoi | zrobiony | jak w „Próbie chaty” |
+| 23 XI 2026 | Claude | Licznik klatek i rodzaj rysowania w rogu ekranu | zrobiony | gra sama mówi, czy telefon rysuje kartą graficzną |
 | 23 XI 2026 | Patryk | Broń palna, na przykład prymitywna rusznica | nowy | Claude: tak, jako rzadki przedmiot na 1–3 strzały, nie zamiast miecza; w deszczu proch moknie i broń może nie wypalić; huk płoszy słabszych i ściąga resztę; nie jako działo w ręce, bo to znak Gutsa; po pierwszej wersji walki |
-| 23 XI 2026 | Patryk | Mgła w niektórych miejscach, a z mgły wychodzą potwory | w planie | grywalna polana |
+| 23 XI 2026 | Patryk | Mgła w niektórych miejscach, a z mgły wychodzą potwory | zrobiony | „Polana we mgle”: trzy mgły na skraju lasu |
 | 23 XI 2026 | Patryk | Wygląd bohatera w stylu Gutsa, ale z własnym znakiem i mrocznym strojem | w planie | szkic w [fabula/zarys.md](../fabula/zarys.md), punkt „Wygląd”: wilcze futro, miecz przykuty łańcuchem, czarne żyły |
 | 23 XI 2026 | Patryk | Gra dla jednej osoby; gra we dwóch zmieniłaby wszystko | w planie | obowiązuje teraz |
 | 23 XI 2026 | Patryk | Gra z drugą osobą | odłożony | do omówienia później; jeśli ma kiedyś być, lepiej wiedzieć wcześnie, bo zmienia budowę gry |
 | 23 XI 2026 | Claude | Gniew i czułość: sam walczy w gniewie, a gdy ktoś stoi za jego plecami, przechodzi w osłonę | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
-| 23 XI 2026 | Claude | Krew za krew: część utraconego życia wraca za trafienia w ciągu około 3 sekund | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
-| 23 XI 2026 | Claude | Miecz, który waży: słabych przecina na wylot, w tarczy, kolosie i kości grzęźnie | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
+| 23 XI 2026 | Claude | Krew za krew: część utraconego życia wraca za trafienia w ciągu około 3 sekund | zrobiony | w „Polanie we mgle”, do oceny Patryka; [docs/walka.md](../docs/walka.md), punkty 7 i 8 |
+| 23 XI 2026 | Claude | Miecz, który waży: słabych przecina na wylot, w tarczy, kolosie i kości grzęźnie | zrobiony | w „Polanie we mgle” (ghule na wylot, w kolosie grzęźnie), do oceny Patryka; [docs/walka.md](../docs/walka.md), punkty 7 i 8 |
 | 23 XI 2026 | Claude | Rany na częściach ciała, a część oddana klątwie nie czuje bólu | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
 | 23 XI 2026 | Claude | Krąg ognia: potwory słabną w świetle, bohater może podpalić teren albo nieść pochodnię zamiast bloku | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
 | 23 XI 2026 | Claude | Strach w hordzie: brutalne zabójstwo albo śmierć przywódcy płoszy słabszych | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
 | 23 XI 2026 | Claude | Oszczędzić czy dobić: ludzie z Bractwa błagają, oszczędzenie oddaje wspomnienie, dobicie daje czarną krew | nowy | [docs/walka.md](../docs/walka.md), punkt 7 |
-| 23 XI 2026 | Patryk | Wrogów przybywa etapami: pojedynczy, potem kilku, potem horda | w planie | [docs/walka.md](../docs/walka.md), punkt 2 |
+| 23 XI 2026 | Patryk | Wrogów przybywa etapami: pojedynczy, potem kilku, potem horda | zrobiony | w „Polanie we mgle”: 1, 3, horda 16, kolos z 8; [docs/walka.md](../docs/walka.md), punkty 2 i 8 |
 | 22 XI 2026 | Patryk | Widok z góry pod skosem, jak w Tibii: widać dach i ściany z drzwiami | w planie | wszystkie obrazy w tym samym kącie i skali; próba w scenie „Próba chaty”, potem decyzja 003 |
 | 22 XI 2026 | Gemini | Czytelność: tła ciemne i gęste, bohater i wrogowie jaśniejsi, z wyraźnym obrysem | w planie | wejdzie do decyzji 003 i [docs/grafika.md](../docs/grafika.md) |
 | 22 XI 2026 | Claude | Obrazy do mapy w równym świetle dnia, a noc, deszcz i ogień dodaje gra | nowy | „Próba chaty” pokazuje, że nocny obraz pod nocą gry jest podwójnie ciemny; do wyboru Patryka |

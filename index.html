@@ -1,0 +1,190 @@
+<meta charset="utf-8">
+<title>Polana we mgle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap&subset=latin-ext">
+<style>
+/* Gra na cały ekran. Na wierzchu: pasek życia w lewym górnym rogu, etap na środku u góry,
+   myśl bohatera pod nim, przyciski kciuka w prawym dolnym rogu (tylko na telefonie). Jeden, nocny wygląd. */
+:root {
+  --tlo: #0b0b0d;
+  --panel: rgba(14, 12, 11, 0.86);
+  --tekst: #ebe3d5;
+  --przygaszony: #a89f92;
+  --zar: #e0a055;
+  --krew: #b3262a;
+  --krew-jasna: #e8676a;
+  --sila: #c99a4a;
+  --linia: rgba(235, 227, 213, 0.18);
+  --font-tytul: "Alegreya SC", "Palatino Linotype", Georgia, serif;
+  --font-tekst: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--tlo); color: var(--tekst);
+  font-family: var(--font-tekst); font-size: 16px;
+  overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+[hidden] { display: none !important; }
+#gra { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+
+/* pasek życia i wytrzymałości */
+.pasek {
+  position: fixed; z-index: 2;
+  top: calc(12px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px));
+  width: min(240px, 42vw); display: grid; gap: 5px; pointer-events: none;
+}
+.belka { position: relative; height: 12px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--linia); border-radius: 2px; overflow: hidden; }
+.belka.cienka { height: 7px; }
+#zycie { position: absolute; inset: 0 auto 0 0; background: var(--krew); width: 100%; }
+#smuga { position: absolute; top: 0; bottom: 0; background: rgba(232, 103, 106, 0.35); }
+#smuga.zywa { background: repeating-linear-gradient(135deg, var(--krew-jasna) 0 4px, rgba(232, 103, 106, 0.45) 4px 8px); animation: puls 0.5s ease-in-out infinite alternate; }
+@keyframes puls { from { opacity: 0.55; } to { opacity: 1; } }
+#sila { position: absolute; inset: 0 auto 0 0; background: var(--sila); width: 100%; transition: width 0.08s linear; }
+#sila.pusta { background: #7a5a3a; }
+#pasek-zycia.rana { box-shadow: 0 0 0 2px var(--krew-jasna); }
+#krew-podpowiedz { font-size: 13px; color: var(--krew-jasna); text-shadow: 0 1px 2px #000; opacity: 0; transition: opacity 0.2s; }
+#krew-podpowiedz.widac { opacity: 1; }
+
+/* etap i myśl */
+#etap {
+  position: fixed; z-index: 2; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  margin: 0; font-family: var(--font-tytul); font-weight: 500; font-size: 15px; letter-spacing: 0.05em;
+  color: var(--przygaszony); text-shadow: 0 1px 3px #000; pointer-events: none; white-space: nowrap;
+}
+#mysl {
+  position: fixed; z-index: 2; top: 22%; left: 50%; transform: translateX(-50%);
+  width: min(560px, calc(100vw - 32px)); margin: 0; text-align: center;
+  font-family: var(--font-tytul); font-size: clamp(19px, 4.6vw, 27px); line-height: 1.25; text-wrap: balance;
+  color: var(--tekst); text-shadow: 0 2px 6px #000, 0 0 18px #000; opacity: 0; transition: opacity 0.6s; pointer-events: none;
+}
+#mysl.widac { opacity: 1; }
+#info { position: fixed; z-index: 2; left: max(10px, env(safe-area-inset-left, 0px)); bottom: calc(6px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 11px; color: rgba(235, 227, 213, 0.45); pointer-events: none; }
+@media (max-width: 560px) { #etap { top: calc(44px + env(safe-area-inset-top, 0px)); left: auto; right: max(16px, env(safe-area-inset-right, 0px)); transform: none; font-size: 13px; } }
+
+/* przyciski */
+button { font: 500 16px/1.2 var(--font-tekst); color: var(--tekst); cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
+#przycisk-pauza {
+  position: fixed; z-index: 3; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--linia); background: rgba(0, 0, 0, 0.45); font-size: 14px; letter-spacing: 1px;
+}
+#przyciski { position: fixed; z-index: 3; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 14px; justify-items: end; }
+.kciuk {
+  width: 74px; height: 74px; border-radius: 50%; border: 2px solid rgba(235, 227, 213, 0.35);
+  background: rgba(10, 10, 12, 0.5); font-family: var(--font-tytul); font-weight: 700; font-size: 16px; touch-action: none;
+}
+.kciuk.wcisniety { background: rgba(224, 160, 85, 0.4); border-color: var(--zar); }
+#przycisk-unik { margin-right: 74px; }
+.drazek { position: fixed; z-index: 2; left: 0; top: 0; border-radius: 50%; pointer-events: none; }
+#drazek-tlo { width: 100px; height: 100px; border: 2px solid rgba(235, 227, 213, 0.3); }
+#drazek-galka { width: 40px; height: 40px; background: rgba(235, 227, 213, 0.3); }
+
+/* ekrany: start, pauza, koniec */
+.ekran {
+  position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px;
+  background: radial-gradient(ellipse at center, rgba(5, 5, 7, 0.55), rgba(5, 5, 7, 0.88));
+  overflow-y: auto;
+}
+.karta {
+  width: min(520px, 100%); background: var(--panel); border: 1px solid var(--linia); border-radius: 6px;
+  padding: 22px 22px 20px; display: grid; gap: 12px;
+}
+h1, h2 { margin: 0; font-family: var(--font-tytul); font-weight: 700; letter-spacing: 0.04em; text-wrap: balance; }
+h1 { font-size: 30px; }
+h2 { font-size: 24px; }
+.karta p { margin: 0; line-height: 1.45; color: var(--przygaszony); }
+.karta p.wstep { color: var(--tekst); font-size: 17px; }
+.sterowanie { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+@media (pointer: coarse) { .sterowanie .pc { order: 2; } }
+.sterowanie h3 { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--zar); text-transform: uppercase; letter-spacing: 0.06em; }
+.sterowanie ul { margin: 0; padding-left: 18px; color: var(--przygaszony); line-height: 1.45; font-size: 15px; }
+.akcje { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.glowny { font-family: var(--font-tytul); font-weight: 700; font-size: 19px; padding: 10px 22px; border-radius: 4px; border: 1px solid var(--zar); background: rgba(224, 160, 85, 0.18); }
+.drugi { padding: 9px 14px; border-radius: 4px; border: 1px solid var(--linia); background: transparent; font-size: 15px; }
+#ladowanie { color: var(--przygaszony); }
+.zrodlo { font-size: 13px; }
+dl#wynik { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; font-size: 17px; }
+dl#wynik dt { color: var(--przygaszony); }
+dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+</style>
+
+<canvas id="gra" aria-label="Polana nocą: chata, ognisko, las i mgła, z której wychodzą potwory"></canvas>
+
+<div class="pasek" aria-label="Życie i siły">
+  <div class="belka" id="pasek-zycia"><div id="zycie"></div><div id="smuga"></div></div>
+  <div class="belka cienka"><div id="sila"></div></div>
+  <div id="krew-podpowiedz">Krew za krew: tnij, żeby odzyskać</div>
+</div>
+<p id="etap"></p>
+<p id="mysl" aria-live="polite"></p>
+<p id="info"></p>
+<button type="button" id="przycisk-pauza" aria-label="Pauza">II</button>
+
+<div id="przyciski" hidden>
+  <button type="button" class="kciuk" id="przycisk-blok">Blok</button>
+  <button type="button" class="kciuk" id="przycisk-unik">Unik</button>
+</div>
+<div class="drazek" id="drazek-tlo" hidden></div>
+<div class="drazek" id="drazek-galka" hidden></div>
+
+<div class="ekran" id="ekran-startu">
+  <div class="karta">
+    <h1>Polana we mgle</h1>
+    <p class="wstep">Noc przy chacie w lesie. Z mgły na skraju polany wychodzą potwory, najpierw jeden, potem coraz więcej. Dotrwaj do świtu.</p>
+    <div class="sterowanie">
+      <div class="pc">
+        <h3>Komputer</h3>
+        <ul>
+          <li>WASD albo strzałki: ruch</li>
+          <li>Mysz: kierunek cięcia</li>
+          <li>Lewy przycisk: cięcie (trzy w serii)</li>
+          <li>Prawy przycisk albo Shift: blok</li>
+          <li>Spacja: unik</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Telefon</h3>
+        <ul>
+          <li>Lewy kciuk: ruch</li>
+          <li>Stuknij po prawej: cięcie w najbliższego</li>
+          <li>Przeciągnij po prawej: cięcie w tę stronę</li>
+          <li>Przyciski Blok i Unik</li>
+        </ul>
+      </div>
+    </div>
+    <p>Zablokuj tuż przed ciosem, a sparujesz: potwór się zachwieje i dostanie podwójnie. Po ranie masz chwilę, żeby cięciami odzyskać część krwi.</p>
+    <div class="akcje">
+      <button type="button" class="glowny" id="zacznij" hidden>Zacznij</button>
+      <span id="ladowanie">Wczytuję grę…</span>
+    </div>
+    <p class="zrodlo">Próbna wersja walki. Chata: obraz z Gemini. Bohater, potwory, las i światło: rysuje je kod.</p>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-pauzy" hidden>
+  <div class="karta">
+    <h2>Pauza</h2>
+    <p>Komputer: WASD, mysz celuje, lewy przycisk tnie, prawy blokuje, spacja to unik. Telefon: lewy kciuk chodzi, prawa strona tnie, przyciski Blok i Unik.</p>
+    <div class="akcje">
+      <button type="button" class="glowny" id="wroc">Wróć do gry</button>
+      <button type="button" class="drugi przycisk-dzwiek">Dźwięk: włączony</button>
+    </div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-konca" hidden>
+  <div class="karta">
+    <h2>Świt</h2>
+    <p class="wstep">Mgła cofa się do lasu. Przetrwałeś noc.</p>
+    <dl id="wynik"></dl>
+    <div class="akcje">
+      <button type="button" class="glowny" id="jeszcze-raz">Jeszcze raz</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="gra/main.js"></script>
