@@ -296,6 +296,8 @@ Jeśli Flow nie ma pola na ostatnią klatkę, wystarczy pierwsza: szukamy wtedy 
 
 Patryk, 24 XI, 14:22: koziołek z jednego obrazu (wersja 17) *„dalej zle to wygląda to musi wyglądać podobnie jak ten przewrót w prawo czy lewo”*. Obraz tylko jako pierwsza klatka (nie ostatnia), bo bohater kończy w innym miejscu kadru.
 
+**Wynik (24 XI, 14:31):** oba filmy udane za pierwszym razem, są w grze ([grafika/zrodla/film-przewrot-przod.mp4](../grafika/zrodla/film-przewrot-przod.mp4), [film-przewrot-tyl.mp4](../grafika/zrodla/film-przewrot-tyl.mp4)). Bohater w kadrze prawie stoi w miejscu, mimo że polecenie mówiło o przesunięciu; to nawet lepiej dla gry. W przewrocie od nas na chwilę znika wilczy łeb z płaszcza; przy tej prędkości tego nie widać.
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?

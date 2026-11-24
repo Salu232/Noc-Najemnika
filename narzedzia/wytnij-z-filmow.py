@@ -34,6 +34,10 @@ POSTACIE = {
             'gotowosc':  ('film-ciecie', [82, 85, 88, 91, 94]),
             # przewrót w przód przy uniku: od przysiadu do lądowania w przysiadzie z mieczem przed sobą
             'przewrot':  ('film-przewrot', [22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52]),
+            # przewrót w dół (do nas) i w górę (od nas), filmy Patryka z Flow, 24 XI: w kadrze prawie nie przesuwa się,
+            # więc stopy stoją w miejscu, a drogę robi gra. Od przysiadu przez koziołek do wstania.
+            'przewrot_przod': ('film-przewrot-przod', list(range(18, 61, 3))),
+            'przewrot_tyl':   ('film-przewrot-tyl', list(range(8, 54, 3))),
             # upadek po śmierci: osuwa się na kolana i pada na bok
             'upadek':    ('film-upadek', [22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 58, 61, 64, 67, 70, 76]),
             # atak klątwy (R): unosi przeklętą prawą rękę, wali pięścią w ziemię, wstaje. Wybuch rysuje gra:
@@ -81,9 +85,10 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340)}
+STOPY_FILMU = {'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
-SKALA_FILMU = {'film-miecz-wyciaga': 1.05}
+# Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
+SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03}
 
 
 def kluczuj(obraz, dol=0.80):

@@ -446,7 +446,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // więc ten sam film pasuje do lekkiego i do wielkiego miecza. Chód idzie za przebytą drogą.
   const klatkaZ = (n, q) => { const l = AB[n]; return l[Math.min(l.length - 1, Math.max(0, Math.floor(q * l.length)))]; };
   const klatkaPetli = (n, cykle) => { const l = AB[n]; return l[((Math.floor(cykle * l.length) % l.length) + l.length) % l.length]; };
-  const unikPionowy = (b) => Math.abs(Math.sin(b.unikKat)) > 0.7 && AB.chod_przod && AB.chod_tyl;   // w górę albo w dół, najwyżej 45° od pionu
+  const unikPionowy = (b) => Math.abs(Math.sin(b.unikKat)) > 0.7 && AB.przewrot_przod && AB.przewrot_tyl;   // w górę albo w dół, najwyżej 45° od pionu
   function klatkaBohatera(b, tUp) {
     if (b.stan === 'klatwa') {
       const L = KLATWA.ladowanie, U = KLATWA.uderzenie;
@@ -467,7 +467,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (b.blok) return klatkaZ('blok', 0.5);
     if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
     if (b.stan === 'unik') {   // unik to przewrót w stronę uniku; w górę i w dół koziołek plecami albo przodem (niżej)
-      if (unikPionowy(b)) return Math.sin(b.unikKat) > 0 ? AB.chod_przod[0] : AB.chod_tyl[0];
+      if (unikPionowy(b)) return klatkaZ(Math.sin(b.unikKat) > 0 ? 'przewrot_przod' : 'przewrot_tyl', b.t / BOHATER.unik.czas);
       return klatkaZ('przewrot', b.t / BOHATER.unik.czas);
     }
     // Wyciąga miecz, gdy zaczyna się walka, i chowa go po niej (film Patryka z Flow, 24 XI; chowanie to ten sam film wstecz).
@@ -834,19 +834,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const dj = pz.drgaj ? (Math.random() - 0.5) * pz.drgaj : 0;
       ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y, lx, sy, obrot);
       if (b.stan === 'unik' && unikPionowy(b)) {
-        // Koziołek w górę albo w dół (Patryk, 24 XI, 14:03: obrócony przewrót bokiem „dalej to efekt jakby robił przeskok
-        // tylko w lewo czy prawo”). Film ma tylko przewrót bokiem, więc kod bierze postać przodem (w dół) albo plecami (w górę)
-        // i przewraca ją przez głowę: przysiad, obrót o pełne koło wokół osi poziomej (obraz ściska się w pionie, staje
-        // do góry nogami i wraca), lekki podskok, wstaje. W dół głowa leci pierwsza do nas, w górę nogi idą nad głową.
-        const p = Math.min(1, b.t / BOHATER.unik.czas), dol = Math.sin(b.unikKat) > 0;
-        const q = Math.min(1, Math.max(0, (p - 0.12) / 0.72)), th = TAU * q * q * (3 - 2 * q);
-        const kula = Math.sin(th / 2);                                     // 0 na początku i końcu, 1 do góry nogami
-        const przysiad = p < 0.12 ? 1 - 0.25 * p / 0.12 : p > 0.84 ? 0.75 + 0.25 * (p - 0.84) / 0.16 : 0.75;
-        const ky = Math.cos(th) * przysiad * (1 - 0.3 * kula), kx = 1 + 0.18 * kula;
-        bohS.scale.set(bohS.scale.x * kx, bohS.scale.y * (Math.abs(ky) < 0.08 ? Math.sign(ky || 1) * 0.08 : ky));
+        // Przewrót w górę i w dół z filmów Patryka (Flow, 24 XI, 14:31): koziołek plecami albo przodem, bez obracania obrazu.
         bohS.skew.set(0, 0);
-        const c = (dol ? 52 : 38) * przysiad;                             // oś obrotu: w dół niżej (przez głowę), w górę wyżej (nogi nad głową)
-        bohS.position.set(b.x + dj, b.y - c + c * ky - 12 * Math.sin(Math.PI * p));
       } else if (b.stan === 'unik') {
         // Unik w bok i po skosie: przewrót bokiem z filmu, po skosie lekko obrócony w stronę uniku.
         const p = Math.min(1, b.t / BOHATER.unik.czas), e = Math.sin(Math.PI * p);
