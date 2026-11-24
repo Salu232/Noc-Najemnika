@@ -69,6 +69,9 @@ Nowe potwory potrzebują filmów (chód, atak, trafienie, śmierć). Robimy to t
    - **Kolos:** pod miejscem uderzenia krąg z kolcami (pierwszy z arkusza) na czerwonej strefie; pod koniec zamachu miga.
    - **Telefon:** przyciski Tnij, Unik i Klątwa mają ikony (miecz, but, przeklęta ręka) jako `grafika/ikona-*.webp`; Blok został z napisem, bo w arkuszu nie ma ikony tarczy. Mikstura czeka.
    - Strzałki kierunku uniku jeszcze nieużyte.
+   **Z etapu C i z „na później” zrobione 24 XI wpół do 19** (Patryk, 18:20):
+   - **Rama paska** (8): `grafika/rama-paska.webp`, wnętrza koła i belki przezroczyste; pod ramą portret i trzy paski (życie, siła, klątwa), łańcuch zostaje nad nimi. Przy ranie portret czerwienieje.
+   - **Totemy** z filmu `Totem_magic…` (`grafika/zrodla/film-totemy.mp4`): czaszka na palu (zachód), szkielet z rogami (wschód), obelisk i kamień z runą (południe), pętla 23 klatek, 6 na sekundę. Stoją na miejscu mgieł, świecą fioletem, mają zderzenia; potwory wychodzą przed nimi, a szarej mgły już nie ma. Myśl pierwszego etapu: „Totemy się budzą. Coś przy nich oddycha.” Bot: świt 5/5, rany 15,2, bo potwory wychodzą bliżej polany niż ze środka mgły.
 4. **Etap C:** rama paska (8), rekwizyty i światła (9, 10), panel (11).
 5. **Później:** totemy, potwory i fabuła, kiedy przyjdzie ich kolej w planie.
 

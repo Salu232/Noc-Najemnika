@@ -115,8 +115,8 @@ export const WROGOWIE = {
 // Do 24 XI etapy miały 1, 3, 16 i 1 + 8 potworów, wszystkie tak samo szybkie.
 export const ETAPY = [
   {
-    nazwa: 'Coś w mgle',
-    mysl: 'Mgła gęstnieje. Coś w niej oddycha.',
+    nazwa: 'Coś przy totemach',
+    mysl: 'Totemy się budzą. Coś przy nich oddycha.',
     zlosc: { szybkosc: 1, odpoczynek: 1 },
     grupy: [{ typ: 'ghul', ile: 2, z: ['zachod'], co: 2.5 }],
   },

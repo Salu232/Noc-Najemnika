@@ -6,7 +6,7 @@ export function przygotujHud() {
   const $ = id => document.getElementById(id);
   const el = {
     zycie: $('zycie'), smuga: $('smuga'), sila: $('sila'), etap: $('etap'), mysl: $('mysl'),
-    krew: $('krew-podpowiedz'), info: $('info'), pasekZycia: $('pasek-zycia'), klatwa: $('klatwa'), przyciskKlatwy: $('przycisk-klatwa'), akcja: $('akcja'), wnetrze: $('wnetrze'),
+    krew: $('krew-podpowiedz'), info: $('info'), pasekZycia: $('pasek-zycia'), portret: $('rama-portret'), klatwa: $('klatwa'), przyciskKlatwy: $('przycisk-klatwa'), akcja: $('akcja'), wnetrze: $('wnetrze'),
   };
   const ostatnie = {};
   const ustaw = (klucz, wartosc, fn) => { if (ostatnie[klucz] !== wartosc) { ostatnie[klucz] = wartosc; fn(wartosc); } };
@@ -28,7 +28,7 @@ export function przygotujHud() {
     const pokazMysl = gra.mysl.czas > 0 ? gra.mysl.tekst : '';
     ustaw('mysl', pokazMysl, v => { el.mysl.textContent = v; el.mysl.classList.toggle('widac', !!v); });
     ustaw('krew', b.smugaCzas > 0 && b.smuga > 0 && b.stan !== 'upadl', v => el.krew.classList.toggle('widac', v));
-    ustaw('rana', b.flash > 0.15, v => el.pasekZycia.classList.toggle('rana', v));
+    ustaw('rana', b.flash > 0.15, v => { el.pasekZycia.classList.toggle('rana', v); if (el.portret) el.portret.classList.toggle('rana', v); });
 
     // czynność w chacie (posłanie) albo zamknięte drzwi w walce; ekran snu
     const dotyk = matchMedia && matchMedia('(pointer: coarse)').matches;

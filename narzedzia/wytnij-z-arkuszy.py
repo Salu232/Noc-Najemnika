@@ -147,14 +147,45 @@ def podstawa(obraz, jak):
     return float(xs[pas].mean()) / obraz.width, (dol - (dol - ys.min()) * 0.035) / obraz.height
 
 
-def kluczuj_ogien(a):
+def kluczuj_ogien(a, wszystkie=False):
     tlo = tlo_arkusza(a, prog=188, nasycenie=34)                     # dym (jasnoszary) odpada razem z bielą
     tlo = ndimage.binary_opening(tlo, iterations=1) | tlo
     lab, n = ndimage.label(~tlo)
-    if n > 1:                                                         # iskry i drobinki dymu odpadają
+    if n > 1 and not wszystkie:                                       # iskry i drobinki dymu odpadają
         roz = ndimage.sum(~tlo, lab, range(1, n + 1))
         tlo |= ~np.isin(lab, np.nonzero(roz > roz.max() * 0.02)[0] + 1)
     return alfa_z_bieli(a, ~tlo)
+
+
+# Totemy z filmu Przemka (Totem_magic_animation_loop, od Patryka 24 XI 18:20): cztery obok siebie, z fioletowym dymem.
+# Pętla: cały film co czwarta klatka (24 klatki, 6 na sekundę), klatka 94 wygląda jak 2; szew przenika się jak przy ognisku.
+TOTEMY = {'film': 'grafika/zrodla/film-totemy.mp4', 'start': 2, 'okres': 92, 'co': 4, 'przenikanie': 3, 'skala': 0.8,
+          'nazwy': ['totem_czaszka', 'totem_rogi', 'totem_obelisk', 'totem_kamien'],
+          'kolumny': [(0, 215), (215, 362), (362, 492), (492, 640)]}   # przerwy między totemami w filmie 640 × 360 (dym je łączy)
+
+
+def klatki_totemow():
+    o = TOTEMY
+    with tempfile.TemporaryDirectory() as tmp:
+        subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', o['film'], '-vf', 'scale=640:360', f'{tmp}/%03d.png'], check=True)
+        film = lambda k: np.asarray(Image.open(f'{tmp}/{k:03d}.png').convert('RGB')).astype(np.float32)
+        numery = list(range(o['start'], o['start'] + o['okres'], o['co']))
+        klatki = []
+        for i, k in enumerate(numery):
+            a = film(k); zostalo = len(numery) - i
+            if zostalo <= o['przenikanie']:
+                w = 1 - zostalo / (o['przenikanie'] + 1)          # film zaczyna się od klatki 1, więc przenikamy do pierwszej klatki pętli
+                a = a * (1 - w) + film(numery[0]) * w
+            klatki.append(kluczuj_ogien(a, wszystkie=True))
+    al = np.max([k[..., 3] for k in klatki], axis=0) > 20
+    wy = {}
+    for nazwa, (g0, g1) in zip(o['nazwy'], o['kolumny']):
+        xs = np.nonzero(al[:, g0:g1].any(0))[0]; x0, x1 = g0 + xs.min(), g0 + xs.max() + 1
+        ys = np.nonzero(al[:, x0:x1].any(1))[0]; y0, y1 = ys.min(), ys.max() + 1
+        for i, k in enumerate(klatki):
+            im = Image.fromarray(k[y0:y1, x0:x1], 'RGBA')
+            wy[f'{nazwa}_{i:02d}'] = im.resize((round(im.width * o['skala']), round(im.height * o['skala'])), Image.LANCZOS)
+    return wy, len(klatki)
 
 
 def klatki_ognia():
@@ -189,6 +220,20 @@ def ikony():
     print('ikony:', ', '.join(f'grafika/ikona-{n}.webp' for n in IKONY))
 
 
+def rama():
+    """Rama paska z czaszkami (Patryk, 24 XI 18:20: zamiast zwykłych pasków). Czarne wnętrza (koło na portret
+    i belka na paski) stają się przezroczyste: pod ramą gra kładzie portret i paski, a łańcuch zostaje nad nimi."""
+    a = wczytaj('interfejs-pasek-ikony'); tlo = tlo_arkusza(a); lab, sl = skladowe(tlo)
+    s = sl[0]; x0, y0, x1, y1 = s[1].start, s[0].start, s[1].stop, s[0].stop
+    im = np.asarray(wytnij(a, tlo, lab, sl, 1)).copy()
+    ciem = ndimage.binary_erosion(a[y0:y1, x0:x1].max(2) < 40, iterations=5)
+    l, n = ndimage.label(ciem); roz = ndimage.sum(ciem, l, range(1, n + 1))
+    dziury = ndimage.binary_dilation(np.isin(l, np.argsort(roz)[-3:] + 1), iterations=5)
+    im[dziury, 3] = 0
+    Image.fromarray(im, 'RGBA').resize((660, round(660 * im.shape[0] / im.shape[1])), Image.LANCZOS).save('grafika/rama-paska.webp', quality=88)
+    print('grafika/rama-paska.webp')
+
+
 def podglad(katalog):
     os.makedirs(katalog, exist_ok=True)
     for ark in sorted({v[0] for v in RYSUNKI.values()}):
@@ -218,6 +263,9 @@ def zloz():
     ogien = klatki_ognia()
     for i, im in enumerate(ogien):
         obrazy[f'ogien_{i:02d}'] = im; opis[f'ogien_{i:02d}'] = (0.5, 0.78)
+    totemy, n_totemow = klatki_totemow()
+    for n, im in totemy.items():
+        obrazy[n] = im; opis[n] = podstawa(im, 'pien')
     # pakowanie półkami: od najwyższych
     kolej = sorted(obrazy, key=lambda n: -obrazy[n].height)
     x = y = h_polki = 0; miejsca = {}
@@ -237,10 +285,11 @@ def zloz():
         f.write('// Rysunki z arkuszy Przemka i klatki ogniska: gdzie leżą w grafika/rekwizyty.webp i gdzie stoją na ziemi\n')
         f.write('// (ax, ay: punkt podstawy jako część szerokości i wysokości). Plik robi narzedzia/wytnij-z-arkuszy.py, nie poprawiać ręcznie.\n')
         f.write(f'export const OGIEN_KLATEK = {len(ogien)}, OGIEN_FPS = {24 // OGIEN["co"]};\n')
+        f.write(f'export const TOTEM_KLATEK = {n_totemow}, TOTEM_FPS = {24 // TOTEMY["co"]};\n')
         f.write('export const REKWIZYTY = ' + json.dumps(wynik, separators=(',', ':')).replace('},"', '},\n  "') + ';\n')
     print(f'grafika/rekwizyty.webp {SZER_ATLASU}×{H}, {len(obrazy)} rysunków, {os.path.getsize("grafika/rekwizyty.webp") // 1024} KB')
 
 
 if __name__ == '__main__':
     if len(sys.argv) > 2 and sys.argv[1] == '--podglad': podglad(sys.argv[2])
-    else: zloz(); ikony()
+    else: zloz(); ikony(); rama()

@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 24 XI 2026 | Patryk | Zamiast zwykłych pasków rama z czaszkami i portretem z arkusza interfejsu; zamiast mgły potwory pojawiają się przy kamieniach i totemach (film totemów) | zrobiony | `grafika/rama-paska.webp` z portretem w kole i trzema paskami w belce; cztery totemy z pętlą fioletowego dymu na miejscu mgieł, potwory wychodzą spod nich ([docs/materialy-przemka.md](../docs/materialy-przemka.md)) |
 | 24 XI 2026 | Patryk | Dłuższe przerwy między falami; na początku przeciętne potwory, z każdą falą więcej i bardziej agresywne; od razu etap B | zrobiony | przerwa 9 s zamiast 4; fale 2, 5, 12 i kolos z 14 ghulami; każda fala szybsza i z krótszym odpoczynkiem po ataku (`zlosc` w gra/dane.js); etap B: iskry, rozbryzgi, krąg z kolcami, ikony przycisków ([docs/materialy-przemka.md](../docs/materialy-przemka.md)) |
 | 24 XI 2026 | Patryk | Później, z tymi i własnymi grafikami: drogi, więcej niż sama chata (mała wioska), dalej ruiny | na później | rekwizyty obozu, płoty i ruiny z paczki Przemka ([docs/materialy-przemka.md](../docs/materialy-przemka.md)); świat trzeba będzie powiększyć poza jedną polanę |
 | 24 XI 2026 | Patryk | „mógłbyś zrobić właśnie ten etap A, jestem ciekaw jak to nam odmieni grę” | zrobiony | ognisko z filmu, drzewa z arkuszy, kępy trawy, mchu i liści, krew i kałuże z arkuszy ([docs/materialy-przemka.md](../docs/materialy-przemka.md), etap A) |

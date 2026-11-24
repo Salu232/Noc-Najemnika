@@ -35,8 +35,17 @@ body {
 .pasek {
   position: fixed; z-index: 2;
   top: calc(12px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px));
-  width: min(240px, 42vw); display: grid; gap: 5px; pointer-events: none;
+  width: min(330px, 46vw); display: grid; gap: 5px; pointer-events: none;
 }
+/* Rama z czaszkami z arkusza Przemka (Patryk, 24 XI 18:20): w kole portret, w belce trzy paski; rama leży nad nimi.
+   Miejsca koła i belki to części szerokości i wysokości ramy (zmierzone w narzedzia/wytnij-z-arkuszy.py). */
+.rama { position: relative; aspect-ratio: 660 / 301; margin-left: -4%; }
+.rama-portret { position: absolute; left: 9.5%; top: 19%; width: 23.6%; height: 52%; border-radius: 50%;
+  background: #120c0a url("grafika/portret-maly.webp") center 30% / cover; filter: saturate(0.85); }
+.rama-portret.rana { box-shadow: inset 0 0 18px 6px rgba(200, 30, 30, 0.85); }
+.rama-paski { position: absolute; left: 36.5%; right: 11%; top: 35.5%; height: 18%; display: grid; grid-template-rows: 2fr 1fr 1fr; gap: 1px; background: #050404; }
+.rama-paski .belka { height: auto; border: 0; border-radius: 0; }
+.rama-obraz { position: absolute; inset: 0; width: 100%; height: 100%; }
 .belka { position: relative; height: 12px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--linia); border-radius: 2px; overflow: hidden; }
 .belka.cienka { height: 7px; }
 #zycie { position: absolute; inset: 0 auto 0 0; background: var(--krew); width: 100%; }
@@ -158,9 +167,15 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 <canvas id="gra" aria-label="Polana nocą: chata, ognisko, las i mgła, z której wychodzą potwory"></canvas>
 
 <div class="pasek" aria-label="Życie i siły">
-  <div class="belka" id="pasek-zycia"><div id="zycie"></div><div id="smuga"></div></div>
-  <div class="belka cienka"><div id="sila"></div></div>
-  <div class="belka cienka" title="Klątwa: R"><div id="klatwa"></div></div>
+  <div class="rama">
+    <div class="rama-portret" id="rama-portret"></div>
+    <div class="rama-paski">
+      <div class="belka" id="pasek-zycia"><div id="zycie"></div><div id="smuga"></div></div>
+      <div class="belka cienka"><div id="sila"></div></div>
+      <div class="belka cienka" title="Klątwa: R"><div id="klatwa"></div></div>
+    </div>
+    <img class="rama-obraz" src="grafika/rama-paska.webp" alt="" onerror="this.remove()">
+  </div>
   <div id="krew-podpowiedz">Krew za krew: tnij, żeby odzyskać</div>
 </div>
 <p id="etap"></p>

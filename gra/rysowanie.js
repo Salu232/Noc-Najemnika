@@ -1,8 +1,8 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY } from './swiat.js';
-import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS } from './rekwizyty.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY } from './swiat.js';
+import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
 import { BOHATER, WROGOWIE, KLATWA } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
@@ -231,6 +231,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (o.stoi) { sp.zIndex = o.y; aktorzy.addChild(sp); } else { sp.alpha = o.plaskie ? 0.75 : 1; ozdoby.addChild(sp); }
     ozdobyS.push([sp, o]);
   }
+  // Totemy z fioletowym dymem: tu wychodzą potwory zamiast z mgły. Każdy zaczyna pętlę w innym miejscu.
+  const totemyS = [];
+  if (R && R.totem_czaszka_00) TOTEMY.forEach((t, i) => {
+    const f = R[t.rys + '_00'], sp = rysunek(t.rys + '_00', t.x, t.y, t.wys / (f.h * f.ay) * f.w); sp.zIndex = t.y; aktorzy.addChild(sp);
+    totemyS.push({ sp, t, faza: i * 7 });
+  });
 
   // bohater: obraz z Gemini (bohS) albo grafika rysowana kodem co klatkę (bohG)
   const bohG = new P.Graphics(); aktorzy.addChild(bohG);
@@ -267,10 +273,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const duchS = new P.Sprite(); duchS.alpha = 0.5;
   try { const cm = new P.filters.ColorMatrixFilter(); cm.matrix = [0, 0, 0, 0, 0.62, 0, 0, 0, 0, 0.76, 0, 0, 0, 0, 0.9, 0, 0, 0, 1, 0]; duchS.filters = [cm]; } catch (e) { duchS.alpha = 0.33; }
   const blaskBoh = new P.Sprite(T.cieplo); blaskBoh.anchor.set(0.5); blaskBoh.blendMode = P.BLEND_MODES.ADD; blaski.addChild(blaskBoh);
+  const blaskiTotemow = TOTEMY.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0x9a50ff; blaski.addChild(s); return s; });
   const blaskKlatwy = new P.Sprite(T.cieplo); blaskKlatwy.anchor.set(0.5); blaskKlatwy.blendMode = P.BLEND_MODES.ADD; blaskKlatwy.tint = 0xa060ff; blaski.addChild(blaskKlatwy);
   const napisy = new P.Container();
   const blyskiC = new P.Container();              // iskry z arkusza Przemka: nad ciemnością, świecą
   nad.addChild(mgla, znaki, blaski, oczy, smugi, iskry, blyskiC, duch, duchS, napisy);
+  mgla.visible = totemyS.length === 0;           // z totemami mgły nie ma: potwory wychodzą spod totemów
 
   // ciemność z wyciętym światłem (rysowana do osobnej tekstury w połowie rozdzielczości)
   const ciemnoscC = new P.Container();
@@ -279,6 +287,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const stemple = new P.Container();
   const stempel = () => { const s = new P.Sprite(T.stempel); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ERASE; stemple.addChild(s); return s; };
   const swiatloBoh = stempel(), swiatloOgnia = stempel(), swiatloOkna = stempel(), swiatloIzby = stempel();
+  const swiatlaTotemow = TOTEMY.map(() => stempel());
   swiatloBoh.texture = T.stempelBoh;
   ciemnoscC.addChild(ciemnoscG, kreski, stemple);
   let ciemnoscRT = null; const ciemnosc = new P.Sprite();
@@ -1258,6 +1267,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zz, oy + y * zz); s.width = s.height = r * 2 * zz; s.alpha = al; };
     stawStempel(swiatloBoh, b.x, b.y - 30, 360 + 260 * stanRys.fiolet, 1);
     stawStempel(swiatloOgnia, fx, fy - 10, 380 * migot, 0.95);
+    TOTEMY.forEach((t, i) => {                                            // totemy świecą fioletem, żeby było widać, skąd przyjdą
+      const puls = 0.85 + 0.15 * Math.sin(czas * 2.1 + i * 1.7), jest = totemyS.length > 0;
+      stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 190 * puls, jest ? 0.55 : 0);
+      const bl = blaskiTotemow[i]; bl.visible = jest; bl.position.set(t.x, t.y - 30); bl.width = bl.height = 200 * puls; bl.alpha = 0.45 * Math.max(0.3, gra.mroczek / 0.8);
+    });
+    for (const o of totemyS) { const k = Math.floor(czas * TOTEM_FPS + o.faza) % TOTEM_KLATEK; o.sp.texture = R[o.t.rys + '_' + String(k).padStart(2, '0')].t; }
     stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7 * (1 - stanRys.bezDachu));
     stawStempel(swiatloIzby, CHATA.palenisko.x, CHATA.palenisko.y + 60, 240 * migot, 0.95 * stanRys.bezDachu);   // ogień z paleniska oświetla izbę
     renderer.render(ciemnoscC, { renderTexture: ciemnoscRT, clear: true });

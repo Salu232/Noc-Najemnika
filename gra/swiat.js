@@ -52,6 +52,15 @@ export const MGLY = {
   poludnie: { x: 1720, y: 2060, r: 300 },
 };
 
+// Totemy na miejscu mgieł (Patryk, 24 XI 18:20: „zamiast mgły to potwory mogłyby się pojawiać przez te kamienie i totemy”).
+// Rysunki i pętla fioletowego dymu z filmu Przemka (narzedzia/wytnij-z-arkuszy.py). wys: wysokość w jednostkach świata.
+export const TOTEMY = [
+  { mgla: 'zachod', rys: 'totem_czaszka', x: MGLY.zachod.x, y: MGLY.zachod.y, wys: 175, promien: 22 },
+  { mgla: 'wschod', rys: 'totem_rogi', x: MGLY.wschod.x, y: MGLY.wschod.y, wys: 170, promien: 18 },
+  { mgla: 'poludnie', rys: 'totem_obelisk', x: MGLY.poludnie.x - 60, y: MGLY.poludnie.y, wys: 150, promien: 22 },
+  { mgla: 'poludnie', rys: 'totem_kamien', x: MGLY.poludnie.x + 70, y: MGLY.poludnie.y - 20, wys: 140, promien: 22 },
+];
+
 // Drzewa: gęsty las dookoła, pusta polana w środku, prześwity przy mgłach.
 let ziarno = 11;
 const los = () => { ziarno = (ziarno + 0x6D2B79F5) | 0; let t = Math.imul(ziarno ^ (ziarno >>> 15), 1 | ziarno); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -151,13 +160,19 @@ export function zderzenia(p, r) {
     }
   }
   for (const [a, b] of CHATA.ploty) odepchnijOdOdcinka(p, a, b, r);
+  for (const t of TOTEMY) {
+    const dx = p.x - t.x, dy = p.y - t.y, q = Math.hypot(dx, dy), m = r + t.promien;
+    if (q < m && q > 0.001) { p.x = t.x + dx / q * m; p.y = t.y + dy / q * m; }
+  }
   const o = Math.hypot(p.x - OGNISKO.x, p.y - OGNISKO.y), mo = r + OGNISKO.promien;
   if (o < mo && o > 0.001) { p.x = OGNISKO.x + (p.x - OGNISKO.x) / o * mo; p.y = OGNISKO.y + (p.y - OGNISKO.y) / o * mo; }
   p.x = Math.max(30, Math.min(SZER - 30, p.x)); p.y = Math.max(60, Math.min(WYS - 30, p.y));
 }
 
+// Potwór wychodzi spod totemu tej strony (przed nim, w stronę polany).
 export function punktWMgle(nazwa) {
-  const m = MGLY[nazwa], a = Math.random() * Math.PI * 2, d = Math.random() * m.r * 0.5;
-  return { x: m.x + Math.cos(a) * d, y: m.y + Math.sin(a) * d * 0.7 };
+  const lista = TOTEMY.filter(t => t.mgla === nazwa), t = lista[(Math.random() * lista.length) | 0];
+  const a = Math.atan2(1260 - t.y, 1600 - t.x) + (Math.random() - 0.5) * 1.6, d = 45 + Math.random() * 40;
+  return { x: t.x + Math.cos(a) * d, y: t.y + Math.sin(a) * d * 0.7 };
 }
 
