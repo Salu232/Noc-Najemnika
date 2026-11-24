@@ -698,7 +698,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const obrot = upadl && !gemF ? -pz.sx * 1.45 * tUp : 0, alfaB = upadl ? (gemF ? 1 : 1 - Math.max(0, czas - stanRys.upadlOd - 1.4) * 0.6) : (b.nietykalny > 0 && b.stan !== 'unik' ? 0.75 : 1);
     const tint = b.flash > 0 ? 0xff8080 : (pz.blask > 0.05 ? 0xffe6c0 : 0xffffff);
     const gem = trybBohatera === 'gemini' && maObraz;
-    bohG.visible = !gem; bohS.visible = gem;
+    bohG.visible = !gem && !b.wChacie; bohS.visible = gem && !b.wChacie; bohCien.visible = !b.wChacie;   // w chacie go nie widać
     // chód: klatki biegną z przebytą drogą. W filmie bohater idzie w bok i trochę do nas, więc idąc tyłem
     // (od celu albo w górę ekranu) film leci wstecz. Rusza i staje w chwili, gdy nogi się mijają, bez przeskoku.
     if (stanRys.px === null) { stanRys.px = b.x; stanRys.py = b.y; }

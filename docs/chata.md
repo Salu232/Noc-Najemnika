@@ -17,16 +17,18 @@ Zdjęcia: [zrzuty/2026-11-24-chata-1.png](zrzuty/2026-11-24-chata-1.png), [-2](z
 1. **Chata jako bryła.** Podstawa chaty z obrazu (wielokąt ścian na ziemi) blokuje ruch, więc do środka nie da się wejść inaczej niż drzwiami. Za chatą można stać i wtedy widać jasną sylwetkę bohatera, także przy kominie (zrobione, niżej). Jeśli sylwetka nie wystarczy, chata w miejscu bohatera może robić się półprzezroczysta.
 2. **Drzwi i wejście.** Przy drzwiach pojawia się napis „Wejdź” (komputer: E, telefon: przycisk). Wejście to ściemnienie ekranu i wnętrze chaty.
 3. **Wnętrze.** Jeden obraz z Gemini (polecenie niżej): izba z paleniskiem, ławą i posłaniem. Bohater chodzi po izbie, a wyjście jest drzwiami.
-4. **Odpoczynek.** Przy palenisku albo na posłaniu: bohater siada, życie i wytrzymałość wracają z czasem, a pasek klątwy nie rośnie. Kiedy wolno odpoczywać, decyduje Patryk (pytanie niżej).
+4. **Odpoczynek.** Przy palenisku albo na posłaniu: bohater siada, życie i wytrzymałość wracają z czasem. Tylko w ciszy między etapami nocy (decyzja Patryka, niżej). Pierwsza wersja działa bez obrazu wnętrza (niżej).
 5. **Interakcja ogólnie.** Ten sam mechanizm (punkt, promień, napis, czynność) posłuży potem do skrzyń, ludzi do ratowania i ogniska.
 
 ## Zrobione
 
 - **24 XI: bryła i duch.** Ruch blokuje teraz cała bryła chaty: od przedniej ściany w głąb do 380 piksela obrazu, razem z kominem i prawą ścianą (`CHATA.sciana` w [gra/swiat.js](../gra/swiat.js)). Za chatą bohatera widać jako jasną, płaską sylwetkę na całej szerokości chaty, także przy kominie; wcześniej była to przezroczysta kopia, która wyglądała jak bohater na dachu. Sprawdzone zrzutami: idąc na drzwi, bohater staje przy ścianie, a postawiony w środku chaty zostaje wypchnięty za nią. Bot przechodzi noc jak wcześniej.
 
-## Do decyzji Patryka
+- **24 XI: drzwi i odpoczynek, na razie bez obrazu wnętrza.** Przed drzwiami pojawia się przycisk „Wejdź do chaty” (komputer: E, telefon: przycisk). W środku ekran ściemnia się do blasku paleniska, życie wraca o 7 na sekundę, wytrzymałość od razu jest pełna, a nic nie może zranić. Ruch albo E wyprowadza. Cisza przed następnym etapem płynie w chacie trzy razy wolniej (4 s ciszy to w środku około 13 s, czyli do około 90 życia), a gdy przychodzi etap, bohater sam wychodzi przed drzwi: *„Coś drapie w drzwi. Trzeba wyjść.”* W walce przycisk mówi „Nie teraz, potwory blisko”. Liczby są w `CHATA_ODPOCZYNEK` w [gra/dane.js](../gra/dane.js). Sprawdzone w przeglądarce na komputerze i telefonie: wejście, leczenie, wyjście przy etapie, zamknięte w walce.
 
-- **Kiedy wolno odpoczywać w chacie?** Propozycja Claude: tylko w ciszy między etapami nocy. Pokonasz falę i masz chwilę, żeby się podleczyć, ale w środku walki chata nie jest kryjówką.
+## Decyzje
+
+- **Kiedy wolno odpoczywać w chacie?** Patryk, 24 XI (karta wyboru): *„W ciszy między etapami nocy”*.
 
 ## Polecenie do Gemini: wnętrze chaty
 

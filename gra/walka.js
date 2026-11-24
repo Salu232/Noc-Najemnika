@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC } from './dane.js';
-import { START, zderzenia, punktWMgle } from './swiat.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK } from './dane.js';
+import { START, CHATA, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
 const rozn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -30,6 +30,7 @@ function postawBohatera(gra) {
     blok: false, blokOd: -9, nietykalny: 0, unikKat: 0,
     odrzutX: 0, odrzutY: 0, chod: 0, idzie: false, flash: 0,
     klatwa: KLATWA.start, klatwaUderzyla: false,
+    wChacie: false,                 // odpoczywa w chacie: niewidoczny, nietykalny, leczy się
   };
 }
 
@@ -84,7 +85,21 @@ function ustawLuk(gra, c) {
 
 function aktualizujBohatera(gra, dt, w) {
   const b = gra.bohater, bron = gra.bron;
+  gra.akcja = null;
   if (b.stan === 'upadl') return;
+  // chata: drzwi, wejście i odpoczynek (docs/chata.md)
+  const przyDrzwiach = !b.wChacie && b.stan === 'wolny' && Math.hypot(b.x - CHATA.drzwi.x, b.y - CHATA.drzwi.y) < CHATA_ODPOCZYNEK.zasiegDrzwi;
+  gra.akcja = b.wChacie ? 'wyjdz' : (przyDrzwiach ? 'wejdz' : null);
+  if (b.wChacie) {
+    b.zycie = Math.min(BOHATER.zycie, b.zycie + CHATA_ODPOCZYNEK.leczenie * dt);
+    b.sila = BOHATER.sila; b.smuga = 0; b.flash = 0;
+    if (w.akcja || (Math.hypot(w.ruchX, w.ruchY) > 0.3 && gra.czas - b.wChacieOd > 0.8)) wyjdzZChaty(gra);   // ruch wyprowadza dopiero po chwili, żeby nie wyjść od razu
+    return;
+  }
+  if (w.akcja && przyDrzwiach) {
+    if (gra.faza === 'przerwa' || gra.faza === 'swit') { b.wChacie = true; b.wChacieOd = gra.czas; b.blok = false; b.idzie = false; b.x = CHATA.drzwi.x; b.y = CHATA.drzwi.y; gra.zdarzenia.push({ typ: 'chata_wejscie' }); powiedz(gra, 'Ciepło. Chwila spokoju.', 2.5); return; }
+    powiedz(gra, 'Nie teraz. Są za blisko.', 2); gra.zdarzenia.push({ typ: 'chata_zamknieta' });
+  }
   b.flash = Math.max(0, b.flash - dt);
   b.nietykalny = Math.max(0, b.nietykalny - dt);
 
@@ -193,6 +208,13 @@ function uderzKlatwa(gra) {
   }
   gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.12); gra.wstrzas = Math.max(gra.wstrzas, 16);
   gra.zdarzenia.push({ typ: 'klatwa', x: b.x, y: b.y, zasieg: KLATWA.zasieg, ile });
+}
+
+export function wyjdzZChaty(gra, tekst) {
+  const b = gra.bohater; if (!b.wChacie) return;
+  b.wChacie = false; b.x = CHATA.drzwi.x; b.y = CHATA.drzwi.y + 8; b.kat = Math.PI / 2;
+  gra.zdarzenia.push({ typ: 'chata_wyjscie' });
+  if (tekst) powiedz(gra, tekst, 2.5);
 }
 
 function zuzyjSile(b, ile) { b.sila = Math.max(0, b.sila - ile); b.odnowaZa = BOHATER.opoznienieOdnowy; }
@@ -304,6 +326,7 @@ function zranBohatera(gra, ile, odKata, ciezki) {
 function trafBohatera(gra, e) {
   const b = gra.bohater;
   if (b.stan === 'upadl') return;
+  if (b.wChacie) return;
   if (b.nietykalny > 0) { gra.zdarzenia.push({ typ: 'unikniety' }); return; }
   const katDoWroga = Math.atan2(e.y - b.y, e.x - b.x), odWroga = katDoWroga + Math.PI;
   const ciezki = !!e.typ.ciezki;
@@ -463,8 +486,9 @@ function iskry(gra, x, y, n) {
 // ---------- etapy nocy ----------
 function aktualizujEtapy(gra, dt) {
   if (gra.faza === 'przerwa') {
-    gra.fazaCzas -= dt;
+    gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza płynie wolniej
     if (gra.fazaCzas <= 0) {
+      wyjdzZChaty(gra, 'Coś drapie w drzwi. Trzeba wyjść.');
       gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = [];
       for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) gra.kolejka.push({ typ: g.typ, z: g.z[i % g.z.length], t: i * g.co });
       gra.kolejka.sort((a, b) => a.t - b.t);

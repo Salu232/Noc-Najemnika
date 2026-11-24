@@ -71,6 +71,22 @@ body {
 #info { position: fixed; z-index: 2; left: max(10px, env(safe-area-inset-left, 0px)); bottom: calc(6px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 11px; color: rgba(235, 227, 213, 0.45); pointer-events: none; }
 @media (max-width: 560px) { #etap { top: calc(44px + env(safe-area-inset-top, 0px)); left: auto; right: max(16px, env(safe-area-inset-right, 0px)); transform: none; font-size: 13px; } }
 
+/* chata: przycisk czynności przy drzwiach i ekran wnętrza (do czasu obrazu z Gemini) */
+#akcja {
+  position: fixed; z-index: 4; left: 50%; transform: translateX(-50%); bottom: calc(26% + env(safe-area-inset-bottom, 0px));
+  padding: 10px 18px; border-radius: 22px; border: 1px solid var(--zar); background: rgba(10, 10, 12, 0.72);
+  font-family: var(--font-tytul); font-size: 17px; box-shadow: 0 0 14px rgba(224, 160, 85, 0.35);
+}
+#akcja.zamkniete { border-color: var(--linia); box-shadow: none; color: var(--przygaszony); }
+#wnetrze {
+  position: fixed; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: radial-gradient(ellipse at 50% 62%, rgba(150, 70, 20, 0.55) 0%, rgba(40, 18, 8, 0.9) 38%, #050403 75%);
+  opacity: 0; transition: opacity 0.5s; pointer-events: none; text-align: center; padding: 0 24px;
+}
+#wnetrze.widac { opacity: 1; }
+#wnetrze p { margin: 0; font-family: var(--font-tytul); font-size: clamp(20px, 4.8vw, 28px); color: var(--tekst); text-shadow: 0 2px 8px #000; }
+#wnetrze p.male { font-family: var(--font-tekst); font-size: 15px; color: var(--przygaszony); }
+
 /* przyciski */
 button { font: 500 16px/1.2 var(--font-tekst); color: var(--tekst); cursor: pointer; }
 button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
@@ -143,6 +159,8 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 <p id="etap"></p>
 <p id="mysl" aria-live="polite"></p>
 <p id="info"></p>
+<div id="wnetrze" aria-hidden="true"><p>Chata. Ogień w palenisku, cisza. Odpoczywasz.</p><p class="male">Rany się goją. Ruch albo E: wychodzisz. Gdy przyjdą, wyjdziesz sam.</p></div>
+<button type="button" id="akcja" hidden></button>
 <button type="button" id="przycisk-pauza" aria-label="Pauza">II</button>
 
 <div id="przyciski" hidden>
@@ -170,6 +188,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
           <li>Lewy przycisk: cięcie, a przytrzymany: mocny cios po puszczeniu</li>
           <li>Prawy przycisk albo Shift: blok</li>
           <li>Spacja: unik (przewrót)</li>
+          <li>E: wejdź do chaty i odpocznij (tylko w ciszy między etapami)</li>
           <li>R: klątwa, gdy fioletowy pasek jest pełny</li>
         </ul>
       </div>
@@ -181,6 +200,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
           <li>Tnij, przeciągnięcie: celujesz, cięcie po puszczeniu</li>
           <li>Tnij, przytrzymanie: mocny cios po puszczeniu</li>
           <li>Przyciski Blok i Unik; Klątwa, gdy fioletowy pasek jest pełny</li>
+          <li>Przy drzwiach chaty: przycisk Wejdź (odpoczynek w ciszy między etapami)</li>
         </ul>
       </div>
     </div>

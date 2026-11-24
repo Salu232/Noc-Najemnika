@@ -6,7 +6,7 @@ export function przygotujHud() {
   const $ = id => document.getElementById(id);
   const el = {
     zycie: $('zycie'), smuga: $('smuga'), sila: $('sila'), etap: $('etap'), mysl: $('mysl'),
-    krew: $('krew-podpowiedz'), info: $('info'), pasekZycia: $('pasek-zycia'), klatwa: $('klatwa'), przyciskKlatwy: $('przycisk-klatwa'),
+    krew: $('krew-podpowiedz'), info: $('info'), pasekZycia: $('pasek-zycia'), klatwa: $('klatwa'), przyciskKlatwy: $('przycisk-klatwa'), akcja: $('akcja'), wnetrze: $('wnetrze'),
   };
   const ostatnie = {};
   const ustaw = (klucz, wartosc, fn) => { if (ostatnie[klucz] !== wartosc) { ostatnie[klucz] = wartosc; fn(wartosc); } };
@@ -29,6 +29,17 @@ export function przygotujHud() {
     ustaw('mysl', pokazMysl, v => { el.mysl.textContent = v; el.mysl.classList.toggle('widac', !!v); });
     ustaw('krew', b.smugaCzas > 0 && b.smuga > 0 && b.stan !== 'upadl', v => el.krew.classList.toggle('widac', v));
     ustaw('rana', b.flash > 0.15, v => el.pasekZycia.classList.toggle('rana', v));
+
+    // czynność przy drzwiach i ekran wnętrza chaty (na razie bez obrazu z Gemini)
+    const dotyk = matchMedia && matchMedia('(pointer: coarse)').matches;
+    const otwarte = gra.faza === 'przerwa' || gra.faza === 'swit';
+    const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : (gra.akcja === 'wyjdz' ? 'Wyjdź' : '');
+    ustaw('akcja', napisAkcji, v => {                                  // „!” na początku: czynność teraz niedostępna
+      const zamkniete = v.startsWith('!'), t = zamkniete ? v.slice(1) : v;
+      el.akcja.hidden = !v; el.akcja.classList.toggle('zamkniete', zamkniete);
+      el.akcja.textContent = !v ? '' : (dotyk || zamkniete ? t : `E: ${t}`);
+    });
+    ustaw('wnetrze', !!b.wChacie, v => el.wnetrze.classList.toggle('widac', v));
 
     klatki++; odliczanie += dt;
     if (odliczanie >= 1) { fps = Math.round(klatki / odliczanie); klatki = 0; odliczanie = 0; el.info.textContent = `${fps} kl./s · ${opisRysowania}`; }

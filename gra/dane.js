@@ -67,6 +67,11 @@ export const KLATWA = {
   zaTrafienie: 0.04, zaZabicie: 0.1, start: 1,
 };
 
+// Chata (docs/chata.md): wchodzi się drzwiami, odpoczywa tylko w ciszy między etapami nocy (decyzja Patryka, 24 XI).
+// W środku życie i wytrzymałość wracają, a cisza przed następnym etapem płynie wolniej, ale płynie:
+// gdy przyjdą potwory, bohater sam wychodzi przed drzwi.
+export const CHATA_ODPOCZYNEK = { zasiegDrzwi: 70, leczenie: 7, tempoCiszy: 0.3 };
+
 export const WROGOWIE = {
   ghul: {
     nazwa: 'ghul',

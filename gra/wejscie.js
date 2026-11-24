@@ -1,6 +1,6 @@
 // Sterowanie.
 // Komputer: WASD albo strzałki, mysz celuje. Lewy przycisk tnie; przytrzymany ładuje mocny cios, który wychodzi po puszczeniu.
-//   Prawy przycisk albo Shift blokuje, spacja to unik, R to klątwa (gdy jej pasek jest pełny).
+//   Prawy przycisk albo Shift blokuje, spacja to unik, R to klątwa (gdy jej pasek jest pełny), E to czynność (np. wejście do chaty).
 // Telefon: lewy kciuk chodzi. Prawy kciuk tnie: przycisk Tnij (albo dowolne miejsce po prawej) działa jak drążek.
 //   Stuknięcie tnie najbliższego wroga, przeciągnięcie celuje, a przytrzymanie ładuje mocny cios.
 //   Przyciski Blok, Unik i Klątwa są obok.
@@ -9,8 +9,8 @@ const CELOWANIE = 16;    // od ilu pikseli przeciągnięcia palec celuje, a nie 
 
 export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
   const klawisze = new Set();
-  const w = { ruchX: 0, ruchY: 0, kat: null, atakStart: false, atakTrzyma: false, atakKat: null, blok: false, unik: false, klatwa: false };
-  const jednorazowe = { atak: false, unik: false, klatwa: false };
+  const w = { ruchX: 0, ruchY: 0, kat: null, atakStart: false, atakTrzyma: false, atakKat: null, blok: false, unik: false, klatwa: false, akcja: false };
+  const jednorazowe = { atak: false, unik: false, klatwa: false, akcja: false };
   const mysz = { x: 0, y: 0, jest: false, blok: false, atak: false };
   const drazek = { id: null, ox: 0, oy: 0, x: 0, y: 0 };
   const atak = { id: null, ox: 0, oy: 0, x: 0, y: 0, celuje: false };
@@ -29,6 +29,7 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
     if (k === ' ') jednorazowe.unik = true;
     if (k === 'j') jednorazowe.atak = true;
     if (k === 'r') jednorazowe.klatwa = true;
+    if (k === 'e') jednorazowe.akcja = true;
   });
   addEventListener('keyup', e => klawisze.delete(e.key.toLowerCase()));
   addEventListener('blur', () => { klawisze.clear(); mysz.blok = mysz.atak = false; blokPrzyciskiem = false; drazek.id = null; atak.id = null; pokazDrazki(); });
@@ -104,6 +105,8 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
   unik.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.unik = true; unik.classList.add('wcisniety'); setTimeout(() => unik.classList.remove('wcisniety'), 120); });
   klatwa.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.klatwa = true; klatwa.classList.add('wcisniety'); setTimeout(() => klatwa.classList.remove('wcisniety'), 120); });
   for (const el of [tnij, blok, unik, klatwa]) el.addEventListener('contextmenu', e => e.preventDefault());
+  // przycisk czynności (Wejdź, Wyjdź) działa i palcem, i myszą
+  if (elementy.akcja) elementy.akcja.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); jednorazowe.akcja = true; });
 
   function pokazDrazki() {
     const { drazekTlo, drazekGalka, celTlo, celGalka } = elementy;
@@ -137,8 +140,8 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
     w.atakKat = atak.id !== null && atak.celuje ? Math.atan2(atak.y - atak.oy, atak.x - atak.ox) : null;
     w.atakTrzyma = mysz.atak || atak.id !== null || klawisze.has('j');
     w.blok = mysz.blok || blokPrzyciskiem || klawisze.has('shift') || klawisze.has('k');
-    w.atakStart = jednorazowe.atak; w.unik = jednorazowe.unik; w.klatwa = jednorazowe.klatwa;
-    jednorazowe.atak = false; jednorazowe.unik = false; jednorazowe.klatwa = false;
+    w.atakStart = jednorazowe.atak; w.unik = jednorazowe.unik; w.klatwa = jednorazowe.klatwa; w.akcja = jednorazowe.akcja;
+    jednorazowe.atak = false; jednorazowe.unik = false; jednorazowe.klatwa = false; jednorazowe.akcja = false;
     return w;
   }
 
