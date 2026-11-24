@@ -1,6 +1,6 @@
 // Sterowanie.
 // Komputer: WASD albo strzałki, mysz celuje. Lewy przycisk tnie; przytrzymany ładuje mocny cios, który wychodzi po puszczeniu.
-//   Prawy przycisk albo Shift blokuje, spacja to unik, R to klątwa (gdy jej pasek jest pełny), E to czynność (np. wejście do chaty).
+//   Prawy przycisk albo Shift blokuje, spacja to unik, R to klątwa (gdy jej pasek jest pełny), E to czynność (np. sen na posłaniu w chacie).
 // Telefon: lewy kciuk chodzi. Prawy kciuk tnie: przycisk Tnij (albo dowolne miejsce po prawej) działa jak drążek.
 //   Stuknięcie tnie najbliższego wroga, przeciągnięcie celuje, a przytrzymanie ładuje mocny cios.
 //   Przyciski Blok, Unik i Klątwa są obok.
@@ -105,7 +105,7 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
   unik.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.unik = true; unik.classList.add('wcisniety'); setTimeout(() => unik.classList.remove('wcisniety'), 120); });
   klatwa.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.klatwa = true; klatwa.classList.add('wcisniety'); setTimeout(() => klatwa.classList.remove('wcisniety'), 120); });
   for (const el of [tnij, blok, unik, klatwa]) el.addEventListener('contextmenu', e => e.preventDefault());
-  // przycisk czynności (Wejdź, Wyjdź) działa i palcem, i myszą
+  // przycisk czynności (Odpocznij, Wstań) działa i palcem, i myszą
   if (elementy.akcja) elementy.akcja.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); jednorazowe.akcja = true; });
 
   function pokazDrazki() {

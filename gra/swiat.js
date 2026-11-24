@@ -14,6 +14,27 @@ CHATA.drzwi = zObrazu(462, 712);                  // przed drzwiami, na ziemi: t
 // Bryła chaty na ziemi: od przedniej ściany (692) w głąb do 380 piksela obrazu, razem z kominem i prawą ścianą.
 // Do 24 XI był tu tylko pas przy przedniej ścianie (585–692) i dało się wejść „w dach” (docs/chata.md).
 CHATA.sciana = { a: zObrazu(165, 380), b: zObrazu(855, 692) };
+// Chata od środka, jak w Tibii (Patryk, 24 XI 13:14; obraz bez dachu: grafika/chata-bez-dachu.webp, ten sam kadr).
+// Izba to podłoga między ścianami; drzwi to przejście w przedniej ścianie. Ściany to prostokąty wokół izby,
+// sprzęty to prostokąty w izbie. Liczby to piksele obrazu chaty, odczytane z obrazu bez dachu (Claude, 24 XI).
+const prost = (x0, y0, x1, y1) => { const a = zObrazu(x0, y0), b = zObrazu(x1, y1); return { x0: a.x, y0: a.y, x1: b.x, y1: b.y }; };
+CHATA.izba = prost(215, 432, 748, 670);
+CHATA.przejscie = prost(427, 670, 503, 692);      // drzwi: w walce zamknięte
+CHATA.sciany = [
+  prost(165, 380, 855, 432),                       // tylna, z kominem
+  prost(165, 432, 215, 692),                       // lewa
+  prost(748, 432, 855, 692),                       // prawa, kamienna
+  prost(215, 670, 427, 692),                       // przednia, na lewo od drzwi
+  prost(503, 670, 748, 692),                       // przednia, na prawo od drzwi
+];
+CHATA.sprzety = [
+  prost(215, 432, 402, 535),                       // posłanie z wilczą skórą
+  prost(450, 432, 590, 452),                       // palenisko
+  prost(637, 445, 727, 566),                       // ława i stół
+];
+CHATA.poslanie = { ...zObrazu(330, 560), r: 42 }; // tu kładzie się spać
+CHATA.palenisko = zObrazu(518, 410);              // ogień w izbie: tu świeci
+CHATA.drzwiOtwarte = true;                        // ustawia walka.js: w walce drzwi są zamknięte
 CHATA.ploty = [
   [[160, 470], [45, 585]], [[45, 585], [30, 805]],
   [[30, 805], [395, 900]], [[515, 815], [700, 872]],
@@ -53,6 +74,18 @@ export const DRZEWA = [];
 const KOM = 128, siatka = new Map();
 for (const d of DRZEWA) { const k = ((d.x / KOM) | 0) * 1000 + ((d.y / KOM) | 0); (siatka.get(k) || siatka.set(k, []).get(k)).push(d); }
 
+// Wypycha koło o promieniu r z prostokąta najkrótszą drogą (także gdy środek jest już w środku prostokąta).
+function odepchnijOdProstokata(p, s, r) {
+  const nx = Math.max(s.x0, Math.min(p.x, s.x1)), ny = Math.max(s.y0, Math.min(p.y, s.y1));
+  const ex = p.x - nx, ey = p.y - ny, dd = Math.hypot(ex, ey);
+  if (dd >= r) return;
+  if (dd > 0.0001) { p.x = nx + ex / dd * r; p.y = ny + ey / dd * r; return; }
+  const g = p.y - s.y0, dl = s.y1 - p.y, l = p.x - s.x0, pr = s.x1 - p.x, m = Math.min(g, dl, l, pr);
+  if (m === g) p.y = s.y0 - r; else if (m === dl) p.y = s.y1 + r; else if (m === l) p.x = s.x0 - r; else p.x = s.x1 + r;
+}
+
+export const wIzbie = (p) => p.x > CHATA.izba.x0 && p.x < CHATA.izba.x1 && p.y > CHATA.izba.y0 && p.y < CHATA.izba.y1 + 4;
+
 function odepchnijOdOdcinka(p, a, b, r) {
   const dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy;
   let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / L; t = Math.max(0, Math.min(1, t));
@@ -70,14 +103,12 @@ export function zderzenia(p, r) {
       if (q < m && q > 0.001) { p.x = d.x + dx / q * m; p.y = d.y + dy / q * m; }
     }
   }
-  const s = CHATA.sciana;
-  const nx = Math.max(s.a.x, Math.min(p.x, s.b.x)), ny = Math.max(s.a.y, Math.min(p.y, s.b.y));
-  const ex = p.x - nx, ey = p.y - ny, dd = Math.hypot(ex, ey);
-  if (dd < r) {
-    if (dd > 0.0001) { p.x = nx + ex / dd * r; p.y = ny + ey / dd * r; }
-    else {
-      const g = p.y - s.a.y, dl = s.b.y - p.y, l = p.x - s.a.x, pr = s.b.x - p.x, m = Math.min(g, dl, l, pr);
-      if (m === g) p.y = s.a.y - r; else if (m === dl) p.y = s.b.y + r; else if (m === l) p.x = s.a.x - r; else p.x = s.b.x + r;
+  for (let k = 0; k < 2; k++) {                                       // dwa razy: w rogu dwie ściany pchają naraz
+    for (const q of CHATA.sciany) odepchnijOdProstokata(p, q, r);
+    for (const q of CHATA.sprzety) odepchnijOdProstokata(p, q, r);
+    if (!CHATA.drzwiOtwarte) {                                        // zamknięte drzwi wypychają zawsze na zewnątrz, nigdy do izby
+      const q = CHATA.przejscie;
+      if (p.x > q.x0 - r && p.x < q.x1 + r && p.y > q.y0 - r && p.y < q.y1 + r) p.y = q.y1 + r;
     }
   }
   for (const [a, b] of CHATA.ploty) odepchnijOdOdcinka(p, a, b, r);
@@ -91,19 +122,3 @@ export function punktWMgle(nazwa) {
   return { x: m.x + Math.cos(a) * d, y: m.y + Math.sin(a) * d * 0.7 };
 }
 
-// Wnętrze chaty (grafika/wnetrze.webp z Gemini od Patryka, 1200 × 896). Współrzędne to piksele obrazu.
-// Bohater ma tu 180 pikseli wzrostu (drzwi mają około 210). Ruch blokują ściany i sprzęty; stopy stoją na podłodze.
-export const WNETRZE = {
-  szer: 1200, wys: 896, pikseliNaJednostke: 1.8,
-  podloga: { x0: 250, y0: 345, x1: 1003, y1: 588 },
-  przeszkody: [
-    { x0: 225, y0: 285, x1: 470, y1: 568 },   // posłanie z wilczą skórą
-    { x0: 538, y0: 290, x1: 748, y1: 420 },   // palenisko
-    { x0: 808, y0: 418, x1: 876, y1: 594 },   // ława
-    { x0: 880, y0: 382, x1: 1010, y1: 578 },  // stół
-    { x0: 893, y0: 285, x1: 998, y1: 400 },   // beczka przy tylnej ścianie
-  ],
-  wejscie: { x: 605, y: 560 },                 // tu staje po wejściu
-  drzwi: { x: 605, y: 585, r: 60 },           // tu wychodzi
-  poslanie: { x: 500, y: 470, r: 65 },        // tu kładzie się spać
-};

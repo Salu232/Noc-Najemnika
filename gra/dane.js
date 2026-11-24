@@ -73,7 +73,7 @@ export const KLATWA = {
 // W izbie życie wraca powoli, a na posłaniu (sen) szybko. W izbie bohater chodzi wolniej niż na polanie.
 // Patryk, 24 XI 12:29: „za malo czasu żeby cokolwiek zobaczyć w tym domku (…) walka się rozpocznie jak wychodzi się z chaty”.
 // W chacie cisza stoi (tempoCiszy 0); po wyjściu zostaje jej co najmniej ciszaPoWyjsciu sekund, żeby odejść od drzwi.
-export const CHATA_ODPOCZYNEK = { zasiegDrzwi: 70, leczenie: 2, leczenieSen: 9, tempoCiszy: 0, ciszaPoWyjsciu: 3, szybkosc: 0.65 };
+export const CHATA_ODPOCZYNEK = { zasiegDrzwi: 70, leczenie: 2, leczenieSen: 9, tempoCiszy: 0, ciszaPoWyjsciu: 3 };
 
 export const WROGOWIE = {
   ghul: {

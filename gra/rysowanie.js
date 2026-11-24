@@ -1,7 +1,7 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, WNETRZE } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA } from './swiat.js';
 import { BOHATER, WROGOWIE, KLATWA } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
@@ -20,7 +20,7 @@ const FILM_WROGA = {
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini', obrazyWrogow = {}, obrazWnetrza = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -38,14 +38,23 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // nad bohaterem (wg głębokości podstawy) zostaje tylko sam dom: dach, ściany, komin, dym, drewno i beczka.
   const calaChata = O.chataWDzien(obrazChaty);
   const DOM = [[158, 0], [951, 0], [951, 300], [862, 300], [862, 585], [850, 600], [800, 672], [795, 692], [158, 692]];
-  const wytnij = (zostaw) => {
-    const c = document.createElement('canvas'); c.width = calaChata.width; c.height = calaChata.height;
-    const g = c.getContext('2d'); g.drawImage(calaChata, 0, 0);
-    g.globalCompositeOperation = zostaw ? 'destination-in' : 'destination-out';
-    g.beginPath(); DOM.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill();
+  // wycina z obrazu kolejne wielokąty: [punkty, true] zostawia tylko środek, [punkty, false] wycina środek
+  const wytnij = (obraz, ...ksztalty) => {
+    const c = document.createElement('canvas'); c.width = obraz.width; c.height = obraz.height;
+    const g = c.getContext('2d'); g.drawImage(obraz, 0, 0);
+    for (const [pkt, zostaw] of ksztalty) {
+      g.globalCompositeOperation = zostaw ? 'destination-in' : 'destination-out';
+      g.beginPath(); pkt.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill();
+    }
     return c;
   };
-  const plotnoChaty = wytnij(true), plotnoPodworka = wytnij(false);
+  const plotnoChaty = wytnij(calaChata, [DOM, true]), plotnoPodworka = wytnij(calaChata, [DOM, false]);
+  // Chata bez dachu (jak w Tibii, docs/chata.md): ten sam kadr co chata. Gdy bohater jest w izbie, dom z dachem gaśnie,
+  // a w jego miejscu jest izba. Podłoga, tylna i lewa ściana leżą pod postaciami; przednia ściana (do wysokości piersi),
+  // skrzydło drzwi, drewno i kamienna prawa ściana stoją przed bohaterem, który jest w środku.
+  const PRZOD = [[150, 540], [392, 540], [392, 512], [428, 512], [428, 700], [503, 700], [503, 527], [525, 527], [525, 558],
+    [740, 558], [740, 360], [951, 360], [951, 951], [150, 951]];
+  const bezDachu = obrazBezDachu ? O.chataWDzien(obrazBezDachu) : null;
   let maskaChaty = null;
   try {
     const d = plotnoChaty.getContext('2d').getImageData(0, 0, plotnoChaty.width, plotnoChaty.height).data;
@@ -128,6 +137,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const ziemia = new P.TilingSprite(T.ziemia, SZER, WYS);
   const plamy = new P.Sprite(T.plamy); plamy.scale.set(O.SKALA_PLAM);
   const podworko = new P.Sprite(T.podworko); podworko.position.set(CHATA.x, CHATA.y); podworko.scale.set(CHATA.skala);
+  const izbaSpod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, false])) : P.Texture.EMPTY);
+  const izbaPrzod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, true])) : P.Texture.EMPTY);
+  for (const s of [izbaSpod, izbaPrzod]) { s.position.set(CHATA.x, CHATA.y); s.scale.set(CHATA.skala); s.visible = false; }
+  izbaPrzod.zIndex = CHATA.podstawa;
   const sladyRT = P.RenderTexture.create({ width: SZER, height: WYS, resolution: 0.5 });
   const slady = new P.Sprite(sladyRT);
   const cienie = new P.Container();
@@ -138,7 +151,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const znakiZiemia = new P.Graphics();          // zapowiedź uderzenia kolosa i fala po nim: leżą na ziemi
   const para = new P.Graphics();                 // oddech w zimnej nocy
   const trupyC = new P.Container();              // ostatnie ciała leżą jako ostre obrazy, starsze idą do śladów
-  swiat.addChild(ziemia, plamy, podworko, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
+  swiat.addChild(ziemia, plamy, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
 
   // drzewa
   const drzewa = DRZEWA.map((d, i) => {
@@ -150,7 +163,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
   // chata
   const chata = new P.Sprite(T.chata); chata.position.set(CHATA.x, CHATA.y); chata.scale.set(CHATA.skala); chata.zIndex = CHATA.podstawa;
-  aktorzy.addChild(chata);
+  aktorzy.addChild(chata, izbaPrzod);
 
   // ognisko: kamienie i polana (ogień jest nad ciemnością)
   const kamienie = new P.Graphics(); kamienie.position.set(OGNISKO.x, OGNISKO.y); kamienie.zIndex = OGNISKO.y - 1;
@@ -183,7 +196,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const blaski = new P.Container();
   const blaskOgnia = new P.Sprite(T.cieplo); blaskOgnia.anchor.set(0.5); blaskOgnia.blendMode = P.BLEND_MODES.ADD;
   const blaskOkna = new P.Sprite(T.cieplo); blaskOkna.anchor.set(0.5); blaskOkna.blendMode = P.BLEND_MODES.ADD; blaskOkna.alpha = 0.7;
-  blaski.addChild(blaskOgnia, blaskOkna);
+  const blaskIzby = new P.Sprite(T.cieplo); blaskIzby.anchor.set(0.5); blaskIzby.blendMode = P.BLEND_MODES.ADD;
+  blaski.addChild(blaskOgnia, blaskOkna, blaskIzby);
   const plomienie = new P.Graphics(); plomienie.blendMode = P.BLEND_MODES.ADD; plomienie.zIndex = OGNISKO.y + 0.5;
   aktorzy.addChild(plomienie);
   const oczy = new P.Container();
@@ -204,7 +218,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const kreski = new P.TilingSprite(T.kreski, 16, 16);
   const stemple = new P.Container();
   const stempel = () => { const s = new P.Sprite(T.stempel); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ERASE; stemple.addChild(s); return s; };
-  const swiatloBoh = stempel(), swiatloOgnia = stempel(), swiatloOkna = stempel();
+  const swiatloBoh = stempel(), swiatloOgnia = stempel(), swiatloOkna = stempel(), swiatloIzby = stempel();
   ciemnoscC.addChild(ciemnoscG, kreski, stemple);
   let ciemnoscRT = null; const ciemnosc = new P.Sprite();
 
@@ -214,16 +228,6 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   ekran.addChild(deszcz, winieta, bolG);
   scena.addChild(swiat, ciemnosc, nad, ekran);
 
-  // izba w chacie: osobny obraz nad całą polaną (docs/chata.md); zasłona to krótkie ściemnienie przy wejściu i wyjściu
-  const wnetrzeC = new P.Container(); wnetrzeC.visible = false;
-  const wnTlo = new P.Graphics(); wnTlo.beginFill(0x050403); wnTlo.drawRect(-3000, -3000, 7200, 6900); wnTlo.endFill();
-  const wnObraz = obrazWnetrza ? new P.Sprite(new P.Texture(new P.BaseTexture(obrazWnetrza))) : new P.Sprite();
-  const wnCien = new P.Sprite(T.cien); wnCien.anchor.set(0.5);
-  const wnBoh = new P.Sprite();
-  const wnBlask = new P.Sprite(T.cieplo); wnBlask.anchor.set(0.5); wnBlask.blendMode = P.BLEND_MODES.ADD;
-  wnetrzeC.addChild(wnTlo, wnObraz, wnCien, wnBoh, wnBlask);
-  const zaslona = new P.Graphics();
-  scena.addChild(wnetrzeC, zaslona);
 
   // ---------- rozmiar i kamera ----------
   let vw = 1, vh = 1, zoom = 1;
@@ -358,7 +362,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
     kop: { x: 0, y: 0 }, ucisk: 0, fiolet: 0,      // fiolet: błysk ekranu i światła po uderzeniu klątwy
                 // kamera drgnie w stronę cięcia; mocny cios lekko przybliża
-    wChacie: false, zaslona: 0, krokW: 0, wpx: 0, wpy: 0, sxW: 1,   // izba: czy w środku, ściemnienie, krok i kierunek w izbie
+    bezDachu: 0,                                  // 0: chata z dachem, 1: dach zdjęty, bohater w izbie
     px: null, py: null, krok: 0, szedl: false, dochodzi: 0, kierKroku: 1, ruch: 'bieg', walka: 0,   // walka: ile jeszcze sekund trzyma gardę po ostatnim wrogu w pobliżu   // gdzie był klatkę temu, ile cykli chodu przeszedł, czy dokańcza krok po zatrzymaniu
   };
 
@@ -673,34 +677,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     } else if (f.gasnie >= 0) { f.gasnie += dt; if (f.gasnie > 0.15) padajace.splice(i, 1); }
   }
 
-  // Izba: obraz wnętrza dopasowany do ekranu (na wąskim ekranie kamera idzie za bohaterem), bohater z tych samych klatek.
-  function rysujIzbe(b) {
-    const W = WNETRZE, s = Math.min(vh / W.wys, vw / 540), pw = vw / s, ph = vh / s;
-    const cx = pw >= W.szer ? W.szer / 2 : ogr(b.wx, pw / 2, W.szer - pw / 2), cy = ph >= W.wys ? W.wys / 2 : ogr(b.wy - 90, ph / 2, W.wys - ph / 2);
-    wnetrzeC.scale.set(s); wnetrzeC.position.set(Math.round(vw / 2 - cx * s), Math.round(vh / 2 - cy * s));
-    wnBlask.position.set(642, 372); wnBlask.width = wnBlask.height = 560 + Math.sin(czas * 7) * 14 + Math.sin(czas * 17) * 8; wnBlask.alpha = 0.22;
-    const dd = Math.hypot(b.wx - stanRys.wpx, b.wy - stanRys.wpy); stanRys.wpx = b.wx; stanRys.wpy = b.wy;
-    const widac = !b.spi && maObraz;
-    wnBoh.visible = widac; wnCien.visible = widac;
-    if (!widac) return;
-    if (Math.abs(Math.cos(b.kat)) > 0.25) stanRys.sxW = Math.cos(b.kat) >= 0 ? 1 : -1;
-    const tyl = b.idzie && Math.sin(b.kat) < -0.8, przod = b.idzie && Math.sin(b.kat) > 0.8 && AB.chod_przod, nazwa = tyl ? 'chod_tyl' : (przod ? 'chod_przod' : 'bieg');
-    if (dd < 40) stanRys.krokW += dd / (RUCH[nazwa].droga * W.pikseliNaJednostke);
-    const k = klatkiB[b.idzie ? klatkaPetli(nazwa, stanRys.krokW) : klatkaPetli('spoczynek', czas * 8 / AB.spoczynek.length)];
-    const sk = SKALA_B * W.pikseliNaJednostke;
-    wnBoh.texture = k.t; wnBoh.anchor.set(k.ax, k.ay); wnBoh.scale.set(sk * (PATRZY_B === stanRys.sxW ? 1 : -1), sk); wnBoh.position.set(b.wx, b.wy);
-    wnCien.position.set(b.wx, b.wy + 2); wnCien.width = 70; wnCien.height = 20; wnCien.alpha = 0.55;
-  }
-
   function rysuj(gra, dt, zdarzenia) {
     czas += dt;
     const b = gra.bohater;
-    // izba: przy wejściu i wyjściu ekran na chwilę gaśnie
-    if (!!b.wChacie !== stanRys.wChacie) { stanRys.wChacie = !!b.wChacie; stanRys.zaslona = 1; stanRys.wpx = b.wx; stanRys.wpy = b.wy; }
-    stanRys.zaslona = Math.max(0, stanRys.zaslona - dt * 2.2);
-    wnetrzeC.visible = stanRys.wChacie && stanRys.zaslona < 0.6;
-    if (wnetrzeC.visible) rysujIzbe(b);
-    zaslona.clear(); if (stanRys.zaslona > 0) { zaslona.beginFill(0x000000, Math.min(1, stanRys.zaslona * 1.6)); zaslona.drawRect(0, 0, vw, vh); zaslona.endFill(); }
+    // dach znika w ćwierć sekundy, gdy bohater wejdzie do izby, i wraca, gdy wyjdzie (jak w Tibii)
+    if (bezDachu) stanRys.bezDachu = ogr(stanRys.bezDachu + (b.wChacie ? 1 : -1) * dt * 4, 0, 1);
+    const fD = stanRys.bezDachu;
+    chata.alpha = 1 - fD; chata.visible = fD < 1;
+    izbaSpod.alpha = izbaPrzod.alpha = fD; izbaSpod.visible = izbaPrzod.visible = fD > 0;
 
     // zdarzenia, które widać na obrazie
     for (const z of zdarzenia) {
@@ -784,7 +768,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const obrot = upadl && !gemF ? -pz.sx * 1.45 * tUp : 0, alfaB = upadl ? (gemF ? 1 : 1 - Math.max(0, czas - stanRys.upadlOd - 1.4) * 0.6) : (b.nietykalny > 0 && b.stan !== 'unik' ? 0.75 : 1);
     const tint = b.flash > 0 ? 0xff8080 : (pz.blask > 0.05 ? 0xffe6c0 : 0xffffff);
     const gem = trybBohatera === 'gemini' && maObraz;
-    bohG.visible = !gem && !b.wChacie; bohS.visible = gem && !b.wChacie; bohCien.visible = !b.wChacie;   // w chacie go nie widać
+    bohG.visible = !gem && !b.spi; bohS.visible = gem && !b.spi; bohCien.visible = !b.spi;   // śpiącego na posłaniu nie widać
     // chód: klatki biegną z przebytą drogą. W filmie bohater idzie w bok i trochę do nas, więc idąc tyłem
     // (od celu albo w górę ekranu) film leci wstecz. Rusza i staje w chwili, gdy nogi się mijają, bez przeskoku.
     if (stanRys.px === null) { stanRys.px = b.x; stanRys.py = b.y; }
@@ -866,7 +850,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
     // duch bohatera, gdy zasłania go chata albo drzewo
     duch.clear();
-    let zasloniety = b.y < CHATA.podstawa && (chataZaslania(b.x, b.y - 30) || chataZaslania(b.x, b.y - 60) || chataZaslania(b.x, b.y - 90));   // tułów na pikselach chaty, razem z kominem
+    let zasloniety = stanRys.bezDachu < 0.5 && b.y < CHATA.podstawa && (chataZaslania(b.x, b.y - 30) || chataZaslania(b.x, b.y - 60) || chataZaslania(b.x, b.y - 90));   // tułów na pikselach chaty, razem z kominem
     if (!zasloniety) for (const d of DRZEWA) { if (d.y > b.y && d.y - b.y < d.h * 0.85 && Math.abs(d.x - b.x) < d.h * 0.22) { zasloniety = true; break; } }
     duchS.visible = false;
     if (zasloniety && b.stan !== 'upadl') {
@@ -1113,7 +1097,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       plomienie.closePath(); plomienie.endFill();
     }
     blaskOgnia.position.set(fx, fy - 10); blaskOgnia.width = blaskOgnia.height = 300 * migot; blaskOgnia.alpha = 0.55 * Math.max(0.3, gra.mroczek / 0.8);
-    blaskOkna.position.set(CHATA.okno.x, CHATA.okno.y + 20); blaskOkna.width = blaskOkna.height = 170; blaskOkna.alpha = 0.6 * Math.max(0.2, gra.mroczek / 0.8);
+    blaskOkna.position.set(CHATA.okno.x, CHATA.okno.y + 20); blaskOkna.width = blaskOkna.height = 170; blaskOkna.alpha = 0.6 * Math.max(0.2, gra.mroczek / 0.8) * (1 - stanRys.bezDachu);
+    blaskIzby.position.set(CHATA.palenisko.x, CHATA.palenisko.y + 20); blaskIzby.width = blaskIzby.height = 260 * migot; blaskIzby.alpha = 0.5 * stanRys.bezDachu * Math.max(0.3, gra.mroczek / 0.8);
 
     // ciemność: zalewamy ekran nocą i wycinamy światło
     ciemnoscG.clear(); ciemnoscG.beginFill(0x05060b, gra.mroczek); ciemnoscG.drawRect(0, 0, vw, vh); ciemnoscG.endFill();
@@ -1121,7 +1106,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zz, oy + y * zz); s.width = s.height = r * 2 * zz; s.alpha = al; };
     stawStempel(swiatloBoh, b.x, b.y - 30, 250 + 260 * stanRys.fiolet, 1);
     stawStempel(swiatloOgnia, fx, fy - 10, 380 * migot, 0.95);
-    stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7);
+    stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7 * (1 - stanRys.bezDachu));
+    stawStempel(swiatloIzby, CHATA.palenisko.x, CHATA.palenisko.y + 60, 240 * migot, 0.95 * stanRys.bezDachu);   // ogień z paleniska oświetla izbę
     renderer.render(ciemnoscC, { renderTexture: ciemnoscRT, clear: true });
 
     // ekran: deszcz i czerwony błysk po ranie

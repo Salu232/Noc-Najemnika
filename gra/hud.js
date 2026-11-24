@@ -30,7 +30,7 @@ export function przygotujHud() {
     ustaw('krew', b.smugaCzas > 0 && b.smuga > 0 && b.stan !== 'upadl', v => el.krew.classList.toggle('widac', v));
     ustaw('rana', b.flash > 0.15, v => el.pasekZycia.classList.toggle('rana', v));
 
-    // czynność przy drzwiach i ekran wnętrza chaty (na razie bez obrazu z Gemini)
+    // czynność w chacie (posłanie) albo zamknięte drzwi w walce; ekran snu
     const dotyk = matchMedia && matchMedia('(pointer: coarse)').matches;
     const otwarte = gra.faza === 'przerwa' || gra.faza === 'swit';
     const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : ({ wyjdz: 'Wyjdź', odpocznij: 'Odpocznij na posłaniu', wstan: 'Wstań' }[gra.akcja] || '');
