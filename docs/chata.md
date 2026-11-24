@@ -20,6 +20,10 @@ Zdjęcia: [zrzuty/2026-11-24-chata-1.png](zrzuty/2026-11-24-chata-1.png), [-2](z
 4. **Odpoczynek.** Przy palenisku albo na posłaniu: bohater siada, życie i wytrzymałość wracają z czasem, a pasek klątwy nie rośnie. Kiedy wolno odpoczywać, decyduje Patryk (pytanie niżej).
 5. **Interakcja ogólnie.** Ten sam mechanizm (punkt, promień, napis, czynność) posłuży potem do skrzyń, ludzi do ratowania i ogniska.
 
+## Zrobione
+
+- **24 XI: bryła i duch.** Ruch blokuje teraz cała bryła chaty: od przedniej ściany w głąb do 380 piksela obrazu, razem z kominem i prawą ścianą (`CHATA.sciana` w [gra/swiat.js](../gra/swiat.js)). Za chatą bohatera widać jako jasną, płaską sylwetkę na całej szerokości chaty, także przy kominie; wcześniej była to przezroczysta kopia, która wyglądała jak bohater na dachu. Sprawdzone zrzutami: idąc na drzwi, bohater staje przy ścianie, a postawiony w środku chaty zostaje wypchnięty za nią. Bot przechodzi noc jak wcześniej.
+
 ## Do decyzji Patryka
 
 - **Kiedy wolno odpoczywać w chacie?** Propozycja Claude: tylko w ciszy między etapami nocy. Pokonasz falę i masz chwilę, żeby się podleczyć, ale w środku walki chata nie jest kryjówką.

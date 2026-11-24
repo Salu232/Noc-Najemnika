@@ -10,7 +10,9 @@ CHATA.y = 1020 - 690 * CHATA.skala;               // podstawa ścian (690 w obra
 const zObrazu = (sx, sy) => ({ x: CHATA.x + sx * CHATA.skala, y: CHATA.y + sy * CHATA.skala });
 CHATA.podstawa = zObrazu(0, 690).y;
 CHATA.okno = zObrazu(597, 567);
-CHATA.sciana = { a: zObrazu(178, 585), b: zObrazu(838, 692) };
+// Bryła chaty na ziemi: od przedniej ściany (692) w głąb do 380 piksela obrazu, razem z kominem i prawą ścianą.
+// Do 24 XI był tu tylko pas przy przedniej ścianie (585–692) i dało się wejść „w dach” (docs/chata.md).
+CHATA.sciana = { a: zObrazu(165, 380), b: zObrazu(855, 692) };
 CHATA.ploty = [
   [[160, 470], [45, 585]], [[45, 585], [30, 805]],
   [[30, 805], [395, 900]], [[515, 815], [700, 872]],

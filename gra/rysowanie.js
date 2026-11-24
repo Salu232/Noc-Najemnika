@@ -159,7 +159,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const iskry = new P.Container();
   const smugi = new P.Graphics();
   const duch = new P.Graphics(); duch.alpha = 0.33;
-  const duchS = new P.Sprite(); duchS.alpha = 0.33;
+  // Duch bohatera za chatą albo drzewem: jasna, płaska sylwetka, a nie przezroczysta kopia, żeby nie wyglądało, że stoi na dachu.
+  const duchS = new P.Sprite(); duchS.alpha = 0.5;
+  try { const cm = new P.filters.ColorMatrixFilter(); cm.matrix = [0, 0, 0, 0, 0.62, 0, 0, 0, 0, 0.76, 0, 0, 0, 0, 0.9, 0, 0, 0, 1, 0]; duchS.filters = [cm]; } catch (e) { duchS.alpha = 0.33; }
   const blaskBoh = new P.Sprite(T.cieplo); blaskBoh.anchor.set(0.5); blaskBoh.blendMode = P.BLEND_MODES.ADD; blaski.addChild(blaskBoh);
   const blaskKlatwy = new P.Sprite(T.cieplo); blaskKlatwy.anchor.set(0.5); blaskKlatwy.blendMode = P.BLEND_MODES.ADD; blaskKlatwy.tint = 0xa060ff; blaski.addChild(blaskKlatwy);
   const napisy = new P.Container();
@@ -776,7 +778,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
     // duch bohatera, gdy zasłania go chata albo drzewo
     duch.clear();
-    let zasloniety = b.y < CHATA.podstawa && b.y > CHATA.y + 120 * CHATA.skala && b.x > CHATA.x + 150 * CHATA.skala && b.x < CHATA.x + 860 * CHATA.skala;
+    let zasloniety = b.y < CHATA.podstawa && b.y > CHATA.y + 120 * CHATA.skala && b.x > CHATA.x + 140 * CHATA.skala && b.x < CHATA.x + 880 * CHATA.skala;   // cała chata razem z kominem
     if (!zasloniety) for (const d of DRZEWA) { if (d.y > b.y && d.y - b.y < d.h * 0.85 && Math.abs(d.x - b.x) < d.h * 0.22) { zasloniety = true; break; } }
     duchS.visible = false;
     if (zasloniety && b.stan !== 'upadl') {
