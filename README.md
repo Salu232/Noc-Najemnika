@@ -16,6 +16,7 @@ To druga wersja gry. Pierwsza powstała w kilka dni jako szybki prototyp, a ludz
 | [docs/wizja.md](docs/wizja.md) | czym gra ma być i czym nie ma być |
 | [docs/walka.md](docs/walka.md) | projekt walki: ciosy, obrona, hordy, ulepszenia i specjalizacje ciała |
 | [docs/grafika.md](docs/grafika.md) | styl grafiki, praca z Gemini i pierwsza próbka: karczma |
+| [docs/chata.md](docs/chata.md) | chata jako obiekt: skąd jej błędy, wejście do środka, odpoczynek |
 | [docs/lekcje.md](docs/lekcje.md) | błędy z pierwszej wersji i z historii podobnych projektów, których nie powtarzamy |
 | [docs/zasady-pracy.md](docs/zasady-pracy.md) | jak pracujemy: zmiany, akceptacja, testy, wydania |
 | [pomysly/POMYSLY.md](pomysly/POMYSLY.md) | dziennik wszystkich pomysłów, także tych na później |

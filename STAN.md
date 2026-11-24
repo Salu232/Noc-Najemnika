@@ -2,7 +2,7 @@
 
 Aktualizowany przy każdej zmianie. Historia jest w gicie, tutaj tylko to, co obowiązuje teraz.
 
-**Ostatnia zmiana:** 24 XI 2026 w nocy: ghul i kolos z filmów Przemka, a bohater dostał bieg, chód plecami, przewrót przy uniku i upadek. Wcześniej tej nocy klątwa pod R i bohater z filmów. Fundamenty i gra czekają w pull requeście nr 1.
+**Ostatnia zmiana:** 24 XI 2026 rano: cięcie jak mieczem (sierp i ostrze), garda w walce, plan chaty. W nocy: ghul i kolos z filmów Przemka, a bohater dostał bieg, chód plecami, przewrót przy uniku i upadek. Wcześniej tej nocy klątwa pod R i bohater z filmów. Fundamenty i gra czekają w pull requeście nr 1.
 
 ## Teraz
 
@@ -24,7 +24,7 @@ Aktualizowany przy każdej zmianie. Historia jest w gicie, tutaj tylko to, co ob
 
 Równolegle: próbka stylu na karczmie, a po niej decyzja 003 o stylu grafiki.
 
-Po walce i materiałach Przemka (Patryk, 24 XI): **chata jako obiekt**, czyli wejście do środka, odpoczynek z regeneracją i naprawa błędów chaty ze zdjęć ([pomysly/POMYSLY.md](pomysly/POMYSLY.md), [docs/zrzuty/](docs/zrzuty/)).
+Teraz (Patryk, 24 XI): **chata jako obiekt**, czyli naprawa błędów ze zdjęć, wejście do środka i odpoczynek. Plan i przyczyny błędów są w [docs/chata.md](docs/chata.md).
 
 ## Czeka na Patryka
 
