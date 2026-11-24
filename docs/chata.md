@@ -14,7 +14,7 @@ Zdjęcia: [zrzuty/2026-11-24-chata-1.png](zrzuty/2026-11-24-chata-1.png), [-2](z
 
 ## Plan
 
-1. **Chata jako bryła.** Podstawa chaty z obrazu (wielokąt ścian na ziemi) blokuje ruch, więc do środka nie da się wejść inaczej niż drzwiami. Za chatą można stać. Wtedy chata w miejscu bohatera robi się półprzezroczysta, a nie tylko ma ducha na wierzchu, i działa to też przy kominie.
+1. **Chata jako bryła.** Podstawa chaty z obrazu (wielokąt ścian na ziemi) blokuje ruch, więc do środka nie da się wejść inaczej niż drzwiami. Za chatą można stać i wtedy widać jasną sylwetkę bohatera, także przy kominie (zrobione, niżej). Jeśli sylwetka nie wystarczy, chata w miejscu bohatera może robić się półprzezroczysta.
 2. **Drzwi i wejście.** Przy drzwiach pojawia się napis „Wejdź” (komputer: E, telefon: przycisk). Wejście to ściemnienie ekranu i wnętrze chaty.
 3. **Wnętrze.** Jeden obraz z Gemini (polecenie niżej): izba z paleniskiem, ławą i posłaniem. Bohater chodzi po izbie, a wyjście jest drzwiami.
 4. **Odpoczynek.** Przy palenisku albo na posłaniu: bohater siada, życie i wytrzymałość wracają z czasem, a pasek klątwy nie rośnie. Kiedy wolno odpoczywać, decyduje Patryk (pytanie niżej).
