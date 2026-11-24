@@ -236,6 +236,25 @@ def rama():
     print('grafika/rama-paska.webp')
 
 
+def panel():
+    """Rama panelu z czaszkami i pasami (Patryk, 24 XI 19:06: „do wyboru ulepszeń można dać takie menu”).
+    Ciemne wnętrze zostaje: strona kładzie ramę jako border-image, więc rogi się nie rozciągają, a środek rośnie z treścią."""
+    a = wczytaj('interfejs-panel'); tlo = tlo_arkusza(a); lab, sl = skladowe(tlo)
+    nr = max(range(1, len(sl) + 1), key=lambda i: 0 if sl[i - 1] is None else (sl[i - 1][0].stop - sl[i - 1][0].start) * (sl[i - 1][1].stop - sl[i - 1][1].start))
+    im = np.asarray(wytnij(a, tlo, lab, sl, nr)).copy()
+    # szary cień pod ramą: jasne, bezbarwne piksele w dolnym pasie (kości są ciepłe, więc zostają)
+    f = im[..., :3].astype(np.float32); lum = f.mean(2); sat = f.max(2) - f.min(2)
+    dol = np.zeros(lum.shape, bool); dol[int(im.shape[0] * 0.88):] = True
+    im[dol & (lum > 110) & (sat < 28), 3] = 0
+    l, n = ndimage.label(im[..., 3] > 0)
+    if n > 1: im[..., 3] *= (l == np.argmax(ndimage.sum(im[..., 3] > 0, l, range(1, n + 1))) + 1)
+    im = Image.fromarray(im, 'RGBA')
+    im = im.crop(im.getbbox())
+    im = im.resize((1000, round(1000 * im.height / im.width)), Image.LANCZOS)
+    im.save('grafika/panel-wyboru.webp', quality=86)
+    print('grafika/panel-wyboru.webp', im.size)
+
+
 def podglad(katalog):
     os.makedirs(katalog, exist_ok=True)
     for ark in sorted({v[0] for v in RYSUNKI.values()}):
@@ -294,4 +313,5 @@ def zloz():
 
 if __name__ == '__main__':
     if len(sys.argv) > 2 and sys.argv[1] == '--podglad': podglad(sys.argv[2])
-    else: zloz(); ikony(); rama()
+    elif len(sys.argv) > 1 and sys.argv[1] == '--panel': panel()
+    else: zloz(); ikony(); rama(); panel()

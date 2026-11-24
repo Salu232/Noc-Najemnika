@@ -127,8 +127,16 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 #przycisk-mikstura b { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; border-radius: 9px; background: #8e1418; font-size: 11px; line-height: 18px; }
 #zapasy { display: flex; gap: 10px; font-size: 12px; color: var(--tekst, #e9e1d2); text-shadow: 0 1px 3px #000; padding-left: 6px; }
 #zapas-mikstur::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: -3px; border-radius: 50%; background: url(grafika/ikona-mikstura.webp) center / cover; }
+/* wybór ulepszenia w ramie z czaszkami i pasami (Patryk, 24 XI 19:06): border-image, więc rogi się nie rozciągają */
+#ekran-wyboru .karta {
+  box-sizing: border-box; width: min(560px, 100%); background: none; border: none; border-radius: 0; padding: 4px 10px 6px;
+  border-style: solid; border-width: 60px 60px 66px 60px; border-image: url("grafika/panel-wyboru.webp") 120 120 132 120 fill / 60px 60px 66px 60px stretch;
+}
+#ekran-wyboru h2 { color: #f0c890; text-shadow: 0 2px 4px #000; }
+#ekran-wyboru .karta > p { margin: 0; color: #d8c8b0; }
+@media (max-width: 420px) { #ekran-wyboru .karta { border-width: 44px 40px 48px 40px; border-image-width: 44px 40px 48px 40px; } }
 #karty-wyboru { display: grid; gap: 10px; margin-top: 12px; }
-.wybor-karta { display: grid; gap: 4px; text-align: left; padding: 12px 14px; border-radius: 6px; border: 1px solid rgba(224, 160, 85, 0.5); background: rgba(30, 22, 16, 0.9); color: inherit; cursor: pointer; }
+.wybor-karta { display: grid; gap: 4px; text-align: left; padding: 12px 14px; border-radius: 4px; border: 1px solid rgba(224, 160, 85, 0.45); background: rgba(16, 12, 9, 0.72); color: inherit; cursor: pointer; }
 .wybor-karta strong { font-family: var(--font-tytul); font-size: 18px; color: #f0c890; }
 .wybor-karta:hover, .wybor-karta:focus-visible { border-color: var(--zar); background: rgba(60, 40, 22, 0.95); }
 .drazek { position: fixed; z-index: 2; left: 0; top: 0; border-radius: 50%; pointer-events: none; }

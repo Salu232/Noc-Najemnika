@@ -62,6 +62,25 @@ POSTACIE = {
         # więc stopy tych klatek idą za środkiem ciała: ciało zostaje tam, gdzie gra je stawia.
         'sledz': {'przewrot'},
     },
+    # Bohater z mieczem dwuręcznym (Patryk z Flow, 24 XI 19:01, z klatki 88 filmu cięcia): osobny obraz, gra wczytuje go
+    # obok zwykłego i bierze z niego te animacje, gdy w walce wybrany jest miecz dwuręczny. Pozostałe animacje zostają zwykłe.
+    'bohater_wielki': {
+        'obraz': 'grafika/bohater-wielki.webp',
+        'stopy': (295, 345), 'wys_film': 340, 'wys_swiat': 100, 'skala_obrazu': 0.5,
+        'animacje': {
+            'zamach':     ('film-wielki-ciecie', [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 50]),   # unosi miecz nad głowę i odprowadza go nisko w lewo
+            'ciecie':     ('film-wielki-ciecie', [52, 58, 59, 60, 62, 64, 66]),   # szerokie cięcie w prawo; 53–57 pomijamy: smuga zostawia plamy
+            'powrot':     ('film-wielki-ciecie', [70, 73, 76, 79, 82, 85, 88, 91, 94, 96]),
+            'gotowosc':   ('film-wielki-ciecie', [88, 90, 92, 94, 96]),
+            # pełny cykl 24 klatki (klatka 34 wygląda jak 10); nogi mijają się przy 0,10 i 0,64 cyklu, jak w zwykłym biegu z mieczem
+            'bieg_miecz': ('film-wielki-bieg', list(range(10, 34))),
+            # Film bloku (24 XI 19:01) to w środku pchnięcie (Patryk: „blokowanie wygląda jak atak”). Bierzemy z niego tylko
+            # koniec: miecz postawiony pionowo przed ciałem. Unosi go z gardy (klatki wstecz), trzyma, cios lekko go odpycha.
+            'blok_unosi':  ('film-wielki-blok', [96, 90, 84, 80, 77, 75]),
+            'blok_trzyma': ('film-wielki-blok', [71, 72, 73, 74, 75]),
+            'blok_cios':   ('film-wielki-blok', [72, 75, 78, 81, 78, 75, 72]),
+        },
+    },
     'ghul': {
         'obraz': 'grafika/ghul.webp',
         'stopy': (285, 345), 'wys_film': 317, 'wys_swiat': 72, 'skala_obrazu': 0.4,
@@ -97,7 +116,7 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340)}
+STOPY_FILMU = {'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
 SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04}
@@ -228,14 +247,20 @@ OPIS = ('// Plik zrobiony przez narzedzia/wytnij-z-filmow.py z filmów Przemka. 
         '// KLATKI: miejsce klatki w obrazie postaci (x, y, w, h) i stopy jako ułamek szerokości i wysokości (ax, ay).\n'
         '// ANIMACJE: które klatki po kolei tworzą daną animację. SKALA: ile jednostek świata ma jeden piksel obrazu. PATRZY: 1, bo w filmach postać patrzy w prawo.\n')
 
-wynik = {nazwa: zrob(nazwa, cfg) for nazwa, cfg in POSTACIE.items()}
-b = wynik.pop('bohater')
-with open('gra/klatki-bohatera.js', 'w', encoding='utf-8') as f:
-    f.write(OPIS)
-    f.write(f"export const SKALA = {b['SKALA']};\nexport const PATRZY = {b['PATRZY']};\n")
-    f.write('export const ANIMACJE = ' + json.dumps(b['ANIMACJE'], ensure_ascii=False) + ';\n')
-    f.write('export const KLATKI = ' + json.dumps(b['KLATKI'], ensure_ascii=False) + ';\n')
-with open('gra/klatki-wrogow.js', 'w', encoding='utf-8') as f:
+# Bez argumentów robi wszystkie postacie; z nazwami (np. bohater_wielki) tylko te.
+import sys
+wybrane = sys.argv[1:] or list(POSTACIE)
+wynik = {nazwa: zrob(nazwa, cfg) for nazwa, cfg in POSTACIE.items() if nazwa in wybrane}
+for nazwa, plik in (('bohater', 'gra/klatki-bohatera.js'), ('bohater_wielki', 'gra/klatki-bohatera-wielki.js')):
+    if nazwa not in wynik: continue
+    b = wynik.pop(nazwa)
+    with open(plik, 'w', encoding='utf-8') as f:
+        f.write(OPIS)
+        f.write(f"export const SKALA = {b['SKALA']};\nexport const PATRZY = {b['PATRZY']};\n")
+        f.write('export const ANIMACJE = ' + json.dumps(b['ANIMACJE'], ensure_ascii=False) + ';\n')
+        f.write('export const KLATKI = ' + json.dumps(b['KLATKI'], ensure_ascii=False) + ';\n')
+if wynik:
+  with open('gra/klatki-wrogow.js', 'w', encoding='utf-8') as f:
     f.write(OPIS)
     f.write('// Obraz każdego potwora: grafika/<nazwa>.webp.\n')
     f.write('export const WROGOWIE_FILM = ' + json.dumps(wynik, ensure_ascii=False) + ';\n')

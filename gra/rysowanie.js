@@ -5,6 +5,7 @@ import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY } from './swiat
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
 import { BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
+import { KLATKI as KW, ANIMACJE as AW } from './klatki-bohatera-wielki.js';
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
 import * as O from './obrazki.js';
 
@@ -21,7 +22,7 @@ const FILM_WROGA = {
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -116,6 +117,15 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     for (const k in KB) klatkiB[k] = { ...KB[k], t: new P.Texture(baza, new P.Rectangle(KB[k].x, KB[k].y, KB[k].w, KB[k].h)) };
   }
   const maObraz = Object.keys(klatkiB).length > 0;
+  // Z mieczem dwuręcznym (Patryk z Flow, 24 XI 19:01) bohater ma własne cięcie, gardę, bieg i blok z grafika/bohater-wielki.webp.
+  // A to animacje, z których bierze klatki w tej klatce gry: zwykłe albo zwykłe z podmienionymi na dwuręczne.
+  const ABW = { ...AB };
+  if (maObraz && obrazBohateraWielki) {
+    const baza = new P.BaseTexture(obrazBohateraWielki); baza.mipmap = P.MIPMAP_MODES.ON;
+    for (const k in KW) klatkiB[k] = { ...KW[k], t: new P.Texture(baza, new P.Rectangle(KW[k].x, KW[k].y, KW[k].w, KW[k].h)) };
+    Object.assign(ABW, AW);
+  }
+  let A = AB;
   // ghul i kolos z filmów Przemka; bez obrazu zostają rysowane kodem (atlasy wyżej)
   const filmW = {};
   for (const nazwa in WROGOWIE_FILM) {
@@ -536,9 +546,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
   // Klatka animacji bohatera z filmów. Cios idzie za fazą (zamach, cięcie, powrót), a nie za zegarem,
   // więc ten sam film pasuje do lekkiego i do wielkiego miecza. Chód idzie za przebytą drogą.
-  const klatkaZ = (n, q) => { const l = AB[n]; return l[Math.min(l.length - 1, Math.max(0, Math.floor(q * l.length)))]; };
-  const klatkaPetli = (n, cykle) => { const l = AB[n]; return l[((Math.floor(cykle * l.length) % l.length) + l.length) % l.length]; };
-  const unikPionowy = (b) => Math.abs(Math.sin(b.unikKat)) > 0.7 && AB.przewrot_przod && AB.przewrot_tyl;   // w górę albo w dół, najwyżej 45° od pionu
+  const klatkaZ = (n, q) => { const l = A[n]; return l[Math.min(l.length - 1, Math.max(0, Math.floor(q * l.length)))]; };
+  const klatkaPetli = (n, cykle) => { const l = A[n]; return l[((Math.floor(cykle * l.length) % l.length) + l.length) % l.length]; };
+  const unikPionowy = (b) => Math.abs(Math.sin(b.unikKat)) > 0.7 && A.przewrot_przod && A.przewrot_tyl;   // w górę albo w dół, najwyżej 45° od pionu
   function klatkaBohatera(b, tUp) {
     if (b.stan === 'klatwa') {
       const L = KLATWA.ladowanie, U = KLATWA.uderzenie;
@@ -556,14 +566,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0);
       return klatkaZ('powrot', c.utknal ? 0 : c.t / Math.max(0.001, koniec));
     }
-    if (b.blok && AB.blok_trzyma) {
+    if (b.blok && A.blok_trzyma) {
       // blok z filmu (Patryk, 24 XI 15:17: „żeby lepiej wygląda animacja blokowania”): unosi miecz w 0,2 s, trzyma
       // (klatki tam i z powrotem, powoli), a cios w ostrze odpycha go na 0,4 s i wraca do trzymania
       const tc = czas - stanRys.blokCios;
       if (tc < 0.4) return klatkaZ('blok_cios', tc / 0.4);
       const tu = czas - stanRys.blokOd;
       if (tu < 0.2) return klatkaZ('blok_unosi', tu / 0.2);
-      const l = AB.blok_trzyma.length, i = Math.floor((tu - 0.2) * 6) % (2 * l - 2); return AB.blok_trzyma[i < l ? i : 2 * l - 2 - i];
+      const l = A.blok_trzyma.length, i = Math.floor((tu - 0.2) * 6) % (2 * l - 2); return A.blok_trzyma[i < l ? i : 2 * l - 2 - i];
     }
     if (b.blok) return klatkaZ('blok', Math.min(0.99, (czas - stanRys.blokOd) / 0.15));   // unosi miecz do bloku w 0,15 s, potem trzyma
     if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
@@ -577,11 +587,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (b.idzie || stanRys.dochodzi > 0) return klatkaPetli(stanRys.ruchR || stanRys.ruch, stanRys.krok);
     // W walce stoi w gardzie z mieczem uniesionym przed sobą; gdy wokół pusto, opuszcza miecz i oddycha (Patryk, 24 XI).
     // Klatki gardy idą tam i z powrotem, powoli, jak ważenie miecza w dłoniach.
-    if (AB.wyciaga ? stanRys.miecz === 'w_dloni' : stanRys.walka > 0) { const l = AB.gotowosc.length, i = Math.floor(czas * 4) % (2 * l - 2); return AB.gotowosc[i < l ? i : 2 * l - 2 - i]; }
+    if (A.wyciaga ? stanRys.miecz === 'w_dloni' : stanRys.walka > 0) { const l = A.gotowosc.length, i = Math.floor(czas * 4) % (2 * l - 2); return A.gotowosc[i < l ? i : 2 * l - 2 - i]; }
     // Poza walką, z mieczem w pochwie, stoi prosto przodem do nas (Patryk, 24 XI 14:54: dawny oddech z filmu wyglądał,
     // „jakby był cały czas na chodzie”). Klatki idą tam i z powrotem, powoli, jak oddech.
-    if (AB.stoi && stanRys.miecz === 'schowany') { const l = AB.stoi.length, i = Math.floor(czas * 3) % (2 * l - 2); return AB.stoi[i < l ? i : 2 * l - 2 - i]; }
-    return klatkaPetli('spoczynek', czas * 8 / AB.spoczynek.length);       // oddech jak w filmie: 8 klatek na sekundę
+    if (A.stoi && stanRys.miecz === 'schowany') { const l = A.stoi.length, i = Math.floor(czas * 3) % (2 * l - 2); return A.stoi[i < l ? i : 2 * l - 2 - i]; }
+    return klatkaPetli('spoczynek', czas * 8 / A.spoczynek.length);       // oddech jak w filmie: 8 klatek na sekundę
   }
   // ustawia obraz bohatera: stopy w (x, y), pochylenie lx, przysiad sy (szerokość zmienia się odwrotnie, żeby ciało nie traciło masy)
   function ustawPostac(sp, k, sx, x, y, lx, sy, obrot) {
@@ -868,6 +878,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     stanRys.poprzStan = b.stan;
     // tryb walki: wróg w promieniu 700 (albo cios w toku) trzyma miecz w gardzie, 2 s po ostatnim opuszcza go
     if (b.stan === 'cios' || gra.wrogowie.some(e => e.stan !== 'wynurza' && Math.abs(e.x - b.x) < 700 && Math.abs(e.y - b.y) < 700)) stanRys.walka = 2; else stanRys.walka = Math.max(0, stanRys.walka - dt);
+    A = gra.bronKlucz === 'wielki' ? ABW : AB;
     if (AB.wyciaga) {                                                     // miecz: schowany, wyciaga, w dłoni, chowa
       // walka: cały etap nocy (od chwili, gdy wychodzą potwory) albo wróg blisko; chowa po chwili spokoju
       const walczy = (gra.faza === 'walka' || stanRys.walka > 0) && !b.wChacie && b.stan !== 'upadl';
@@ -931,7 +942,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
     // W walce, z mieczem w dłoni, biegnie z mieczem przed sobą (Patryk, 24 XI: „jak szarżuje … to z bronią w reku”).
     // Przy zmianie biegu na bieg z mieczem faza kroku przesuwa się tak, żeby nogi były w tym samym miejscu cyklu.
-    const ruchR = stanRys.ruch === 'bieg' && stanRys.miecz === 'w_dloni' && AB.bieg_miecz ? 'bieg_miecz' : stanRys.ruch;
+    const ruchR = stanRys.ruch === 'bieg' && stanRys.miecz === 'w_dloni' && A.bieg_miecz ? 'bieg_miecz' : stanRys.ruch;
     if (stanRys.ruchR && ruchR !== stanRys.ruchR && RUCH[ruchR] && RUCH[stanRys.ruchR]) stanRys.krok += RUCH[ruchR].mijanie[0] - RUCH[stanRys.ruchR].mijanie[0];
     stanRys.ruchR = ruchR;
     const RU = RUCH[ruchR];
