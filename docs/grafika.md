@@ -259,6 +259,17 @@ Bieg bokiem wraca, gdy bohater skręci bardziej w bok niż w dół (ponad 60° o
 
 **Film wyciągania przyszedł (Patryk z Flow, 24 XI, 13:14): [grafika/zrodla/film-miecz-wyciaga.mp4](../grafika/zrodla/film-miecz-wyciaga.mp4).** Wyszedł przodem do nas, a nie bokiem: ręka na rękojeści, wyciąga, unosi miecz pionowo przed siebie. Gra bierze klatki 25–58 co trzecią (12 klatek, 0,6 s). Gdy zaczyna się walka (wróg bliżej niż 700 jednostek), bohater wyciąga miecz i przechodzi do gardy bokiem. Gdy wokół pusto przez 2 s, chowa miecz tym samym filmem puszczonym wstecz i wraca do oddechu. Cios, unik albo chód przerywają wyciąganie, a stan miecza liczy się dalej w tle. Bohater w tym filmie jest o 5% niższy w kadrze, więc narzędzie powiększa te klatki (`SKALA_FILMU`), i stoi w innym miejscu kadru (`STOPY_FILMU`). Sprawdzone zrzutami w zwolnionym tempie. Przeskok z gardy bokiem do filmu przodem widać, bo to dwa różne ujęcia; jeśli będzie przeszkadzał, potrzebny jest ten sam film bokiem (polecenie wyżej, „facing right”).
 
+**Poprawka (Patryk, 24 XI, 13:27):** *„jak zbliza się potwór nie widać tego wyciągania za bardzo i tak samo chowanie za szybkie i tak samo jak juz walczy i ma wyciagnęta bron to pasuje widać naprzykład jak szarszuje na wroga to z bronią w reku”*.
+- **Dlaczego nie było widać wyciągania (Claude).** Ruch szedł tylko wtedy, gdy bohater stał w miejscu, a włączał się, gdy wróg podszedł na 700 jednostek. Zwykle bohater wtedy idzie albo już tnie, więc wyciąganie liczyło się w tle i nie było go widać. Do tego trwało 0,6 s.
+- **Teraz:** wyciąga, gdy zaczyna się etap nocy (wychodzą potwory) albo gdy wróg jest blisko. Trwa to 1 s i 21 klatek (19–59 co drugą), a ruch widać także w marszu. Chowa 1,5 s po końcu walki, przez 1,3 s, również w marszu. Cios, unik albo blok od razu kończą wyciąganie. Przez cały etap, gdy bohater stoi, trzyma gardę. Liczby są w `MIECZ` w [gra/rysowanie.js](../gra/rysowanie.js).
+- **Czego się nie da bez filmów: szarża z mieczem w dłoni.** Bieg z `film-bieg` ma miecz nisko w prawej ręce. Wygląda tak samo w walce i po niej, więc po schowaniu miecza bohater nadal biegnie z mieczem. Potrzebne są dwa filmy (Flow, z obrazem bohatera na białym tle, końcówka z punktu 10, „facing right”):
+
+| Co | Polecenie |
+| --- | --- |
+| Szarża z mieczem (walka) | The same mercenary charges forward on the spot in a loop, like on a treadmill: an aggressive run with the drawn sword held in both hands, raised in front of him at shoulder height, blade clearly visible and pointing forward. The last frame matches the first. |
+| Bieg bez miecza w dłoni (spokój) | The same mercenary runs on the spot in a loop, like on a treadmill, with his sword sheathed in a plain leather scabbard at his left hip, both hands empty and swinging. The last frame matches the first. |
+| Wyciąganie bokiem | The same mercenary, seen from the side and facing right, draws his sword from the leather scabbard at his left hip and raises it into a guard in front of him, in one smooth motion. |
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?

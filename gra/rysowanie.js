@@ -348,9 +348,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const pierscienie = [];
 
   // ---------- bohater ----------
-  const CZAS_MIECZA = 0.6;                       // sekundy wyciągania (i chowania) miecza
+  // Miecz (Patryk, 24 XI 13:27: wyciągania „nie widać”, chowanie „za szybkie”): wyciąga przez 1 s, chowa przez 1,3 s,
+  // a chowa dopiero 1,5 s po tym, jak zrobi się spokojnie. Oba ruchy widać też w marszu, a cios, unik i blok kończą wyciąganie od razu.
+  const MIECZ = { wyciaga: 1.0, chowa: 1.3, spokojPrzed: 1.5 };
   const stanRys = {
-    miecz: 'schowany', mieczT: 0,
+    miecz: 'schowany', mieczP: 0, spokoj: 0,   // mieczP: 0 w pochwie, 1 w dłoni
     upadlOd: -1, poprzZycie: BOHATER.zycie, slad: [], poprzStan: 'wolny',
     zadyszka: 0, oddech: 0, cykl: 0,          // po walce oddycha ciężej i szybciej
     odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
@@ -443,13 +445,13 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (b.blok) return klatkaZ('blok', 0.5);
     if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
     if (b.stan === 'unik') return klatkaZ('przewrot', b.t / BOHATER.unik.czas);   // unik to przewrót w stronę uniku
+    // Wyciąga miecz, gdy zaczyna się walka, i chowa go po niej (film Patryka z Flow, 24 XI; chowanie to ten sam film wstecz).
+    // Ma pierwszeństwo przed chodem, żeby było go widać także w ruchu.
+    if (stanRys.miecz === 'wyciaga' || stanRys.miecz === 'chowa') return klatkaZ('wyciaga', stanRys.mieczP);
     if (b.idzie || stanRys.dochodzi > 0) return klatkaPetli(stanRys.ruch, stanRys.krok);
     // W walce stoi w gardzie z mieczem uniesionym przed sobą; gdy wokół pusto, opuszcza miecz i oddycha (Patryk, 24 XI).
     // Klatki gardy idą tam i z powrotem, powoli, jak ważenie miecza w dłoniach.
-    // Wyciąga miecz, gdy zaczyna się walka, i chowa go, gdy wokół pusto (film Patryka z Flow, 24 XI; chowanie to ten sam film wstecz).
-    if (stanRys.miecz === 'wyciaga') return klatkaZ('wyciaga', stanRys.mieczT / CZAS_MIECZA);
-    if (stanRys.miecz === 'chowa') return klatkaZ('wyciaga', 1 - stanRys.mieczT / CZAS_MIECZA);
-    if (stanRys.walka > 0) { const l = AB.gotowosc.length, i = Math.floor(czas * 4) % (2 * l - 2); return AB.gotowosc[i < l ? i : 2 * l - 2 - i]; }
+    if (AB.wyciaga ? stanRys.miecz === 'w_dloni' : stanRys.walka > 0) { const l = AB.gotowosc.length, i = Math.floor(czas * 4) % (2 * l - 2); return AB.gotowosc[i < l ? i : 2 * l - 2 - i]; }
     return klatkaPetli('spoczynek', czas * 8 / AB.spoczynek.length);       // oddech jak w filmie: 8 klatek na sekundę
   }
   // ustawia obraz bohatera: stopy w (x, y), pochylenie lx, przysiad sy (szerokość zmienia się odwrotnie, żeby ciało nie traciło masy)
@@ -737,13 +739,15 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // tryb walki: wróg w promieniu 700 (albo cios w toku) trzyma miecz w gardzie, 2 s po ostatnim opuszcza go
     if (b.stan === 'cios' || gra.wrogowie.some(e => e.stan !== 'wynurza' && Math.abs(e.x - b.x) < 700 && Math.abs(e.y - b.y) < 700)) stanRys.walka = 2; else stanRys.walka = Math.max(0, stanRys.walka - dt);
     if (AB.wyciaga) {                                                     // miecz: schowany, wyciaga, w dłoni, chowa
-      const m = stanRys.miecz, walczy = stanRys.walka > 0 && !b.wChacie;
-      if (walczy && (m === 'schowany' || m === 'chowa')) { stanRys.mieczT = m === 'chowa' ? CZAS_MIECZA - stanRys.mieczT : 0; stanRys.miecz = 'wyciaga'; }
-      else if (!walczy && (m === 'w_dloni' || m === 'wyciaga')) { stanRys.mieczT = m === 'wyciaga' ? CZAS_MIECZA - stanRys.mieczT : 0; stanRys.miecz = 'chowa'; }
-      if (stanRys.miecz === 'wyciaga' || stanRys.miecz === 'chowa') {
-        stanRys.mieczT += dt;
-        if (stanRys.mieczT >= CZAS_MIECZA) stanRys.miecz = stanRys.miecz === 'wyciaga' ? 'w_dloni' : 'schowany';
-      }
+      // walka: cały etap nocy (od chwili, gdy wychodzą potwory) albo wróg blisko; chowa po chwili spokoju
+      const walczy = (gra.faza === 'walka' || stanRys.walka > 0) && !b.wChacie && b.stan !== 'upadl';
+      stanRys.spokoj = walczy ? 0 : stanRys.spokoj + dt;
+      const m = stanRys.miecz;
+      if (b.stan === 'cios' || b.stan === 'unik' || b.blok) { stanRys.miecz = 'w_dloni'; stanRys.mieczP = 1; stanRys.spokoj = 0; }   // w biegu walki miecz jest już w dłoni
+      else if (walczy && (m === 'schowany' || m === 'chowa')) stanRys.miecz = 'wyciaga';
+      else if (stanRys.spokoj > MIECZ.spokojPrzed && (m === 'w_dloni' || m === 'wyciaga')) stanRys.miecz = 'chowa';
+      if (stanRys.miecz === 'wyciaga') { stanRys.mieczP = Math.min(1, stanRys.mieczP + dt / MIECZ.wyciaga); if (stanRys.mieczP >= 1) stanRys.miecz = 'w_dloni'; }
+      if (stanRys.miecz === 'chowa') { stanRys.mieczP = Math.max(0, stanRys.mieczP - dt / MIECZ.chowa); if (stanRys.mieczP <= 0) stanRys.miecz = 'schowany'; }
     }
     dorysujSlady(gra.slady);
 
