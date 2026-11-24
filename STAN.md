@@ -24,6 +24,8 @@ Aktualizowany przy każdej zmianie. Historia jest w gicie, tutaj tylko to, co ob
 
 Równolegle: próbka stylu na karczmie, a po niej decyzja 003 o stylu grafiki.
 
+Wieczorem 24 XI: przegląd paczki grafik od Przemka i wybór, co wejdzie do gry, w kolejności: [docs/materialy-przemka.md](docs/materialy-przemka.md).
+
 Teraz (Patryk, 24 XI): **chata jako obiekt**, czyli naprawa błędów ze zdjęć, wejście do środka i odpoczynek. Plan i przyczyny błędów są w [docs/chata.md](docs/chata.md).
 
 ## Czeka na Patryka
