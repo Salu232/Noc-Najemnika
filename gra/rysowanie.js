@@ -116,7 +116,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // 24 XI doszedł film biegu i on zastąpił chód: stopa przesuwa się w nim o około 73 jednostki na cykl (dwa kroki),
   // więc cykl co 90 jednostek drogi to bieg prawie 2 kroki na sekundę i tylko lekki ślizg. Idąc w górę ekranu
   // bohater pokazuje plecy (film chodu tyłem). mijanie: chwile cyklu, w których nogi się mijają, od nich rusza i na nich staje.
-  const RUCH = { bieg: { droga: 90, mijanie: [0.42, 0.94] }, chod_tyl: { droga: 110, mijanie: [0, 0.5] } };
+  // chod_przod (w dół ekranu, przodem do nas) czeka na film; dopóki go nie ma w klatkach, w dół idzie bieg bokiem
+  const RUCH = { bieg: { droga: 90, mijanie: [0.42, 0.94] }, chod_tyl: { droga: 110, mijanie: [0, 0.5] }, chod_przod: { droga: 110, mijanie: [0, 0.5] } };
 
   // ---------- warstwy ----------
   const scena = new P.Container();
@@ -676,7 +677,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     wnBoh.visible = widac; wnCien.visible = widac;
     if (!widac) return;
     if (Math.abs(Math.cos(b.kat)) > 0.25) stanRys.sxW = Math.cos(b.kat) >= 0 ? 1 : -1;
-    const tyl = b.idzie && Math.sin(b.kat) < -0.8, nazwa = tyl ? 'chod_tyl' : 'bieg';
+    const tyl = b.idzie && Math.sin(b.kat) < -0.8, przod = b.idzie && Math.sin(b.kat) > 0.8 && AB.chod_przod, nazwa = tyl ? 'chod_tyl' : (przod ? 'chod_przod' : 'bieg');
     if (dd < 40) stanRys.krokW += dd / (RUCH[nazwa].droga * W.pikseliNaJednostke);
     const k = klatkiB[b.idzie ? klatkaPetli(nazwa, stanRys.krokW) : klatkaPetli('spoczynek', czas * 8 / AB.spoczynek.length)];
     const sk = SKALA_B * W.pikseliNaJednostke;
@@ -774,7 +775,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const chodzi = b.idzie && b.stan === 'wolny' && !b.blok;
     if (chodzi && dd > 0 && dd < 40) {                                      // w górę ekranu plecami, z zapasem, żeby nie migało
       if (stanRys.ruch === 'bieg' && ddy < -0.8 * dd) { stanRys.ruch = 'chod_tyl'; }
+      else if (stanRys.ruch === 'bieg' && ddy > 0.8 * dd && AB.chod_przod) { stanRys.ruch = 'chod_przod'; }   // w dół przodem, gdy jest film
       else if (stanRys.ruch === 'chod_tyl' && ddy > -0.5 * dd) { stanRys.ruch = 'bieg'; }
+      else if (stanRys.ruch === 'chod_przod' && ddy < 0.5 * dd) { stanRys.ruch = 'bieg'; }
     }
     const RU = RUCH[stanRys.ruch];
     const faza = () => ((stanRys.krok % 1) + 1) % 1;
@@ -784,7 +787,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       stanRys.krok += m - f;
     }
     if (b.idzie && b.stan !== 'unik' && dd > 0 && dd < 40) {
-      stanRys.kierKroku = stanRys.ruch === 'chod_tyl' ? (ddy <= 0 ? 1 : -1) : (ddx * pz.sx + 0.3 * ddy >= -0.15 * dd ? 1 : -1);
+      stanRys.kierKroku = stanRys.ruch === 'chod_tyl' ? (ddy <= 0 ? 1 : -1) : stanRys.ruch === 'chod_przod' ? (ddy >= 0 ? 1 : -1) : (ddx * pz.sx + 0.3 * ddy >= -0.15 * dd ? 1 : -1);
       stanRys.krok += stanRys.kierKroku * dd / RU.droga;
       stanRys.dochodzi = 0;
     } else if (stanRys.szedl && !chodzi && b.stan === 'wolny' && !b.blok && b.flash <= 0) {

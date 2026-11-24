@@ -23,6 +23,7 @@ POSTACIE = {
             'spoczynek': ('film-oddech', list(range(35, 74, 3))),          # jeden pełny oddech: klatka 75 wygląda jak 35
             'bieg':      ('film-bieg',   list(range(47, 72))),             # dwa kroki biegu: klatka 72 wygląda jak 47
             'chod_tyl':  ('film-chod-2', list(range(47, 80, 2))),          # idzie od nas, plecami: klatka 80 wygląda jak 47
+            # 'chod_przod': ('film-chod-przod', [...]),                  # idzie do nas, przodem: czeka na film (docs/grafika.md, punkt 13)
             'zamach':    ('film-ciecie', [4, 8, 12, 16, 20, 24, 28, 31, 34, 37]),   # unosi miecz i odprowadza go nisko w lewo, za siebie
             'ciecie':    ('film-ciecie', [39, 41, 43, 45, 47, 49, 52, 55]),        # zamaszyste cięcie w prawo, ręka wyciągnięta
             'powrot':    ('film-ciecie', [58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94]),

@@ -235,6 +235,20 @@ Wersja do wysłania Przemkowi (dokument z tymi samymi poleceniami): https://clau
 | Wyciąga miecz | The same mercenary draws the long sword from a plain leather scabbard at his left hip and takes a combat guard (if he has no scabbard, give him one that matches his gear). |
 | Chowa miecz | The same mercenary, in a combat guard, lowers the long sword, slides it back into the leather scabbard at his left hip and straightens up. |
 
+### 13. Chód w dół ekranu, przodem do nas (24 XI w południe)
+
+**Patryk (24 XI, 12:39), z filmem nagranym telefonem z ekranu ([klatka](zrzuty/2026-11-24-chod-w-dol.jpg)):** *„trzeba też pomyśleć jak zrobić animacje chodzenia na dól na góre już jest, teraz pasuje zrobić na dół zeby i to miało jakis wygląd”*.
+
+**Stan (Claude).** W górę bohater idzie plecami (`film-chod-2`, punkt 11). W dół gra pokazuje bieg bokiem, bo żaden film nie ma bohatera idącego do nas: początek `film-chod-2` to tylko odwracanie się, a `film-chod` i `film-bieg` są z boku. Bez nowego filmu tego nie zrobimy porządnie; obrót albo odbicie klatek pleców dałoby „chód tyłem do przodu”.
+
+**Co jest gotowe w grze.** Gra ma już miejsce na animację `chod_przod`: włącza ją, gdy bohater idzie wyraźnie w dół (na polanie i w izbie), i wraca do biegu bokiem, gdy skręci, tak samo jak przy plecach. Dopóki filmu nie ma, nic się nie zmienia. Gdy film przyjdzie, wystarczy jedna linia w [narzedzia/wytnij-z-filmow.py](../narzedzia/wytnij-z-filmow.py) z numerami klatek jednego pełnego cyklu.
+
+**Polecenie** (wzór stylu: `przemek-5-biale-tlo.jpg`, ta sama zasada co chód tyłem z punktu 10, w końcówce „seen from the front” zamiast „facing right”):
+
+> The same mercenary walks toward the camera on the spot in a loop, like on a treadmill. We see him from the front: his face, the wolf-fur cloak over his shoulders, the pauldron and the sword held low in his right hand. The last frame matches the first. Pure white background, no floor, no shadow. Static camera: no zoom, no pan, no cut. The character stays in the same place in the frame, whole body visible including the feet, seen from the front and slightly above. No motion trails, no sparks, no glow, no smoke, no text.
+
+Przy okazji warto zrobić też ukosy, bo w dół po skosie bohater nadal pokaże bieg bokiem. To już drugi krok, jeśli pierwszy film się sprawdzi.
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?
