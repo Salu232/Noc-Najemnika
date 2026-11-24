@@ -241,6 +241,7 @@ export function wyjdzZChaty(gra, tekst) {
   const b = gra.bohater; if (!b.wChacie) return;
   b.wChacie = false; b.spi = false; b.x = CHATA.drzwi.x; b.y = CHATA.drzwi.y + 8; b.kat = Math.PI / 2;
   gra.zdarzenia.push({ typ: 'chata_wyjscie' });
+  if (gra.faza === 'przerwa') gra.fazaCzas = Math.max(gra.fazaCzas, CHATA_ODPOCZYNEK.ciszaPoWyjsciu);   // etap rusza dopiero po wyjściu
   if (tekst) powiedz(gra, tekst, 2.5);
 }
 
@@ -513,7 +514,7 @@ function iskry(gra, x, y, n) {
 // ---------- etapy nocy ----------
 function aktualizujEtapy(gra, dt) {
   if (gra.faza === 'przerwa') {
-    gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza płynie wolniej
+    gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza stoi
     if (gra.fazaCzas <= 0) {
       wyjdzZChaty(gra, 'Coś drapie w drzwi. Trzeba wyjść.');
       gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = [];
