@@ -24,6 +24,7 @@ POSTACIE = {
             'bieg':      ('film-bieg',   list(range(47, 72))),             # dwa kroki biegu: klatka 72 wygląda jak 47
             'chod_tyl':  ('film-chod-2', list(range(47, 80, 2))),          # idzie od nas, plecami: klatka 80 wygląda jak 47
             'chod_przod': ('film-chod-przod', list(range(18, 52, 2))),   # idzie do nas, przodem: klatka 52 wygląda jak 18 (cykl 34 klatki)
+            'wyciaga':  ('film-miecz-wyciaga', list(range(25, 59, 3))),   # przodem do nas: ręka na rękojeści, wyciąga, unosi przed siebie; chowanie to ta sama animacja wstecz
             'zamach':    ('film-ciecie', [4, 8, 12, 16, 20, 24, 28, 31, 34, 37]),   # unosi miecz i odprowadza go nisko w lewo, za siebie
             'ciecie':    ('film-ciecie', [39, 41, 43, 45, 47, 49, 52, 55]),        # zamaszyste cięcie w prawo, ręka wyciągnięta
             'powrot':    ('film-ciecie', [58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94]),
@@ -80,7 +81,9 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'film-chod-przod': (324, 346)}
+STOPY_FILMU = {'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340)}
+# W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
+SKALA_FILMU = {'film-miecz-wyciaga': 1.05}
 
 
 def kluczuj(obraz, dol=0.80):
@@ -179,7 +182,7 @@ def zrob(nazwa, cfg):
                 if (film, k) in LATKI: rgba = latka(rgba, kluczowane[(film, LATKI[(film, k)])])
                 box = rgba.getbbox()
                 kaw = rgba.crop(box)
-                s = cfg['skala_obrazu']
+                s = cfg['skala_obrazu'] * SKALA_FILMU.get(film, 1)
                 w, h = max(1, round(kaw.width * s)), max(1, round(kaw.height * s))
                 kaw = kaw.resize((w, h), Image.LANCZOS)
                 sx = stopy[0] + (srodek(rgba) - s0 if sledz else 0)

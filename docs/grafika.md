@@ -257,6 +257,8 @@ Bieg bokiem wraca, gdy bohater skręci bardziej w bok niż w dół (ponad 60° o
 > The same mercenary draws his sword from his left hip and raises it into a guard in front of him, in one smooth motion. Pure white background, no floor, no shadow. Static camera: no zoom, no pan, no cut. The character stays in the same place in the frame, whole body visible including the feet. No motion trails, no sparks, no glow, no smoke, no text.
 
 
+**Film wyciągania przyszedł (Patryk z Flow, 24 XI, 13:14): [grafika/zrodla/film-miecz-wyciaga.mp4](../grafika/zrodla/film-miecz-wyciaga.mp4).** Wyszedł przodem do nas, a nie bokiem: ręka na rękojeści, wyciąga, unosi miecz pionowo przed siebie. Gra bierze klatki 25–58 co trzecią (12 klatek, 0,6 s). Gdy zaczyna się walka (wróg bliżej niż 700 jednostek), bohater wyciąga miecz i przechodzi do gardy bokiem. Gdy wokół pusto przez 2 s, chowa miecz tym samym filmem puszczonym wstecz i wraca do oddechu. Cios, unik albo chód przerywają wyciąganie, a stan miecza liczy się dalej w tle. Bohater w tym filmie jest o 5% niższy w kadrze, więc narzędzie powiększa te klatki (`SKALA_FILMU`), i stoi w innym miejscu kadru (`STOPY_FILMU`). Sprawdzone zrzutami w zwolnionym tempie. Przeskok z gardy bokiem do filmu przodem widać, bo to dwa różne ujęcia; jeśli będzie przeszkadzał, potrzebny jest ten sam film bokiem (polecenie wyżej, „facing right”).
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?
