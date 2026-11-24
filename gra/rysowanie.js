@@ -887,6 +887,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (b.stan === 'cios' || b.stan === 'unik' || b.blok) { stanRys.miecz = 'w_dloni'; stanRys.mieczP = 1; stanRys.spokoj = 0; }   // w biegu walki miecz jest już w dłoni
       else if (walczy && (m === 'schowany' || m === 'chowa')) stanRys.miecz = 'wyciaga';
       else if (stanRys.spokoj > MIECZ.spokojPrzed && (m === 'w_dloni' || m === 'wyciaga')) stanRys.miecz = 'chowa';
+      // W ruchu nie gra filmu wyciągania ani chowania, bo stojąca postać sunęłaby po mapie (Patryk, 24 XI 19:32).
+      // Biegnąc chwyta miecz od razu (bieg z mieczem) albo od razu go chowa; film gra tylko na stojąco.
+      if (b.idzie && stanRys.miecz === 'wyciaga') { stanRys.miecz = 'w_dloni'; stanRys.mieczP = 1; }
+      if (b.idzie && stanRys.miecz === 'chowa') { stanRys.miecz = 'schowany'; stanRys.mieczP = 0; }
       if (stanRys.miecz === 'wyciaga') { stanRys.mieczP = Math.min(1, stanRys.mieczP + dt / MIECZ.wyciaga); if (stanRys.mieczP >= 1) stanRys.miecz = 'w_dloni'; }
       if (stanRys.miecz === 'chowa') { stanRys.mieczP = Math.max(0, stanRys.mieczP - dt / MIECZ.chowa); if (stanRys.mieczP <= 0) stanRys.miecz = 'schowany'; }
     }
