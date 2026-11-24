@@ -382,7 +382,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // a chowa dopiero 1,5 s po tym, jak zrobi się spokojnie. Oba ruchy widać też w marszu, a cios, unik i blok kończą wyciąganie od razu.
   const MIECZ = { wyciaga: 1.0, chowa: 1.3, spokojPrzed: 1.5 };
   const stanRys = {
-    miecz: 'schowany', mieczP: 0, spokoj: 0, blokOd: 0, blokowal: false,   // mieczP: 0 w pochwie, 1 w dłoni
+    miecz: 'schowany', mieczP: 0, spokoj: 0, blokOd: 0, blokowal: false, blokCios: -9,   // mieczP: 0 w pochwie, 1 w dłoni
     upadlOd: -1, poprzZycie: BOHATER.zycie, slad: [], poprzStan: 'wolny',
     zadyszka: 0, oddech: 0, cykl: 0,          // po walce oddycha ciężej i szybciej
     odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
@@ -472,6 +472,15 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (c.faza === 'ciecie') return klatkaZ('ciecie', c.t / Math.max(0.001, c.czasCiecia));
       const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0);
       return klatkaZ('powrot', c.utknal ? 0 : c.t / Math.max(0.001, koniec));
+    }
+    if (b.blok && AB.blok_trzyma) {
+      // blok z filmu (Patryk, 24 XI 15:17: „żeby lepiej wygląda animacja blokowania”): unosi miecz w 0,2 s, trzyma
+      // (klatki tam i z powrotem, powoli), a cios w ostrze odpycha go na 0,4 s i wraca do trzymania
+      const tc = czas - stanRys.blokCios;
+      if (tc < 0.4) return klatkaZ('blok_cios', tc / 0.4);
+      const tu = czas - stanRys.blokOd;
+      if (tu < 0.2) return klatkaZ('blok_unosi', tu / 0.2);
+      const l = AB.blok_trzyma.length, i = Math.floor((tu - 0.2) * 6) % (2 * l - 2); return AB.blok_trzyma[i < l ? i : 2 * l - 2 - i];
     }
     if (b.blok) return klatkaZ('blok', Math.min(0.99, (czas - stanRys.blokOd) / 0.15));   // unosi miecz do bloku w 0,15 s, potem trzyma
     if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
@@ -744,7 +753,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         stanRys.kop.x += Math.cos(ka) * sila; stanRys.kop.y += Math.sin(ka) * sila * PERSP;
         if (z.mocny) stanRys.ucisk = 1;
       } else if (z.typ === 'rana') { stanRys.ranaKier = Math.sign(b.odrzutX) || -(Math.cos(b.kat) >= 0 ? 1 : -1); stanRys.zadyszka += 0.12; }
-      else if (z.typ === 'blok') { stanRys.odepchniecie = 1; stanRys.blokOd = Math.min(stanRys.blokOd, czas - 0.06); }   // cios w miecz: ręce na chwilę uginają się
+      else if (z.typ === 'blok') { stanRys.odepchniecie = 1; stanRys.blokOd = Math.min(stanRys.blokOd, czas - 0.06); stanRys.blokCios = czas; }   // cios w miecz: ręce na chwilę uginają się
       else if (z.typ === 'parowanie') stanRys.pchniecie = 1;
       else if (z.typ === 'klatwa_laduje') pierscienie.push({ x: b.x, y: b.y, r0: KLATWA.zasieg, r1: 24, t: 0, czas: KLATWA.ladowanie, kolor: 0x9a5cff, ziemia: true });
       else if (z.typ === 'klatwa') uderzenieKlatwy(z);

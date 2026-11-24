@@ -308,6 +308,8 @@ Patryk, 24 XI, 14:22: koziołek z jednego obrazu (wersja 17) *„dalej zle to wy
 
 > A 2D hand-drawn game animation in exactly the style of this image. This exact character, facing right, raises his drawn sword and holds it horizontally in front of his head and chest with both hands, the blade across his body, to block a heavy blow from the right. He braces, holds the block for a moment, then the blade is struck hard: his arms give a little and he slides half a step back, braced. Then he recovers and returns to exactly the starting pose. Keep his face, wolf-fur cloak, clothes, colours, ink outlines and size exactly as in the image; do not turn him into a different person, not photorealistic, not 3D. No enemy visible. Pure white background, no floor. Static camera: no zoom, no pan, no cut. Whole body visible at all times, feet included. No motion trails, no sparks, no glow, no smoke, no text.
 
+**Wynik (24 XI, 15:25):** udany za pierwszym razem, w grze ([grafika/zrodla/film-blok.mp4](../grafika/zrodla/film-blok.mp4)). Flow dorysował złoty błysk w chwili uderzenia (klatki 35–39); te klatki gra pomija.
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?

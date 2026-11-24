@@ -34,7 +34,12 @@ POSTACIE = {
             'ciecie':    ('film-ciecie', [39, 41, 43, 45, 47, 49, 52, 55]),        # zamaszyste cięcie w prawo, ręka wyciągnięta
             'powrot':    ('film-ciecie', [58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94]),
             'rana':      ('film-rana',   [7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37]),
-            'blok':      ('film-rana',   [49, 52, 55]),                    # miecz trzymany poziomo przed sobą
+            'blok':      ('film-rana',   [49, 52, 55]),                    # miecz trzymany poziomo przed sobą (zapas, gdy nie ma filmu bloku)
+            # blok z filmu Patryka z Flow (24 XI, 15:25), z klatki 88 filmu cięcia: unosi miecz poziomo przed głowę,
+            # trzyma, cios w ostrze odpycha go o pół kroku. Klatki 35–39 pomijamy: złoty błysk uderzenia zasłania ciało.
+            'blok_unosi': ('film-blok', [3, 5, 7, 9, 11, 13, 15, 17]),
+            'blok_trzyma': ('film-blok', [17, 19, 21, 23, 25, 27, 29, 31, 33]),
+            'blok_cios': ('film-blok', [41, 43, 45, 47, 49, 51, 53, 55, 57]),
             # postawa bojowa: miecz uniesiony przed sobą jak na końcu powrotu po cięciu (Patryk, 24 XI: w walce miecz ma być wyciągnięty)
             'gotowosc':  ('film-ciecie', [82, 85, 88, 91, 94]),
             # przewrót w przód przy uniku: od przysiadu do lądowania w przysiadzie z mieczem przed sobą
