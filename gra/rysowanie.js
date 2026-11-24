@@ -970,7 +970,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       kB = klatkiB[klatkaBohatera(b, tUp)];
       lx *= 0.5;                                     // film sam porusza ciałem, kod tylko dodaje trochę wagi
       const dj = pz.drgaj ? (Math.random() - 0.5) * pz.drgaj : 0;
-      ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y, lx, sy, obrot);
+      // krok w gardzie: przy każdym kroku lekko ugina kolana i podnosi się (fala prędkości z walka.js)
+      const krokG = b.blok && b.idzie ? 0.5 - 0.5 * Math.cos(b.krokGardy || 0) : 0;
+      ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y - 2.5 * Math.sin(b.krokGardy || 0) * (krokG > 0 ? 1 : 0), lx, sy * (1 - 0.035 * krokG), obrot);
       if (b.stan === 'unik' && unikPionowy(b)) {
         // Przewrót w górę i w dół z filmów Patryka (Flow, 24 XI, 14:31): koziołek plecami albo przodem, bez obracania obrazu.
         bohS.skew.set(0, 0);

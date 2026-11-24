@@ -200,6 +200,9 @@ function aktualizujBohatera(gra, dt, w) {
   // ruch: z ciężkim mieczem w ręku idzie się wolniej
   let v = 0;
   if (b.stan === 'wolny') v = BOHATER.szybkosc * (b.blok ? BOHATER.blok.spowolnienie : 1);
+  // W bloku nie sunie po mapie (Patryk, 24 XI 19:09: „jak blokuje to jeździ po mapie”), tylko drobi krótkie kroki w gardzie:
+  // prędkość idzie falą, krok i chwila postoju. Rysowanie dokłada do tego lekkie ugięcie kolan.
+  if (b.stan === 'wolny' && b.blok && rl > 0.05) { b.krokGardy = (b.krokGardy || 0) + dt * TAU * BOHATER.blok.krokiNaSekunde; v *= 1 - Math.cos(b.krokGardy); }
   else if (b.stan === 'cios') v = BOHATER.szybkosc * (b.cios.faza === 'laduje' ? MOCNY.ruchLadowania : bron.ruch);
   if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl) * (v / BOHATER.szybkosc + 0.3); }
   else b.idzie = false;
@@ -426,6 +429,7 @@ function trafBohatera(gra, e) {
     if (!ciezki) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; }      // odbity ghul musi się zebrać: okazja do cięcia
     gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.04); gra.wstrzas = Math.max(gra.wstrzas, 2.5);
     gra.zdarzenia.push({ typ: 'blok', x: (b.x + e.x) / 2, y: (b.y + e.y) / 2 - 40, kat: katDoWroga });
+    b.odrzutX -= Math.cos(katDoWroga) * BOHATER.blok.cofniecie * (ciezki ? 2 : 1); b.odrzutY -= Math.sin(katDoWroga) * BOHATER.blok.cofniecie * (ciezki ? 2 : 1);   // cios w ostrze cofa go o pół kroku
     if (b.sila <= 0) {               // gardę przebito
       b.stan = 'zachwiany'; b.t = 0; b.trwanie = 0.55; b.blok = false;
       zranBohatera(gra, e.typ.obrazenia * 0.5, odWroga, false);

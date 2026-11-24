@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 24 XI 2026 | Patryk | W bloku bohater „jeździ po mapie”; ma się lekko cofać w pozycji obronnej | zrobiony | w bloku idzie krótkimi krokami (2,2 na s, średnio 0,3 prędkości) z ugięciem kolan; zablokowany cios cofa go o pół kroku |
 | 24 XI 2026 | Patryk | Wybór ulepszeń w ramie z czaszkami, pasami i łańcuchem (obraz z Gemini) | zrobiony | grafika/panel-wyboru.webp z narzedzia/wytnij-z-arkuszy.py --panel; na stronie jako border-image, rogi się nie rozciągają |
 | 24 XI 2026 | Patryk | Blok z dwuręcznym „wygląda jak atak” | częściowo | w filmie środek to pchnięcie; bierzemy tylko koniec (miecz pionowo przed ciałem); nowe polecenie do Flow na wyraźną obronę w wiadomości z 24 XI |
 | 24 XI 2026 | Patryk | Mały miecz „kiepsko wygląda”: zostają zwykły miecz i dwuręczny | zrobiony | lekki miecz usunięty z gry; „Półtoraręczny” to teraz „Miecz”, „Wielki miecz” to „Dwuręczny”; filmy z Flow tylko dla dwuręcznego |
