@@ -37,7 +37,9 @@ POSTACIE = {
             # przewrót w dół (do nas) i w górę (od nas), filmy Patryka z Flow, 24 XI: w kadrze prawie nie przesuwa się,
             # więc stopy stoją w miejscu, a drogę robi gra. Od przysiadu przez koziołek do wstania.
             'przewrot_przod': ('film-przewrot-przod', list(range(18, 61, 3))),
-            'przewrot_tyl':   ('film-przewrot-tyl', list(range(8, 54, 3))),
+            # W górę: sam koziołek (klatki 19–33) dostaje każdą klatkę filmu, a przysiad i wstawanie co drugą-trzecią,
+            # żeby w 0,4 s uniku było go widać (Patryk, 24 XI 14:39: „jeszcze [nie] widać takiego fajnego przewrotu”).
+            'przewrot_tyl':   ('film-przewrot-tyl', [14, 16, 18] + list(range(19, 34)) + [35, 37, 40, 43, 47]),
             # upadek po śmierci: osuwa się na kolana i pada na bok
             'upadek':    ('film-upadek', [22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 58, 61, 64, 67, 70, 76]),
             # atak klątwy (R): unosi przeklętą prawą rękę, wali pięścią w ziemię, wstaje. Wybuch rysuje gra:

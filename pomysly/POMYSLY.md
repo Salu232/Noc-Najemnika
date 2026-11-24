@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 24 XI 2026 | Patryk | Przewrót w dół „kozacki”, w górę poprawić; z izby nie da się zamknąć drzwi; jaśniej wokół bohatera | zrobiony | koziołek w górę gęściej; zamknięte drzwi widać z izby i nie przepuszczają ([docs/chata.md](../docs/chata.md)); światło bohatera większe ([docs/walka.md](../docs/walka.md), punkt 12) |
 | 24 XI 2026 | Patryk | Przewrót przy uniku ma pokazywać, że skacze w górę albo w dół, a nie tylko w jedną stronę | zrobiony | 14:31 z filmów Patryka z Flow (koziołek do nas i od nas); wcześniej 13:57 przewrót bokiem obrócony: Patryk 14:03 „dalej to efekt jakby robił przeskok tylko w lewo czy prawo”; teraz koziołek przez głowę postaci przodem albo plecami ([docs/walka.md](../docs/walka.md), punkt 12); pełny efekt dałyby filmy przewrotu przodem i tyłem ([docs/grafika.md](../docs/grafika.md), punkt 13) |
 | 24 XI 2026 | Patryk | Chata jak w Tibii „wyszła fajnie”, ale trzeba dodać otwieranie drzwi; mgła „strasznie żle wygląda”; przemyśleć głębiej polecenie do Flow | zrobiony | drzwi otwierane E z animacją i skrzypieniem, nowa mgła ([docs/chata.md](../docs/chata.md)); polecenie w dwóch krokach ([docs/grafika.md](../docs/grafika.md), punkt 13) |
 | 24 XI 2026 | Patryk | Cięcie ma wyglądać jak prawdziwym mieczem, nie „nożykiem” | zrobiony (pierwsza wersja) | sierp na pełny zasięg i ostrze w łuku; lepsze będzie nowe cięcie z filmu: [docs/grafika.md](../docs/grafika.md), punkt 12 |

@@ -20,7 +20,7 @@ const FILM_WROGA = {
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -76,6 +76,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     chata: tx(plotnoChaty), podworko: tx(plotnoPodworka),
     cien: tx(O.cien()), kreski: tx(O.kreskowanie()), mgla: [0, 1, 2].map(w => tx(O.mgielka(w))),
     stempel: tx(O.kolo(256, [[0, 'rgba(0,0,0,1)'], [0.45, 'rgba(0,0,0,0.62)'], [1, 'rgba(0,0,0,0)']])),
+    // wokół bohatera jaśniej i szerzej (Patryk, 24 XI 14:39: „musi być bardziej rozjaśnione wokół bohatera”): pełne światło do połowy promienia
+    stempelBoh: tx(O.kolo(256, [[0, 'rgba(0,0,0,1)'], [0.5, 'rgba(0,0,0,0.92)'], [0.75, 'rgba(0,0,0,0.55)'], [1, 'rgba(0,0,0,0)']])),
     cieplo: tx(O.kolo(256, [[0, 'rgba(255,150,70,0.5)'], [0.5, 'rgba(200,90,40,0.18)'], [1, 'rgba(0,0,0,0)']])),
     okoCzerwone: tx(O.kolo(64, [[0, 'rgba(255,80,60,1)'], [0.22, 'rgba(235,30,30,0.65)'], [1, 'rgba(0,0,0,0)']])),
     okoBursztyn: tx(O.kolo(64, [[0, 'rgba(255,200,80,1)'], [0.22, 'rgba(235,140,20,0.65)'], [1, 'rgba(0,0,0,0)']])),
@@ -178,6 +180,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const sienS = new P.Sprite(tx(sien)), lisc = new P.Sprite(tx(liscC));
   for (const sp of [sienS, lisc]) { sp.position.set(SK.x0, SK.y0); sp.scale.set(CHATA.skala); }
   drzwiC.addChild(sienS, lisc); aktorzy.addChild(drzwiC);
+  // Z izby (bez dachu) drzwi są na obrazie otwarte; gdy je zamknąć, kładziemy na nie łatę z zamkniętymi
+  // (narzedzia/chata-drzwi-zamkniete.py). Patryk, 24 XI 14:41: „jak jesteś w srodku to właśnie nie mozesz zamknąć”.
+  const drzwiIzby = new P.Sprite(bezDachu && obrazDrzwi ? tx(O.chataWDzien(obrazDrzwi)) : P.Texture.EMPTY);
+  drzwiIzby.position.set(CHATA.x, CHATA.y); drzwiIzby.scale.set(CHATA.skala); drzwiIzby.zIndex = CHATA.podstawa + 0.02; drzwiIzby.visible = false;
+  aktorzy.addChild(drzwiIzby);
 
   // ognisko: kamienie i polana (ogień jest nad ciemnością)
   const kamienie = new P.Graphics(); kamienie.position.set(OGNISKO.x, OGNISKO.y); kamienie.zIndex = OGNISKO.y - 1;
@@ -236,6 +243,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const stemple = new P.Container();
   const stempel = () => { const s = new P.Sprite(T.stempel); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ERASE; stemple.addChild(s); return s; };
   const swiatloBoh = stempel(), swiatloOgnia = stempel(), swiatloOkna = stempel(), swiatloIzby = stempel();
+  swiatloBoh.texture = T.stempelBoh;
   ciemnoscC.addChild(ciemnoscG, kreski, stemple);
   let ciemnoscRT = null; const ciemnosc = new P.Sprite();
 
@@ -709,6 +717,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     izbaSpod.alpha = izbaPrzod.alpha = fD; izbaSpod.visible = izbaPrzod.visible = fD > 0;
     const oD = gra.drzwi ? gra.drzwi.o : 0, eD = oD * oD * (3 - 2 * oD);                 // skrzydło zwalnia na końcu obrotu
     drzwiC.visible = oD > 0.001 && fD < 1; drzwiC.alpha = 1 - fD;
+    drzwiIzby.alpha = fD * (1 - eD); drzwiIzby.visible = drzwiIzby.alpha > 0.01;
     lisc.scale.x = CHATA.skala * (1 - 0.8 * eD); lisc.skew.y = -0.32 * eD;              // obraca się do środka: węższe i uniesione z prawej
     const cien = Math.round(255 - 110 * eD); lisc.tint = (cien << 16) | (cien << 8) | cien;
 
@@ -1143,7 +1152,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     ciemnoscG.clear(); ciemnoscG.beginFill(0x05060b, gra.mroczek); ciemnoscG.drawRect(0, 0, vw, vh); ciemnoscG.endFill();
     kreski.alpha = 0.55 * gra.mroczek / 0.8;
     const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zz, oy + y * zz); s.width = s.height = r * 2 * zz; s.alpha = al; };
-    stawStempel(swiatloBoh, b.x, b.y - 30, 250 + 260 * stanRys.fiolet, 1);
+    stawStempel(swiatloBoh, b.x, b.y - 30, 360 + 260 * stanRys.fiolet, 1);
     stawStempel(swiatloOgnia, fx, fy - 10, 380 * migot, 0.95);
     stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7 * (1 - stanRys.bezDachu));
     stawStempel(swiatloIzby, CHATA.palenisko.x, CHATA.palenisko.y + 60, 240 * migot, 0.95 * stanRys.bezDachu);   // ogień z paleniska oświetla izbę

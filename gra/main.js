@@ -29,14 +29,15 @@ function pokaz(id, widac) { $(id).hidden = !widac; }
 
 async function start() {
   const cv = $('gra');
-  let obraz, obrazBohatera, obrazGhula, obrazKolosa, obrazBezDachu;
+  let obraz, obrazBohatera, obrazGhula, obrazKolosa, obrazBezDachu, obrazDrzwi;
   try {
-    [, obraz, obrazBohatera, obrazGhula, obrazKolosa, obrazBezDachu] = await Promise.all([
+    [, obraz, obrazBohatera, obrazGhula, obrazKolosa, obrazBezDachu, obrazDrzwi] = await Promise.all([
       zaladujPixi(), zaladujObraz(new URL('../grafika/chata.webp', import.meta.url).href, 'chata'),
       zaladujObraz(new URL('../grafika/bohater.webp', import.meta.url).href, 'bohater').catch(() => null),   // bez niego gra rysuje bohatera kodem
       zaladujObraz(new URL('../grafika/ghul.webp', import.meta.url).href, 'ghul').catch(() => null),         // potwory z filmów Przemka; bez nich rysowane kodem
       zaladujObraz(new URL('../grafika/kolos.webp', import.meta.url).href, 'kolos').catch(() => null),
       zaladujObraz(new URL('../grafika/chata-bez-dachu.webp', import.meta.url).href, 'chata bez dachu').catch(() => null),   // izba jak w Tibii (docs/chata.md)
+      zaladujObraz(new URL('../grafika/chata-drzwi-zamkniete.webp', import.meta.url).href, 'drzwi').catch(() => null),   // zamknięte drzwi widziane z izby
     ]);
   } catch (e) {
     $('ladowanie').textContent = 'Nie udało się wczytać gry: ' + e.message + '. Odśwież stronę.';
@@ -48,7 +49,7 @@ async function start() {
   let wyglad = 'gemini';
   try { if (localStorage.getItem('noc-bohater') === 'rysowany') wyglad = 'rysowany'; } catch (e) { /* bez pamięci */ }
   if (/bohater=rysowany/.test(location.search)) wyglad = 'rysowany';
-  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa }, obrazBezDachu }); }
+  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa }, obrazBezDachu, obrazDrzwi }); }
   catch (e) { $('ladowanie').textContent = 'Ta przeglądarka nie umie narysować gry: ' + (e && e.message || e); return; }
 
   const wejscie = przygotujWejscie(cv, {

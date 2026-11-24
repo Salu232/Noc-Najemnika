@@ -108,9 +108,9 @@ export function zderzenia(p, r) {
   for (let k = 0; k < 2; k++) {                                       // dwa razy: w rogu dwie ściany pchają naraz
     for (const q of CHATA.sciany) odepchnijOdProstokata(p, q, r);
     for (const q of CHATA.sprzety) odepchnijOdProstokata(p, q, r);
-    if (!CHATA.drzwiOtwarte) {                                        // zamknięte drzwi wypychają zawsze na zewnątrz, nigdy do izby
-      const q = CHATA.przejscie;
-      if (p.x > q.x0 - r && p.x < q.x1 + r && p.y > q.y0 - r && p.y < q.y1 + r) p.y = q.y1 + r;
+    if (!CHATA.drzwiOtwarte) {                                        // zamknięte drzwi: bohater w izbie zostaje w izbie, reszta na zewnątrz
+      const q = CHATA.przejscie;                                       // (wcześniej wypychały zawsze na zewnątrz, więc z izby przechodziło się przez nie)
+      if (p.x > q.x0 - r && p.x < q.x1 + r && p.y > q.y0 - r && p.y < q.y1 + r) p.y = p.wChacie ? q.y0 - r : q.y1 + r;
     }
   }
   for (const [a, b] of CHATA.ploty) odepchnijOdOdcinka(p, a, b, r);
