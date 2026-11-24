@@ -207,3 +207,5 @@ Liczby walki się nie zmieniły. Bot po zmianach (`node testy/bot-noc.mjs dobry 
 
 - **Co się zmienia w walce:** nic w liczbach ataków potworów. Ghul i kolos atakują jak dotąd, ale widać to na ich ciele: ghul się przyczaja i skacze, kolos unosi pięść i wali w ziemię. Cięcie daje wstrząs i rozbłysk, śmierć to cały film upadku, a ciało zostaje na ziemi.
 - **Unik to przewrót:** 0,4 s zamiast 0,32 s, nietykalność 0,3 s zamiast 0,24 s, ta sama droga (150) i koszt. Bot przechodzi noc tak samo: `dobry poltorareczny` 8 ran, `miecz` 20,6, `wielki` 0, wszystkie noce do świtu (przed zmianą 9,0 i 19,6).
+
+**24 XI rano: miecz, który waży na oko.** Patrykowi cięcie przypominało „nożyk”. Smuga to teraz sierp na pełny zasięg ciosu z ostrzem na czele, a w walce bohater stoi w gardzie z uniesionym mieczem ([docs/grafika.md](grafika.md), punkt 12). Liczby walki bez zmian.

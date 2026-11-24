@@ -214,6 +214,27 @@ Wersja do wysłania Przemkowi (dokument z tymi samymi poleceniami): https://clau
 
 **Do dopieszczenia** (sprawdzone na zrzutach w zwolnionym tempie, jeszcze nie w rękach Patryka): po przewrocie bohater wstaje z przysiadu jednym przeskokiem; kurz po uderzeniu kolosa z filmu zostaje szarą plamą przy pięści; obrazy potworów to razem około 1,5 MB do pobrania.
 
+### 12. Miecz, który wygląda jak miecz (24 XI rano)
+
+**Patryk (24 XI, 11:50):** *„zmienił bym jeszcze wygląd tego jak atakuje bo to mi batrdziej przypomina ciecie jakimś nożykiem, a nie prawdziwym mieczem”*. O 11:52: *„to pojawjanie się broni dopiero przy ataku też mało efektywne lepiej już dodać ze jak jest w trybie walki to ma miecz wyciągnięty i atakujesz pózniej przy pokonaniu chowasz bron”*.
+
+**Skąd „nożyk” (sprawdzone na zrzutach w zwolnionym tempie).** W filmie cięcia ostrze w samym łuku zasłania smuga Gemini, którą narzędzie zdejmuje. Zostaje ręka, która z zamachu za plecami od razu wyskakuje wyciągnięta przed siebie, jak przy pchnięciu. Smuga gry była bladym wachlarzem od środka ciała i kończyła się na długości miecza (72 jednostki), krócej niż cios naprawdę rani (110).
+
+**Co zmieniło się w grze (Claude):**
+- Smuga to teraz sierp, jasny przy ostrzu i gasnący ku tyłowi łuku. Sięga tam, dokąd rani cios.
+- Na czele sierpa leci ostrze z jelcem i rękojeścią, szerokie jak wybrany miecz: wielki miecz jest wyraźnie cięższy od lekkiego.
+- W walce (wróg bliżej niż 700 jednostek albo cios w toku) bohater stoi w gardzie z mieczem uniesionym przed sobą. Te klatki pochodzą z końca filmu cięcia (82–94). Gdy wokół pusto, po 2 sekundach opuszcza miecz i oddycha jak dotąd.
+
+**Czego się nie da bez nowych filmów.** Gemini nie dał wyciągania ani chowania miecza, biegu z mieczem w gardzie ani cięcia z widocznym ostrzem. Polecenia poniżej może wkleić Przemek albo my sami. Mają tę samą końcówkę co w punkcie 10, a jako wzór stylu idzie obraz bohatera na białym tle (`przemek-5-biale-tlo.jpg`).
+
+| Co | Polecenie |
+| --- | --- |
+| Cięcie oburącz | The same mercenary makes one heavy two-handed horizontal sword cut from his left to his right at chest height, the long blade clearly visible during the whole swing, then recovers into a guard with the sword raised in front of him. No motion blur, no smear, no trail on the blade. |
+| Postawa bojowa | The same mercenary stands in a combat guard on the spot in a loop: sword drawn and held in both hands in front of him, blade pointing up and forward, knees bent, breathing heavily. The last frame matches the first. |
+| Bieg z mieczem | The same mercenary runs on the spot in a loop, like on a treadmill, holding the drawn sword in both hands in front of him, blade clearly visible. The last frame matches the first. |
+| Wyciąga miecz | The same mercenary draws the long sword from a plain leather scabbard at his left hip and takes a combat guard (if he has no scabbard, give him one that matches his gear). |
+| Chowa miecz | The same mercenary, in a combat guard, lowers the long sword, slides it back into the leather scabbard at his left hip and straightens up. |
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?

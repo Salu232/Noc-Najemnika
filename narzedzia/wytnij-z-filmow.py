@@ -28,6 +28,8 @@ POSTACIE = {
             'powrot':    ('film-ciecie', [58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94]),
             'rana':      ('film-rana',   [7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37]),
             'blok':      ('film-rana',   [49, 52, 55]),                    # miecz trzymany poziomo przed sobą
+            # postawa bojowa: miecz uniesiony przed sobą jak na końcu powrotu po cięciu (Patryk, 24 XI: w walce miecz ma być wyciągnięty)
+            'gotowosc':  ('film-ciecie', [82, 85, 88, 91, 94]),
             # przewrót w przód przy uniku: od przysiadu do lądowania w przysiadzie z mieczem przed sobą
             'przewrot':  ('film-przewrot', [22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52]),
             # upadek po śmierci: osuwa się na kolana i pada na bok

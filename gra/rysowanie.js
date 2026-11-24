@@ -310,7 +310,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
     kop: { x: 0, y: 0 }, ucisk: 0, fiolet: 0,      // fiolet: błysk ekranu i światła po uderzeniu klątwy
                 // kamera drgnie w stronę cięcia; mocny cios lekko przybliża
-    px: null, py: null, krok: 0, szedl: false, dochodzi: 0, kierKroku: 1, ruch: 'bieg',   // gdzie był klatkę temu, ile cykli chodu przeszedł, czy dokańcza krok po zatrzymaniu
+    px: null, py: null, krok: 0, szedl: false, dochodzi: 0, kierKroku: 1, ruch: 'bieg', walka: 0,   // walka: ile jeszcze sekund trzyma gardę po ostatnim wrogu w pobliżu   // gdzie był klatkę temu, ile cykli chodu przeszedł, czy dokańcza krok po zatrzymaniu
   };
 
   const latwo = q => 1 - (1 - q) * (1 - q);
@@ -397,6 +397,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
     if (b.stan === 'unik') return klatkaZ('przewrot', b.t / BOHATER.unik.czas);   // unik to przewrót w stronę uniku
     if (b.idzie || stanRys.dochodzi > 0) return klatkaPetli(stanRys.ruch, stanRys.krok);
+    // W walce stoi w gardzie z mieczem uniesionym przed sobą; gdy wokół pusto, opuszcza miecz i oddycha (Patryk, 24 XI).
+    // Klatki gardy idą tam i z powrotem, powoli, jak ważenie miecza w dłoniach.
+    if (stanRys.walka > 0) { const l = AB.gotowosc.length, i = Math.floor(czas * 4) % (2 * l - 2); return AB.gotowosc[i < l ? i : 2 * l - 2 - i]; }
     return klatkaPetli('spoczynek', czas * 8 / AB.spoczynek.length);       // oddech jak w filmie: 8 klatek na sekundę
   }
   // ustawia obraz bohatera: stopy w (x, y), pochylenie lx, przysiad sy (szerokość zmienia się odwrotnie, żeby ciało nie traciło masy)
@@ -656,6 +659,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // kałuża pod bohaterem, gdy upada
     if (b.stan === 'upadl' && stanRys.poprzStan !== 'upadl') { stanRys.upadlOd = czas; gra.slady.push({ typ: 'kaluza', x: b.x, y: b.y, duza: true }); }
     stanRys.poprzStan = b.stan;
+    // tryb walki: wróg w promieniu 700 (albo cios w toku) trzyma miecz w gardzie, 2 s po ostatnim opuszcza go
+    if (b.stan === 'cios' || gra.wrogowie.some(e => e.stan !== 'wynurza' && Math.abs(e.x - b.x) < 700 && Math.abs(e.y - b.y) < 700)) stanRys.walka = 2; else stanRys.walka = Math.max(0, stanRys.walka - dt);
     dorysujSlady(gra.slady);
 
     // kamera
@@ -782,15 +787,37 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // smuga cięcia i garda
     smugi.clear(); znaki.clear(); znakiZiemia.clear();
     if (pz && pz.smuga) {
-      const s = pz.smuga, sc = wSwiecie(0, -44), cx = sc.x, cy = sc.y, n = 14, r1 = s.mocny ? 14 : 24, r2 = pz.L + 16;
+      // Smuga miecza (Patryk, 24 XI: cięcie wyglądało jak „nożykiem”). Sierp zamiast wachlarza od środka:
+      // jasny i gęsty przy ostrzu, gaśnie ku tyłowi łuku, sięga tam, gdzie naprawdę rani cios (zasięg broni).
+      // Na czele sierpa leci samo ostrze, szerokie jak wybrany miecz.
+      const s = pz.smuga, sc = wSwiecie(0, -44), cx = sc.x, cy = sc.y, n = 18;
+      const r2 = Math.max(pz.L + 16, gra.bron.zasieg * (s.mocny ? 1.05 : 0.92)), r1 = r2 * (s.mocny ? 0.3 : 0.42);
       const kol = s.utknal ? 0xffd090 : (s.mocny ? 0xfff0d0 : 0xe6ecf2);
-      const brzeg = i => { const f = i / n, a = s.od + (s.do - s.od) * f, l = s.l0 + (s.l1 - s.l0) * f; return [cx + Math.cos(a) * r2, cy + Math.sin(a) * r2 * PERSP + l]; };
-      const pts = [];
-      for (let i = 0; i <= n; i++) pts.push(...brzeg(i));
-      for (let i = n; i >= 0; i--) { const a = s.od + (s.do - s.od) * i / n; pts.push(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1 * PERSP); }
-      smugi.lineStyle(0); smugi.beginFill(kol, (s.mocny ? 0.5 : 0.32) * s.alfa); smugi.drawPolygon(pts); smugi.endFill();
-      smugi.lineStyle(s.mocny ? 3.5 : 2, 0xffffff, 0.6 * s.alfa);
-      for (let i = 0; i <= n; i++) { const [x, y] = brzeg(i); if (i) smugi.lineTo(x, y); else smugi.moveTo(x, y); }
+      const pkt = (f, r) => { const a = s.od + (s.do - s.od) * f, l = (s.l0 + (s.l1 - s.l0) * f) * r / r2; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r * PERSP + l]; };
+      const moc = (s.mocny ? 0.62 : 0.48) * s.alfa;
+      smugi.lineStyle(0);
+      for (let i = 0; i < n; i++) {
+        const f0 = i / n, f1 = (i + 1) / n, al = moc * Math.pow(f1, 1.8);
+        if (al < 0.01) continue;
+        const [ax, ay] = pkt(f0, r2), [bx, by] = pkt(f1, r2), [ci, di] = pkt(f1, r1 + (r2 - r1) * 0.35 * (1 - f1)), [ei, gi] = pkt(f0, r1 + (r2 - r1) * 0.35 * (1 - f0));
+        smugi.beginFill(kol, al); smugi.drawPolygon([ax, ay, bx, by, ci, di, ei, gi]); smugi.endFill();
+      }
+      for (let i = Math.floor(n * 0.35); i < n; i++) {                 // ostra krawędź na zewnątrz łuku
+        const [ax, ay] = pkt(i / n, r2), [bx, by] = pkt((i + 1) / n, r2);
+        smugi.lineStyle(s.mocny ? 4 : 2.6, 0xffffff, 0.85 * s.alfa * Math.pow((i + 1) / n, 1.4)); smugi.moveTo(ax, ay); smugi.lineTo(bx, by);
+      }
+      if (s.alfa > 0.6) {                                              // ostrze na czele łuku
+        const [hx, hy] = pkt(1, r2 * 0.2), [tx2, ty2] = pkt(1, r2), dx = tx2 - hx, dy = ty2 - hy, d = Math.hypot(dx, dy) || 1;
+        const nx = -dy / d, ny = dx / d, w = (gra.bron.szerokosc * 0.9 + 1.4) * (s.mocny ? 1.15 : 1), ux = dx / d, uy = dy / d;
+        const [mx, my] = [hx + dx * 0.84, hy + dy * 0.84];
+        smugi.lineStyle(4, 0x2a211b, 0.95 * s.alfa); smugi.moveTo(hx - ux * 12, hy - uy * 12); smugi.lineTo(hx, hy);             // rękojeść
+        smugi.lineStyle(3.2, 0x3a3029, 0.95 * s.alfa); smugi.moveTo(hx + nx * w * 2.2, hy + ny * w * 2.2); smugi.lineTo(hx - nx * w * 2.2, hy - ny * w * 2.2);   // jelec
+        smugi.lineStyle(1.4, 0x15120f, 0.9 * s.alfa); smugi.beginFill(0x9aa4ae, 0.97 * s.alfa);
+        smugi.drawPolygon([hx + nx * w, hy + ny * w, mx + nx * w * 0.85, my + ny * w * 0.85, tx2, ty2, mx - nx * w * 0.85, my - ny * w * 0.85, hx - nx * w, hy - ny * w]);
+        smugi.endFill();
+        smugi.lineStyle(1.1, 0xf4f8ff, 0.9 * s.alfa); smugi.moveTo(hx + nx * w * 0.75, hy + ny * w * 0.75); smugi.lineTo(mx + nx * w * 0.7, my + ny * w * 0.7); smugi.lineTo(tx2, ty2);   // błysk na krawędzi
+        smugi.lineStyle(1, 0x5d6670, 0.8 * s.alfa); smugi.moveTo(hx, hy); smugi.lineTo(mx, my);                                     // zbrocze
+      }
     }
     // ładowany miecz żarzy się nad ciemnością
     if (!gem && pz.blask > 0.02 && pz.ostrze && b.stan !== 'upadl') {

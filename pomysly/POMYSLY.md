@@ -8,6 +8,8 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 24 XI 2026 | Patryk | Cięcie ma wyglądać jak prawdziwym mieczem, nie „nożykiem” | zrobiony (pierwsza wersja) | sierp na pełny zasięg i ostrze w łuku; lepsze będzie nowe cięcie z filmu: [docs/grafika.md](../docs/grafika.md), punkt 12 |
+| 24 XI 2026 | Patryk | W trybie walki miecz wyciągnięty, po pokonaniu wrogów chowany | zrobiony (garda bez chowania) | garda z końca filmu cięcia; wyciąganie i chowanie czeka na filmy, polecenia w [docs/grafika.md](../docs/grafika.md), punkt 12 |
 | 24 XI 2026 | Patryk | Interakcja z obiektami, na początek chata: wejść do środka i odpocząć w niej, co daje regenerację. Chata jest dziś tylko obrazkiem, ma być obiektem | w planie | następny etap po walce i materiałach Przemka (Patryk: „najpierw skonczymy z wyglądem i walką bohatera”); błędy chaty niżej w feedbacku |
 | 24 XI 2026 | Patryk | Sami generujemy grafikę i filmy w Gemini (Google Flow), tak jak Jozz i Przemek; lekka fabuła powoli, ale najpierw dokończyć to, co się robi | w planie | rozmowę Przemka z Google Flow przejrzymy, gdy przyjdzie |
 | 24 XI 2026 | Patryk | Atak specjalny pod R | zrobiony | klątwa z filmu magii: [docs/walka.md](../docs/walka.md), punkt 11 |
@@ -101,6 +103,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Kto | Co powiedział (skrót) | Co z tym zrobiliśmy |
 | --- | --- | --- | --- |
+| 24 XI 2026 | Patryk | Walka i wygląd potworów „wygląda to naprawdę dobrze”, przewrót dobry, „fajnie można unikać ataków”; cięcie jak nożykiem, miecz pojawia się dopiero przy ataku | smuga i ostrze w łuku, garda w walce ([docs/grafika.md](../docs/grafika.md), punkt 12) |
 | 24 XI 2026 | Przemek i Patryk | Chata ma sporo błędów: bohater chowa się za ścianą z kominem, wchodzi na dach i jest rysowany na nim, czasem znika za chatą bez ducha (zrzuty: [docs/zrzuty/](../docs/zrzuty/), 2026-11-24-chata-1…3) | przyczyna: chata to obrazek, a jej granice ruchu i zasłaniania nie zgadzają się z rysunkiem; naprawa razem z chatą jako obiektem |
 | 24 XI 2026 | Patryk | Bohater z filmów „wyszedł naprawdę dobrze”, Przemek „się tym zaczął jarać”; potwory zbyt powtarzalne, bicie ich nie daje satysfakcji | zamówienie dla Przemka (potwory, przewrót, bieg) i klątwa pod R ([docs/grafika.md](../docs/grafika.md), punkt 10; [docs/walka.md](../docs/walka.md), punkt 11) |
 | 24 XI 2026 | Patryk | Spodobała mu się grafika Przemka i ten styl; najpierw chodzenie, animacją się na razie nie męczyć | bohater z filmów Przemka w grze, chód zgrany z drogą ([docs/grafika.md](../docs/grafika.md), punkt 9) |
