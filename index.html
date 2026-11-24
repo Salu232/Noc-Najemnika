@@ -105,6 +105,13 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 #przycisk-unik { right: 10px; bottom: 120px; }
 #przycisk-klatwa { right: 118px; bottom: 96px; width: 58px; height: 58px; font-size: 13px; opacity: 0.45; border-color: rgba(168, 104, 255, 0.5); }
 #przycisk-klatwa.gotowa { opacity: 1; border-color: #a868ff; box-shadow: 0 0 12px rgba(168, 104, 255, 0.6); }
+/* Ikony z arkusza Przemka (etap B, narzedzia/wytnij-z-arkuszy.py); napis zostaje na dole, mały */
+#przycisk-tnij, #przycisk-unik, #przycisk-klatwa { background-size: cover; background-position: center; color: #f3ead8;
+  display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; text-shadow: 0 1px 3px #000, 0 0 6px #000; }
+#przycisk-tnij { background-image: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.55)), url(grafika/ikona-tnij.webp); font-size: 15px; padding-bottom: 12px; }
+#przycisk-unik { background-image: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.55)), url(grafika/ikona-unik.webp); font-size: 12px; }
+#przycisk-klatwa { background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.45)), url(grafika/ikona-klatwa.webp); font-size: 11px; }
+.kciuk.wcisniety { filter: brightness(1.35); }
 .drazek { position: fixed; z-index: 2; left: 0; top: 0; border-radius: 50%; pointer-events: none; }
 #drazek-tlo { width: 100px; height: 100px; border: 2px solid rgba(235, 227, 213, 0.3); }
 #drazek-galka { width: 40px; height: 40px; background: rgba(235, 227, 213, 0.3); }

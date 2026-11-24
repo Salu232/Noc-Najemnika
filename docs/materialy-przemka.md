@@ -63,6 +63,12 @@ Nowe potwory potrzebują filmów (chód, atak, trafienie, śmierć). Robimy to t
    - **Krew:** kałuża pod trupem to kałuża z arkusza (70–95 jednostek), krople, które spadną, zostawiają rozbryzgi. Ślady pazurów są w obrazie, ale jeszcze nieużyte.
    - Bez obrazu rekwizytów gra rysuje wszystko kodem jak dotąd. Bot po zmianie: świt 5/5, rany 8,6 (w zwykłym rozrzucie 7–10,4).
 3. **Etap B:** iskry i rozbryzgi (5), krąg kolosa i strzałki (6), ikony na przyciskach (7). To poprawia czytelność walki na telefonie.
+   **Zrobione 24 XI po 18** (Claude, na prośbę Patryka). Do tego samego obrazu `grafika/rekwizyty.webp` doszło 11 rysunków z `ciecia-krew-iskry` i `kregi-strzalki`:
+   - **Blok:** pomarańczowe iskry lecą od ostrza (nad ciemnością, świecą) i mała gwiazda iskier; **parowanie:** duży wybuch iskier.
+   - **Trafienie:** rozbryzg krwi leci w stronę cięcia, przy mocnym ciosie dodatkowo wybuch krwi. Czerwone łuki cięć z arkusza nieużyte, został obecny sierp.
+   - **Kolos:** pod miejscem uderzenia krąg z kolcami (pierwszy z arkusza) na czerwonej strefie; pod koniec zamachu miga.
+   - **Telefon:** przyciski Tnij, Unik i Klątwa mają ikony (miecz, but, przeklęta ręka) jako `grafika/ikona-*.webp`; Blok został z napisem, bo w arkuszu nie ma ikony tarczy. Mikstura czeka.
+   - Strzałki kierunku uniku jeszcze nieużyte.
 4. **Etap C:** rama paska (8), rekwizyty i światła (9, 10), panel (11).
 5. **Później:** totemy, potwory i fabuła, kiedy przyjdzie ich kolej w planie.
 

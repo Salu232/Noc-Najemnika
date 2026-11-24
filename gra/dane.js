@@ -110,34 +110,41 @@ export const WROGOWIE = {
 
 // Etapy nocy: wrogów przybywa stopniowo (Patryk, 23 XI).
 // z: z których mgieł wychodzą, co: odstęp między kolejnymi w sekundach.
+// Patryk, 24 XI 18:06: „z początku fali przeciętne, ale z każdą nową falą jest ich więcej i są bardziej agresywne”.
+// zlosc: mnożnik szybkości i czasu odpoczynku po ataku (mniej odpoczynku to częstsze ataki).
+// Do 24 XI etapy miały 1, 3, 16 i 1 + 8 potworów, wszystkie tak samo szybkie.
 export const ETAPY = [
   {
     nazwa: 'Coś w mgle',
     mysl: 'Mgła gęstnieje. Coś w niej oddycha.',
-    grupy: [{ typ: 'ghul', ile: 1, z: ['zachod'], co: 1 }],
+    zlosc: { szybkosc: 1, odpoczynek: 1 },
+    grupy: [{ typ: 'ghul', ile: 2, z: ['zachod'], co: 2.5 }],
   },
   {
     nazwa: 'Kilku',
     mysl: 'Więcej oczu. Trzymaj się ognia.',
-    grupy: [{ typ: 'ghul', ile: 3, z: ['wschod', 'poludnie'], co: 1.2 }],
+    zlosc: { szybkosc: 1.08, odpoczynek: 0.85 },
+    grupy: [{ typ: 'ghul', ile: 5, z: ['wschod', 'poludnie'], co: 1.2 }],
   },
   {
     nazwa: 'Horda',
     mysl: 'Idą wszystkie naraz.',
-    grupy: [{ typ: 'ghul', ile: 16, z: ['zachod', 'wschod', 'poludnie'], co: 0.2 }],
+    zlosc: { szybkosc: 1.15, odpoczynek: 0.72 },
+    grupy: [{ typ: 'ghul', ile: 12, z: ['zachod', 'wschod', 'poludnie'], co: 0.3 }],
   },
   {
     nazwa: 'Kolos',
     mysl: 'Ziemia drży. To coś dużego.',
+    zlosc: { szybkosc: 1.22, odpoczynek: 0.62 },
     grupy: [
       { typ: 'kolos', ile: 1, z: ['poludnie'], co: 0 },
-      { typ: 'ghul', ile: 8, z: ['zachod', 'wschod'], co: 0.7 },
+      { typ: 'ghul', ile: 14, z: ['zachod', 'wschod'], co: 0.6 },
     ],
   },
 ];
 
 export const NOC = {
-  przerwa: 4,              // sekundy ciszy przed etapem, gdy widać myśl bohatera
+  przerwa: 9,              // sekundy ciszy przed etapem, gdy widać myśl bohatera (do 24 XI 18:06 było 4; Patryk: „lekko mieć więcej czasu”)
   mroczek: 0.8,            // jak ciemna jest noc (0 to dzień)
   swit: 5,                 // jak długo wstaje świt po ostatnim etapie
   powrot: 2.6,             // ile trwa powrót przy ognisku po upadku

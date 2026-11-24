@@ -269,7 +269,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const blaskBoh = new P.Sprite(T.cieplo); blaskBoh.anchor.set(0.5); blaskBoh.blendMode = P.BLEND_MODES.ADD; blaski.addChild(blaskBoh);
   const blaskKlatwy = new P.Sprite(T.cieplo); blaskKlatwy.anchor.set(0.5); blaskKlatwy.blendMode = P.BLEND_MODES.ADD; blaskKlatwy.tint = 0xa060ff; blaski.addChild(blaskKlatwy);
   const napisy = new P.Container();
-  nad.addChild(mgla, znaki, blaski, oczy, smugi, iskry, duch, duchS, napisy);
+  const blyskiC = new P.Container();              // iskry z arkusza Przemka: nad ciemnością, świecą
+  nad.addChild(mgla, znaki, blaski, oczy, smugi, iskry, blyskiC, duch, duchS, napisy);
 
   // ciemność z wyciętym światłem (rysowana do osobnej tekstury w połowie rozdzielczości)
   const ciemnoscC = new P.Container();
@@ -381,13 +382,42 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     c.destroy({ children: true });
     lista.length = 0;
   }
+  const blyski = []; let czasRys = 0;            // iskry i rozbryzgi z arkusza (etap B, niżej)
   function wyczysc() {
     padajace.length = 0; ciecia.length = 0; obloczki.length = 0; pioruny.length = 0;
+    for (const f of blyski) f.sp.destroy(); blyski.length = 0;
     for (const t of trupy) t.sp.destroy(); trupy.length = 0;
     renderer.render(new P.Container(), { renderTexture: sladyRT, clear: true });
     dorysujSlady(DRZEWA.map(d => ({ typ: 'cien', x: d.x + 14, y: d.y + 3, w: d.h * 0.42, h: d.h * 0.12, alfa: 0.8 })));
   }
   wyczysc();
+
+  // ---------- iskry i rozbryzgi z arkusza Przemka (etap B) ----------
+  // Rysunki kierunkowe lecą w prawo do góry z lewego dolnego rogu, więc obracamy je o kat + 45°.
+  function blysk(n, x, y, kat, szer, czas, nadCiemnoscia) {
+    if (!R || !R[n]) return;
+    const sp = rysunek(n, x, y, szer, false);
+    if (kat != null) { sp.anchor.set(0.12, 0.88); sp.rotation = kat + Math.PI / 4; } else sp.rotation = losuj(0, TAU);
+    if (nadCiemnoscia) { sp.blendMode = P.BLEND_MODES.ADD; blyskiC.addChild(sp); } else { sp.zIndex = y + 60; aktorzy.addChild(sp); }
+    blyski.push({ sp, t: 0, czas, k: sp.scale.x });
+  }
+  function ruszBlyski(dt) {
+    for (let i = blyski.length - 1; i >= 0; i--) {
+      const f = blyski[i]; f.t += dt; const q = f.t / f.czas;
+      if (q >= 1) { f.sp.destroy(); blyski.splice(i, 1); continue; }
+      const k = f.k * (0.7 + 0.45 * Math.sqrt(q)); f.sp.scale.set(k, Math.abs(k)); f.sp.alpha = q < 0.4 ? 1 : 1 - (q - 0.4) / 0.6;
+    }
+  }
+  // krąg z kolcami pod uderzeniem kolosa: jeden na kolosa, chowany co klatkę, jeśli nikt go nie użył
+  const kregi = []; let kregiUzyte = 0;
+  function krag(x, y, r, q) {
+    if (!R || !R.krag_kolce) return false;
+    if (kregiUzyte >= kregi.length) { const sp = rysunek('krag_kolce', 0, 0, 100, false); znakiZiemia.parent.addChildAt(sp, znakiZiemia.parent.getChildIndex(znakiZiemia) + 1); kregi.push(sp); }
+    const sp = kregi[kregiUzyte++], f = R.krag_kolce; sp.visible = true; sp.position.set(x, y);
+    const w = r * 2.25 / f.w; sp.scale.set(w, r * 2.25 * PERSP / f.h); sp.rotation = 0;
+    sp.alpha = 0.55 + 0.45 * q; sp.tint = q > 0.75 && Math.floor(czasRys * 14) % 2 ? 0xffb0a0 : 0xffffff;
+    return true;
+  }
 
   // ---------- pule obiektów ----------
   function pula(rodzic, nowy) {
@@ -732,8 +762,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   function zapowiedzKolosa(e, gra) {
     if (e.typ.ciezki && e.stan === 'zamach' && e.cel) {
       const q = ogr(e.t / e.typ.zamach, 0, 1);
-      znakiZiemia.lineStyle(3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
-      znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa, e.typ.strefa * PERSP); znakiZiemia.endFill();
+      { const zK = krag(e.cel.x, e.cel.y, e.typ.strefa, q); znakiZiemia.lineStyle(zK ? 0 : 3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
+        znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa, e.typ.strefa * PERSP); znakiZiemia.endFill(); }
       znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0xff6a3a, 0.3); znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa * q, e.typ.strefa * PERSP * q); znakiZiemia.endFill();
     }
     if (e.typ.ciezki && e.stan === 'skok' && e.cel && !e._uderzyl) {
@@ -791,13 +821,19 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         const ka = b.cios ? b.cios.kat : b.kat;
         kurz(b.x - Math.cos(ka) * 10, b.y - Math.sin(ka) * 5, ka + Math.PI, z.mocny ? 5 : 2 + gra.bron.obrazenia, z.mocny ? 1.4 : 0.8 + 0.15 * gra.bron.obrazenia);
       } else if (z.typ === 'trafienie') {
+        for (const m of z.gdzie || []) {
+          blysk(['bryzg_lot_a', 'bryzg_lot_b', 'bryzg_lot_c', 'bryzg_lot_d'][(Math.random() * 4) | 0], m.x, m.y - m.wys, m.kat + losuj(-0.3, 0.3), z.mocny ? 95 : 60, 0.32, false);
+          if (z.mocny) blysk('bryzg_wybuch', m.x, m.y - m.wys, null, 90, 0.3, false);
+        }
         for (const m of z.gdzie || []) ciecia.push({ x: m.x, y: m.y - m.wys, kat: m.kat, t: 0, czas: z.mocny ? 0.2 : 0.14, dl: z.mocny ? 78 : 40 + 9 * gra.bron.obrazenia });
         const ka = b.cios ? b.cios.kat : b.kat, sila = z.mocny ? 9 : 2.5 + gra.bron.obrazenia * 1.5;
         stanRys.kop.x += Math.cos(ka) * sila; stanRys.kop.y += Math.sin(ka) * sila * PERSP;
         if (z.mocny) stanRys.ucisk = 1;
       } else if (z.typ === 'rana') { stanRys.ranaKier = Math.sign(b.odrzutX) || -(Math.cos(b.kat) >= 0 ? 1 : -1); stanRys.zadyszka += 0.12; }
-      else if (z.typ === 'blok') { stanRys.odepchniecie = 1; stanRys.blokOd = Math.min(stanRys.blokOd, czas - 0.06); stanRys.blokCios = czas; }   // cios w miecz: ręce na chwilę uginają się
-      else if (z.typ === 'parowanie') stanRys.pchniecie = 1;
+      else if (z.typ === 'blok') {
+        if (z.x != null) { blysk(['iskry_a', 'iskry_b', 'iskry_c'][(Math.random() * 3) | 0], z.x, z.y, z.kat + Math.PI + losuj(-0.7, 0.7), 95, 0.32, true); blysk('iskry_gwiazda', z.x, z.y, null, 62, 0.24, true); }
+        stanRys.odepchniecie = 1; stanRys.blokOd = Math.min(stanRys.blokOd, czas - 0.06); stanRys.blokCios = czas; }   // cios w miecz: ręce na chwilę uginają się
+      else if (z.typ === 'parowanie') { stanRys.pchniecie = 1; if (z.x != null) { blysk('iskry_wybuch', z.x, z.y, null, 130, 0.36, true); blysk(['iskry_a', 'iskry_b'][(Math.random() * 2) | 0], z.x, z.y, z.kat + Math.PI, 105, 0.34, true); } }
       else if (z.typ === 'klatwa_laduje') pierscienie.push({ x: b.x, y: b.y, r0: KLATWA.zasieg, r1: 24, t: 0, czas: KLATWA.ladowanie, kolor: 0x9a5cff, ziemia: true });
       else if (z.typ === 'klatwa') uderzenieKlatwy(z);
     }
@@ -968,6 +1004,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
     // smuga cięcia i garda
     smugi.clear(); znaki.clear(); znakiZiemia.clear();
+    for (const k of kregi) k.visible = false; kregiUzyte = 0; czasRys = czas; ruszBlyski(dt);
     if (pz && pz.smuga) {
       // Smuga miecza (Patryk, 24 XI: cięcie wyglądało jak „nożykiem”). Sierp zamiast wachlarza od środka:
       // jasny i gęsty przy ostrzu, gaśnie ku tyłowi łuku, sięga tam, gdzie naprawdę rani cios (zasięg broni).
@@ -1072,8 +1109,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       // kolos zapowiada uderzenie kręgiem na ziemi
       if (e.typ.ciezki && e.stan === 'zamach' && e.cel) {
         const q = ogr(e.t / e.typ.zamach, 0, 1);
-        znakiZiemia.lineStyle(3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
-        znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa, e.typ.strefa * PERSP); znakiZiemia.endFill();
+        { const zK = krag(e.cel.x, e.cel.y, e.typ.strefa, q); znakiZiemia.lineStyle(zK ? 0 : 3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
+          znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa, e.typ.strefa * PERSP); znakiZiemia.endFill(); }
         znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0xff6a3a, 0.3); znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa * q, e.typ.strefa * PERSP * q); znakiZiemia.endFill();
       }
       if (e.typ.ciezki && e.stan === 'skok' && e.cel && !e._uderzyl) {

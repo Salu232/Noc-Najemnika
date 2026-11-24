@@ -66,7 +66,24 @@ RYSUNKI = {
     'kaluza_d':   ('krew-kaluze-pazury', 36, 0.4, 'srodek'),
     'pazury_a':   ('krew-kaluze-pazury', 20, 0.4, 'srodek'),
     'pazury_b':   ('krew-kaluze-pazury', 30, 0.4, 'srodek'),
+    # etap B: iskry przy bloku i parowaniu, krew przy trafieniu (rysunki „lecą” w prawo do góry, gra je obraca),
+    # krąg z kolcami pod uderzeniem kolosa
+    'iskry_a':    ('ciecia-krew-iskry', 35, 0.5, 'srodek'),
+    'iskry_b':    ('ciecia-krew-iskry', 32, 0.5, 'srodek'),
+    'iskry_c':    ('ciecia-krew-iskry', 36, 0.5, 'srodek'),
+    'iskry_gwiazda': ('ciecia-krew-iskry', 37, 0.5, 'srodek'),
+    'iskry_wybuch':  ('ciecia-krew-iskry', 39, 0.5, 'srodek'),
+    'bryzg_lot_a': ('ciecia-krew-iskry', 17, 0.5, 'srodek'),
+    'bryzg_lot_b': ('ciecia-krew-iskry', 24, 0.5, 'srodek'),
+    'bryzg_lot_c': ('ciecia-krew-iskry', 21, 0.5, 'srodek'),
+    'bryzg_lot_d': ('ciecia-krew-iskry', 18, 0.5, 'srodek'),
+    'bryzg_wybuch': ('ciecia-krew-iskry', 33, 0.5, 'srodek'),
+    'krag_kolce':  ('kregi-strzalki', 1, 0.5, 'srodek'),
 }
+
+# Ikony przycisków na telefonie (etap B): środek kwadratowej ramki z arkusza interfejsu, bez ramki z czaszkami,
+# bo przycisk jest okrągły. Zapisywane osobno: grafika/ikona-<nazwa>.webp, 128 × 128.
+IKONY = {'tnij': 2, 'klatwa': 3, 'unik': 4, 'mikstura': 5}
 
 # Ognisko z filmu Przemka (Campfire_flickering…, 96 klatek, 24 na sekundę). Pętla: klatki 43–78 co druga
 # (18 klatek, 1,5 s); klatka 79 wygląda najbardziej jak 43. Ostatnie cztery klatki przenikają się z klatkami
@@ -162,6 +179,16 @@ def klatki_ognia():
     return wy
 
 
+def ikony():
+    a = wczytaj('interfejs-pasek-ikony'); tlo = tlo_arkusza(a); lab, sl = skladowe(tlo)
+    for nazwa, nr in IKONY.items():
+        s = sl[nr - 1]; x0, y0, x1, y1 = s[1].start, s[0].start, s[1].stop, s[0].stop
+        w, h = x1 - x0, y1 - y0; m = 0.16
+        im = Image.fromarray(a[int(y0 + h * m):int(y1 - h * m), int(x0 + w * m):int(x1 - w * m)].astype(np.uint8))
+        im.resize((128, 128), Image.LANCZOS).save(f'grafika/ikona-{nazwa}.webp', quality=85)
+    print('ikony:', ', '.join(f'grafika/ikona-{n}.webp' for n in IKONY))
+
+
 def podglad(katalog):
     os.makedirs(katalog, exist_ok=True)
     for ark in sorted({v[0] for v in RYSUNKI.values()}):
@@ -216,4 +243,4 @@ def zloz():
 
 if __name__ == '__main__':
     if len(sys.argv) > 2 and sys.argv[1] == '--podglad': podglad(sys.argv[2])
-    else: zloz()
+    else: zloz(); ikony()

@@ -372,7 +372,7 @@ function trafBohatera(gra, e) {
       gra.statystyki.parowania++;
       gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.09); gra.wstrzas = Math.max(gra.wstrzas, 4);
       iskry(gra, (b.x + e.x) / 2, (b.y + e.y) / 2 - 40, 14);
-      gra.zdarzenia.push({ typ: 'parowanie' });
+      gra.zdarzenia.push({ typ: 'parowanie', x: (b.x + e.x) / 2, y: (b.y + e.y) / 2 - 40, kat: katDoWroga });
       return;
     }
     zuzyjSile(b, BOHATER.blok.kosztNaCios * (ciezki ? BOHATER.blok.mnoznikCiezki : 1));
@@ -380,7 +380,7 @@ function trafBohatera(gra, e) {
     e.vx += Math.cos(katDoWroga) * BOHATER.blok.odrzut; e.vy += Math.sin(katDoWroga) * BOHATER.blok.odrzut;
     if (!ciezki) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; }      // odbity ghul musi się zebrać: okazja do cięcia
     gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.04); gra.wstrzas = Math.max(gra.wstrzas, 2.5);
-    gra.zdarzenia.push({ typ: 'blok' });
+    gra.zdarzenia.push({ typ: 'blok', x: (b.x + e.x) / 2, y: (b.y + e.y) / 2 - 40, kat: katDoWroga });
     if (b.sila <= 0) {               // gardę przebito
       b.stan = 'zachwiany'; b.t = 0; b.trwanie = 0.55; b.blok = false;
       zranBohatera(gra, e.typ.obrazenia * 0.5, odWroga, false);
@@ -399,11 +399,12 @@ function upadek(gra) {
 }
 
 // ---------- wrogowie ----------
-function nowyWrog(typNazwa, punkt) {
+// zlosc: z każdym etapem nocy potwory są szybsze i krócej odpoczywają po ataku (Patryk, 24 XI 18:06)
+function nowyWrog(typNazwa, punkt, zlosc = { szybkosc: 1, odpoczynek: 1 }) {
   const typ = WROGOWIE[typNazwa];
   return {
-    typ, x: punkt.x, y: punkt.y, vx: 0, vy: 0, promien: typ.promien,
-    zycie: Math.round(losuj(typ.zycie[0], typ.zycie[1])), szybkosc: losuj(typ.szybkosc[0], typ.szybkosc[1]),
+    typ, x: punkt.x, y: punkt.y, vx: 0, vy: 0, promien: typ.promien, odpoczynek: typ.odpoczynek * zlosc.odpoczynek,
+    zycie: Math.round(losuj(typ.zycie[0], typ.zycie[1])), szybkosc: losuj(typ.szybkosc[0], typ.szybkosc[1]) * zlosc.szybkosc,
     stan: 'wynurza', t: 0, kat: 0, anim: Math.random() * 10, flash: 0, widac: 0, drzy: 0, cel: null, trafil: false,
   };
 }
@@ -414,7 +415,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
   const sila = odrzut / (e.typ.ciezki ? 6 : 1);
   e.vx += Math.cos(kat) * sila; e.vy += Math.sin(kat) * sila;
   // lekki miecz nie przerywa zamachu ghula: przerwie go cięższy miecz, mocny cios, parowanie albo śmierć
-  if (przerywa && !e.typ.ciezki && e.stan === 'zamach') { e.stan = 'odpoczynek'; e.t = e.typ.odpoczynek - 0.35; }
+  if (przerywa && !e.typ.ciezki && e.stan === 'zamach') { e.stan = 'odpoczynek'; e.t = e.odpoczynek - 0.35; }
   const n = e.typ.ciezki ? 6 : 9;
   for (let i = 0; i < n; i++) gra.krew.push({ x: e.x, y: e.y, z: 22 * e.typ.skala, vx: Math.cos(kat) * losuj(40, 170) + losuj(-50, 50), vy: Math.sin(kat) * losuj(40, 170) + losuj(-50, 50), vz: losuj(40, 170), r: losuj(1.3, 2.8) });
   if (e.zycie <= 0) {
@@ -475,7 +476,7 @@ function aktualizujWrogow(gra, dt) {
       if (e.t >= typ.skok) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; }
     } else if (e.stan === 'odpoczynek') {
       ax = dx / d * szyb * 0.35; ay = dy / d * szyb * 0.35;
-      if (e.t >= typ.odpoczynek) { e.stan = 'idzie'; e.t = 0; }
+      if (e.t >= e.odpoczynek) { e.stan = 'idzie'; e.t = 0; }
     } else if (e.stan === 'ogluszony') {
       e.drzy = Math.sin(gra.czas * 40) * 1.5;
       if (e.t >= 1.2) { e.stan = 'idzie'; e.t = 0; e.drzy = 0; }
@@ -533,7 +534,7 @@ function aktualizujEtapy(gra, dt) {
     gra.walkaCzas += dt;
     while (gra.kolejka.length && gra.kolejka[0].t <= gra.walkaCzas) {
       const q = gra.kolejka.shift();
-      gra.wrogowie.push(nowyWrog(q.typ, punktWMgle(q.z)));
+      gra.wrogowie.push(nowyWrog(q.typ, punktWMgle(q.z), ETAPY[gra.etap].zlosc));
     }
     if (!gra.kolejka.length && !gra.wrogowie.length) {
       gra.etap++;
