@@ -105,6 +105,16 @@ function aktualizujBohatera(gra, dt, w) {
   const chceBlok = w.blok && b.stan === 'wolny';
   if (chceBlok && !b.blok) b.blokOd = gra.czas;
   b.blok = chceBlok;
+  if (b.blok && w.kat == null) {                 // bez myszki blok sam obraca się do najgroźniejszego wroga w pobliżu
+    let cel = null, ocena = Infinity;
+    for (const e of gra.wrogowie) {
+      if (e.zycie <= 0 || e.stan === 'martwy') continue;
+      const d = Math.hypot(e.x - b.x, e.y - b.y); if (d > BOHATER.blok.zasiegObrotu) continue;
+      const o = d - (e.stan === 'zamach' || e.stan === 'skok' ? 150 : 0);
+      if (o < ocena) { ocena = o; cel = e; }
+    }
+    if (cel) { const r = rozn(Math.atan2(cel.y - b.y, cel.x - b.x), b.kat), k = Math.min(Math.abs(r), BOHATER.blok.obrot * dt); b.kat += Math.sign(r) * k; }
+  }
 
   if (w.atakStart) b.kolejkaAtaku = true;
   const mozeUnik = w.unik && b.sila >= BOHATER.unik.koszt * 0.5;
@@ -169,7 +179,7 @@ function aktualizujBohatera(gra, dt, w) {
 
   // wytrzymałość i „Krew za krew”
   if (b.odnowaZa > 0) b.odnowaZa -= dt;
-  else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * dt * (b.blok ? 0.3 : 1));
+  else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * dt * (b.blok ? BOHATER.blok.odnowa : 1));
   if (b.smugaCzas > 0) b.smugaCzas -= dt; else b.smuga = Math.max(0, b.smuga - 60 * dt);
   if (b.seriaCzas > 0) { b.seriaCzas -= dt; if (b.seriaCzas <= 0) b.rozped = 0; }
 }
@@ -365,14 +375,16 @@ function trafBohatera(gra, e) {
       gra.zdarzenia.push({ typ: 'parowanie' });
       return;
     }
-    zuzyjSile(b, BOHATER.blok.kosztNaCios * (ciezki ? 3 : 1));
-    iskry(gra, (b.x + e.x) / 2, (b.y + e.y) / 2 - 40, 6);
-    e.vx += Math.cos(katDoWroga) * 160; e.vy += Math.sin(katDoWroga) * 160;
+    zuzyjSile(b, BOHATER.blok.kosztNaCios * (ciezki ? BOHATER.blok.mnoznikCiezki : 1));
+    iskry(gra, (b.x + e.x) / 2, (b.y + e.y) / 2 - 40, 10);
+    e.vx += Math.cos(katDoWroga) * BOHATER.blok.odrzut; e.vy += Math.sin(katDoWroga) * BOHATER.blok.odrzut;
+    if (!ciezki) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; }      // odbity ghul musi się zebrać: okazja do cięcia
+    gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.04); gra.wstrzas = Math.max(gra.wstrzas, 2.5);
     gra.zdarzenia.push({ typ: 'blok' });
     if (b.sila <= 0) {               // gardę przebito
       b.stan = 'zachwiany'; b.t = 0; b.trwanie = 0.55; b.blok = false;
       zranBohatera(gra, e.typ.obrazenia * 0.5, odWroga, false);
-    } else if (ciezki) zranBohatera(gra, e.typ.obrazenia * 0.5, odWroga, false);
+    } else if (ciezki) zranBohatera(gra, e.typ.obrazenia * BOHATER.blok.ranaCiezka, odWroga, false);
     return;
   }
   zranBohatera(gra, e.typ.obrazenia, odWroga, ciezki);

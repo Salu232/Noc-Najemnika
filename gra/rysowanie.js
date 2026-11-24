@@ -382,7 +382,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // a chowa dopiero 1,5 s po tym, jak zrobi się spokojnie. Oba ruchy widać też w marszu, a cios, unik i blok kończą wyciąganie od razu.
   const MIECZ = { wyciaga: 1.0, chowa: 1.3, spokojPrzed: 1.5 };
   const stanRys = {
-    miecz: 'schowany', mieczP: 0, spokoj: 0,   // mieczP: 0 w pochwie, 1 w dłoni
+    miecz: 'schowany', mieczP: 0, spokoj: 0, blokOd: 0, blokowal: false,   // mieczP: 0 w pochwie, 1 w dłoni
     upadlOd: -1, poprzZycie: BOHATER.zycie, slad: [], poprzStan: 'wolny',
     zadyszka: 0, oddech: 0, cykl: 0,          // po walce oddycha ciężej i szybciej
     odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
@@ -473,7 +473,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0);
       return klatkaZ('powrot', c.utknal ? 0 : c.t / Math.max(0.001, koniec));
     }
-    if (b.blok) return klatkaZ('blok', 0.5);
+    if (b.blok) return klatkaZ('blok', Math.min(0.99, (czas - stanRys.blokOd) / 0.15));   // unosi miecz do bloku w 0,15 s, potem trzyma
     if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
     if (b.stan === 'unik') {   // unik to przewrót w stronę uniku; w górę i w dół koziołek plecami albo przodem (niżej)
       if (unikPionowy(b)) return klatkaZ(Math.sin(b.unikKat) > 0 ? 'przewrot_przod' : 'przewrot_tyl', b.t / BOHATER.unik.czas);
@@ -744,7 +744,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         stanRys.kop.x += Math.cos(ka) * sila; stanRys.kop.y += Math.sin(ka) * sila * PERSP;
         if (z.mocny) stanRys.ucisk = 1;
       } else if (z.typ === 'rana') { stanRys.ranaKier = Math.sign(b.odrzutX) || -(Math.cos(b.kat) >= 0 ? 1 : -1); stanRys.zadyszka += 0.12; }
-      else if (z.typ === 'blok') stanRys.odepchniecie = 1;
+      else if (z.typ === 'blok') { stanRys.odepchniecie = 1; stanRys.blokOd = Math.min(stanRys.blokOd, czas - 0.06); }   // cios w miecz: ręce na chwilę uginają się
       else if (z.typ === 'parowanie') stanRys.pchniecie = 1;
       else if (z.typ === 'klatwa_laduje') pierscienie.push({ x: b.x, y: b.y, r0: KLATWA.zasieg, r1: 24, t: 0, czas: KLATWA.ladowanie, kolor: 0x9a5cff, ziemia: true });
       else if (z.typ === 'klatwa') uderzenieKlatwy(z);
@@ -792,6 +792,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     for (let i = 0; i < drzewa.length; i++) { const d = DRZEWA[i]; drzewa[i].visible = d.x > L && d.x < R && d.y > G && d.y < D; }
 
     // bohater: poza, potem ciało (pochylenie, przysiad, oddech, odrzut po ranie i bloku)
+    if (b.blok && !stanRys.blokowal) stanRys.blokOd = czas; stanRys.blokowal = b.blok;
     const pz = poza(b, gra), zad = stanRys.zadyszka;
     if (b.stan === 'unik' && trybBohatera === 'gemini' && maObraz) pz.sx = Math.cos(b.unikKat) >= 0 ? 1 : -1;   // przewrót w stronę uniku
     let lx = pz.sx * pz.pochyl, sy = pz.przysiad;
