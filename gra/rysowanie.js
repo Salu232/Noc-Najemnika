@@ -4,6 +4,7 @@
 import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA } from './swiat.js';
 import { BOHATER, WROGOWIE, KLATWA } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
+import { WROGOWIE_FILM } from './klatki-wrogow.js';
 import * as O from './obrazki.js';
 
 const TAU = Math.PI * 2;
@@ -13,8 +14,13 @@ const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
 const CIECIE_WYS = { ghul: 17, kolos: 30 };   // na jakiej wysokości miecz przecina ciało wroga
+// Potwory z filmów Przemka (narzedzia/wytnij-z-filmow.py): ghul ma 72 jednostki wzrostu, kolos 165.
+const FILM_WROGA = {
+  ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
+  kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
+};
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini' } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini', obrazyWrogow = {} } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -59,13 +65,29 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     for (const k in KB) klatkiB[k] = { ...KB[k], t: new P.Texture(baza, new P.Rectangle(KB[k].x, KB[k].y, KB[k].w, KB[k].h)) };
   }
   const maObraz = Object.keys(klatkiB).length > 0;
+  // ghul i kolos z filmów Przemka; bez obrazu zostają rysowane kodem (atlasy wyżej)
+  const filmW = {};
+  for (const nazwa in WROGOWIE_FILM) {
+    const img = obrazyWrogow[nazwa]; if (!img) continue;
+    const d = WROGOWIE_FILM[nazwa], baza = new P.BaseTexture(img); baza.mipmap = P.MIPMAP_MODES.ON;
+    const k = {};
+    for (const n in d.KLATKI) { const f = d.KLATKI[n]; k[n] = { ...f, t: new P.Texture(baza, new P.Rectangle(f.x, f.y, f.w, f.h)) }; }
+    // połówki do cięcia na pół: pierwsza klatka chodu przecięta w pasie
+    const f = k[d.ANIMACJE.chod[0]], cut = Math.max(4, Math.round(f.ay * f.h - FILM_WROGA[nazwa].ciecie / d.SKALA));
+    const gora = new P.Texture(baza, new P.Rectangle(f.x, f.y, f.w, cut)), dol = new P.Texture(baza, new P.Rectangle(f.x, f.y + cut, f.w, f.h - cut));
+    filmW[nazwa] = { ...FILM_WROGA[nazwa], skala: d.SKALA, patrzy: d.PATRZY, anim: d.ANIMACJE, k, gora, dol, ax: f.ax, ayDol: (f.ay * f.h - cut) / (f.h - cut) };
+  }
+  const klatkaW = (fw, n, q) => { const l = fw.anim[n]; return fw.k[l[Math.min(l.length - 1, Math.max(0, Math.floor(q * l.length)))]]; };
+  const klatkaPetliW = (fw, n, c) => { const l = fw.anim[n]; return fw.k[l[((Math.floor(c * l.length) % l.length) + l.length) % l.length]]; };
   let trybBohatera = maObraz ? bohater : 'rysowany';
   // Chód z filmu Przemka to spokojny marsz: stopa na ziemi przesuwa się o około 60 jednostek na cykl (dwa kroki).
   // Bohater w grze idzie prawie biegiem (165 jednostek na sekundę). Gdyby nogi miały nadążyć bez ślizgu, przebierałyby
   // 5 kroków na sekundę. Stąd kompromis: cykl co 110 jednostek drogi, czyli w pełnym marszu 3 kroki na sekundę,
   // dwa i pół raza szybciej niż w filmie. Stopy trochę się ślizgają; zniknie to dopiero przy filmie biegu.
-  const DROGA_KROKU = 110;
-  const MIJANIE = [0.25, 0.75];  // chwile cyklu, w których nogi się mijają (klatki 57 i 77 filmu): od nich zaczyna i na nich kończy krok
+  // 24 XI doszedł film biegu i on zastąpił chód: stopa przesuwa się w nim o około 73 jednostki na cykl (dwa kroki),
+  // więc cykl co 90 jednostek drogi to bieg prawie 2 kroki na sekundę i tylko lekki ślizg. Idąc w górę ekranu
+  // bohater pokazuje plecy (film chodu tyłem). mijanie: chwile cyklu, w których nogi się mijają, od nich rusza i na nich staje.
+  const RUCH = { bieg: { droga: 90, mijanie: [0.42, 0.94] }, chod_tyl: { droga: 110, mijanie: [0, 0.5] } };
 
   // ---------- warstwy ----------
   const scena = new P.Container();
@@ -84,7 +106,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const powietrze = new P.Container();           // krew w locie
   const znakiZiemia = new P.Graphics();          // zapowiedź uderzenia kolosa i fala po nim: leżą na ziemi
   const para = new P.Graphics();                 // oddech w zimnej nocy
-  swiat.addChild(ziemia, plamy, slady, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
+  const trupyC = new P.Container();              // ostatnie ciała leżą jako ostre obrazy, starsze idą do śladów
+  swiat.addChild(ziemia, plamy, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
 
   // drzewa
   const drzewa = DRZEWA.map((d, i) => {
@@ -182,10 +205,21 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // ---------- krótkie animacje: padające ciała, błyski cięć, kurz i oddech ----------
   const padajace = [], ciecia = [], obloczki = [], pioruny = [];
   function nowyPadajacy(s) {
-    const typ = WROGOWIE[s.wrog];
+    const typ = WROGOWIE[s.wrog], fw = filmW[s.wrog];
+    if (fw) return { s, fw, ciezki: !!typ.ciezki, dir: -s.sx, t: 0, czas: s.przeciety ? (typ.ciezki ? 0.65 : 0.42) : fw.smierc, gasnie: -1, kon: null };
     return { s, at: atlasy[s.wrog], sk: typ.skala, ciezki: !!typ.ciezki, dir: -s.sx, wiersz: s.sx < 0 ? 1 : 0, t: 0, czas: typ.ciezki ? 0.65 : 0.42, gasnie: -1, kon: null };
   }
   // ciało zostaje na ziemi: rysujemy je raz do tekstury śladów
+  // Ciało zostaje na ziemi. Tekstura śladów ma połowę rozdzielczości, więc świeże ciała (do 50) leżą
+  // jako zwykłe obrazy w pełnej ostrości; dopiero najstarsze trafiają do śladów.
+  const trupy = [];
+  function zostaw(lista) {
+    for (const k of lista) {
+      const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy);
+      trupyC.addChild(sp); trupy.push({ sp, k });
+    }
+    if (trupy.length > 50) { const stare = trupy.splice(0, trupy.length - 40); utrwal(stare.map(t => t.k)); for (const t of stare) t.sp.destroy(); }
+  }
   function utrwal(lista) {
     const c = new P.Container();
     for (const k of lista) { const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy); c.addChild(sp); }
@@ -206,7 +240,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const c = new P.Container();
     for (const s of lista) {
       if (s.typ === 'cialo' && s.pada) { padajace.push(nowyPadajacy(s)); continue; }      // najpierw upadek, ślad później
-      if (s.typ === 'cialo') {
+      if (s.typ === 'cialo' && filmW[s.wrog]) {
+        const fw = filmW[s.wrog], k = fw.k[fw.anim.trup[0]], sp = new P.Sprite(k.t); sp.anchor.set(k.ax, k.ay);
+        sp.position.set(s.x, s.y); sp.scale.set(fw.skala * (s.sx === fw.patrzy ? 1 : -1), fw.skala); c.addChild(sp);
+      } else if (s.typ === 'cialo') {
         const at = atlasy[s.wrog], w = at.wzor, sk = (s.wrog === 'kolos' ? 2.3 : 1.25) / O.PX;
         const sp = new P.Sprite(at.martwy); sp.anchor.set(w.ox / w.w, w.oy / w.h);
         sp.position.set(s.x, s.y); sp.rotation = s.obrot; sp.scale.set(sk * s.sx, sk); c.addChild(sp);
@@ -229,6 +266,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   }
   function wyczysc() {
     padajace.length = 0; ciecia.length = 0; obloczki.length = 0; pioruny.length = 0;
+    for (const t of trupy) t.sp.destroy(); trupy.length = 0;
     renderer.render(new P.Container(), { renderTexture: sladyRT, clear: true });
     dorysujSlady(DRZEWA.map(d => ({ typ: 'cien', x: d.x + 14, y: d.y + 3, w: d.h * 0.42, h: d.h * 0.12, alfa: 0.8 })));
   }
@@ -247,6 +285,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const pulaCieni = pula(cienie, () => { const s = new P.Sprite(T.cien); s.anchor.set(0.5); return s; });
   const pulaOczu = pula(oczy, () => { const s = new P.Sprite(T.okoCzerwone); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; return s; });
   const pulaKawalkow = pula(aktorzy, () => new P.Sprite());
+  const pulaBlyskow = pula(aktorzy, () => { const s = new P.Sprite(); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffd8c8; return s; });   // potwór rozbłyska, gdy dostaje
   const pulaEch = pula(echaS, () => { const s = new P.Sprite(); s.tint = 0x9fb4cc; return s; });
   const pulaKrwi = pula(powietrze, () => { const s = new P.Sprite(T.krew[0]); s.anchor.set(0.5); return s; });
   const pulaIskier = pula(iskry, () => { const s = new P.Sprite(T.iskra); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; return s; });
@@ -271,7 +310,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
     kop: { x: 0, y: 0 }, ucisk: 0, fiolet: 0,      // fiolet: błysk ekranu i światła po uderzeniu klątwy
                 // kamera drgnie w stronę cięcia; mocny cios lekko przybliża
-    px: null, py: null, krok: 0, szedl: false, dochodzi: 0, kierKroku: 1,   // gdzie był klatkę temu, ile cykli chodu przeszedł, czy dokańcza krok po zatrzymaniu
+    px: null, py: null, krok: 0, szedl: false, dochodzi: 0, kierKroku: 1, ruch: 'bieg',   // gdzie był klatkę temu, ile cykli chodu przeszedł, czy dokańcza krok po zatrzymaniu
   };
 
   const latwo = q => 1 - (1 - q) * (1 - q);
@@ -344,7 +383,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (b.t < L + U) return klatkaZ('klatwa_uderz', (b.t - L) / U);
       return klatkaZ('klatwa_wstaje', (b.t - L - U) / KLATWA.wstawanie);
     }
-    if (b.stan === 'upadl') return klatkaZ('rana', 0.4 + 0.6 * tUp);
+    if (b.stan === 'upadl') return klatkaZ('upadek', (czas - stanRys.upadlOd) / 1.4);   // osuwa się na kolana i pada na bok
     if (b.stan === 'zachwiany') return klatkaZ('rana', 0.15 + 0.8 * Math.min(1, b.t / Math.max(0.01, b.trwanie)));
     if (b.stan === 'cios' && b.cios) {
       const c = b.cios;
@@ -356,8 +395,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
     if (b.blok) return klatkaZ('blok', 0.5);
     if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
-    if (b.stan === 'unik') return AB.chod[0];                              // unik: jeden długi wykrok, resztę robią powidoki
-    if (b.idzie || stanRys.dochodzi > 0) return klatkaPetli('chod', stanRys.krok);
+    if (b.stan === 'unik') return klatkaZ('przewrot', b.t / BOHATER.unik.czas);   // unik to przewrót w stronę uniku
+    if (b.idzie || stanRys.dochodzi > 0) return klatkaPetli(stanRys.ruch, stanRys.krok);
     return klatkaPetli('spoczynek', czas * 8 / AB.spoczynek.length);       // oddech jak w filmie: 8 klatek na sekundę
   }
   // ustawia obraz bohatera: stopy w (x, y), pochylenie lx, przysiad sy (szerokość zmienia się odwrotnie, żeby ciało nie traciło masy)
@@ -504,6 +543,81 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     napis('Klątwa', z.x, z.y - 110, 0xc8a0ff);
   }
 
+  // ---------- potwory z filmów Przemka ----------
+  // Klatka zależy od stanu z walka.js: zamach i skok idą za czasem ataku, chód za przebytą drogą,
+  // trafienie (rozpoznane po błysku) przerywa chód krótkim wstrząsem, ogłuszenie pokazuje cały film trafienia.
+  function rysujWrogaZFilmu(e, fw, b, gra) {
+    const typ = e.typ;
+    const sx = Math.cos(e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'odpoczynek' ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;
+    if (e.flash > (e._fl || 0) + 0.001) e._trafOd = czas;                 // nowy cios: błysk urósł
+    e._fl = e.flash;
+    const odTraf = czas - (e._trafOd === undefined ? -9 : e._trafOd);
+    let k, oczy = false;
+    if (e.stan === 'zamach') { k = klatkaW(fw, 'zamach', e.t / typ.zamach); oczy = !typ.ciezki; }   // kolos unosi pięść nad głowę i zasłania oczy; ostrzega go krąg na ziemi
+    else if (e.stan === 'skok') k = klatkaW(fw, 'skok', e.t / typ.skok);
+    else if (e.stan === 'ogluszony') k = klatkaW(fw, 'trafienie', e.t / 1.2);
+    else if (odTraf < fw.trafienie) k = klatkaW(fw, 'trafienie', 0.4 * odTraf / fw.trafienie);
+    else if (e.stan === 'odpoczynek' && e.t < 0.6) k = klatkaW(fw, 'odpoczynek', e.t / 0.6);
+    else { k = klatkaPetliW(fw, 'chod', e.anim * 70 / fw.droga); oczy = true; }
+    const zn = sx === fw.patrzy ? 1 : -1, odB = e.x >= b.x ? 1 : -1;
+    let rot = 0, skx = 1, sky = 1;
+    if (e.flash > 0) { const f = e.flash / 0.12; rot += odB * (typ.ciezki ? 0.05 : 0.12) * f; sky *= 1 - 0.08 * f; skx *= 1 + 0.06 * f; }
+    const sp = pulaWrogow.wez();
+    sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.scale.set(fw.skala * zn * skx, fw.skala * sky); sp.rotation = rot;
+    sp.position.set(e.x + (e.drzy || 0), e.y); sp.zIndex = e.y; sp.alpha = e.stan === 'wynurza' ? e.widac : 1;
+    if (e.flash > 0) {                                                     // rozbłysk przy trafieniu
+      const bl = pulaBlyskow.wez(); bl.texture = k.t; bl.anchor.set(k.ax, k.ay); bl.scale.copyFrom(sp.scale); bl.rotation = rot;
+      bl.position.copyFrom(sp.position); bl.zIndex = e.y + 0.01; bl.alpha = 0.6 * e.flash / 0.12;
+    }
+    const cs = pulaCieni.wez(); cs.position.set(e.x, e.y + 1); cs.width = e.promien * fw.cien; cs.height = e.promien * 1.3; cs.alpha = sp.alpha;
+    if (oczy) {                                                            // oczy świecą w ciemności; przed atakiem rozbłyskują
+      const oko = pulaOczu.wez(); oko.texture = typ.ciezki ? T.okoBursztyn : T.okoCzerwone;
+      oko.position.set(e.x + (e.drzy || 0) + sx * fw.oko.x, e.y + fw.oko.y);
+      const mocOka = e.stan === 'zamach' ? 1.7 + Math.sin(czas * 40) * 0.3 : 1;
+      oko.width = oko.height = (typ.ciezki ? 16 : 11) * mocOka; oko.alpha = sp.alpha * 0.8;
+    }
+    if (e.stan === 'ogluszony') {                                          // wiruje mu w głowie (i dostaje podwójne obrażenia)
+      for (let i = 0; i < 3; i++) {
+        const a = czas * 6 + i * TAU / 3, x = e.x + sx * fw.oko.x * 0.6 + Math.cos(a) * 12, y = e.y + fw.oko.y - 16 + Math.sin(a) * 4;
+        znaki.lineStyle(0); znaki.beginFill(0xffe2a0, 0.9); znaki.drawCircle(x, y, 2.4); znaki.endFill();
+      }
+    }
+    zapowiedzKolosa(e, gra);
+  }
+  // kolos zapowiada uderzenie kręgiem na ziemi, a gdy wali, ziemia faluje
+  function zapowiedzKolosa(e, gra) {
+    if (e.typ.ciezki && e.stan === 'zamach' && e.cel) {
+      const q = ogr(e.t / e.typ.zamach, 0, 1);
+      znakiZiemia.lineStyle(3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
+      znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa, e.typ.strefa * PERSP); znakiZiemia.endFill();
+      znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0xff6a3a, 0.3); znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa * q, e.typ.strefa * PERSP * q); znakiZiemia.endFill();
+    }
+    if (e.typ.ciezki && e.stan === 'skok' && e.cel && !e._uderzyl) {
+      e._uderzyl = true;
+      pierscienie.push({ x: e.cel.x, y: e.cel.y, r0: 20, r1: e.typ.strefa * 1.4, t: 0, czas: 0.4, kolor: 0xd8c8b0, ziemia: true });
+      kurz(e.cel.x, e.cel.y, 0, 6, 1.4); kurz(e.cel.x, e.cel.y, Math.PI, 6, 1.4);
+      for (let i = 0; i < 8; i++) gra.slady.push({ typ: 'kropla', x: e.cel.x + losuj(-40, 40), y: e.cel.y + losuj(-20, 20), r: 0.1 });
+    }
+    if (e.stan !== 'skok') e._uderzyl = false;
+  }
+  // śmierć z filmu: potwór pada (ghul na plecy, kolos na twarz), a ostatnia klatka zostaje na ziemi
+  function padaZFilmu(f, i, dt) {
+    const s = f.s, fw = f.fw, q = Math.min(1, f.t / f.czas);
+    const dx = Math.cos(s.kat), dy = Math.sin(s.kat), slizg = (f.ciezki ? 8 : 18) * latwo(Math.min(1, q * 2));
+    const x = s.x + dx * slizg, y = s.y + dy * slizg, zn = s.sx === fw.patrzy ? 1 : -1;
+    const al = f.gasnie >= 0 ? Math.max(0, 1 - f.gasnie / 0.15) : 1;
+    const k = klatkaW(fw, 'smierc', q);
+    const sp = pulaKawalkow.wez(); sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.position.set(x, y); sp.rotation = 0;
+    sp.scale.set(fw.skala * zn, fw.skala); sp.zIndex = y; sp.alpha = al;
+    if (f.t < 0.12) { const bl = pulaBlyskow.wez(); bl.texture = k.t; bl.anchor.set(k.ax, k.ay); bl.scale.copyFrom(sp.scale); bl.rotation = 0; bl.position.set(x, y); bl.zIndex = y + 0.01; bl.alpha = 0.7 * (1 - f.t / 0.12); }
+    if (q >= 1 && f.gasnie < 0) {
+      const kt = fw.k[fw.anim.trup[0]];
+      zostaw([{ tex: kt.t, ax: kt.ax, ay: kt.ay, x, y, rot: 0, sx: fw.skala * zn, sy: fw.skala }]); f.gasnie = 0;
+      if (f.ciezki) { pierscienie.push({ x: x + zn * 60, y, r0: 20, r1: 110, t: 0, czas: 0.4, kolor: 0xb8a890, ziemia: true }); kurz(x + zn * 60, y, 0, 6, 1.6); kurz(x + zn * 60, y, Math.PI, 6, 1.6); stanRys.kop.y += 6; }
+      else kurz(x - zn * 25, y, s.kat, 3, 0.8);
+    } else if (f.gasnie >= 0) { f.gasnie += dt; if (f.gasnie > 0.15) padajace.splice(i, 1); }
+  }
+
   function rysuj(gra, dt, zdarzenia) {
     czas += dt;
     const b = gra.bohater;
@@ -563,6 +677,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
     // bohater: poza, potem ciało (pochylenie, przysiad, oddech, odrzut po ranie i bloku)
     const pz = poza(b, gra), zad = stanRys.zadyszka;
+    if (b.stan === 'unik' && trybBohatera === 'gemini' && maObraz) pz.sx = Math.cos(b.unikKat) >= 0 ? 1 : -1;   // przewrót w stronę uniku
     let lx = pz.sx * pz.pochyl, sy = pz.przysiad;
     if (b.flash > 0 && b.stan !== 'upadl') lx += stanRys.ranaKier * 0.32 * (b.flash / 0.25);
     lx += pz.sx * (0.14 * stanRys.pchniecie - 0.2 * stanRys.odepchniecie);
@@ -572,7 +687,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const sxs = 1 / Math.sqrt(sy);
     const wSwiecie = (x, y) => ({ x: b.x + sxs * x - Math.sin(lx) * sy * y, y: b.y + Math.cos(lx) * sy * y });   // punkt ciała (stopy w 0,0) na świecie
     const upadl = b.stan === 'upadl', tUp = upadl ? Math.min(1, (czas - stanRys.upadlOd) / 0.35) : 0;
-    const obrot = upadl ? -pz.sx * 1.45 * tUp : 0, alfaB = upadl ? 1 - Math.max(0, czas - stanRys.upadlOd - 1.4) * 0.6 : (b.nietykalny > 0 ? 0.75 : 1);
+    const gemF = trybBohatera === 'gemini' && maObraz;                      // z filmu upadek pokazuje sam film, bez obracania
+    const obrot = upadl && !gemF ? -pz.sx * 1.45 * tUp : 0, alfaB = upadl ? (gemF ? 1 : 1 - Math.max(0, czas - stanRys.upadlOd - 1.4) * 0.6) : (b.nietykalny > 0 && b.stan !== 'unik' ? 0.75 : 1);
     const tint = b.flash > 0 ? 0xff8080 : (pz.blask > 0.05 ? 0xffe6c0 : 0xffffff);
     const gem = trybBohatera === 'gemini' && maObraz;
     bohG.visible = !gem; bohS.visible = gem;
@@ -581,16 +697,21 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (stanRys.px === null) { stanRys.px = b.x; stanRys.py = b.y; }
     const ddx = b.x - stanRys.px, ddy = b.y - stanRys.py, dd = Math.hypot(ddx, ddy);
     stanRys.px = b.x; stanRys.py = b.y;
-    const faza = () => ((stanRys.krok % 1) + 1) % 1;
-    const doMijania = (kier) => { const d = Math.min(...MIJANIE.map(m => ((kier * (m - faza())) % 1 + 1) % 1)); return d > 0.995 ? 0 : d; };   // ile cyklu do najbliższego mijania nóg
     const chodzi = b.idzie && b.stan === 'wolny' && !b.blok;
+    if (chodzi && dd > 0 && dd < 40) {                                      // w górę ekranu plecami, z zapasem, żeby nie migało
+      if (stanRys.ruch === 'bieg' && ddy < -0.8 * dd) { stanRys.ruch = 'chod_tyl'; }
+      else if (stanRys.ruch === 'chod_tyl' && ddy > -0.5 * dd) { stanRys.ruch = 'bieg'; }
+    }
+    const RU = RUCH[stanRys.ruch];
+    const faza = () => ((stanRys.krok % 1) + 1) % 1;
+    const doMijania = (kier) => { const d = Math.min(...RU.mijanie.map(m => ((kier * (m - faza())) % 1 + 1) % 1)); return d > 0.995 ? 0 : d; };   // ile cyklu do najbliższego mijania nóg
     if (chodzi && !stanRys.szedl && stanRys.dochodzi <= 0) {                 // rusza: od nóg razem, nie z pół kroku
-      const f = faza(), m = MIJANIE.reduce((a, c) => Math.abs(c - f) < Math.abs(a - f) ? c : a);
+      const f = faza(), m = RU.mijanie.reduce((a, c) => Math.abs(c - f) < Math.abs(a - f) ? c : a);
       stanRys.krok += m - f;
     }
     if (b.idzie && b.stan !== 'unik' && dd > 0 && dd < 40) {
-      stanRys.kierKroku = ddx * pz.sx + 0.3 * ddy >= -0.15 * dd ? 1 : -1;
-      stanRys.krok += stanRys.kierKroku * dd / DROGA_KROKU;
+      stanRys.kierKroku = stanRys.ruch === 'chod_tyl' ? (ddy <= 0 ? 1 : -1) : (ddx * pz.sx + 0.3 * ddy >= -0.15 * dd ? 1 : -1);
+      stanRys.krok += stanRys.kierKroku * dd / RU.droga;
       stanRys.dochodzi = 0;
     } else if (stanRys.szedl && !chodzi && b.stan === 'wolny' && !b.blok && b.flash <= 0) {
       stanRys.dochodzi = doMijania(stanRys.kierKroku) > 0.02 ? 0.3 : 0;      // stanął w pół kroku: dostawia nogę
@@ -700,9 +821,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
 
     // wrogowie
-    pulaWrogow.start(); pulaCieni.start(); pulaOczu.start();
+    pulaWrogow.start(); pulaCieni.start(); pulaOczu.start(); pulaBlyskow.start();
     for (const e of gra.wrogowie) {
       if (e.x < L - 100 || e.x > R + 100 || e.y < G || e.y > D) continue;
+      if (filmW[e.typ.nazwa]) { rysujWrogaZFilmu(e, filmW[e.typ.nazwa], b, gra); continue; }
       const at = atlasy[e.typ.nazwa], w = at.wzor, sk = e.typ.skala;
       const sx = Math.cos(e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'odpoczynek' ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;
       const zam = e.stan === 'zamach' || e.stan === 'skok';
@@ -752,35 +874,45 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       }
       if (e.stan !== 'skok') e._uderzyl = false;
     }
-    pulaWrogow.koniec(); pulaCieni.koniec(); pulaOczu.koniec();
+    pulaWrogow.koniec(); pulaCieni.koniec(); pulaOczu.koniec(); pulaBlyskow.koniec();
 
     // martwi padają od bohatera; mocny cios albo wielki miecz przecina ich na pół
     pulaKawalkow.start();
     for (let i = padajace.length - 1; i >= 0; i--) {
       const f = padajace[i], at = f.at, s = f.s;
       f.t += dt;
-      const q = Math.min(1, f.t / f.czas), sk = f.sk / O.PX, w = f.wiersz | (f.t < 0.07 ? 4 : 0);
+      if (f.fw && !s.przeciety) { padaZFilmu(f, i, dt); continue; }
+      const q = Math.min(1, f.t / f.czas), sk = f.fw ? f.fw.skala : f.sk / O.PX, w = f.wiersz | (f.t < 0.07 ? 4 : 0);
+      const znak = f.fw ? (s.sx === f.fw.patrzy ? 1 : -1) : 1, wys = f.fw ? f.fw.ciecie : CIECIE_WYS[s.wrog] * f.sk;
+      const P1 = f.fw ? { gora: f.fw.gora, dol: f.fw.dol, ax: f.fw.ax, ayDol: f.fw.ayDol, mG: f.fw.gora, mD: f.fw.dol } : null;
       const dx = Math.cos(s.kat), dy = Math.sin(s.kat), slizg = (f.ciezki ? 10 : 24) * latwo(q);
       const al = f.gasnie >= 0 ? Math.max(0, 1 - f.gasnie / 0.15) : 1;
-      const kawalek = (tex, ax, ay, x, y, r) => { const k = pulaKawalkow.wez(); k.texture = tex; k.anchor.set(ax, ay); k.position.set(x, y); k.rotation = r; k.scale.set(sk, sk); k.zIndex = y; k.alpha = al; };
+      const kawalek = (tex, ax, ay, x, y, r) => { const k = pulaKawalkow.wez(); k.texture = tex; k.anchor.set(ax, ay); k.position.set(x, y); k.rotation = r; k.scale.set(sk * znak, sk); k.zIndex = y; k.alpha = al; };
       if (!s.przeciety) {
         const x = s.x + dx * slizg, y = s.y + dy * slizg;
         kawalek(at.klatki[w * at.wzor.klatki], at.ax, at.ay, x, y, s.obrot * q * q);
         f.kon = [{ tex: at.martwy, ax: at.ax, ay: at.ay, x, y, rot: s.obrot, sx: sk * s.sx, sy: sk }];
       } else {
         // górna połowa leci łukiem i obraca się, dolna chwilę stoi, potem pada
-        const h0 = CIECIE_WYS[s.wrog] * f.sk, T = f.czas, g = 900, vz = (0.5 * g * T * T - h0) / T, tt = Math.min(f.t, T);
+        const h0 = wys, T = f.czas, g = 900, vz = (0.5 * g * T * T - h0) / T, tt = Math.min(f.t, T);
         const hz = Math.max(0, h0 + vz * tt - 0.5 * g * tt * tt), lot = (f.ciezki ? 30 : 48) * q;
         const gx = s.x + dx * lot, gy = s.y + dy * lot, rKon = f.dir * 1.4, rDol = f.dir * 1.1;
         const rG = f.ciezki ? rKon * latwo(q) : f.dir * (TAU + 1.4) * latwo(q);
         const dxD = s.x + dx * slizg * 0.3, dyD = s.y + dy * slizg * 0.3, rD = rDol * Math.pow(Math.max(0, (q - 0.25) / 0.75), 2);
-        kawalek(at.polowki[w].dol, at.ax, at.ayDol, dxD, dyD, rD);
-        kawalek(at.polowki[w].gora, at.ax, 1, gx, gy - hz, rG);
-        f.kon = [{ tex: at.martweDol, ax: at.ax, ay: at.ayDol, x: dxD, y: dyD, rot: rDol, sx: sk * s.sx, sy: sk },
-          { tex: at.martweGora, ax: at.ax, ay: 1, x: gx, y: gy, rot: rKon, sx: sk * s.sx, sy: sk }];
+        if (P1) {                                                     // z filmu: połówki żywej klatki leżą obrócone
+          kawalek(P1.dol, P1.ax, P1.ayDol, dxD, dyD, rD * znak);
+          kawalek(P1.gora, P1.ax, 1, gx, gy - hz, rG * znak);
+          f.kon = [{ tex: P1.mD, ax: P1.ax, ay: P1.ayDol, x: dxD, y: dyD, rot: rDol * znak, sx: sk * znak, sy: sk },
+            { tex: P1.mG, ax: P1.ax, ay: 1, x: gx, y: gy, rot: rKon * znak, sx: sk * znak, sy: sk }];
+        } else {
+          kawalek(at.polowki[w].dol, at.ax, at.ayDol, dxD, dyD, rD);
+          kawalek(at.polowki[w].gora, at.ax, 1, gx, gy - hz, rG);
+          f.kon = [{ tex: at.martweDol, ax: at.ax, ay: at.ayDol, x: dxD, y: dyD, rot: rDol, sx: sk * s.sx, sy: sk },
+            { tex: at.martweGora, ax: at.ax, ay: 1, x: gx, y: gy, rot: rKon, sx: sk * s.sx, sy: sk }];
+        }
       }
       if (q >= 1 && f.gasnie < 0) {                                  // leży: zostaje na ziemi, żywa klatka gaśnie nad śladem
-        utrwal(f.kon); f.gasnie = 0;
+        (f.fw ? zostaw : utrwal)(f.kon); f.gasnie = 0;
         if (f.ciezki) { pierscienie.push({ x: s.x, y: s.y, r0: 20, r1: 90, t: 0, czas: 0.35, kolor: 0xb8a890, ziemia: true }); kurz(s.x, s.y, s.kat, 7, 1.6); stanRys.kop.y += 5; }
         else kurz(s.x + dx * 20, s.y + dy * 20, s.kat, 2, 0.7);
       } else if (f.gasnie >= 0) { f.gasnie += dt; if (f.gasnie > 0.15) padajace.splice(i, 1); }

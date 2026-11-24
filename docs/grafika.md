@@ -127,9 +127,9 @@ Przemek zrobił w Gemini pięć obrazów i sześć filmów (1280 × 720, 24 klat
 | Plik | Co na nim jest | Gdzie w grze |
 | --- | --- | --- |
 | `film-oddech.mp4` | bohater stoi i oddycha, białe tło | spoczynek |
-| `film-chod.mp4` | chód w miejscu, białe tło | chód, unik (jedna klatka wykroku) |
+| `film-chod.mp4` | chód w miejscu, białe tło | do 24 XI chód i unik; teraz nieużyty, chód zastąpił bieg (punkt 11) |
 | `film-ciecie.mp4` | zamach, cięcie w prawo ze smugą, powrót | zamach, ładowanie mocnego ciosu, cięcie, powrót miecza |
-| `film-rana.mp4` | cios w pierś, odrzut, potem miecz trzymany poziomo | rana, zachwianie, upadek, blok |
+| `film-rana.mp4` | cios w pierś, odrzut, potem miecz trzymany poziomo | rana, zachwianie, blok (upadek od 24 XI z własnego filmu, punkt 11) |
 | `film-magia.mp4` | unosi przeklętą rękę, wali pięścią w ziemię, fioletowe pioruny | od 24 XI klątwa pod R: klatki 4–28, 64–70 i 73–91; wybuch z klatek 31–61 zasłania nogi, więc rysuje go gra |
 | `film-zbroja.mp4` | wojownik w hełmie tnie w nocy przy chacie | jeszcze nie: inna postać i film ze sceną, nie na białym tle |
 | `przemek-1-portret.jpg` | twarz w deszczu, las | ekran startu (`grafika/portret.webp`) i twarz przy myślach (`grafika/portret-maly.webp`) |
@@ -146,7 +146,7 @@ Przemek zrobił w Gemini pięć obrazów i sześć filmów (1280 × 720, 24 klat
 - **Chód.** Klatki biegną z przebytą drogą, a nie z zegarem, więc stoją, gdy bohater stoi. Idąc tyłem (od celu albo w górę ekranu) film leci wstecz. Bohater rusza i staje w chwili, gdy nogi się mijają, więc nie przeskakuje z pół kroku do stania.
 - **Chód: czego się nie da (zmierzone).** W filmie stopa na ziemi przesuwa się o około 60 jednostek gry na cykl (dwa kroki), a cykl trwa 1,7 sekundy. To spokojny marsz, około 37 jednostek na sekundę. Bohater w grze idzie 165 jednostek na sekundę, czyli prawie biegnie. Gdyby nogi miały nadążyć bez ślizgu, przebierałby 5 kroków na sekundę. Gra robi cykl co 110 jednostek drogi: 3 kroki na sekundę, dwa i pół raza szybciej niż w filmie, a stopy trochę się ślizgają. Pomiar (Claude, 24 XI): stopa śledzona na klatkach 64–75 filmu chodu przesuwa się o 5,2 piksela na klatkę w filmie zmniejszonym do 640 × 360, w którym bohater ma 340 pikseli wzrostu, a w grze 100 jednostek.
 
-**Czego brakuje** (do Przemka, kiedy będzie ochota; Patryk prosił, żeby animacją się teraz nie męczyć):
+**Czego brakowało** (24 XI w nocy Przemek przysłał bieg, chód tyłem i przewrót, punkt 11; ta lista zostaje dla historii) (do Przemka, kiedy będzie ochota; Patryk prosił, żeby animacją się teraz nie męczyć):
 
 1. **Bieg w miejscu, z boku, białe tło.** Najważniejsze dla chodzenia: dopiero bieg pasuje do szybkości bohatera w grze i zdejmie ślizganie stóp.
 2. **Chód tyłem do kamery** (w górę ekranu). Teraz bohater idzie w górę przodem do nas, z filmem puszczonym wstecz.
@@ -178,6 +178,41 @@ Wersja do wysłania Przemkowi (dokument z tymi samymi poleceniami): https://clau
 | Bohater, przewrót (z własną końcówką) | The same mercenary does a quick combat roll to the right: drops low, rolls over his shoulder and comes back up into his standing pose with the sword in hand. Pure white background, no floor, no shadow. Static camera: no zoom, no pan, no cut. He may move across the frame but stays fully visible, feet included. Side view from slightly above. No motion trails, no sparks, no glow, no smoke, no text. |
 | Bohater, bieg | The same mercenary runs on the spot in a loop, like on a treadmill: a heavy, determined run, sword held low in his right hand, the wolf-fur cloak bouncing. The last frame matches the first. |
 | Bohater, chód tyłem (w końcówce „seen from behind” zamiast „facing right”) | The same mercenary walks away from the camera on the spot in a loop, like on a treadmill. We see his back: the wolf-fur cloak, the pauldron and the sword in his right hand. The last frame matches the first. |
+
+### 11. Ghul, kolos i nowe ruchy bohatera z filmów Przemka (24 XI w nocy)
+
+**Patryk (24 XI, 01:18), z materiałami:** *„jestem ciekaw jak to teraz przeniesiesz do gry bo jestem jak dotąt zachwycony, i będziemy po wolutku dopieszczać każde sczególy”*. Przyszło wszystko z zamówienia z punktu 10, a do tego unik w bok i upadek bohatera. Filmy i obrazy leżą w [grafika/zrodla/](../grafika/zrodla/).
+
+| Plik | Co na nim jest | Gdzie w grze (klatki filmu) |
+| --- | --- | --- |
+| `ghul-obraz-1.jpg`, `ghul-obraz-2.jpg` | ghul na białym tle | wzór; w grze są klatki z filmów |
+| `ghul-chod.mp4` | skrada się w miejscu | chód: 39–81, pełny cykl (klatka 84 wygląda jak 39) |
+| `ghul-atak.mp4` | przyczaja się, skacze z pazurami, wraca do przysiadu | zamach 7–25, skok 28–40, odpoczynek 43–55 |
+| `ghul-trafienie.mp4` | wstrząs, prostuje się, cofa, wraca | krótki wstrząs przy cięciu (początek filmu), cały film przy ogłuszeniu |
+| `ghul-smierc.mp4` | krew, przewraca się na plecy, leży | śmierć 13–79, ciało na ziemi 88 |
+| `kolos-obraz.jpg` | kolos na białym tle | wzór |
+| `kolos-chod.mp4` | ciężki chód w miejscu | chód: 47–92, pełny cykl |
+| `kolos-atak.mp4` | cios w przód, pięść nad głowę, uderzenie w ziemię, kurz | zamach 28–44, uderzenie 46–58, odpoczynek 61–85; cios w przód (1–25) nieużyty |
+| `kolos-trafienie.mp4` | z ręki leci łańcuch, potem się zatacza | 28–58; łańcuch z początku pominięty |
+| `kolos-smierc.mp4` | klęka i pada na twarz | śmierć 25–73, ciało na ziemi 85 |
+| `film-bieg.mp4` | bohater biegnie w miejscu | bieg: 47–71, każda klatka, pełny cykl (zastąpił chód) |
+| `film-chod-2.mp4` | odwraca się i idzie od nas, plecami | chód w górę ekranu: 47–79 |
+| `film-przewrot.mp4` | przewrót w przód i wstaje z mieczem przed sobą | unik: 22–52 (od przysiadu do lądowania) |
+| `film-upadek.mp4` | osuwa się na kolana i pada na bok | śmierć bohatera: 22–76 |
+| `film-unik.mp4` | krok w bok | jeszcze nie |
+| `film-ciecie-2.mp4` | drugi przewrót | jeszcze nie |
+
+**Jak to działa (Claude, 24 XI).** To samo narzędzie, [narzedzia/wytnij-z-filmow.py](../narzedzia/wytnij-z-filmow.py), robi teraz trzy postacie: bohatera ([grafika/bohater.webp](../grafika/bohater.webp), 147 klatek), ghula ([grafika/ghul.webp](../grafika/ghul.webp), 74 klatki) i kolosa ([grafika/kolos.webp](../grafika/kolos.webp), 69 klatek). Każda postać ma w narzędziu swoje stopy w kadrze, wzrost w filmie i wzrost w grze: bohater 100 jednostek, ghul 72, kolos 165. Klatki potworów opisuje [gra/klatki-wrogow.js](../gra/klatki-wrogow.js). Gdy obraz potwora się nie wczyta, gra rysuje go po staremu kodem.
+
+- **Potwory słuchają walki.** Klatka wynika ze stanu z `walka.js`: zamach i skok idą za czasem ataku, więc film zawsze kończy się razem z atakiem. Chód idzie za przebytą drogą (ghul cykl na 75 jednostek, kolos na 100). Cięcie daje krótki wstrząs z filmu trafienia i jasny rozbłysk całej postaci. Ogłuszenie (po parowaniu albo klątwie) pokazuje cały film trafienia.
+- **Śmierć.** Ghul pada na plecy z dala od bohatera, kolos na twarz. Ostatnia klatka zostaje na ziemi. 50 najświeższych ciał leży w pełnej ostrości, a starsze idą do warstwy śladów, która ma połowę rozdzielczości. Mocny cios albo wielki miecz nadal tnie na pół: gra przecina w pasie pierwszą klatkę chodu.
+- **Oczy** świecą jak dotąd, ale tylko w chodzie i w zamachu ghula. W zamachu kolosa pięść zasłania głowę, więc ostrzega tylko czerwony krąg na ziemi.
+- **Bieg.** W filmie stopa przesuwa się o około 73 jednostki na cykl. Gra robi cykl co 90 jednostek drogi, czyli prawie 2 kroki na sekundę i tylko lekki ślizg; wcześniej marsz ślizgał się mocno. Rusza i staje, gdy nogi się mijają (w 42. i 94. setnej cyklu biegu).
+- **Plecami.** Idąc wyraźnie w górę ekranu, bohater pokazuje plecy. Wraca do biegu bokiem, gdy skręci, z zapasem, żeby obraz nie migał.
+- **Przewrót.** W filmie bohater przesuwa się w kadrze o pół wzrostu. Narzędzie liczy dla tych klatek stopy od środka ciała, więc drogę przewrotu robi sam unik w grze. Bohater obraca się w stronę uniku. Unik trwa teraz 0,4 s zamiast 0,32 s, a nietykalność 0,3 s zamiast 0,24 s, bo przewrót w 0,32 s był migotaniem. Bot przechodzi noc tak samo jak wcześniej (`dobry`: 5 na 5 świtów każdym mieczem, rany jak przed zmianą).
+- **Upadek** z filmu zamiast przechylonej klatki rany. Bohater zostaje na ziemi, nie znika.
+
+**Do dopieszczenia** (sprawdzone na zrzutach w zwolnionym tempie, jeszcze nie w rękach Patryka): po przewrocie bohater wstaje z przysiadu jednym przeskokiem; kurz po uderzeniu kolosa z filmu zostaje szarą plamą przy pięści; obrazy potworów to razem około 1,5 MB do pobrania.
 
 ## Jak ocenimy próbkę
 

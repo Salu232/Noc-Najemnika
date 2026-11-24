@@ -1,40 +1,80 @@
-# Wycina bohatera z filmów Przemka (Gemini, białe tło) i składa klatki animacji w jeden obraz dla gry.
+# Wycina postacie z filmów Przemka (Gemini, białe tło) i składa klatki animacji w obrazy dla gry.
 # Uruchomienie z korzenia repo: python3 narzedzia/wytnij-z-filmow.py
 # Potrzebne: ffmpeg oraz Python z pakietami pillow, numpy i scipy (pip install pillow numpy scipy).
-# Wynik: grafika/bohater.webp i gra/klatki-bohatera.js (gdzie leży każda klatka, gdzie ma stopy i które klatki tworzą którą animację).
+# Wynik: dla bohatera grafika/bohater.webp i gra/klatki-bohatera.js, dla potworów grafika/ghul.webp,
+# grafika/kolos.webp i wspólny gra/klatki-wrogow.js (gdzie leży każda klatka, gdzie postać ma stopy
+# i które klatki tworzą którą animację).
 import json, os, subprocess, tempfile
 import numpy as np
 from PIL import Image
 from scipy import ndimage
 
 ZRODLA = 'grafika/zrodla'
-# Animacje: (film, numery klatek filmu liczone od 1). Filmy mają 24 klatki na sekundę i 4 sekundy.
-# We wszystkich filmach bohater stoi bokiem do nas i patrzy w prawo: w prawo idzie i w prawo tnie.
-ANIMACJE = {
-    'spoczynek': ('oddech', list(range(35, 74, 3))),          # jeden pełny oddech: klatka 75 wygląda jak 35
-    'chod':      ('chod',   list(range(47, 87, 2))),          # dwa kroki: klatka 87 wygląda jak 47
-    'zamach':    ('ciecie', [4, 8, 12, 16, 20, 24, 28, 31, 34, 37]),   # unosi miecz i odprowadza go nisko w lewo, za siebie
-    'ciecie':    ('ciecie', [39, 41, 43, 45, 47, 49, 52, 55]),        # zamaszyste cięcie w prawo, ręka wyciągnięta
-    'powrot':    ('ciecie', [58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94]),
-    'rana':      ('rana',   [7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37]),
-    'blok':      ('rana',   [49, 52, 55]),                    # miecz trzymany poziomo przed sobą
-    # atak klątwy (R): unosi przeklętą prawą rękę, wali pięścią w ziemię, wstaje. Wybuch rysuje gra:
-    # klatki 31–61 filmu pomijamy, bo fioletowy wybuch zasłania nogi.
-    'klatwa_lad':    ('magia', [4, 8, 12, 16, 19, 22, 25, 28]),
-    'klatwa_uderz':  ('magia', [64, 67, 70]),
-    'klatwa_wstaje': ('magia', [73, 76, 79, 82, 85, 88, 91]),
+# Filmy mają 24 klatki na sekundę i 4 sekundy (96 klatek). Animacja to (film, numery klatek liczone od 1).
+# We wszystkich filmach postać stoi bokiem do nas i patrzy w prawo.
+POSTACIE = {
+    'bohater': {
+        'obraz': 'grafika/bohater.webp',
+        'stopy': (295, 345),      # punkt między stopami w spoczynku, w pikselach filmu zmniejszonego o połowę (640 × 360)
+        'wys_film': 340,          # tyle pikseli ma stojący bohater w filmie zmniejszonym o połowę
+        'wys_swiat': 100,         # tyle jednostek świata ma w grze (od czubka głowy do stóp)
+        'skala_obrazu': 0.5,      # klatki do gry są jeszcze o połowę mniejsze: postać ma około 170 px wysokości
+        'animacje': {
+            'spoczynek': ('film-oddech', list(range(35, 74, 3))),          # jeden pełny oddech: klatka 75 wygląda jak 35
+            'bieg':      ('film-bieg',   list(range(47, 72))),             # dwa kroki biegu: klatka 72 wygląda jak 47
+            'chod_tyl':  ('film-chod-2', list(range(47, 80, 2))),          # idzie od nas, plecami: klatka 80 wygląda jak 47
+            'zamach':    ('film-ciecie', [4, 8, 12, 16, 20, 24, 28, 31, 34, 37]),   # unosi miecz i odprowadza go nisko w lewo, za siebie
+            'ciecie':    ('film-ciecie', [39, 41, 43, 45, 47, 49, 52, 55]),        # zamaszyste cięcie w prawo, ręka wyciągnięta
+            'powrot':    ('film-ciecie', [58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94]),
+            'rana':      ('film-rana',   [7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37]),
+            'blok':      ('film-rana',   [49, 52, 55]),                    # miecz trzymany poziomo przed sobą
+            # przewrót w przód przy uniku: od przysiadu do lądowania w przysiadzie z mieczem przed sobą
+            'przewrot':  ('film-przewrot', [22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52]),
+            # upadek po śmierci: osuwa się na kolana i pada na bok
+            'upadek':    ('film-upadek', [22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 58, 61, 64, 67, 70, 76]),
+            # atak klątwy (R): unosi przeklętą prawą rękę, wali pięścią w ziemię, wstaje. Wybuch rysuje gra:
+            # klatki 31–61 filmu pomijamy, bo fioletowy wybuch zasłania nogi.
+            'klatwa_lad':    ('film-magia', [4, 8, 12, 16, 19, 22, 25, 28]),
+            'klatwa_uderz':  ('film-magia', [64, 67, 70]),
+            'klatwa_wstaje': ('film-magia', [73, 76, 79, 82, 85, 88, 91]),
+        },
+        # W przewrocie bohater przesuwa się w kadrze o pół swojego wzrostu. W grze drogę przewrotu robi sam ruch,
+        # więc stopy tych klatek idą za środkiem ciała: ciało zostaje tam, gdzie gra je stawia.
+        'sledz': {'przewrot'},
+    },
+    'ghul': {
+        'obraz': 'grafika/ghul.webp',
+        'stopy': (285, 345), 'wys_film': 317, 'wys_swiat': 72, 'skala_obrazu': 0.4,
+        'animacje': {
+            'chod':       ('ghul-chod', list(range(39, 84, 3))),           # pełny cykl: klatka 84 wygląda jak 39
+            'zamach':     ('ghul-atak', [7, 10, 13, 16, 19, 22, 25]),      # przyczaja się
+            'skok':       ('ghul-atak', [28, 30, 32, 34, 36, 38, 40]),     # skacze z pazurami
+            'odpoczynek': ('ghul-atak', [43, 46, 49, 52, 55]),             # ląduje i wraca do przysiadu
+            'trafienie':  ('ghul-trafienie', [7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52]),
+            'smierc':     ('ghul-smierc', list(range(13, 80, 3))),         # krew, przewraca się na plecy, leży
+            'trup':       ('ghul-smierc', [88]),
+        },
+    },
+    'kolos': {
+        'obraz': 'grafika/kolos.webp',
+        'stopy': (270, 350), 'wys_film': 344, 'wys_swiat': 165, 'skala_obrazu': 0.62,
+        'animacje': {
+            'chod':       ('kolos-chod', list(range(47, 95, 3))),          # pełny cykl: klatka 95 wygląda jak 47
+            'zamach':     ('kolos-atak', [28, 30, 32, 34, 36, 38, 40, 42, 44]),   # unosi pięści nad głowę
+            'skok':       ('kolos-atak', [46, 49, 52, 55, 58]),            # wali w ziemię
+            'odpoczynek': ('kolos-atak', [61, 64, 67, 70, 73, 76, 79, 82, 85]),
+            'trafienie':  ('kolos-trafienie', list(range(28, 62, 3))),   # od 28: wcześniej z ręki leci łańcuch
+            'smierc':     ('kolos-smierc', list(range(25, 74, 3))),        # chwieje się, klęka, pada na twarz
+            'trup':       ('kolos-smierc', [85]),
+        },
+    },
 }
 # W klatkach 39–49 cięcia smuga z filmu zasłania biodra i po jej zdjęciu zostaje dziura.
 # Pas z dziurą bierzemy z klatki 55, w której bohater stoi w tym samym rozkroku, a smugi już nie ma.
-LATKI = {('ciecie', k): 55 for k in (39, 41, 43, 45, 47, 49)}
+LATKI = {('film-ciecie', k): 55 for k in (39, 41, 43, 45, 47, 49)}
 # W filmie magii pod bohaterem zostaje popękana, jasna ziemia z fioletem. Zdejmujemy ją od wiersza 235 w dół.
-ZIEMIA = {('magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
-POL = 0.5                 # kluczowanie na filmie zmniejszonym o połowę (640 × 360)
-SKALA_OBRAZU = 0.5        # i jeszcze o połowę do gry: postać ma około 170 px wysokości
-STOPY = (295, 345)        # punkt między stopami w spoczynku, w pikselach filmu zmniejszonego o połowę
-WYS_SWIAT = 100           # tyle jednostek świata ma stojący bohater (od czubka głowy do stóp)
-WYS_FILM = 340            # tyle pikseli ma stojący bohater w filmie zmniejszonym o połowę
-PATRZY = 1                # w filmach bohater patrzy w prawo
+ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
+PATRZY = 1                # w filmach postacie patrzą w prawo
 
 
 def kluczuj(obraz, dol=0.80):
@@ -71,7 +111,7 @@ def kluczuj(obraz, dol=0.80):
 def klatki_filmu(film, numery, katalog):
     wybor = '+'.join(f'eq(n\\,{k - 1})' for k in numery)
     wyj = os.path.join(katalog, film + '-%03d.png')
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', f'{ZRODLA}/film-{film}.mp4', '-vf', f"select='{wybor}',scale=640:360:flags=lanczos", '-vsync', '0', wyj], check=True)
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', f'{ZRODLA}/{film}.mp4', '-vf', f"select='{wybor}',scale=640:360:flags=lanczos", '-vsync', '0', wyj], check=True)
     return [Image.open(os.path.join(katalog, f'{film}-{i + 1:03d}.png')).convert('RGB') for i in range(len(numery))]
 
 
@@ -104,50 +144,71 @@ def latka(rgba, dawca):
     return Image.fromarray(a, 'RGBA')
 
 
-# każdy film czytamy raz: wszystkie potrzebne klatki razem z dawcami łat
-potrzebne = {}
-for film, numery in ANIMACJE.values(): potrzebne.setdefault(film, set()).update(numery)
-for (film, _), dawca in LATKI.items(): potrzebne[film].add(dawca)
+def srodek(rgba):
+    """Środek ciała w poziomie: średnia kolumna nieprzezroczystych pikseli."""
+    a = np.asarray(rgba)[..., 3] > 0
+    return float(np.nonzero(a)[1].mean())
 
-klatki, obrazy, anim = {}, [], {}
-with tempfile.TemporaryDirectory() as kat:
-    kluczowane = {}
-    for film, numery in potrzebne.items():
-        numery = sorted(numery)
-        for k, obr in zip(numery, klatki_filmu(film, numery, kat)):
-            kluczowane[(film, k)] = zdejmij_ziemie(kluczuj(obr), obr) if (film, k) in ZIEMIA else kluczuj(obr)
-    for nazwa, (film, numery) in ANIMACJE.items():
-        anim[nazwa] = []
-        for k in numery:
-            rgba = kluczowane[(film, k)]
-            if (film, k) in LATKI: rgba = latka(rgba, kluczowane[(film, LATKI[(film, k)])])
-            box = rgba.getbbox()
-            kaw = rgba.crop(box)
-            w, h = max(1, round(kaw.width * SKALA_OBRAZU)), max(1, round(kaw.height * SKALA_OBRAZU))
-            kaw = kaw.resize((w, h), Image.LANCZOS)
-            klucz = f'{film}{k}'
-            if klucz not in klatki:
-                klatki[klucz] = {'w': w, 'h': h, 'ax': round((STOPY[0] - box[0]) / (box[2] - box[0]), 4), 'ay': round((STOPY[1] - box[1]) / (box[3] - box[1]), 4)}
-                obrazy.append((klucz, kaw))
-            anim[nazwa].append(klucz)
 
-# układamy klatki półkami w obrazie szerokim na 2048 px
-SZER, ODST = 2048, 2
-x = y = ODST; wys_polki = 0
-for klucz, o in sorted(obrazy, key=lambda p: -p[1].height):
-    if x + o.width + ODST > SZER: x = ODST; y += wys_polki + ODST; wys_polki = 0
-    klatki[klucz]['x'], klatki[klucz]['y'] = x, y
-    x += o.width + ODST; wys_polki = max(wys_polki, o.height)
-atlas = Image.new('RGBA', (SZER, y + wys_polki + ODST), (0, 0, 0, 0))
-for klucz, o in obrazy: atlas.paste(o, (klatki[klucz]['x'], klatki[klucz]['y']))
-atlas.save('grafika/bohater.webp', 'WEBP', quality=86, method=6)
+def zrob(nazwa, cfg):
+    animacje, stopy = cfg['animacje'], cfg['stopy']
+    potrzebne = {}                                   # każdy film czytamy raz: wszystkie potrzebne klatki razem z dawcami łat
+    for film, numery in animacje.values(): potrzebne.setdefault(film, set()).update(numery)
+    for (film, _), dawca in LATKI.items():
+        if film in potrzebne: potrzebne[film].add(dawca)
+    klatki, obrazy, anim = {}, [], {}
+    with tempfile.TemporaryDirectory() as kat:
+        kluczowane = {}
+        for film, numery in potrzebne.items():
+            numery = sorted(numery)
+            for k, obr in zip(numery, klatki_filmu(film, numery, kat)):
+                kluczowane[(film, k)] = zdejmij_ziemie(kluczuj(obr), obr) if (film, k) in ZIEMIA else kluczuj(obr)
+        for an, (film, numery) in animacje.items():
+            anim[an] = []
+            sledz = an in cfg.get('sledz', ())
+            s0 = srodek(kluczowane[(film, numery[0])]) if sledz else 0
+            for k in numery:
+                rgba = kluczowane[(film, k)]
+                if (film, k) in LATKI: rgba = latka(rgba, kluczowane[(film, LATKI[(film, k)])])
+                box = rgba.getbbox()
+                kaw = rgba.crop(box)
+                s = cfg['skala_obrazu']
+                w, h = max(1, round(kaw.width * s)), max(1, round(kaw.height * s))
+                kaw = kaw.resize((w, h), Image.LANCZOS)
+                sx = stopy[0] + (srodek(rgba) - s0 if sledz else 0)
+                klucz = f'{film}{k}' + ('s' if sledz else '')
+                if klucz not in klatki:
+                    klatki[klucz] = {'w': w, 'h': h, 'ax': round((sx - box[0]) / (box[2] - box[0]), 4), 'ay': round((stopy[1] - box[1]) / (box[3] - box[1]), 4)}
+                    obrazy.append((klucz, kaw))
+                anim[an].append(klucz)
 
-skala = WYS_SWIAT / (WYS_FILM * SKALA_OBRAZU)
+    # układamy klatki półkami w obrazie szerokim na 2048 px
+    SZER, ODST = 2048, 2
+    x = y = ODST; wys_polki = 0
+    for klucz, o in sorted(obrazy, key=lambda p: -p[1].height):
+        if x + o.width + ODST > SZER: x = ODST; y += wys_polki + ODST; wys_polki = 0
+        klatki[klucz]['x'], klatki[klucz]['y'] = x, y
+        x += o.width + ODST; wys_polki = max(wys_polki, o.height)
+    atlas = Image.new('RGBA', (SZER, y + wys_polki + ODST), (0, 0, 0, 0))
+    for klucz, o in obrazy: atlas.paste(o, (klatki[klucz]['x'], klatki[klucz]['y']))
+    atlas.save(cfg['obraz'], 'WEBP', quality=84, method=6)
+    skala = cfg['wys_swiat'] / (cfg['wys_film'] * cfg['skala_obrazu'])
+    print(nazwa, 'obraz', atlas.size, 'klatek', len(klatki), 'skala', round(skala, 4))
+    return {'SKALA': round(skala, 4), 'PATRZY': PATRZY, 'ANIMACJE': anim, 'KLATKI': klatki}
+
+
+OPIS = ('// Plik zrobiony przez narzedzia/wytnij-z-filmow.py z filmów Przemka. Nie poprawiaj ręcznie, tylko uruchom narzędzie jeszcze raz.\n'
+        '// KLATKI: miejsce klatki w obrazie postaci (x, y, w, h) i stopy jako ułamek szerokości i wysokości (ax, ay).\n'
+        '// ANIMACJE: które klatki po kolei tworzą daną animację. SKALA: ile jednostek świata ma jeden piksel obrazu. PATRZY: 1, bo w filmach postać patrzy w prawo.\n')
+
+wynik = {nazwa: zrob(nazwa, cfg) for nazwa, cfg in POSTACIE.items()}
+b = wynik.pop('bohater')
 with open('gra/klatki-bohatera.js', 'w', encoding='utf-8') as f:
-    f.write('// Plik zrobiony przez narzedzia/wytnij-z-filmow.py z filmów Przemka. Nie poprawiaj ręcznie, tylko uruchom narzędzie jeszcze raz.\n')
-    f.write('// KLATKI: miejsce klatki w grafika/bohater.webp (x, y, w, h) i stopy jako ułamek szerokości i wysokości (ax, ay).\n')
-    f.write('// ANIMACJE: które klatki po kolei tworzą daną animację. SKALA: ile jednostek świata ma jeden piksel obrazu. PATRZY: 1, bo w filmach patrzy w prawo.\n')
-    f.write(f'export const SKALA = {skala:.4f};\nexport const PATRZY = {PATRZY};\n')
-    f.write('export const ANIMACJE = ' + json.dumps(anim, ensure_ascii=False) + ';\n')
-    f.write('export const KLATKI = ' + json.dumps(klatki, ensure_ascii=False) + ';\n')
-print('obraz', atlas.size, 'klatek', len(klatki), 'skala', round(skala, 4))
+    f.write(OPIS)
+    f.write(f"export const SKALA = {b['SKALA']};\nexport const PATRZY = {b['PATRZY']};\n")
+    f.write('export const ANIMACJE = ' + json.dumps(b['ANIMACJE'], ensure_ascii=False) + ';\n')
+    f.write('export const KLATKI = ' + json.dumps(b['KLATKI'], ensure_ascii=False) + ';\n')
+with open('gra/klatki-wrogow.js', 'w', encoding='utf-8') as f:
+    f.write(OPIS)
+    f.write('// Obraz każdego potwora: grafika/<nazwa>.webp.\n')
+    f.write('export const WROGOWIE_FILM = ' + json.dumps(wynik, ensure_ascii=False) + ';\n')

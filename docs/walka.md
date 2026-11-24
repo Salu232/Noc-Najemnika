@@ -200,3 +200,10 @@ Liczby walki się nie zmieniły. Bot po zmianach (`node testy/bot-noc.mjs dobry 
 - **Uderzenie:** każdy wróg w promieniu 190 dostaje 3 rany i odlatuje (bliżej mocniej). Ghule zwykle giną, kolos traci 3 z 8 i chwieje się 1,2 s, a w tym czasie dostaje podwójnie. Na ziemi zostają fioletowe pęknięcia.
 - **Pasek klątwy** (fioletowy, pod wytrzymałością): każde trafienie mieczem dodaje 4%, każdy zabity mieczem 10%. Zabici klątwą nic nie dodają. Na początku nocy pasek jest pełny, żeby dało się ją od razu wypróbować.
 - Liczby są w [gra/dane.js](../gra/dane.js), w `KLATWA`. Bot klątwy nie używa, więc jego wyniki zostają porównywalne z wcześniejszymi (`dobry miecz`: 20,2 rany za noc).
+
+## 12. Potwory z filmów, bieg i przewrót (24 XI w nocy)
+
+**Patryk, 24 XI, 00:43:** potwory *„są zbyt powtarzalne i nie dają żadnej satysfakcji z bicia ich”*; prosił też o animację rolla. Przemek przysłał filmy ghula, kolosa i nowych ruchów bohatera; jak trafiły do gry, opisuje [docs/grafika.md](grafika.md), punkt 11.
+
+- **Co się zmienia w walce:** nic w liczbach ataków potworów. Ghul i kolos atakują jak dotąd, ale widać to na ich ciele: ghul się przyczaja i skacze, kolos unosi pięść i wali w ziemię. Cięcie daje wstrząs i rozbłysk, śmierć to cały film upadku, a ciało zostaje na ziemi.
+- **Unik to przewrót:** 0,4 s zamiast 0,32 s, nietykalność 0,3 s zamiast 0,24 s, ta sama droga (150) i koszt. Bot przechodzi noc tak samo: `dobry poltorareczny` 8 ran, `miecz` 20,6, `wielki` 0, wszystkie noce do świtu (przed zmianą 9,0 i 19,6).

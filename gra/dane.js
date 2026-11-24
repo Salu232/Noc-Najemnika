@@ -9,7 +9,7 @@ export const BOHATER = {
   odnowaSily: 34,          // ile wytrzymałości wraca na sekundę
   opoznienieOdnowy: 0.6,   // po ilu sekundach od wysiłku zaczyna wracać
 
-  unik: { koszt: 24, czas: 0.32, dystans: 150, nietykalny: 0.24 },
+  unik: { koszt: 24, czas: 0.4, dystans: 150, nietykalny: 0.3 },   // 24 XI: przewrót z filmu, więc trochę dłuższy niż dawny odskok (0,32 s)
   blok: { kosztNaCios: 14, oknoParowania: 0.18, spowolnienie: 0.45, kat: 1.35 },
 
   // Ciosy idą na zmianę: w prawo, w lewo, w prawo… Każdy następny zadany od razu po poprzednim

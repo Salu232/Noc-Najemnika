@@ -10,6 +10,7 @@ Każdy plik robi jedną rzecz. Logika nie wie nic o rysowaniu, a rysowanie nicze
 | [rysowanie.js](rysowanie.js) | obraz w PixiJS: ziemia, las, chata, postacie i ich animacje (pochylenie, padanie, cięcie na pół), krew, mgła, noc z wyciętym światłem, deszcz |
 | [obrazki.js](obrazki.js) | rysunki robione kodem, dopóki nie ma obrazów z Gemini: sosny, ghul, kolos, światło, mgła (bohatera rysowanego kodem rysuje rysowanie.js) |
 | [klatki-bohatera.js](klatki-bohatera.js) | gdzie w [../grafika/bohater.webp](../grafika/bohater.webp) leży każda klatka bohatera z filmów Przemka, gdzie ma stopy i które klatki tworzą którą animację; plik robi [../narzedzia/wytnij-z-filmow.py](../narzedzia/wytnij-z-filmow.py) |
+| [klatki-wrogow.js](klatki-wrogow.js) | to samo dla ghula i kolosa ([../grafika/ghul.webp](../grafika/ghul.webp), [../grafika/kolos.webp](../grafika/kolos.webp)); plik robi to samo narzędzie |
 | [wejscie.js](wejscie.js) | sterowanie: klawiatura i mysz, drążek ruchu, przycisk Tnij jak drążek (stuknij, celuj, ładuj) oraz Blok i Unik |
 | [hud.js](hud.js) | pasek życia i sił, nazwa etapu, myśl bohatera, licznik klatek |
 | [dzwiek.js](dzwiek.js) | dźwięki składane w przeglądarce, bez plików |
