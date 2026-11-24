@@ -302,6 +302,8 @@ Patryk, 24 XI, 14:22: koziołek z jednego obrazu (wersja 17) *„dalej zle to wy
 
 > A 2D hand-drawn game animation in exactly the style of this image. This exact character runs on the spot in a loop, like on a treadmill, facing right, holding his drawn sword in his right hand in front of him exactly as in the image, the blade clearly visible the whole time. He does not move across the frame; only his legs, arms and cloak move. Keep his face, wolf-fur cloak, clothes, colours, ink outlines and size exactly as in the image; do not turn him into a different person, not photorealistic, not 3D. Pure white background, no floor. Static camera: no zoom, no pan, no cut. Whole body visible at all times, feet included. No motion trails, no sparks, no glow, no smoke, no text.
 
+**Wynik (24 XI, 15:09):** udany za pierwszym razem, w grze ([grafika/zrodla/film-bieg-miecz.mp4](../grafika/zrodla/film-bieg-miecz.mp4)). Kadr z naszego filmu jako pierwsza i ostatnia klatka trzyma postać i nie trzeba Gemini.
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?

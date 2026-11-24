@@ -22,6 +22,8 @@ POSTACIE = {
         'animacje': {
             'spoczynek': ('film-oddech', list(range(35, 74, 3))),          # jeden pełny oddech: klatka 75 wygląda jak 35
             'bieg':      ('film-bieg',   list(range(47, 72))),             # dwa kroki biegu: klatka 72 wygląda jak 47
+            # bieg z mieczem w dłoni (Patryk z Flow, 24 XI 15:09, z klatki 88 filmu cięcia): pełny cykl 24 klatki, klatka 33 wygląda jak 9
+            'bieg_miecz': ('film-bieg-miecz', list(range(9, 33))),
             'chod_tyl':  ('film-chod-2', list(range(47, 80, 2))),          # idzie od nas, plecami: klatka 80 wygląda jak 47
             'chod_przod': ('film-chod-przod', list(range(18, 52, 2))),   # idzie do nas, przodem: klatka 52 wygląda jak 18 (cykl 34 klatki)
             'wyciaga':  ('film-miecz-wyciaga', list(range(19, 61, 2))),   # przodem do nas: ręka na rękojeści, wyciąga, unosi przed siebie; chowanie to ta sama animacja wstecz
@@ -90,10 +92,10 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342)}
+STOPY_FILMU = {'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
-SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03}
+SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04}
 
 
 def kluczuj(obraz, dol=0.80):
