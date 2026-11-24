@@ -270,6 +270,8 @@ Bieg bokiem wraca, gdy bohater skręci bardziej w bok niż w dół (ponad 60° o
 | Bieg bez miecza w dłoni (spokój) | The same mercenary runs on the spot in a loop, like on a treadmill, with his sword sheathed in a plain leather scabbard at his left hip, both hands empty and swinging. The last frame matches the first. |
 | Wyciąganie bokiem | The same mercenary, seen from the side and facing right, draws his sword from the leather scabbard at his left hip and raises it into a guard in front of him, in one smooth motion. |
 
+**Pierwsza próba biegu (Patryk z Flow, 24 XI, 13:46): nieudana.** *„nawet nie przypomina naszej postaci a wkłeiłem mu to zdjęcie i prompt”*. Na filmie biegnie inny człowiek, bez futra i płaszcza, w stylu bliższym zdjęciu. Film nie wszedł do repozytorium. Prawdopodobna przyczyna: obraz `przemek-5-biale-tlo.jpg` pokazuje bohatera z ukosa, więc Flow musiał go obrócić bokiem i narysował go od nowa. Następna próba: jako klatka startowa klatka 47 z `film-bieg.mp4` (bohater już bokiem, w biegu, w naszym stylu), plik `bohater-bokiem-klatka.png` w plikach projektu.
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?
