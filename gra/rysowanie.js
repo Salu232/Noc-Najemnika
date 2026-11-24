@@ -1,7 +1,8 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY } from './swiat.js';
+import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS } from './rekwizyty.js';
 import { BOHATER, WROGOWIE, KLATWA } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
@@ -20,7 +21,7 @@ const FILM_WROGA = {
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -70,6 +71,16 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   };
 
   // ---------- tekstury ----------
+  // Rysunki z arkuszy Przemka (narzedzia/wytnij-z-arkuszy.py): drzewa, kępy, krew, ognisko. Bez nich jak dotąd.
+  let R = null;
+  if (obrazRekwizytow) {
+    const baza = new P.BaseTexture(obrazRekwizytow); baza.mipmap = P.MIPMAP_MODES.ON; R = {};
+    for (const n in REKWIZYTY) { const f = REKWIZYTY[n]; R[n] = { ...f, t: new P.Texture(baza, new P.Rectangle(f.x, f.y, f.w, f.h)) }; }
+  }
+  const rysunek = (n, x, y, szer, lustro) => {         // sprite rysunku z arkusza, postawiony podstawą w (x, y), szeroki na szer
+    const f = R[n], sp = new P.Sprite(f.t); sp.anchor.set(f.ax, f.ay); sp.position.set(x, y);
+    const k = szer / f.w; sp.scale.set(lustro ? -k : k, k); return sp;
+  };
   const T = {
     ziemia: tx(O.kafelZiemi()), plamy: tx(O.plamyZiemi()),
     drzewa: [0, 1, 2, 3].map(w => { const d = O.obrazDrzewa(w); return { t: tx(d.canvas), ax: d.ox / d.w, ay: d.oy / d.h }; }),
@@ -154,10 +165,15 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const znakiZiemia = new P.Graphics();          // zapowiedź uderzenia kolosa i fala po nim: leżą na ziemi
   const para = new P.Graphics();                 // oddech w zimnej nocy
   const trupyC = new P.Container();              // ostatnie ciała leżą jako ostre obrazy, starsze idą do śladów
-  swiat.addChild(ziemia, plamy, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
+  const ozdoby = new P.Container();                // kępy trawy, mchu i liści z arkuszy Przemka: leżą pod krwią
+  swiat.addChild(ziemia, plamy, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
 
   // drzewa
   const drzewa = DRZEWA.map((d, i) => {
+    if (R && R[d.rys]) {                          // drzewo z arkusza: wysokość od pnia do czubka to d.h
+      const f = R[d.rys], k = d.h / (f.h * f.ay), sp = new P.Sprite(f.t); sp.anchor.set(f.ax, f.ay);
+      sp.scale.set(d.lustro ? -k : k, k); sp.position.set(d.x, d.y); sp.zIndex = d.y; aktorzy.addChild(sp); return sp;
+    }
     const w = i % 7 === 3 ? 3 : d.wariant, td = T.drzewa[w];
     const s = new P.Sprite(td.t); s.anchor.set(td.ax, td.ay);
     s.scale.set(d.h / O.DRZEWO_H / O.PX); s.position.set(d.x, d.y); s.zIndex = d.y;
@@ -197,6 +213,24 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     kamienie.drawEllipse(Math.cos(a) * 24, Math.sin(a) * 9, 7, 5); kamienie.endFill();
   }
   aktorzy.addChild(kamienie);
+  // Ognisko z filmu Przemka: krąg kamieni z płomieniem w pętli (18 klatek, 12 na sekundę). Druga kopia
+  // dodaje światło (blend ADD), żeby płomień świecił w nocy. Krąg ma 80 jednostek szerokości.
+  let ogien = null, ogienBlask = null;
+  if (R && R.ogien_00) {
+    kamienie.visible = false;
+    ogien = rysunek('ogien_00', OGNISKO.x, OGNISKO.y + 4, 80); ogien.zIndex = OGNISKO.y;
+    ogienBlask = rysunek('ogien_00', OGNISKO.x, OGNISKO.y + 4, 80); ogienBlask.zIndex = OGNISKO.y + 0.4; ogienBlask.blendMode = P.BLEND_MODES.ADD;
+    aktorzy.addChild(ogien, ogienBlask);
+  }
+  // Kępy i plamy na ziemi; krzaki stoją jak drzewa (sortowane po y), ale bez zderzeń.
+  const ozdobyS = [];
+  if (R) for (const o of OZDOBY) {
+    if (!R[o.rys]) continue;
+    const szer = (/^krzak/.test(o.rys) ? 78 : /^(liscie|bloto|ziemia_d)/.test(o.rys) ? 115 : o.plaskie ? 110 : 52) * o.skala;
+    const sp = rysunek(o.rys, o.x, o.y, szer, o.lustro);
+    if (o.stoi) { sp.zIndex = o.y; aktorzy.addChild(sp); } else { sp.alpha = o.plaskie ? 0.75 : 1; ozdoby.addChild(sp); }
+    ozdobyS.push([sp, o]);
+  }
 
   // bohater: obraz z Gemini (bohS) albo grafika rysowana kodem co klatkę (bohG)
   const bohG = new P.Graphics(); aktorzy.addChild(bohG);
@@ -309,6 +343,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   }
 
   // ---------- ślady na ziemi (krew, ciała, cienie drzew) ----------
+  const KALUZE = ['kaluza_a', 'kaluza_b', 'kaluza_c', 'kaluza_d'];
+  const BRYZGI = ['bryzg_a', 'bryzg_b', 'bryzg_c', 'bryzg_d', 'bryzg_e', 'bryzg_f', 'bryzg_g', 'bryzg_h'];
   function dorysujSlady(lista) {
     if (!lista.length) return;
     const c = new P.Container();
@@ -321,6 +357,13 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         const at = atlasy[s.wrog], w = at.wzor, sk = (s.wrog === 'kolos' ? 2.3 : 1.25) / O.PX;
         const sp = new P.Sprite(at.martwy); sp.anchor.set(w.ox / w.w, w.oy / w.h);
         sp.position.set(s.x, s.y); sp.rotation = s.obrot; sp.scale.set(sk * s.sx, sk); c.addChild(sp);
+      } else if (R && (s.typ === 'kaluza' || (s.typ === 'kropla' && (s.r || 2) >= 1))) {
+        // krew z arkusza Przemka: kałuża pod trupem, rozbryzg tam, gdzie spadła kropla (spłaszczony jak ziemia)
+        const kal = s.typ === 'kaluza', n = kal ? (s.duza ? KALUZE : BRYZGI)[(Math.random() * 4) | 0] : BRYZGI[(Math.random() * BRYZGI.length) | 0];
+        const szer = kal ? (s.duza ? losuj(70, 95) : losuj(38, 52)) : s.r * losuj(5, 8);
+        const sp = rysunek(n, s.x, s.y, szer, Math.random() < 0.5);
+        if (!kal) { sp.rotation = losuj(-0.5, 0.5); sp.scale.y *= 0.7; }
+        sp.alpha = kal ? 0.92 : losuj(0.7, 0.9); c.addChild(sp);
       } else if (s.typ === 'kaluza' || s.typ === 'kropla') {
         const n = s.typ === 'kaluza' ? (s.duza ? 7 : 3) : 1, roz = s.typ === 'kaluza' ? 1 : 0.3;
         for (let i = 0; i < n; i++) {
@@ -797,8 +840,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     for (const w of [swiat, nad]) { w.scale.set(zz); w.position.set(ox, oy); }
 
     // widoczny kawałek świata (z zapasem na wysokie drzewa)
-    const L = -ox / zz - 140, R = (vw - ox) / zz + 140, G = -oy / zz - 60, D = (vh - oy) / zz + 380;
-    for (let i = 0; i < drzewa.length; i++) { const d = DRZEWA[i]; drzewa[i].visible = d.x > L && d.x < R && d.y > G && d.y < D; }
+    const L = -ox / zz - 140, Pr = (vw - ox) / zz + 140, G = -oy / zz - 60, D = (vh - oy) / zz + 380;
+    for (let i = 0; i < drzewa.length; i++) { const d = DRZEWA[i]; drzewa[i].visible = d.x > L && d.x < Pr && d.y > G && d.y < D; }
+    for (const [sp, o] of ozdobyS) sp.visible = o.x > L && o.x < Pr && o.y > G - 100 && o.y < D;
 
     // bohater: poza, potem ciało (pochylenie, przysiad, oddech, odrzut po ranie i bloku)
     if (b.blok && !stanRys.blokowal) stanRys.blokOd = czas; stanRys.blokowal = b.blok;
@@ -988,7 +1032,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // wrogowie
     pulaWrogow.start(); pulaCieni.start(); pulaOczu.start(); pulaBlyskow.start();
     for (const e of gra.wrogowie) {
-      if (e.x < L - 100 || e.x > R + 100 || e.y < G || e.y > D) continue;
+      if (e.x < L - 100 || e.x > Pr + 100 || e.y < G || e.y > D) continue;
       if (filmW[e.typ.nazwa]) { rysujWrogaZFilmu(e, filmW[e.typ.nazwa], b, gra); continue; }
       const at = atlasy[e.typ.nazwa], w = at.wzor, sk = e.typ.skala;
       const sx = Math.cos(e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'odpoczynek' ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;
@@ -1155,7 +1199,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const migot = 0.88 + Math.sin(czas * 9.1) * 0.05 + Math.sin(czas * 13.7 + 1) * 0.04 + Math.sin(czas * 3.3) * 0.03;
     plomienie.clear();
     const fx = OGNISKO.x, fy = OGNISKO.y;
-    for (let i = 0; i < 4; i++) {
+    if (ogien) {
+      const kl = R['ogien_' + String(Math.floor(czas * OGIEN_FPS) % OGIEN_KLATEK).padStart(2, '0')].t;
+      ogien.texture = kl; ogienBlask.texture = kl; ogienBlask.alpha = (0.3 + (migot - 0.88) * 2) * Math.max(0.4, gra.mroczek / 0.8);
+    }
+    for (let i = 0; i < (ogien ? 0 : 4); i++) {
       const m = Math.sin(czas * (7 + i * 2.3) + i * 1.7) * 0.5 + 0.5, wys = 24 + m * 16 - i * 3, szer = 9 - i * 1.4, off = (i - 1.5) * 4;
       plomienie.beginFill(i < 2 ? 0xe66e28 : 0xffc86e, 0.55 + m * 0.2);
       plomienie.moveTo(fx + off - szer, fy - 2);

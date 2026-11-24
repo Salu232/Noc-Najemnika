@@ -72,6 +72,43 @@ export const DRZEWA = [];
   for (const [x, y] of [[980, 900], [2250, 860], [1080, 1640], [2180, 1600], [2420, 1350]]) DRZEWA.push({ x, y, h: 240, wariant: 1, promien: 15 });
 })();
 
+// Drzewa z arkuszy Przemka (docs/materialy-przemka.md, etap A): który rysunek stoi w którym miejscu.
+// Osobne ziarno, żeby las stał tam, gdzie stał. Pień i kłoda są niższe, więc mają mniejsze h (cień i zasłanianie).
+// Bez obrazu rekwizytów gra rysuje drzewa kodem według wariantu, jak dotąd.
+let ziarno2 = 29;
+const los2 = () => { ziarno2 = (ziarno2 + 0x6D2B79F5) | 0; let t = Math.imul(ziarno2 ^ (ziarno2 >>> 15), 1 | ziarno2); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+const LAS = [['swierk_a', 30], ['swierk_b', 30], ['martwe_a', 7], ['martwe_b', 7], ['zlamane', 6], ['sosna', 6], ['mszyste', 6], ['pien', 4], ['kloda', 4]];
+const WYS_RYSUNKU = { pien: 0.3, kloda: 0.34, sosna: 0.8, mszyste: 0.8, zlamane: 0.85, martwe_a: 0.9, martwe_b: 0.85 };
+for (let i = 0; i < DRZEWA.length; i++) {
+  const d = DRZEWA[i];
+  if (i >= DRZEWA.length - 5) { d.rys = ['swierk_a', 'mszyste', 'martwe_a', 'sosna', 'swierk_b'][i - DRZEWA.length + 5]; }  // samotne na skraju
+  else { let r = los2() * 100; for (const [n, w] of LAS) { if ((r -= w) < 0) { d.rys = n; break; } } }
+  d.lustro = los2() < 0.5;
+  d.h *= WYS_RYSUNKU[d.rys] || 1;
+}
+
+// Kępy trawy, mchu, ziemi i liści na ziemi (bez zderzeń): gęściej w lesie, rzadziej na polanie,
+// nie w chacie, na podwórku ani przy ognisku.
+export const OZDOBY = [];
+(function rozsyp() {
+  const POLANA = ['trawa_a', 'trawa_b', 'trawa_c', 'trawa_d', 'trawa_e', 'trawa_f', 'trawa_g', 'trawa_a', 'trawa_b', 'trawa_e', 'ziemia_b', 'mech_c', 'bloto'];
+  const LASU = ['mech_a', 'mech_b', 'mech_c', 'mech_d', 'mech_e', 'liscie', 'liscie', 'trawa_c', 'trawa_d', 'trawa_f', 'ziemia_d', 'krzak_a', 'krzak_b', 'krzak_b'];
+  const PLASKIE = /^(ziemia|mech|bloto|liscie)/;
+  const chata = { x0: CHATA.x + 10, x1: CHATA.x + 951 * CHATA.skala, y0: CHATA.y + 330 * CHATA.skala, y1: CHATA.podstawa + 70 };
+  for (let i = 0; i < 9000 && OZDOBY.length < 420; i++) {
+    const x = 30 + los2() * (SZER - 60), y = 70 + los2() * (WYS - 100);
+    const nx = (x - 1600) / 980, ny = (y - 1260) / 700, naPolanie = nx * nx + ny * ny < 0.92;
+    if (naPolanie && los2() < 0.75) continue;                                            // polana rzadziej
+    if (x > chata.x0 - 40 && x < chata.x1 + 30 && y > chata.y0 && y < chata.y1) continue;
+    if (Math.hypot(x - OGNISKO.x, (y - OGNISKO.y) * 1.4) < 120) continue;
+    const lista = naPolanie ? POLANA : LASU, rys = lista[(los2() * lista.length) | 0];
+    const odst = PLASKIE.test(rys) ? 110 : 60;
+    if (OZDOBY.some(o => Math.hypot(o.x - x, o.y - y) < Math.max(odst, o.odst))) continue;
+    if (/^krzak/.test(rys) && DRZEWA.some(d => Math.hypot(d.x - x, d.y - y) < 40)) continue;
+    OZDOBY.push({ x, y, rys, odst, lustro: los2() < 0.5, skala: 0.8 + los2() * 0.45, plaskie: PLASKIE.test(rys), stoi: /^krzak/.test(rys) });
+  }
+})();
+
 // Siatka drzew, żeby szybko sprawdzać zderzenia.
 const KOM = 128, siatka = new Map();
 for (const d of DRZEWA) { const k = ((d.x / KOM) | 0) * 1000 + ((d.y / KOM) | 0); (siatka.get(k) || siatka.set(k, []).get(k)).push(d); }

@@ -51,6 +51,17 @@ Nowe potwory potrzebują filmów (chód, atak, trafienie, śmierć). Robimy to t
 
 1. **Jedno narzędzie do wycinania z arkuszy** (`narzedzia/wytnij-z-arkuszy.py`): zdejmuje biel tak jak przy filmach, dzieli arkusz na osobne rysunki, każdemu nadaje nazwę i punkt podstawy (gdzie stoi na ziemi). Wszystkie rekwizyty idą do jednego obrazu, jak klatki bohatera. Robimy je raz, potem każdy arkusz to tylko kilka linijek z nazwami.
 2. **Etap A, jedna sesja:** ognisko (1), drzewa (2), kępy i plamy (3), krew (4). To zmienia wygląd całej polany i nie rusza walki.
+   **Zrobione 24 XI wieczorem** (Claude, na prośbę Patryka z 17:40). Narzędzie `narzedzia/wytnij-z-arkuszy.py` wycina 44 rysunki z sześciu arkuszy
+   (kopie w `grafika/zrodla/przemek/`) i 18 klatek ogniska z filmu (`grafika/zrodla/film-ognisko.mp4`) do jednego obrazu
+   `grafika/rekwizyty.webp` (2048 × 891, około 650 KB) i opisu `gra/rekwizyty.js`. Numery rysunków pokazuje `--podglad KATALOG`.
+   - **Ognisko:** pętla z klatek 43–78 co druga, 12 na sekundę, krąg 80 jednostek; ostatnie cztery klatki przenikają się z klatkami sprzed 43,
+     więc szwu nie widać. Druga kopia z dodawaniem światła, żeby płomień świecił w nocy. Dym z filmu odpada z tłem.
+   - **Drzewa:** ten sam las (miejsca i zderzenia bez zmian), ale każde drzewo to rysunek z arkusza: świerki (60%), martwe, złamany pień,
+     sosna, drzewo z mchem, pniak i kłoda; połowa odbita w lustrze. Rysunki rozjaśnione o jedną trzecią, bo w nocy ginęły.
+   - **Ziemia:** 420 kęp i plam (`OZDOBY` w `gra/swiat.js`): w lesie mech, liście, krzaki; na polanie głównie trawa, rzadziej. Bez zderzeń,
+     nie w chacie, na podwórku ani przy ognisku. Krzaki stoją jak drzewa (bohater może przejść za nimi).
+   - **Krew:** kałuża pod trupem to kałuża z arkusza (70–95 jednostek), krople, które spadną, zostawiają rozbryzgi. Ślady pazurów są w obrazie, ale jeszcze nieużyte.
+   - Bez obrazu rekwizytów gra rysuje wszystko kodem jak dotąd. Bot po zmianie: świt 5/5, rany 8,6 (w zwykłym rozrzucie 7–10,4).
 3. **Etap B:** iskry i rozbryzgi (5), krąg kolosa i strzałki (6), ikony na przyciskach (7). To poprawia czytelność walki na telefonie.
 4. **Etap C:** rama paska (8), rekwizyty i światła (9, 10), panel (11).
 5. **Później:** totemy, potwory i fabuła, kiedy przyjdzie ich kolej w planie.
