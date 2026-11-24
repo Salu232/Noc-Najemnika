@@ -7,6 +7,7 @@ export function przygotujHud() {
   const el = {
     zycie: $('zycie'), smuga: $('smuga'), sila: $('sila'), etap: $('etap'), mysl: $('mysl'),
     krew: $('krew-podpowiedz'), info: $('info'), pasekZycia: $('pasek-zycia'), portret: $('rama-portret'), klatwa: $('klatwa'), przyciskKlatwy: $('przycisk-klatwa'), akcja: $('akcja'), wnetrze: $('wnetrze'),
+    mikstury: $('zapas-mikstur'), drewno: $('zapas-drewna'), ileMikstur: $('ile-mikstur'), przyciskMikstury: $('przycisk-mikstura'),
   };
   const ostatnie = {};
   const ustaw = (klucz, wartosc, fn) => { if (ostatnie[klucz] !== wartosc) { ostatnie[klucz] = wartosc; fn(wartosc); } };
@@ -14,6 +15,7 @@ export function przygotujHud() {
   // licznik klatek: średnia z ostatniej sekundy
   let klatki = 0, odliczanie = 0, fps = 0;
 
+  const dotykHud = matchMedia && matchMedia('(pointer: coarse)').matches;
   function aktualizuj(gra, dt, opisRysowania) {
     const b = gra.bohater, max = BOHATER.zycie;
     const z = Math.max(0, b.zycie) / max * 100, s = b.smuga / max * 100;
@@ -28,12 +30,18 @@ export function przygotujHud() {
     const pokazMysl = gra.mysl.czas > 0 ? gra.mysl.tekst : '';
     ustaw('mysl', pokazMysl, v => { el.mysl.textContent = v; el.mysl.classList.toggle('widac', !!v); });
     ustaw('krew', b.smugaCzas > 0 && b.smuga > 0 && b.stan !== 'upadl', v => el.krew.classList.toggle('widac', v));
+    ustaw('mikstury', b.mikstury, v => {
+      if (el.mikstury) el.mikstury.textContent = dotykHud ? '' : `${v} × mikstura (Q)`;
+      if (el.ileMikstur) el.ileMikstur.textContent = v;
+      if (el.przyciskMikstury) el.przyciskMikstury.classList.toggle('pusta', !v);
+    });
+    ustaw('drewno', !!b.drewno, v => { if (el.drewno) el.drewno.hidden = !v; });
     ustaw('rana', b.flash > 0.15, v => { el.pasekZycia.classList.toggle('rana', v); if (el.portret) el.portret.classList.toggle('rana', v); });
 
     // czynność w chacie (posłanie) albo zamknięte drzwi w walce; ekran snu
     const dotyk = matchMedia && matchMedia('(pointer: coarse)').matches;
     const otwarte = gra.faza === 'przerwa' || gra.faza === 'swit';
-    const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : ({ otworz: 'Otwórz drzwi', zamknij: 'Zamknij drzwi', odpocznij: 'Odpocznij na posłaniu', wstan: 'Wstań' }[gra.akcja] || '');
+    const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : ({ otworz: 'Otwórz drzwi', zamknij: 'Zamknij drzwi', odpocznij: 'Odpocznij na posłaniu', wstan: 'Wstań', drewno: 'Weź polano', dorzuc: 'Dorzuć do ognia' }[gra.akcja] || '');
     ustaw('akcja', napisAkcji, v => {                                  // „!” na początku: czynność teraz niedostępna
       const zamkniete = v.startsWith('!'), t = zamkniete ? v.slice(1) : v;
       el.akcja.hidden = !v; el.akcja.classList.toggle('zamkniete', zamkniete);

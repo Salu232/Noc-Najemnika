@@ -28,28 +28,22 @@ export const BOHATER = {
   miecz: { grzeznie: 0.32, zatrzymanie: 0.05, zatrzymanieGrzeznie: 0.13 },
 };
 
-// Broń: waga to gust (Patryk, 23 XI), więc są trzy miecze do wyboru w menu gry.
+// Broń: waga to gust (Patryk, 23 XI). Do 24 XI były trzy miecze; lekki wypadł (Patryk, 18:44: „ten mały miecz wgl bym nie
+// zostawiał (…) lepiej już zwykły miecz i dwuręczny większy”). Zostają dwa: zwykły miecz i dwuręczny.
 // zamach: ile trwa wzięcie miecza do ciosu; ciecie: jak szybko ostrze przechodzi łuk; powrot: ile trwa,
 // zanim miecz znów jest gotowy. luk: połowa szerokości cięcia (w radianach), krok: ile bohater idzie za ciosem.
 // ruch: jak szybko bohater chodzi w trakcie ciosu (część zwykłej szybkości). przerywa: czy cios przerywa zamach ghula.
 // przecinaCiezkich: czy przechodzi przez kolosa zamiast w nim grzęznąć. ladowanie: ile trzymać, żeby cios był mocny.
 export const BRONIE = {
-  miecz: {
-    nazwa: 'Miecz', opis: 'Lekki i szybki. Dużo cięć, małe rany, nie przerywa ataku ghula.',
-    dlugosc: 58, szerokosc: 3,
-    zamach: 0.09, ciecie: 0.11, powrot: 0.16, zasieg: 92, luk: 0.95,
-    obrazenia: 1, odrzut: 160, koszt: 8, krok: 30, ruch: 0.5,
-    przerywa: false, przecinaCiezkich: false, ladowanie: 0.45,
-  },
   poltorareczny: {
-    nazwa: 'Półtoraręczny', opis: 'Złoty środek. Ghul pada od jednego albo dwóch cięć, a w kolosie miecz grzęźnie.',
+    nazwa: 'Miecz', opis: 'Szybki i pewny. Ghul pada od jednego albo dwóch cięć, a w kolosie miecz grzęźnie.',
     dlugosc: 72, szerokosc: 3.8,
     zamach: 0.17, ciecie: 0.13, powrot: 0.26, zasieg: 110, luk: 1.05,
     obrazenia: 2, odrzut: 260, koszt: 13, krok: 50, ruch: 0.35,
     przerywa: false, przecinaCiezkich: false, ladowanie: 0.6,
   },
   wielki: {
-    nazwa: 'Wielki miecz', opis: 'Ciężki i wolny. Ghula zabija jedno cięcie, a miecz przechodzi nawet przez kolosa.',
+    nazwa: 'Dwuręczny', opis: 'Ciężki i wolny. Ghula zabija jedno cięcie, a miecz przechodzi nawet przez kolosa.',
     dlugosc: 92, szerokosc: 5.6,
     zamach: 0.3, ciecie: 0.17, powrot: 0.42, zasieg: 128, luk: 1.2,
     obrazenia: 3, odrzut: 420, koszt: 20, krok: 70, ruch: 0.2,
@@ -149,3 +143,26 @@ export const NOC = {
   swit: 5,                 // jak długo wstaje świt po ostatnim etapie
   powrot: 2.6,             // ile trwa powrót przy ognisku po upadku
 };
+
+// ---------- Cele nocy (propozycje Claude'a, Patryk 24 XI 18:41: „każdy pomysł … można je spróbować dodać”) ----------
+// Totemy: można je rozbić mieczem albo klątwą. Rozbity totem ucisza swoją stronę: potwory z niej już nie przychodzą
+// (do końca nocy). Południe ma dwa totemy, więc cichnie dopiero po obu.
+export const TOTEM = { zycie: 24, zaKlatwe: 6 };
+
+// Łup: z potwora czasem wypada mikstura (z kolosa zawsze). Mikstura leczy od razu; Q albo przycisk na telefonie.
+export const LUP = { szansaGhul: 0.12, szansaKolos: 1, leczy: 40, max: 3, start: 1, zasiegPodniesienia: 34, znika: 25 };
+
+// Ognisko gaśnie: pełne starcza na czas sekund, światło kurczy się do minimum. Drewno bierze się ze stosu pod ścianą
+// chaty (E) i dorzuca przy ognisku (E). Jedno polano dokłada polano.
+export const OGIEN = { czas: 140, minimum: 0.15, polano: 0.55, przygasa: 0.3 };
+
+// Ulepszenia: po każdej fali (poza ostatnią) wybór jednego z trzech. Działają do końca nocy.
+export const ULEPSZENIA = [
+  { id: 'zasieg', nazwa: 'Dłuższe ostrze', opis: 'Miecz sięga o jedną ósmą dalej.' },
+  { id: 'szybkosc', nazwa: 'Szybsza ręka', opis: 'Zamach i powrót miecza są o 15% krótsze.' },
+  { id: 'garda', nazwa: 'Twarda garda', opis: 'Blok zużywa o 30% mniej sił.' },
+  { id: 'oddech', nazwa: 'Drugi oddech', opis: 'Siły wracają o 35% szybciej.' },
+  { id: 'klatwa', nazwa: 'Głodna klątwa', opis: 'Pasek klątwy napełnia się o połowę szybciej.' },
+  { id: 'mikstura', nazwa: 'Zapas na noc', opis: 'Pełne życie teraz i jedna mikstura więcej.' },
+  { id: 'cialo', nazwa: 'Twarda skóra', opis: 'Rany od potworów są o 20% lżejsze.' },
+];

@@ -1,6 +1,6 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj, ustawBron } from './walka.js';
-import { BRONIE, DOMYSLNA_BRON } from './dane.js';
+import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie } from './walka.js';
+import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
@@ -55,7 +55,7 @@ async function start() {
 
   const wejscie = przygotujWejscie(cv, {
     ekranNaSwiat: rys.ekranNaSwiat,
-    elementy: { przyciski: $('przyciski'), tnij: $('przycisk-tnij'), blok: $('przycisk-blok'), unik: $('przycisk-unik'), klatwa: $('przycisk-klatwa'), akcja: $('akcja'), drazekTlo: $('drazek-tlo'), drazekGalka: $('drazek-galka'), celTlo: $('cel-tlo'), celGalka: $('cel-galka') },
+    elementy: { przyciski: $('przyciski'), tnij: $('przycisk-tnij'), blok: $('przycisk-blok'), unik: $('przycisk-unik'), klatwa: $('przycisk-klatwa'), mikstura: $('przycisk-mikstura'), akcja: $('akcja'), drazekTlo: $('drazek-tlo'), drazekGalka: $('drazek-galka'), celTlo: $('cel-tlo'), celGalka: $('cel-galka') },
   });
   const hud = przygotujHud();
 
@@ -130,6 +130,23 @@ async function start() {
     for (const z of zd) { zagraj(z); if (z.typ === 'koniec') setTimeout(pokazKoniec, 900); }
     rys.rysuj(gra, dt, zd);
     hud.aktualizuj(gra, dt, rys.opis);
+    pokazWybor();
+  }
+  // Wybór ulepszenia po fali: trzy karty, gra stoi, dopóki nie wybierzesz (walka.js, wybierzUlepszenie).
+  let wyborPokazany = null;
+  function pokazWybor() {
+    const klucz = gra.wybor ? gra.wybor.join() : null;
+    if (klucz === wyborPokazany) return; wyborPokazany = klucz;
+    pokaz('ekran-wyboru', !!gra.wybor);
+    if (!gra.wybor) return;
+    const lista = $('karty-wyboru'); lista.textContent = '';
+    for (const id of gra.wybor) {
+      const u = ULEPSZENIA.find(x => x.id === id), b = document.createElement('button');
+      b.type = 'button'; b.className = 'wybor-karta';
+      const h = document.createElement('strong'); h.textContent = u.nazwa; const p = document.createElement('span'); p.textContent = u.opis;
+      b.append(h, p); b.addEventListener('click', () => { wybierzUlepszenie(gra, id); pokazWybor(); });
+      lista.append(b);
+    }
   }
   requestAnimationFrame(klatka);
 }

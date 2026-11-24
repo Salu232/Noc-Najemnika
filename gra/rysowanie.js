@@ -3,7 +3,7 @@
 
 import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY } from './swiat.js';
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
-import { BOHATER, WROGOWIE, KLATWA } from './dane.js';
+import { BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
 import * as O from './obrazki.js';
@@ -235,7 +235,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const totemyS = [];
   if (R && R.totem_czaszka_00) TOTEMY.forEach((t, i) => {
     const f = R[t.rys + '_00'], sp = rysunek(t.rys + '_00', t.x, t.y, t.wys / (f.h * f.ay) * f.w); sp.zIndex = t.y; aktorzy.addChild(sp);
-    totemyS.push({ sp, t, faza: i * 7 });
+    totemyS.push({ sp, t, i, faza: i * 7 });
   });
 
   // bohater: obraz z Gemini (bohS) albo grafika rysowana kodem co klatkę (bohG)
@@ -443,6 +443,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const pulaKawalkow = pula(aktorzy, () => new P.Sprite());
   const pulaBlyskow = pula(aktorzy, () => { const s = new P.Sprite(); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffd8c8; return s; });   // potwór rozbłyska, gdy dostaje
   const pulaEch = pula(echaS, () => { const s = new P.Sprite(); s.tint = 0x9fb4cc; return s; });
+  const pulaLupu = pula(aktorzy, () => { const s = new P.Sprite(); return s; });
   const pulaKrwi = pula(powietrze, () => { const s = new P.Sprite(T.krew[0]); s.anchor.set(0.5); return s; });
   const pulaIskier = pula(iskry, () => { const s = new P.Sprite(T.iskra); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; return s; });
 
@@ -842,6 +843,15 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       else if (z.typ === 'blok') {
         if (z.x != null) { blysk(['iskry_a', 'iskry_b', 'iskry_c'][(Math.random() * 3) | 0], z.x, z.y, z.kat + Math.PI + losuj(-0.7, 0.7), 95, 0.32, true); blysk('iskry_gwiazda', z.x, z.y, null, 62, 0.24, true); }
         stanRys.odepchniecie = 1; stanRys.blokOd = Math.min(stanRys.blokOd, czas - 0.06); stanRys.blokCios = czas; }   // cios w miecz: ręce na chwilę uginają się
+      else if (z.typ === 'totem_traf') blysk('iskry_gwiazda', z.x + losuj(-12, 12), z.y - 70, null, 60, 0.22, true);
+      else if (z.typ === 'totem_rozbity') {
+        blysk('iskry_wybuch', z.x, z.y - 70, null, 170, 0.5, true); pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 200, t: 0, czas: 0.5, kolor: 0xb070ff, ziemia: true });
+        for (let i = 0; i < 10; i++) obloczek(z.x + losuj(-20, 20), z.y - losuj(20, 120), losuj(-60, 60), losuj(-50, 10), 8, losuj(18, 30), losuj(0.6, 1.1), 0.5, 0x8a5cc8, false);
+        napis(z.cicha ? 'Totem rozbity' : 'Pękł', z.x, z.y - 190, 0xc9a0ff);
+      }
+      else if (z.typ === 'mikstura') { napis(`+${LUP.leczy}`, b.x + 18, b.y - 84, 0xff6a5a); pierscienie.push({ x: b.x, y: b.y, r0: 10, r1: 60, t: 0, czas: 0.35, kolor: 0xff7070, ziemia: true }); }
+      else if (z.typ === 'podniesione') napis('Mikstura', z.x, z.y - 40, 0xf0b0b0);
+      else if (z.typ === 'dorzucone') { for (let i = 0; i < 8; i++) obloczek(z.x + losuj(-10, 10), z.y - 20, losuj(-30, 30), losuj(-90, -40), 3, losuj(8, 14), losuj(0.4, 0.8), 0.6, 0xffa050, false); }
       else if (z.typ === 'parowanie') { stanRys.pchniecie = 1; if (z.x != null) { blysk('iskry_wybuch', z.x, z.y, null, 130, 0.36, true); blysk(['iskry_a', 'iskry_b'][(Math.random() * 2) | 0], z.x, z.y, z.kat + Math.PI, 105, 0.34, true); } }
       else if (z.typ === 'klatwa_laduje') pierscienie.push({ x: b.x, y: b.y, r0: KLATWA.zasieg, r1: 24, t: 0, czas: KLATWA.ladowanie, kolor: 0x9a5cff, ziemia: true });
       else if (z.typ === 'klatwa') uderzenieKlatwy(z);
@@ -1242,12 +1252,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
 
     // ogień
-    const migot = 0.88 + Math.sin(czas * 9.1) * 0.05 + Math.sin(czas * 13.7 + 1) * 0.04 + Math.sin(czas * 3.3) * 0.03;
+    const ogienSila = gra.ogien == null ? 1 : gra.ogien, ogienSkala = 0.45 + 0.55 * ogienSila;   // ognisko gaśnie (walka.js); drewno je podsyca
+    const migot = 0.88 + Math.sin(czas * 9.1) * 0.05 + Math.sin(czas * 13.7 + 1) * 0.04 + Math.sin(czas * 3.3) * 0.03, migotO = migot * ogienSkala;
     plomienie.clear();
     const fx = OGNISKO.x, fy = OGNISKO.y;
     if (ogien) {
       const kl = R['ogien_' + String(Math.floor(czas * OGIEN_FPS) % OGIEN_KLATEK).padStart(2, '0')].t;
-      ogien.texture = kl; ogienBlask.texture = kl; ogienBlask.alpha = (0.3 + (migot - 0.88) * 2) * Math.max(0.4, gra.mroczek / 0.8);
+      ogien.texture = kl; ogienBlask.texture = kl; ogienBlask.alpha = (0.15 + 0.25 * ogienSila) * Math.max(0.4, gra.mroczek / 0.8);
+      ogien.tint = ogienSila > 0.5 ? 0xffffff : 0xb0a098;
     }
     for (let i = 0; i < (ogien ? 0 : 4); i++) {
       const m = Math.sin(czas * (7 + i * 2.3) + i * 1.7) * 0.5 + 0.5, wys = 24 + m * 16 - i * 3, szer = 9 - i * 1.4, off = (i - 1.5) * 4;
@@ -1257,7 +1269,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       plomienie.quadraticCurveTo(fx + off + szer * 0.4, fy - wys * 0.6, fx + off + szer, fy - 2);
       plomienie.closePath(); plomienie.endFill();
     }
-    blaskOgnia.position.set(fx, fy - 10); blaskOgnia.width = blaskOgnia.height = 300 * migot; blaskOgnia.alpha = 0.55 * Math.max(0.3, gra.mroczek / 0.8);
+    blaskOgnia.position.set(fx, fy - 10); blaskOgnia.width = blaskOgnia.height = 300 * migotO; blaskOgnia.alpha = 0.55 * Math.max(0.3, gra.mroczek / 0.8);
     blaskOkna.position.set(CHATA.okno.x, CHATA.okno.y + 20); blaskOkna.width = blaskOkna.height = 170; blaskOkna.alpha = 0.6 * Math.max(0.2, gra.mroczek / 0.8) * (1 - stanRys.bezDachu);
     blaskIzby.position.set(CHATA.palenisko.x, CHATA.palenisko.y + 20); blaskIzby.width = blaskIzby.height = 260 * migot; blaskIzby.alpha = 0.5 * stanRys.bezDachu * Math.max(0.3, gra.mroczek / 0.8);
 
@@ -1266,13 +1278,37 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     kreski.alpha = 0.55 * gra.mroczek / 0.8;
     const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zz, oy + y * zz); s.width = s.height = r * 2 * zz; s.alpha = al; };
     stawStempel(swiatloBoh, b.x, b.y - 30, 360 + 260 * stanRys.fiolet, 1);
-    stawStempel(swiatloOgnia, fx, fy - 10, 380 * migot, 0.95);
+    stawStempel(swiatloOgnia, fx, fy - 10, 380 * migotO, 0.95);
     TOTEMY.forEach((t, i) => {                                            // totemy świecą fioletem, żeby było widać, skąd przyjdą
-      const puls = 0.85 + 0.15 * Math.sin(czas * 2.1 + i * 1.7), jest = totemyS.length > 0;
+      const puls = 0.85 + 0.15 * Math.sin(czas * 2.1 + i * 1.7), jest = totemyS.length > 0 && !(gra.totemy && gra.totemy[i].zniszczony);
       stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 190 * puls, jest ? 0.55 : 0);
       const bl = blaskiTotemow[i]; bl.visible = jest; bl.position.set(t.x, t.y - 30); bl.width = bl.height = 200 * puls; bl.alpha = 0.45 * Math.max(0.3, gra.mroczek / 0.8);
     });
-    for (const o of totemyS) { const k = Math.floor(czas * TOTEM_FPS + o.faza) % TOTEM_KLATEK; o.sp.texture = R[o.t.rys + '_' + String(k).padStart(2, '0')].t; }
+    for (const o of totemyS) {
+      const st = gra.totemy && gra.totemy[o.i];
+      if (st && st.zniszczony) {                                          // rozbity: przewrócony, szary, bez dymu
+        o.sp.texture = R[o.t.rys + '_00'].t; o.sp.rotation = o.t.x < 1600 ? -1.25 : 1.25; o.sp.tint = 0x5a5560; o.sp.alpha = 0.9; continue;
+      }
+      const k = Math.floor(czas * TOTEM_FPS + o.faza) % TOTEM_KLATEK; o.sp.texture = R[o.t.rys + '_' + String(k).padStart(2, '0')].t;
+      o.sp.rotation = st && st.flash > 0 ? Math.sin(czas * 80) * 0.04 : 0; o.sp.tint = st && st.flash > 0 ? 0xffd0ff : 0xffffff;
+    }
+    // pasek życia totemu, gdy jest naruszony
+    if (gra.totemy) for (const t of gra.totemy) {
+      if (t.zniszczony || t.zycie >= TOTEM.zycie) continue;
+      const w = 54, x = t.x - w / 2, y = t.y - 175, q = Math.max(0, t.zycie / TOTEM.zycie);
+      znaki.lineStyle(0); znaki.beginFill(0x000000, 0.6); znaki.drawRect(x - 1, y - 1, w + 2, 7); znaki.endFill();
+      znaki.beginFill(0xa868ff, 0.9); znaki.drawRect(x, y, w * q, 5); znaki.endFill();
+    }
+    // łup na ziemi: mikstury lekko podskakują i świecą
+    pulaLupu.start();
+    for (const l of gra.lup || []) {
+      const sp = pulaLupu.wez(), f = R && R.mikstura;
+      if (!f) { sp.visible = false; continue; }
+      sp.texture = f.t; sp.anchor.set(f.ax, f.ay); const k = 26 / f.w; sp.scale.set(k);
+      sp.position.set(l.x, l.y - 4 - Math.abs(Math.sin(czas * 3 + l.x)) * 6); sp.zIndex = l.y;
+      sp.alpha = l.t > LUP.znika - 4 ? 0.5 + 0.5 * Math.sin(czas * 12) : 1;
+    }
+    pulaLupu.koniec();
     stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7 * (1 - stanRys.bezDachu));
     stawStempel(swiatloIzby, CHATA.palenisko.x, CHATA.palenisko.y + 60, 240 * migot, 0.95 * stanRys.bezDachu);   // ogień z paleniska oświetla izbę
     renderer.render(ciemnoscC, { renderTexture: ciemnoscRT, clear: true });

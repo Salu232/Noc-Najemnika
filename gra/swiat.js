@@ -44,6 +44,8 @@ CHATA.ploty = [
 
 export const OGNISKO = { ...zObrazu(455, 1030), promien: 28 };
 export const START = { x: OGNISKO.x + 90, y: OGNISKO.y + 40 };
+// Stos drewna pod ścianą chaty, na lewo od drzwi (w obrazie chaty x 200–340, y 580–690): tu bierze się polano do ogniska.
+export const STOS_DREWNA = zObrazu(270, 725);
 
 // Mgły na skraju lasu. Z nich wychodzą potwory (pomysł Patryka, 23 XI).
 export const MGLY = {
@@ -170,8 +172,10 @@ export function zderzenia(p, r) {
 }
 
 // Potwór wychodzi spod totemu tej strony (przed nim, w stronę polany).
-export function punktWMgle(nazwa) {
-  const lista = TOTEMY.filter(t => t.mgla === nazwa), t = lista[(Math.random() * lista.length) | 0];
+export function punktWMgle(nazwa, stan = null) {
+  let lista = TOTEMY.filter((t, i) => t.mgla === nazwa && !(stan && stan[i].zniszczony));
+  if (!lista.length) lista = TOTEMY.filter(t => t.mgla === nazwa);
+  const t = lista[(Math.random() * lista.length) | 0];
   const a = Math.atan2(1260 - t.y, 1600 - t.x) + (Math.random() - 0.5) * 1.6, d = 45 + Math.random() * 40;
   return { x: t.x + Math.cos(a) * d, y: t.y + Math.sin(a) * d * 0.7 };
 }

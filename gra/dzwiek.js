@@ -46,6 +46,12 @@ export function zagraj(z) {
     case 'parowanie': ton(t, 0.45, 'sine', 1500, 1350, 0.28); ton(t, 0.35, 'sine', 2250, 2100, 0.12); break;
     case 'rana': ton(t, 0.22, 'sine', 95, 40, 0.7); szum(t, 0.12, 'lowpass', 700, 200, 0.35); break;
     case 'smierc': szum(t, 0.2, 'lowpass', 1000, 250, 0.4); break;
+    case 'totem_traf': ton(t, 0.16, 'triangle', 420, 260, 0.25); szum(t, 0.1, 'bandpass', 1600, 700, 0.25, 2); break;
+    case 'totem_rozbity': ton(t, 0.7, 'sine', 90, 30, 0.9); szum(t, 0.6, 'lowpass', 1800, 120, 0.7); ton(t, 0.6, 'sawtooth', 220, 60, 0.08); break;
+    case 'mikstura': ton(t, 0.3, 'sine', 420, 760, 0.2); break;
+    case 'podniesione': ton(t, 0.12, 'sine', 880, 1200, 0.12); break;
+    case 'drewno': szum(t, 0.12, 'bandpass', 600, 300, 0.25, 2); break;
+    case 'dorzucone': szum(t, 0.5, 'bandpass', 900, 300, 0.35, 1); ton(t, 0.2, 'sine', 120, 70, 0.3); break;
     case 'tapniecie': ton(t, 0.55, 'sine', 70, 28, 0.9); szum(t, 0.35, 'lowpass', 500, 80, 0.5); break;
     case 'drzwi':                                                          // skrzypnięcie zawiasów, przy zamykaniu głuche stuknięcie
       ton(t, 0.35, 'sawtooth', z.otwarte ? 210 : 260, z.otwarte ? 320 : 180, 0.05); szum(t, 0.3, 'bandpass', 900, 1400, 0.08, 6);

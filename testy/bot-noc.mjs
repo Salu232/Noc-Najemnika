@@ -1,7 +1,7 @@
 // Bot gra całą noc samą logiką (bez rysowania), żeby sprawdzić, czy da się dojść do świtu i ile ran dostaje.
-// Uruchomienie: node testy/bot-noc.mjs <dobry|prosty> <miecz|poltorareczny|wielki>
+// Uruchomienie: node testy/bot-noc.mjs <dobry|prosty> <poltorareczny|wielki>
 //   dobry: blokuje ghule, odskakuje przed kolosem i na kolosa ładuje mocny cios; prosty: tylko tnie.
-import { nowaGra, aktualizuj } from '../gra/walka.js';
+import { nowaGra, aktualizuj, wybierzUlepszenie } from '../gra/walka.js';
 const tryb = process.argv[2] || 'dobry', bron = process.argv[3] || 'poltorareczny';
 const wyniki = [];
 for (let proba = 0; proba < 5; proba++) {
@@ -23,6 +23,8 @@ for (let proba = 0; proba < 5; proba++) {
         w.atakTrzyma = trzyma;
       }
     }
+    if (gra.wybor) wybierzUlepszenie(gra, gra.wybor[(Math.random() * gra.wybor.length) | 0]);   // ulepszenie po fali: losowe
+    w.mikstura = b.zycie < 40;
     aktualizuj(gra, dt, w); t += dt;
     for (const z of gra.zdarzenia) zd[z.typ] = (zd[z.typ] || 0) + 1; gra.zdarzenia.length = 0;
     if (gra.slady.length > 2000) gra.slady.length = 0;

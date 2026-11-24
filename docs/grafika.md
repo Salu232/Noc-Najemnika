@@ -312,6 +312,8 @@ Patryk, 24 XI, 14:22: koziołek z jednego obrazu (wersja 17) *„dalej zle to wy
 
 **Trzy miecze w dłoni (Claude, 24 XI, 18:38, po prośbie Patryka, żeby bohater trzymał miecz wielkości wybranej broni).** Teraz każda broń wygląda tak samo, bo wszystkie filmy mają jeden miecz. Próba z automatycznym skracaniem i wydłużaniem ostrza w każdej klatce działała tylko w części klatek (gdzie ostrze zachodzi na płaszcz, nie da się go odciąć), więc długość by skakała. Dlatego ta sama metoda co przy biegu i bloku: kadr startowy z innym mieczem (`narzedzia/kadr-innego-miecza.py`): `bohater-miecz-krotki-klatka.png` (lekki miecz, ostrze krótsze o jedną trzecią) i `bohater-miecz-wielki-klatka.png` (wielki miecz, szersze i dłuższe ostrze), oba w plikach projektu. Każdy jako pierwsza i ostatnia klatka, trzy filmy na broń, razem sześć. Gra wytnie z nich cięcie (zamach, cięcie, powrót, gotowość), bieg z mieczem i blok; chód i przewroty zostają ze wspólnym mieczem.
 
+**Zmiana, 24 XI 18:44 (Patryk):** krótki miecz *„kiepsko wygląda”*, wypada z gry. Zostają zwykły miecz (obecne filmy) i dwuręczny, więc potrzebne są tylko trzy filmy z `bohater-miecz-wielki-klatka.png`.
+
 Na początku każdego polecenia dopisz jedno zdanie o mieczu:
 - lekki: *He holds a short, light one-handed sword, exactly as in the image.*
 - wielki: *He holds a huge, heavy two-handed greatsword with a broad blade, exactly as in the image; it is heavy, so his moves are slower and more powerful.*

@@ -79,6 +79,8 @@ RYSUNKI = {
     'bryzg_lot_d': ('ciecia-krew-iskry', 18, 0.5, 'srodek'),
     'bryzg_wybuch': ('ciecia-krew-iskry', 33, 0.5, 'srodek'),
     'krag_kolce':  ('kregi-strzalki', 1, 0.5, 'srodek'),
+    # łup: mikstura z potworów (pomysł Claude'a, Patryk 24 XI 18:41: „można je spróbować dodać”)
+    'mikstura':    ('przedmioty', 2, 0.22, 'pien'),
 }
 
 # Ikony przycisków na telefonie (etap B): środek kwadratowej ramki z arkusza interfejsu, bez ramki z czaszkami,

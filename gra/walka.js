@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK } from './dane.js';
-import { START, CHATA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA } from './dane.js';
+import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
 const rozn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -14,8 +14,13 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     etap: 0, faza: 'przerwa', fazaCzas: NOC.przerwa, walkaCzas: 0, kolejka: [],
     mysl: { tekst: '', czas: 0 },
     drzwi: { otwarte: false, o: 0 },   // drzwi chaty: czy otwarte i jak daleko obrócone (0 zamknięte, 1 otwarte)
-    statystyki: { zabici: 0, upadki: 0, parowania: 0, czas: 0 },
+    statystyki: { zabici: 0, upadki: 0, parowania: 0, czas: 0, totemy: 0 },
+    // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
+    totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
+    lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [],
+    mod: { zasieg: 1, szybkosc: 1, garda: 1, oddech: 1, klatwa: 1, cialo: 1 },
   };
+  zastosujBron(gra);
   postawBohatera(gra);
   powiedz(gra, ETAPY[0].mysl, NOC.przerwa);
   return gra;
@@ -32,6 +37,7 @@ function postawBohatera(gra) {
     odrzutX: 0, odrzutY: 0, chod: 0, idzie: false, flash: 0,
     klatwa: KLATWA.start, klatwaUderzyla: false,
     wChacie: false, spi: false,     // w izbie chaty (cisza stoi, leczy się); śpi na posłaniu: niewidoczny, nietykalny
+    mikstury: gra.bohater ? gra.bohater.mikstury : LUP.start, drewno: false,
   };
 }
 
@@ -40,12 +46,35 @@ export function powiedz(gra, tekst, czas = 3.5) { gra.mysl.tekst = tekst; gra.my
 // Zmiana miecza w trakcie gry (z menu pauzy): działa od następnego ciosu.
 export function ustawBron(gra, klucz) {
   if (!BRONIE[klucz]) return;
-  gra.bronKlucz = klucz; gra.bron = BRONIE[klucz];
+  gra.bronKlucz = klucz; zastosujBron(gra);
   const b = gra.bohater; if (b.stan === 'cios') { b.stan = 'wolny'; b.cios = null; }
+}
+
+// Miecz z ulepszeniami: kopia danych broni, żeby ulepszenia nie zmieniały wspólnych liczb.
+function zastosujBron(gra) {
+  const m = gra.mod, z = BRONIE[gra.bronKlucz];
+  gra.bron = { ...z, zasieg: z.zasieg * m.zasieg, zamach: z.zamach * m.szybkosc, powrot: z.powrot * m.szybkosc };
+}
+
+// Wybór ulepszenia po fali: gra stoi, dopóki gracz nie wybierze (HUD pokazuje trzy karty).
+export function wybierzUlepszenie(gra, id) {
+  if (!gra.wybor || !gra.wybor.includes(id)) return;
+  const m = gra.mod, b = gra.bohater;
+  if (id === 'zasieg') m.zasieg *= 1.125;
+  else if (id === 'szybkosc') m.szybkosc *= 0.85;
+  else if (id === 'garda') m.garda *= 0.7;
+  else if (id === 'oddech') m.oddech *= 1.35;
+  else if (id === 'klatwa') m.klatwa *= 1.5;
+  else if (id === 'cialo') m.cialo *= 0.8;
+  else if (id === 'mikstura') { b.zycie = BOHATER.zycie; b.smuga = 0; b.mikstury = Math.min(LUP.max, b.mikstury + 1); }
+  zastosujBron(gra);
+  gra.ulepszenia.push(id); gra.wybor = null;
+  gra.zdarzenia.push({ typ: 'ulepszenie', id });
 }
 
 // ---------- jedna klatka ----------
 export function aktualizuj(gra, dt, w) {
+  if (gra.wybor) return;                                           // wybór ulepszenia: noc czeka
   if (gra.zatrzymanie > 0) { gra.zatrzymanie -= dt; return; }   // krótkie zatrzymanie po trafieniu: czuć ciężar ciosu
   gra.czas += dt;
   if (gra.faza !== 'koniec') gra.statystyki.czas += dt;
@@ -53,6 +82,7 @@ export function aktualizuj(gra, dt, w) {
   if (gra.mysl.czas > 0) gra.mysl.czas -= dt;
 
   aktualizujBohatera(gra, dt, w);
+  aktualizujCele(gra, dt, w);
   aktualizujWrogow(gra, dt);
   aktualizujKrew(gra, dt);
   aktualizujEtapy(gra, dt);
@@ -179,7 +209,7 @@ function aktualizujBohatera(gra, dt, w) {
 
   // wytrzymałość i „Krew za krew”
   if (b.odnowaZa > 0) b.odnowaZa -= dt;
-  else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * dt * (b.blok ? BOHATER.blok.odnowa : 1));
+  else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * gra.mod.oddech * dt * (b.blok ? BOHATER.blok.odnowa : 1));
   if (b.smugaCzas > 0) b.smugaCzas -= dt; else b.smuga = Math.max(0, b.smuga - 60 * dt);
   if (b.seriaCzas > 0) { b.seriaCzas -= dt; if (b.seriaCzas <= 0) b.rozped = 0; }
 }
@@ -205,6 +235,7 @@ function uderzKlatwa(gra) {
     if (e.zycie > 0) { e.stan = 'ogluszony'; e.t = 0; }                      // kto przeżył, chwieje się i dostaje podwójnie
     ile++;
   }
+  for (const t of gra.totemy) if (!t.zniszczony && Math.hypot(t.x - b.x, t.y - b.y) - t.promien < KLATWA.zasieg) zranTotem(gra, t, TOTEM.zaKlatwe);
   gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.12); gra.wstrzas = Math.max(gra.wstrzas, 16);
   gra.zdarzenia.push({ typ: 'klatwa', x: b.x, y: b.y, zasieg: KLATWA.zasieg, ile });
 }
@@ -322,7 +353,7 @@ function tnij(gra, dt) {
     zranWroga(gra, wrog, obr, katOd, bron.odrzut * (c.mocny ? MOCNY.odrzut : 1), bron.przerywa || c.mocny, c.mocny || bron.przecinaCiezkich);
     nowe++; c.trafienia++;
     krewZaKrew(b);
-    b.klatwa = Math.min(1, b.klatwa + KLATWA.zaTrafienie);
+    b.klatwa = Math.min(1, b.klatwa + KLATWA.zaTrafienie * gra.mod.klatwa);
     if (wrog.typ.ciezki && wrog.zycie > 0 && !bron.przecinaCiezkich && !c.mocny) {
       c.utknal = true;
       gra.zatrzymanie = Math.max(gra.zatrzymanie, BOHATER.miecz.zatrzymanieGrzeznie);
@@ -330,6 +361,19 @@ function tnij(gra, dt) {
       gra.zdarzenia.push({ typ: 'grzeznie' });
       break;
     }
+  }
+  // totemy: ostrze trafia je tak jak wrogów (raz na cios)
+  for (const t of gra.totemy) {
+    if (t.zniszczony || c.trafieni.has(t)) continue;
+    const dx = t.x - b.x, dy = t.y - b.y, d = Math.hypot(dx, dy);
+    if (d - t.promien > zasieg) continue;
+    const tol = Math.atan2(t.promien, Math.max(d, 1)) + 0.3;
+    let r = kier * (Math.atan2(dy, dx) - c.od); r = ((r % TAU) + TAU) % TAU; if (r > TAU - tol) r -= TAU;
+    if (r > przeszlo + tol) continue;
+    c.trafieni.add(t);
+    zranTotem(gra, t, Math.round(bron.obrazenia * (c.mocny ? MOCNY.obrazenia : 1)));
+    gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.05); gra.wstrzas = Math.max(gra.wstrzas, 3);
+    iskry(gra, t.x - dx / d * t.promien, t.y - 50, 8);
   }
   if (nowe) {
     const ciezar = 0.6 + 0.4 * bron.obrazenia, pierwsze = c.trafienia === nowe;
@@ -347,6 +391,7 @@ function krewZaKrew(b) {
 
 function zranBohatera(gra, ile, odKata, ciezki) {
   const b = gra.bohater;
+  ile *= gra.mod.cialo;
   b.zycie -= ile; b.flash = 0.25;
   b.smuga = Math.min(BOHATER.zycie - Math.max(0, b.zycie), b.smuga + ile);
   b.smugaCzas = BOHATER.krewZaKrew.czas;
@@ -375,7 +420,7 @@ function trafBohatera(gra, e) {
       gra.zdarzenia.push({ typ: 'parowanie', x: (b.x + e.x) / 2, y: (b.y + e.y) / 2 - 40, kat: katDoWroga });
       return;
     }
-    zuzyjSile(b, BOHATER.blok.kosztNaCios * (ciezki ? BOHATER.blok.mnoznikCiezki : 1));
+    zuzyjSile(b, BOHATER.blok.kosztNaCios * gra.mod.garda * (ciezki ? BOHATER.blok.mnoznikCiezki : 1));
     iskry(gra, (b.x + e.x) / 2, (b.y + e.y) / 2 - 40, 10);
     e.vx += Math.cos(katDoWroga) * BOHATER.blok.odrzut; e.vy += Math.sin(katDoWroga) * BOHATER.blok.odrzut;
     if (!ciezki) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; }      // odbity ghul musi się zebrać: okazja do cięcia
@@ -421,7 +466,8 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
   if (e.zycie <= 0) {
     e.stan = 'martwy';
     gra.statystyki.zabici++;
-    if (!zKlatwy) gra.bohater.klatwa = Math.min(1, gra.bohater.klatwa + KLATWA.zaZabicie);
+    if (!zKlatwy) gra.bohater.klatwa = Math.min(1, gra.bohater.klatwa + KLATWA.zaZabicie * gra.mod.klatwa);
+    if (Math.random() < (e.typ.ciezki ? LUP.szansaKolos : LUP.szansaGhul)) gra.lup.push({ typ: 'mikstura', x: e.x + losuj(-10, 10), y: e.y + losuj(-6, 6), t: 0 });
     // ciało pada od bohatera (rysowanie najpierw pokazuje upadek, potem zostawia ślad na ziemi)
     const odBoh = Math.cos(kat) >= 0 ? 1 : -1;
     gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: odBoh * losuj(0.75, 1.3), sx: -odBoh, kat, pada: true, przeciety: przecina });
@@ -527,19 +573,29 @@ function aktualizujEtapy(gra, dt) {
     gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza stoi
     if (gra.fazaCzas <= 0) {
       gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = [];
-      for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) gra.kolejka.push({ typ: g.typ, z: g.z[i % g.z.length], t: i * g.co });
+      for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) {
+        const z = g.z[i % g.z.length];
+        if (stronaCicha(gra, z)) continue;                                              // rozbite totemy: z tej strony nikt nie przyjdzie
+        gra.kolejka.push({ typ: g.typ, z, t: i * g.co });
+      }
       gra.kolejka.sort((a, b) => a.t - b.t);
     }
   } else if (gra.faza === 'walka') {
     gra.walkaCzas += dt;
     while (gra.kolejka.length && gra.kolejka[0].t <= gra.walkaCzas) {
       const q = gra.kolejka.shift();
-      gra.wrogowie.push(nowyWrog(q.typ, punktWMgle(q.z), ETAPY[gra.etap].zlosc));
+      if (stronaCicha(gra, q.z)) continue;
+      gra.wrogowie.push(nowyWrog(q.typ, punktWMgle(q.z, gra.totemy), ETAPY[gra.etap].zlosc));
     }
     if (!gra.kolejka.length && !gra.wrogowie.length) {
       gra.etap++;
       if (gra.etap >= ETAPY.length) { gra.faza = 'swit'; gra.fazaCzas = NOC.swit; powiedz(gra, 'Świt. Mgła się cofa. Przetrwałeś.', NOC.swit); }
-      else { gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa; powiedz(gra, ETAPY[gra.etap].mysl, NOC.przerwa); }
+      else {
+        gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa; powiedz(gra, ETAPY[gra.etap].mysl, NOC.przerwa);
+        const wolne = ULEPSZENIA.map(u => u.id).filter(id => id === 'mikstura' || !gra.ulepszenia.includes(id));
+        gra.wybor = []; while (gra.wybor.length < 3 && wolne.length) gra.wybor.push(wolne.splice((Math.random() * wolne.length) | 0, 1)[0]);
+        gra.zdarzenia.push({ typ: 'wybor' });
+      }
     }
   } else if (gra.faza === 'upadek') {
     gra.fazaCzas -= dt;
@@ -553,6 +609,50 @@ function aktualizujEtapy(gra, dt) {
     gra.fazaCzas -= dt;
     gra.mroczek = Math.max(0.12, NOC.mroczek * Math.max(0, gra.fazaCzas / NOC.swit));
     if (gra.fazaCzas <= 0) { gra.faza = 'koniec'; gra.zdarzenia.push({ typ: 'koniec' }); }
+  }
+}
+
+// ---------- cele nocy: totemy, łup, ognisko ----------
+const stronaCicha = (gra, z) => gra.totemy.filter(t => t.mgla === z).every(t => t.zniszczony);
+
+function zranTotem(gra, t, ile) {
+  t.zycie -= ile; t.flash = 0.15;
+  gra.zdarzenia.push({ typ: 'totem_traf', i: t.i, x: t.x, y: t.y });
+  if (t.zycie > 0) return;
+  t.zniszczony = true; gra.statystyki.totemy++;
+  gra.wstrzas = Math.max(gra.wstrzas, 12); gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.1);
+  const cicha = stronaCicha(gra, t.mgla);
+  if (cicha) gra.kolejka = gra.kolejka.filter(q => q.z !== t.mgla);
+  gra.zdarzenia.push({ typ: 'totem_rozbity', i: t.i, x: t.x, y: t.y, cicha });
+  powiedz(gra, cicha ? 'Totem pęka. Z tej strony już nic nie przyjdzie.' : 'Jeden pękł. Obok stoi drugi.', 3);
+}
+
+function aktualizujCele(gra, dt, w) {
+  const b = gra.bohater;
+  for (const t of gra.totemy) t.flash = Math.max(0, t.flash - dt);
+  // łup: podnosi się sam, gdy bohater przejdzie obok
+  for (let i = gra.lup.length - 1; i >= 0; i--) {
+    const l = gra.lup[i]; l.t += dt;
+    if (l.t > LUP.znika) { gra.lup.splice(i, 1); continue; }
+    if (b.stan !== 'upadl' && b.mikstury < LUP.max && Math.hypot(l.x - b.x, l.y - b.y) < LUP.zasiegPodniesienia + b.promien) {
+      b.mikstury++; gra.lup.splice(i, 1); gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y });
+    }
+  }
+  if (w.mikstura && b.mikstury > 0 && b.stan !== 'upadl' && b.zycie < BOHATER.zycie) {
+    b.mikstury--; b.zycie = Math.min(BOHATER.zycie, b.zycie + LUP.leczy); b.smuga = Math.max(0, Math.min(b.smuga, BOHATER.zycie - b.zycie));
+    gra.zdarzenia.push({ typ: 'mikstura' });
+  }
+  // ognisko gaśnie; drewno ze stosu pod chatą
+  if (gra.faza === 'walka' || gra.faza === 'przerwa') gra.ogien = Math.max(OGIEN.minimum, gra.ogien - dt / OGIEN.czas);
+  if (gra.ogien < OGIEN.przygasa && !gra.ogienPrzygasl) { gra.ogienPrzygasl = true; powiedz(gra, 'Ogień przygasa. Drewno leży pod ścianą chaty.', 3.5); }
+  if (gra.ogien > OGIEN.przygasa + 0.1) gra.ogienPrzygasl = false;
+  if (b.stan !== 'wolny' || gra.akcja || b.wChacie) return;
+  if (!b.drewno && Math.hypot(b.x - STOS_DREWNA.x, b.y - STOS_DREWNA.y) < 70) {
+    gra.akcja = 'drewno';
+    if (w.akcja) { b.drewno = true; w.akcja = false; gra.zdarzenia.push({ typ: 'drewno' }); powiedz(gra, 'Polano pod pachą. Do ognia.', 2); }
+  } else if (b.drewno && Math.hypot(b.x - OGNISKO.x, b.y - OGNISKO.y) < 95) {
+    gra.akcja = 'dorzuc';
+    if (w.akcja) { b.drewno = false; w.akcja = false; gra.ogien = Math.min(1, gra.ogien + OGIEN.polano); gra.zdarzenia.push({ typ: 'dorzucone', x: OGNISKO.x, y: OGNISKO.y }); }
   }
 }
 
