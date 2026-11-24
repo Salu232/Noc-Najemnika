@@ -287,7 +287,7 @@ Dlatego dwa kroki. Najpierw Gemini rysuje nieruchomy kadr w docelowej pozie (z n
 
 Jeśli Flow nie ma pola na ostatnią klatkę, wystarczy pierwsza: szukamy wtedy pętli w filmie tak jak przy chodzie przodem.
 
-**Przewrót w górę i w dół (Patryk, 24 XI, 13:57).** W grze przewrót bokiem jest na razie obracany w stronę uniku ([docs/walka.md](walka.md), punkt 12). Prawdziwe przewroty przodem i tyłem, gdyby Patryk chciał je zrobić, tą samą metodą (tu bez kroku 1, bo zaczyna się od zwykłej pozy): Flow, pierwsza klatka `chod-przod`, klatka 18 (bohater przodem do nas).
+**Przewrót w górę i w dół (Patryk, 24 XI, 13:57).** W grze przewrót bokiem jest na razie obracany w stronę uniku ([docs/walka.md](walka.md), punkt 12). Prawdziwe przewroty przodem i tyłem, gdyby Patryk chciał je zrobić, tą samą metodą (tu bez kroku 1, bo zaczyna się od zwykłej pozy): Flow, jako pierwsza i ostatnia klatka: do nas `bohater-przodem-klatka.png` (klatka 18 z `film-chod-przod.mp4`), od nas `bohater-plecami-klatka.png` (klatka 47 z `film-chod-2.mp4`); obie są w plikach projektu.
 
 | Film | Polecenie dla Flow |
 | --- | --- |

@@ -446,6 +446,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // więc ten sam film pasuje do lekkiego i do wielkiego miecza. Chód idzie za przebytą drogą.
   const klatkaZ = (n, q) => { const l = AB[n]; return l[Math.min(l.length - 1, Math.max(0, Math.floor(q * l.length)))]; };
   const klatkaPetli = (n, cykle) => { const l = AB[n]; return l[((Math.floor(cykle * l.length) % l.length) + l.length) % l.length]; };
+  const unikPionowy = (b) => Math.abs(Math.sin(b.unikKat)) > 0.7 && AB.chod_przod && AB.chod_tyl;   // w górę albo w dół, najwyżej 45° od pionu
   function klatkaBohatera(b, tUp) {
     if (b.stan === 'klatwa') {
       const L = KLATWA.ladowanie, U = KLATWA.uderzenie;
@@ -465,7 +466,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
     if (b.blok) return klatkaZ('blok', 0.5);
     if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
-    if (b.stan === 'unik') return klatkaZ('przewrot', b.t / BOHATER.unik.czas);   // unik to przewrót w stronę uniku
+    if (b.stan === 'unik') {   // unik to przewrót w stronę uniku; w górę i w dół koziołek plecami albo przodem (niżej)
+      if (unikPionowy(b)) return Math.sin(b.unikKat) > 0 ? AB.chod_przod[0] : AB.chod_tyl[0];
+      return klatkaZ('przewrot', b.t / BOHATER.unik.czas);
+    }
     // Wyciąga miecz, gdy zaczyna się walka, i chowa go po niej (film Patryka z Flow, 24 XI; chowanie to ten sam film wstecz).
     // Ma pierwszeństwo przed chodem, żeby było go widać także w ruchu.
     if (stanRys.miecz === 'wyciaga' || stanRys.miecz === 'chowa') return klatkaZ('wyciaga', stanRys.mieczP);
@@ -829,15 +833,24 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       lx *= 0.5;                                     // film sam porusza ciałem, kod tylko dodaje trochę wagi
       const dj = pz.drgaj ? (Math.random() - 0.5) * pz.drgaj : 0;
       ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y, lx, sy, obrot);
-      if (b.stan === 'unik') {
-        // Film ma tylko przewrót bokiem. Przy uniku w górę albo w dół obraca go w stronę uniku (Patryk, 24 XI:
-        // „żeby było widać ze przeskakuje do góry lub dołu”): w połowie przewrotu, gdy bohater jest kulą, obrót
-        // jest pełny, na początku i na końcu stoi prosto. Obrót wokół środka ciała, nie stóp. W dół (do nas)
-        // kula trochę rośnie, w górę (od nas) trochę maleje.
+      if (b.stan === 'unik' && unikPionowy(b)) {
+        // Koziołek w górę albo w dół (Patryk, 24 XI, 14:03: obrócony przewrót bokiem „dalej to efekt jakby robił przeskok
+        // tylko w lewo czy prawo”). Film ma tylko przewrót bokiem, więc kod bierze postać przodem (w dół) albo plecami (w górę)
+        // i przewraca ją przez głowę: przysiad, obrót o pełne koło wokół osi poziomej (obraz ściska się w pionie, staje
+        // do góry nogami i wraca), lekki podskok, wstaje. W dół głowa leci pierwsza do nas, w górę nogi idą nad głową.
+        const p = Math.min(1, b.t / BOHATER.unik.czas), dol = Math.sin(b.unikKat) > 0;
+        const q = Math.min(1, Math.max(0, (p - 0.12) / 0.72)), th = TAU * q * q * (3 - 2 * q);
+        const kula = Math.sin(th / 2);                                     // 0 na początku i końcu, 1 do góry nogami
+        const przysiad = p < 0.12 ? 1 - 0.25 * p / 0.12 : p > 0.84 ? 0.75 + 0.25 * (p - 0.84) / 0.16 : 0.75;
+        const ky = Math.cos(th) * przysiad * (1 - 0.3 * kula), kx = 1 + 0.18 * kula;
+        bohS.scale.set(bohS.scale.x * kx, bohS.scale.y * (Math.abs(ky) < 0.08 ? Math.sign(ky || 1) * 0.08 : ky));
+        bohS.skew.set(0, 0);
+        const c = (dol ? 52 : 38) * przysiad;                             // oś obrotu: w dół niżej (przez głowę), w górę wyżej (nogi nad głową)
+        bohS.position.set(b.x + dj, b.y - c + c * ky - 12 * Math.sin(Math.PI * p));
+      } else if (b.stan === 'unik') {
+        // Unik w bok i po skosie: przewrót bokiem z filmu, po skosie lekko obrócony w stronę uniku.
         const p = Math.min(1, b.t / BOHATER.unik.czas), e = Math.sin(Math.PI * p);
-        const pion = Math.sin(b.unikKat), r = pz.sx * Math.atan2(pion, Math.abs(Math.cos(b.unikKat))) * 0.85 * e, c = 45;
-        const sk = 1 + 0.08 * pion * e;
-        bohS.scale.set(bohS.scale.x * sk, bohS.scale.y * sk);
+        const pion = Math.sin(b.unikKat), r = pz.sx * Math.atan2(pion, Math.abs(Math.cos(b.unikKat))) * 0.6 * e, c = 45;
         bohS.rotation = r;
         bohS.position.set(b.x + dj - c * Math.sin(r), b.y - c + c * Math.cos(r));
       }
