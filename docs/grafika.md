@@ -298,6 +298,10 @@ Patryk, 24 XI, 14:22: koziołek z jednego obrazu (wersja 17) *„dalej zle to wy
 
 **Wynik (24 XI, 14:31):** oba filmy udane za pierwszym razem, są w grze ([grafika/zrodla/film-przewrot-przod.mp4](../grafika/zrodla/film-przewrot-przod.mp4), [film-przewrot-tyl.mp4](../grafika/zrodla/film-przewrot-tyl.mp4)). Bohater w kadrze prawie stoi w miejscu, mimo że polecenie mówiło o przesunięciu; to nawet lepiej dla gry. W przewrocie od nas na chwilę znika wilczy łeb z płaszcza; przy tej prędkości tego nie widać.
 
+**Bieg z mieczem bez Gemini (Claude, 24 XI, 14:54).** Gemini ma limit, ale kadr z mieczem w dłoni już mamy: klatka 88 filmu cięcia (`bohater-miecz-klatka.png` w plikach projektu), bohater w tej samej pozie co w grze, w naszym stylu. Wystarczy sam Flow, z tym kadrem jako pierwszą i ostatnią klatką:
+
+> A 2D hand-drawn game animation in exactly the style of this image. This exact character runs on the spot in a loop, like on a treadmill, facing right, holding his drawn sword in his right hand in front of him exactly as in the image, the blade clearly visible the whole time. He does not move across the frame; only his legs, arms and cloak move. Keep his face, wolf-fur cloak, clothes, colours, ink outlines and size exactly as in the image; do not turn him into a different person, not photorealistic, not 3D. Pure white background, no floor. Static camera: no zoom, no pan, no cut. Whole body visible at all times, feet included. No motion trails, no sparks, no glow, no smoke, no text.
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?

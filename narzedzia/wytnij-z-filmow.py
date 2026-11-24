@@ -25,6 +25,9 @@ POSTACIE = {
             'chod_tyl':  ('film-chod-2', list(range(47, 80, 2))),          # idzie od nas, plecami: klatka 80 wygląda jak 47
             'chod_przod': ('film-chod-przod', list(range(18, 52, 2))),   # idzie do nas, przodem: klatka 52 wygląda jak 18 (cykl 34 klatki)
             'wyciaga':  ('film-miecz-wyciaga', list(range(19, 61, 2))),   # przodem do nas: ręka na rękojeści, wyciąga, unosi przed siebie; chowanie to ta sama animacja wstecz
+            # spokojna postawa poza walką (Patryk, 24 XI 14:54: „jak stoi i nie walczy … to normalnie stoi”): początek filmu
+            # wyciągania, zanim ręka sięgnie po miecz. Stoi prosto, przodem do nas, a z tej pozy płynnie zaczyna się wyciąganie.
+            'stoi':     ('film-miecz-wyciaga', [1, 3, 5, 7, 9]),
             'zamach':    ('film-ciecie', [4, 8, 12, 16, 20, 24, 28, 31, 34, 37]),   # unosi miecz i odprowadza go nisko w lewo, za siebie
             'ciecie':    ('film-ciecie', [39, 41, 43, 45, 47, 49, 52, 55]),        # zamaszyste cięcie w prawo, ręka wyciągnięta
             'powrot':    ('film-ciecie', [58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94]),

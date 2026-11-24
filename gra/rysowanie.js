@@ -485,6 +485,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // W walce stoi w gardzie z mieczem uniesionym przed sobą; gdy wokół pusto, opuszcza miecz i oddycha (Patryk, 24 XI).
     // Klatki gardy idą tam i z powrotem, powoli, jak ważenie miecza w dłoniach.
     if (AB.wyciaga ? stanRys.miecz === 'w_dloni' : stanRys.walka > 0) { const l = AB.gotowosc.length, i = Math.floor(czas * 4) % (2 * l - 2); return AB.gotowosc[i < l ? i : 2 * l - 2 - i]; }
+    // Poza walką, z mieczem w pochwie, stoi prosto przodem do nas (Patryk, 24 XI 14:54: dawny oddech z filmu wyglądał,
+    // „jakby był cały czas na chodzie”). Klatki idą tam i z powrotem, powoli, jak oddech.
+    if (AB.stoi && stanRys.miecz === 'schowany') { const l = AB.stoi.length, i = Math.floor(czas * 3) % (2 * l - 2); return AB.stoi[i < l ? i : 2 * l - 2 - i]; }
     return klatkaPetli('spoczynek', czas * 8 / AB.spoczynek.length);       // oddech jak w filmie: 8 klatek na sekundę
   }
   // ustawia obraz bohatera: stopy w (x, y), pochylenie lx, przysiad sy (szerokość zmienia się odwrotnie, żeby ciało nie traciło masy)
