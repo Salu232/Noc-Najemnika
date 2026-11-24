@@ -287,6 +287,13 @@ Dlatego dwa kroki. Najpierw Gemini rysuje nieruchomy kadr w docelowej pozie (z n
 
 Jeśli Flow nie ma pola na ostatnią klatkę, wystarczy pierwsza: szukamy wtedy pętli w filmie tak jak przy chodzie przodem.
 
+**Przewrót w górę i w dół (Patryk, 24 XI, 13:57).** W grze przewrót bokiem jest na razie obracany w stronę uniku ([docs/walka.md](walka.md), punkt 12). Prawdziwe przewroty przodem i tyłem, gdyby Patryk chciał je zrobić, tą samą metodą (tu bez kroku 1, bo zaczyna się od zwykłej pozy): Flow, pierwsza klatka `chod-przod`, klatka 18 (bohater przodem do nas).
+
+| Film | Polecenie dla Flow |
+| --- | --- |
+| Przewrót do nas | A 2D hand-drawn animation in exactly the style of this image: this exact character, facing the viewer, does a quick combat roll towards the viewer: he drops low, tucks, rolls forward over his shoulder and comes back up into the same standing pose, facing the viewer. Keep his face, clothes, colours, ink outlines and size exactly as in the image. Not photorealistic, not 3D. Pure white background, no floor, no shadow. Static camera: no zoom, no pan, no cut. Whole body visible at all times, feet included. No motion trails, no sparks, no glow, no smoke, no text. |
+| Przewrót od nas | jak wyżej, ale: *does a quick combat roll away from the viewer, so we see his back while he rolls, and he comes back up facing away from the viewer* |
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?

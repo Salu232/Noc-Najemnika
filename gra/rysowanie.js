@@ -829,6 +829,18 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       lx *= 0.5;                                     // film sam porusza ciałem, kod tylko dodaje trochę wagi
       const dj = pz.drgaj ? (Math.random() - 0.5) * pz.drgaj : 0;
       ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y, lx, sy, obrot);
+      if (b.stan === 'unik') {
+        // Film ma tylko przewrót bokiem. Przy uniku w górę albo w dół obraca go w stronę uniku (Patryk, 24 XI:
+        // „żeby było widać ze przeskakuje do góry lub dołu”): w połowie przewrotu, gdy bohater jest kulą, obrót
+        // jest pełny, na początku i na końcu stoi prosto. Obrót wokół środka ciała, nie stóp. W dół (do nas)
+        // kula trochę rośnie, w górę (od nas) trochę maleje.
+        const p = Math.min(1, b.t / BOHATER.unik.czas), e = Math.sin(Math.PI * p);
+        const pion = Math.sin(b.unikKat), r = pz.sx * Math.atan2(pion, Math.abs(Math.cos(b.unikKat))) * 0.85 * e, c = 45;
+        const sk = 1 + 0.08 * pion * e;
+        bohS.scale.set(bohS.scale.x * sk, bohS.scale.y * sk);
+        bohS.rotation = r;
+        bohS.position.set(b.x + dj - c * Math.sin(r), b.y - c + c * Math.cos(r));
+      }
       bohS.zIndex = b.y; bohS.alpha = alfaB; bohS.tint = tint;
     } else {
       bohG.clear(); rysujBohatera(bohG, b, gra, pz);
@@ -859,13 +871,13 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     echa.clear();
     const sl = stanRys.slad, ost = sl[sl.length - 1];
     if (b.stan === 'unik' && (!ost || gra.czas - ost.t > 0.03)) {
-      sl.push(gem ? { x: bohS.x, y: bohS.y, t: gra.czas, tex: bohS.texture, ax: bohS.anchor.x, ay: bohS.anchor.y, sx: bohS.scale.x, sy: bohS.scale.y, skx: bohS.skew.x } : { x: b.x, y: b.y, t: gra.czas });
+      sl.push(gem ? { x: bohS.x, y: bohS.y, t: gra.czas, tex: bohS.texture, ax: bohS.anchor.x, ay: bohS.anchor.y, sx: bohS.scale.x, sy: bohS.scale.y, skx: bohS.skew.x, rot: bohS.rotation } : { x: b.x, y: b.y, t: gra.czas });
     }
     while (sl.length && (gra.czas - sl[0].t > 0.16 || gra.czas < sl[0].t)) sl.shift();
     pulaEch.start();
     for (const s of sl) {
       const al = 1 - (gra.czas - s.t) / 0.16;
-      if (s.tex) { const e = pulaEch.wez(); e.texture = s.tex; e.anchor.set(s.ax, s.ay); e.position.set(s.x, s.y); e.scale.set(s.sx, s.sy); e.skew.set(s.skx, 0); e.alpha = 0.4 * al; }
+      if (s.tex) { const e = pulaEch.wez(); e.texture = s.tex; e.anchor.set(s.ax, s.ay); e.position.set(s.x, s.y); e.scale.set(s.sx, s.sy); e.skew.set(s.skx, 0); e.rotation = s.rot || 0; e.alpha = 0.4 * al; }
       else { echa.lineStyle(0); echa.beginFill(0x9fb4cc, 0.22 * al); echa.drawEllipse(s.x, s.y - 40, 11, 30); echa.endFill(); }
     }
     pulaEch.koniec();
