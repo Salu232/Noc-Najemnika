@@ -249,6 +249,14 @@ Wersja do wysłania Przemkowi (dokument z tymi samymi poleceniami): https://clau
 
 Przy okazji warto zrobić też ukosy, bo w dół po skosie bohater nadal pokaże bieg bokiem. To już drugi krok, jeśli pierwszy film się sprawdzi.
 
+**Film przyszedł (Patryk z Flow, 24 XI, 12:52): [grafika/zrodla/film-chod-przod.mp4](../grafika/zrodla/film-chod-przod.mp4).** Bohater idzie prosto do nas w miejscu, białe tło, 96 klatek. Cykl ma 34 klatki (klatka 52 wygląda jak 18, zmierzone porównaniem dolnej części kadru), więc gra bierze co drugą klatkę z 18–50, razem 17. Stopy mijają się w klatkach 18 i 35 (stopy najwyżej w kadrze), czyli na początku i w połowie cyklu, tak jak przy plecach. Bohater stoi w tym filmie w innym miejscu kadru niż w pozostałych, dlatego narzędzie ma dla niego osobny punkt stóp (`STOPY_FILMU`). Wzrost w kadrze jest prawie taki sam jak w biegu (około 330 wobec 337 pikseli), więc skala zostaje wspólna.
+Bieg bokiem wraca, gdy bohater skręci bardziej w bok niż w dół (ponad 60° od pionu). Na skos w dół zostaje więc chód przodem. Sprawdzone zrzutami w zwolnionym tempie na polanie i w izbie.
+
+**Wyciąganie i chowanie miecza: dwa obrazy z Gemini (Patryk, 24 XI, 12:52).** [miecz-w-pochwie.jpg](../grafika/zrodla/miecz-w-pochwie.jpg): ręka na rękojeści, miecz przy biodrze. [miecz-wyciagniety.jpg](../grafika/zrodla/miecz-wyciagniety.jpg): miecz wyciągnięty przed siebie. To dwa nieruchome obrazy, więc w grze same nie zrobią ruchu. Najlepiej użyć ich we Flow jako pierwszej i ostatniej klatki filmu: z pierwszego do drugiego to wyciąganie, a chowanie to ten sam film puszczony wstecz, więc wystarczy jeden film. Polecenie:
+
+> The same mercenary draws his sword from his left hip and raises it into a guard in front of him, in one smooth motion. Pure white background, no floor, no shadow. Static camera: no zoom, no pan, no cut. The character stays in the same place in the frame, whole body visible including the feet. No motion trails, no sparks, no glow, no smoke, no text.
+
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?

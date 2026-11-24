@@ -23,7 +23,7 @@ POSTACIE = {
             'spoczynek': ('film-oddech', list(range(35, 74, 3))),          # jeden pełny oddech: klatka 75 wygląda jak 35
             'bieg':      ('film-bieg',   list(range(47, 72))),             # dwa kroki biegu: klatka 72 wygląda jak 47
             'chod_tyl':  ('film-chod-2', list(range(47, 80, 2))),          # idzie od nas, plecami: klatka 80 wygląda jak 47
-            # 'chod_przod': ('film-chod-przod', [...]),                  # idzie do nas, przodem: czeka na film (docs/grafika.md, punkt 13)
+            'chod_przod': ('film-chod-przod', list(range(18, 52, 2))),   # idzie do nas, przodem: klatka 52 wygląda jak 18 (cykl 34 klatki)
             'zamach':    ('film-ciecie', [4, 8, 12, 16, 20, 24, 28, 31, 34, 37]),   # unosi miecz i odprowadza go nisko w lewo, za siebie
             'ciecie':    ('film-ciecie', [39, 41, 43, 45, 47, 49, 52, 55]),        # zamaszyste cięcie w prawo, ręka wyciągnięta
             'powrot':    ('film-ciecie', [58, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 94]),
@@ -78,6 +78,9 @@ LATKI = {('film-ciecie', k): 55 for k in (39, 41, 43, 45, 47, 49)}
 # W filmie magii pod bohaterem zostaje popękana, jasna ziemia z fioletem. Zdejmujemy ją od wiersza 235 w dół.
 ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
+# Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
+# Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
+STOPY_FILMU = {'film-chod-przod': (324, 346)}
 
 
 def kluczuj(obraz, dol=0.80):
@@ -154,7 +157,7 @@ def srodek(rgba):
 
 
 def zrob(nazwa, cfg):
-    animacje, stopy = cfg['animacje'], cfg['stopy']
+    animacje = cfg['animacje']
     potrzebne = {}                                   # każdy film czytamy raz: wszystkie potrzebne klatki razem z dawcami łat
     for film, numery in animacje.values(): potrzebne.setdefault(film, set()).update(numery)
     for (film, _), dawca in LATKI.items():
@@ -169,6 +172,7 @@ def zrob(nazwa, cfg):
         for an, (film, numery) in animacje.items():
             anim[an] = []
             sledz = an in cfg.get('sledz', ())
+            stopy = STOPY_FILMU.get(film, cfg['stopy'])
             s0 = srodek(kluczowane[(film, numery[0])]) if sledz else 0
             for k in numery:
                 rgba = kluczowane[(film, k)]
