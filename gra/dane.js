@@ -70,7 +70,8 @@ export const KLATWA = {
 // Chata (docs/chata.md): wchodzi się drzwiami, odpoczywa tylko w ciszy między etapami nocy (decyzja Patryka, 24 XI).
 // W środku życie i wytrzymałość wracają, a cisza przed następnym etapem płynie wolniej, ale płynie:
 // gdy przyjdą potwory, bohater sam wychodzi przed drzwi.
-export const CHATA_ODPOCZYNEK = { zasiegDrzwi: 70, leczenie: 7, tempoCiszy: 0.3 };
+// W izbie życie wraca powoli, a na posłaniu (sen) szybko. W izbie bohater chodzi wolniej niż na polanie.
+export const CHATA_ODPOCZYNEK = { zasiegDrzwi: 70, leczenie: 2, leczenieSen: 9, tempoCiszy: 0.3, szybkosc: 0.65 };
 
 export const WROGOWIE = {
   ghul: {

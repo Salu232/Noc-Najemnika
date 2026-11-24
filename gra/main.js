@@ -29,13 +29,14 @@ function pokaz(id, widac) { $(id).hidden = !widac; }
 
 async function start() {
   const cv = $('gra');
-  let obraz, obrazBohatera, obrazGhula, obrazKolosa;
+  let obraz, obrazBohatera, obrazGhula, obrazKolosa, obrazWnetrza;
   try {
-    [, obraz, obrazBohatera, obrazGhula, obrazKolosa] = await Promise.all([
+    [, obraz, obrazBohatera, obrazGhula, obrazKolosa, obrazWnetrza] = await Promise.all([
       zaladujPixi(), zaladujObraz(new URL('../grafika/chata.webp', import.meta.url).href, 'chata'),
       zaladujObraz(new URL('../grafika/bohater.webp', import.meta.url).href, 'bohater').catch(() => null),   // bez niego gra rysuje bohatera kodem
       zaladujObraz(new URL('../grafika/ghul.webp', import.meta.url).href, 'ghul').catch(() => null),         // potwory z filmów Przemka; bez nich rysowane kodem
       zaladujObraz(new URL('../grafika/kolos.webp', import.meta.url).href, 'kolos').catch(() => null),
+      zaladujObraz(new URL('../grafika/wnetrze.webp', import.meta.url).href, 'wnętrze chaty').catch(() => null),   // izba z Gemini od Patryka
     ]);
   } catch (e) {
     $('ladowanie').textContent = 'Nie udało się wczytać gry: ' + e.message + '. Odśwież stronę.';
@@ -47,7 +48,7 @@ async function start() {
   let wyglad = 'gemini';
   try { if (localStorage.getItem('noc-bohater') === 'rysowany') wyglad = 'rysowany'; } catch (e) { /* bez pamięci */ }
   if (/bohater=rysowany/.test(location.search)) wyglad = 'rysowany';
-  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa } }); }
+  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa }, obrazWnetrza }); }
   catch (e) { $('ladowanie').textContent = 'Ta przeglądarka nie umie narysować gry: ' + (e && e.message || e); return; }
 
   const wejscie = przygotujWejscie(cv, {

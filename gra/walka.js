@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK } from './dane.js';
-import { START, CHATA, zderzenia, punktWMgle } from './swiat.js';
+import { START, CHATA, WNETRZE, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
 const rozn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -90,14 +90,9 @@ function aktualizujBohatera(gra, dt, w) {
   // chata: drzwi, wejście i odpoczynek (docs/chata.md)
   const przyDrzwiach = !b.wChacie && b.stan === 'wolny' && Math.hypot(b.x - CHATA.drzwi.x, b.y - CHATA.drzwi.y) < CHATA_ODPOCZYNEK.zasiegDrzwi;
   gra.akcja = b.wChacie ? 'wyjdz' : (przyDrzwiach ? 'wejdz' : null);
-  if (b.wChacie) {
-    b.zycie = Math.min(BOHATER.zycie, b.zycie + CHATA_ODPOCZYNEK.leczenie * dt);
-    b.sila = BOHATER.sila; b.smuga = 0; b.flash = 0;
-    if (w.akcja || (Math.hypot(w.ruchX, w.ruchY) > 0.3 && gra.czas - b.wChacieOd > 0.8)) wyjdzZChaty(gra);   // ruch wyprowadza dopiero po chwili, żeby nie wyjść od razu
-    return;
-  }
+  if (b.wChacie) { wIzbie(gra, dt, w); return; }
   if (w.akcja && przyDrzwiach) {
-    if (gra.faza === 'przerwa' || gra.faza === 'swit') { b.wChacie = true; b.wChacieOd = gra.czas; b.blok = false; b.idzie = false; b.x = CHATA.drzwi.x; b.y = CHATA.drzwi.y; gra.zdarzenia.push({ typ: 'chata_wejscie' }); powiedz(gra, 'Ciepło. Chwila spokoju.', 2.5); return; }
+    if (gra.faza === 'przerwa' || gra.faza === 'swit') { b.wChacie = true; b.wChacieOd = gra.czas; b.spi = false; b.blok = false; b.idzie = false; b.x = CHATA.drzwi.x; b.y = CHATA.drzwi.y; b.wx = WNETRZE.wejscie.x; b.wy = WNETRZE.wejscie.y; b.kat = -Math.PI / 2; gra.zdarzenia.push({ typ: 'chata_wejscie' }); powiedz(gra, 'Ciepło. Chwila spokoju.', 2.5); return; }
     powiedz(gra, 'Nie teraz. Są za blisko.', 2); gra.zdarzenia.push({ typ: 'chata_zamknieta' });
   }
   b.flash = Math.max(0, b.flash - dt);
@@ -210,9 +205,41 @@ function uderzKlatwa(gra) {
   gra.zdarzenia.push({ typ: 'klatwa', x: b.x, y: b.y, zasieg: KLATWA.zasieg, ile });
 }
 
+// W izbie: chodzi po podłodze między sprzętami, przy posłaniu może zasnąć, drzwiami wychodzi (docs/chata.md).
+function wIzbie(gra, dt, w) {
+  const b = gra.bohater, W = WNETRZE, O = CHATA_ODPOCZYNEK;
+  b.zycie = Math.min(BOHATER.zycie, b.zycie + (b.spi ? O.leczenieSen : O.leczenie) * dt);
+  b.sila = BOHATER.sila; b.smuga = 0; b.flash = 0; b.blok = false;
+  let rx = w.ruchX, ry = w.ruchY; const rl = Math.hypot(rx, ry);
+  if (b.spi) {                                                             // śpi: ruch albo czynność budzi
+    b.idzie = false; gra.akcja = 'wstan';
+    if (w.akcja || (rl > 0.3 && gra.czas - b.spiOd > 0.8)) { b.spi = false; powiedz(gra, 'Wstajesz.', 1.2); }
+    return;
+  }
+  if (rl > 1) { rx /= rl; ry /= rl; }
+  b.idzie = rl > 0.2;
+  if (b.idzie) {
+    b.kat = Math.atan2(ry, rx);
+    const v = BOHATER.szybkosc * O.szybkosc * W.pikseliNaJednostke * dt, r = 14;
+    b.wx += rx * v; b.wy += ry * v;
+    for (const p of W.przeszkody) {                                       // wypycha z prostokątów sprzętów najkrótszą drogą
+      if (b.wx > p.x0 - r && b.wx < p.x1 + r && b.wy > p.y0 - r && b.wy < p.y1 + r) {
+        const l = b.wx - (p.x0 - r), pr = p.x1 + r - b.wx, g = b.wy - (p.y0 - r), d = p.y1 + r - b.wy, m = Math.min(l, pr, g, d);
+        if (m === l) b.wx = p.x0 - r; else if (m === pr) b.wx = p.x1 + r; else if (m === g) b.wy = p.y0 - r; else b.wy = p.y1 + r;
+      }
+    }
+    const P = W.podloga, wDrzwiach = Math.abs(b.wx - W.drzwi.x) < 70;
+    b.wx = Math.max(P.x0, Math.min(P.x1, b.wx)); b.wy = Math.max(P.y0, Math.min(wDrzwiach ? P.y1 + 20 : P.y1, b.wy));
+  }
+  const przy = (p) => Math.hypot(b.wx - p.x, b.wy - p.y) < p.r;
+  gra.akcja = przy(W.drzwi) ? 'wyjdz' : (przy(W.poslanie) ? 'odpocznij' : null);
+  if (w.akcja && gra.akcja === 'wyjdz') wyjdzZChaty(gra);
+  else if (w.akcja && gra.akcja === 'odpocznij') { b.spi = true; b.spiOd = gra.czas; b.idzie = false; powiedz(gra, 'Śpisz pod wilczą skórą. Rany się zasklepiają.', 3); }
+}
+
 export function wyjdzZChaty(gra, tekst) {
   const b = gra.bohater; if (!b.wChacie) return;
-  b.wChacie = false; b.x = CHATA.drzwi.x; b.y = CHATA.drzwi.y + 8; b.kat = Math.PI / 2;
+  b.wChacie = false; b.spi = false; b.x = CHATA.drzwi.x; b.y = CHATA.drzwi.y + 8; b.kat = Math.PI / 2;
   gra.zdarzenia.push({ typ: 'chata_wyjscie' });
   if (tekst) powiedz(gra, tekst, 2.5);
 }

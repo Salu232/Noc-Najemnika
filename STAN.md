@@ -2,7 +2,7 @@
 
 Aktualizowany przy każdej zmianie. Historia jest w gicie, tutaj tylko to, co obowiązuje teraz.
 
-**Ostatnia zmiana:** 24 XI 2026 rano: cięcie jak mieczem (sierp i ostrze), garda w walce, plan chaty. W nocy: ghul i kolos z filmów Przemka, a bohater dostał bieg, chód plecami, przewrót przy uniku i upadek. Wcześniej tej nocy klątwa pod R i bohater z filmów. Fundamenty i gra czekają w pull requeście nr 1.
+**Ostatnia zmiana:** 24 XI 2026 w południe: chata ma izbę z obrazu Gemini (chodzenie, sen na posłaniu, wyjście drzwiami), a bohater obok chaty nie robi się już przezroczysty. Wcześniej rano: drzwi i odpoczynek w ciszy, cięcie jak mieczem (sierp i ostrze), garda w walce, plan chaty. W nocy: ghul i kolos z filmów Przemka, a bohater dostał bieg, chód plecami, przewrót przy uniku i upadek. Wcześniej tej nocy klątwa pod R i bohater z filmów. Fundamenty i gra czekają w pull requeście nr 1.
 
 ## Teraz
 

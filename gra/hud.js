@@ -33,13 +33,13 @@ export function przygotujHud() {
     // czynność przy drzwiach i ekran wnętrza chaty (na razie bez obrazu z Gemini)
     const dotyk = matchMedia && matchMedia('(pointer: coarse)').matches;
     const otwarte = gra.faza === 'przerwa' || gra.faza === 'swit';
-    const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : (gra.akcja === 'wyjdz' ? 'Wyjdź' : '');
+    const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : ({ wyjdz: 'Wyjdź', odpocznij: 'Odpocznij na posłaniu', wstan: 'Wstań' }[gra.akcja] || '');
     ustaw('akcja', napisAkcji, v => {                                  // „!” na początku: czynność teraz niedostępna
       const zamkniete = v.startsWith('!'), t = zamkniete ? v.slice(1) : v;
       el.akcja.hidden = !v; el.akcja.classList.toggle('zamkniete', zamkniete);
       el.akcja.textContent = !v ? '' : (dotyk || zamkniete ? t : `E: ${t}`);
     });
-    ustaw('wnetrze', !!b.wChacie, v => el.wnetrze.classList.toggle('widac', v));
+    ustaw('wnetrze', !!b.spi, v => el.wnetrze.classList.toggle('widac', v));   // sen: izba gaśnie
 
     klatki++; odliczanie += dt;
     if (odliczanie >= 1) { fps = Math.round(klatki / odliczanie); klatki = 0; odliczanie = 0; el.info.textContent = `${fps} kl./s · ${opisRysowania}`; }

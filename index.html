@@ -80,7 +80,7 @@ body {
 #akcja.zamkniete { border-color: var(--linia); box-shadow: none; color: var(--przygaszony); }
 #wnetrze {
   position: fixed; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-  background: radial-gradient(ellipse at 50% 62%, rgba(150, 70, 20, 0.55) 0%, rgba(40, 18, 8, 0.9) 38%, #050403 75%);
+  background: radial-gradient(ellipse at 50% 45%, rgba(60, 26, 8, 0.45) 0%, rgba(5, 4, 3, 0.82) 70%);
   opacity: 0; transition: opacity 0.5s; pointer-events: none; text-align: center; padding: 0 24px;
 }
 #wnetrze.widac { opacity: 1; }
@@ -159,7 +159,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 <p id="etap"></p>
 <p id="mysl" aria-live="polite"></p>
 <p id="info"></p>
-<div id="wnetrze" aria-hidden="true"><p>Chata. Ogień w palenisku, cisza. Odpoczywasz.</p><p class="male">Rany się goją. Ruch albo E: wychodzisz. Gdy przyjdą, wyjdziesz sam.</p></div>
+<div id="wnetrze" aria-hidden="true"><p>Śpisz na posłaniu.</p><p class="male">Rany się goją. Gdy przyjdą potwory, obudzisz się sam.</p></div>
 <button type="button" id="akcja" hidden></button>
 <button type="button" id="przycisk-pauza" aria-label="Pauza">II</button>
 

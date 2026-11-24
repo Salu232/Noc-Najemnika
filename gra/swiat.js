@@ -90,3 +90,20 @@ export function punktWMgle(nazwa) {
   const m = MGLY[nazwa], a = Math.random() * Math.PI * 2, d = Math.random() * m.r * 0.5;
   return { x: m.x + Math.cos(a) * d, y: m.y + Math.sin(a) * d * 0.7 };
 }
+
+// Wnętrze chaty (grafika/wnetrze.webp z Gemini od Patryka, 1200 × 896). Współrzędne to piksele obrazu.
+// Bohater ma tu 180 pikseli wzrostu (drzwi mają około 210). Ruch blokują ściany i sprzęty; stopy stoją na podłodze.
+export const WNETRZE = {
+  szer: 1200, wys: 896, pikseliNaJednostke: 1.8,
+  podloga: { x0: 250, y0: 345, x1: 1003, y1: 588 },
+  przeszkody: [
+    { x0: 225, y0: 285, x1: 470, y1: 568 },   // posłanie z wilczą skórą
+    { x0: 538, y0: 290, x1: 748, y1: 420 },   // palenisko
+    { x0: 808, y0: 418, x1: 876, y1: 594 },   // ława
+    { x0: 880, y0: 382, x1: 1010, y1: 578 },  // stół
+    { x0: 893, y0: 285, x1: 998, y1: 400 },   // beczka przy tylnej ścianie
+  ],
+  wejscie: { x: 605, y: 560 },                 // tu staje po wejściu
+  drzwi: { x: 605, y: 585, r: 60 },           // tu wychodzi
+  poslanie: { x: 500, y: 470, r: 65 },        // tu kładzie się spać
+};
