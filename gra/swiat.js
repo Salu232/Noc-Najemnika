@@ -20,6 +20,8 @@ CHATA.sciana = { a: zObrazu(165, 380), b: zObrazu(855, 692) };
 const prost = (x0, y0, x1, y1) => { const a = zObrazu(x0, y0), b = zObrazu(x1, y1); return { x0: a.x, y0: a.y, x1: b.x, y1: b.y }; };
 CHATA.izba = prost(215, 432, 748, 670);
 CHATA.przejscie = prost(427, 670, 503, 692);      // drzwi: w walce zamknięte
+CHATA.prog = zObrazu(465, 681);                   // środek progu: stąd liczy się „przy drzwiach”, z obu stron
+CHATA.skrzydlo = prost(429, 540, 505, 663);      // skrzydło drzwi na obrazie chaty z dachem (zawiasy po lewej)
 CHATA.sciany = [
   prost(165, 380, 855, 432),                       // tylna, z kominem
   prost(165, 432, 215, 692),                       // lewa
@@ -34,7 +36,7 @@ CHATA.sprzety = [
 ];
 CHATA.poslanie = { ...zObrazu(330, 560), r: 42 }; // tu kładzie się spać
 CHATA.palenisko = zObrazu(518, 410);              // ogień w izbie: tu świeci
-CHATA.drzwiOtwarte = true;                        // ustawia walka.js: w walce drzwi są zamknięte
+CHATA.drzwiOtwarte = false;                       // ustawia walka.js: drzwi otwiera E, w walce są zamknięte
 CHATA.ploty = [
   [[160, 470], [45, 585]], [[45, 585], [30, 805]],
   [[30, 805], [395, 900]], [[515, 815], [700, 872]],

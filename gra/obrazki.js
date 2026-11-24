@@ -249,15 +249,25 @@ export function kreskowanie() {
   return c;
 }
 
-export function mgielka() {
-  // nieregularny kłąb mgły: kilka miękkich kół na jednym obrazku
-  const N = 256, c = plotno(N, N), g = c.getContext('2d'), r = losowe(31);
-  for (let i = 0; i < 9; i++) {
-    const x = N * (0.3 + r() * 0.4), y = N * (0.3 + r() * 0.4), rr = N * (0.18 + r() * 0.16);
-    const gr = g.createRadialGradient(x, y, 0, x, y, rr);
-    gr.addColorStop(0, 'rgba(200,208,220,0.35)'); gr.addColorStop(1, 'rgba(200,208,220,0)');
-    g.fillStyle = gr; g.fillRect(0, 0, N, N);
+// Kłąb mgły: postrzępione pasma z szumu (kilka oktaw), wygaszone ku brzegom, płaskie jak mgła przy ziemi.
+// Wcześniej było tu kilka miękkich kół, które razem dawały jasną, rozmytą plamę (Patryk, 24 XI: „strasznie żle wygląda”).
+export function mgielka(wariant = 0) {
+  const N = 256, M = 32, c = plotno(N, N), g = c.getContext('2d'), r = losowe(31 + wariant * 17);
+  const siatka = Array.from({ length: (M + 1) * (M + 1) }, () => r());
+  const szum = (x, y) => {                                   // gładki szum wartości na siatce M × M, zawinięty
+    const x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+    const v = (i, j) => siatka[((j % M + M) % M) * (M + 1) + ((i % M + M) % M)];
+    return (v(x0, y0) * (1 - sx) + v(x0 + 1, y0) * sx) * (1 - sy) + (v(x0, y0 + 1) * (1 - sx) + v(x0 + 1, y0 + 1) * sx) * sy;
+  };
+  const d = g.createImageData(N, N), p = d.data;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    let f = 0, a = 0.55, q = 3 / N;
+    for (let o = 0; o < 5; o++) { f += a * szum(x * q * 1.6, y * q); a *= 0.5; q *= 2; }   // pasma są szersze niż wyższe
+    const dx = (x - N / 2) / (N / 2), dy = (y - N / 2) / (N / 2), brzeg = Math.max(0, 1 - Math.pow(dx * dx + dy * dy * 1.4, 0.8));
+    const gest = Math.max(0, Math.min(1, (f - 0.38) * 2.2)) * brzeg * brzeg;
+    const k = (y * N + x) * 4; p[k] = 205; p[k + 1] = 212; p[k + 2] = 222; p[k + 3] = Math.round(gest * 255);
   }
+  g.putImageData(d, 0, 0);
   return c;
 }
 

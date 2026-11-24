@@ -47,6 +47,10 @@ export function zagraj(z) {
     case 'rana': ton(t, 0.22, 'sine', 95, 40, 0.7); szum(t, 0.12, 'lowpass', 700, 200, 0.35); break;
     case 'smierc': szum(t, 0.2, 'lowpass', 1000, 250, 0.4); break;
     case 'tapniecie': ton(t, 0.55, 'sine', 70, 28, 0.9); szum(t, 0.35, 'lowpass', 500, 80, 0.5); break;
+    case 'drzwi':                                                          // skrzypnięcie zawiasów, przy zamykaniu głuche stuknięcie
+      ton(t, 0.35, 'sawtooth', z.otwarte ? 210 : 260, z.otwarte ? 320 : 180, 0.05); szum(t, 0.3, 'bandpass', 900, 1400, 0.08, 6);
+      if (!z.otwarte) ton(t + 0.38, 0.14, 'sine', 90, 45, 0.5);
+      break;
     case 'unikniety': szum(t, 0.15, 'bandpass', 1400, 600, 0.15, 2); break;
     case 'klatwa_laduje': ton(t, 0.45, 'sawtooth', 55, 140, 0.12); szum(t, 0.45, 'bandpass', 300, 1600, 0.12, 4); break;
     case 'klatwa': ton(t, 0.8, 'sine', 62, 24, 1); szum(t, 0.5, 'lowpass', 1400, 90, 0.7); szum(t, 0.25, 'highpass', 5000, 2500, 0.18); break;

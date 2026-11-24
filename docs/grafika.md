@@ -272,6 +272,21 @@ Bieg bokiem wraca, gdy bohater skręci bardziej w bok niż w dół (ponad 60° o
 
 **Pierwsza próba biegu (Patryk z Flow, 24 XI, 13:46): nieudana.** *„nawet nie przypomina naszej postaci a wkłeiłem mu to zdjęcie i prompt”*. Na filmie biegnie inny człowiek, bez futra i płaszcza, w stylu bliższym zdjęciu. Film nie wszedł do repozytorium. Prawdopodobna przyczyna: obraz `przemek-5-biale-tlo.jpg` pokazuje bohatera z ukosa, więc Flow musiał go obrócić bokiem i narysował go od nowa. Następna próba: jako klatka startowa klatka 47 z `film-bieg.mp4` (bohater już bokiem, w biegu, w naszym stylu), plik `bohater-bokiem-klatka.png` w plikach projektu.
 
+**Polecenie przemyślane jeszcze raz (Claude, 24 XI, po prośbie Patryka *„pomyśl jeszcze głebiej nad promptem”*).** Trzy przyczyny, dla których Flow rysuje innego człowieka:
+1. *„The same mercenary”* nic nie znaczy dla modelu filmów: on widzi tylko obraz, więc postać trzeba opisać słowami.
+2. Obraz startowy był z ukosa, a polecenie kazało biec bokiem. Model musiał postać obrócić, więc narysował ją od nowa.
+3. Szarża z mieczem w górze to inna poza niż na obrazie (miecz nisko), więc model zmienia pozę, a z nią postać.
+
+Dlatego dwa kroki. Najpierw Gemini rysuje nieruchomy kadr w docelowej pozie (z naszej klatki biegu bokiem). Potem Flow robi z niego film, w którym ten sam kadr jest pierwszą i ostatnią klatką: postać nie ma się wtedy w co zmienić, a pętla zamyka się sama.
+
+| Krok | Gdzie | Polecenie |
+| --- | --- | --- |
+| 1a. Kadr: szarża | Gemini (obraz), załącznik `bohater-bokiem-klatka.png` | Redraw exactly this character in exactly the same drawing style, at the same size and in the same place in the frame, in the same side view facing right, mid-run. Change only his arms and sword: he now holds his drawn sword in both hands, raised in front of him at shoulder height, the blade pointing forward and clearly visible. Keep his face, short dark hair, stubble, wolf-fur cloak, hood, leather straps, single steel pauldron, patched trousers and boots exactly the same. Pure white background, no shadow, no text. |
+| 1b. Kadr: bieg bez miecza | jak wyżej | Redraw exactly this character in exactly the same drawing style, at the same size and in the same place in the frame, in the same side view facing right, mid-run. Change only his arms and sword: the sword is sheathed in a plain leather scabbard at his left hip, both hands are empty, fists clenched, arms swinging as he runs. Keep his face, short dark hair, stubble, wolf-fur cloak, hood, leather straps, single steel pauldron, patched trousers and boots exactly the same. Pure white background, no shadow, no text. |
+| 2. Film | Flow, z kadru 1a albo 1b jako pierwszą i ostatnią klatką | A 2D hand-drawn animation in exactly the style of this image: this exact character runs on the spot in a loop, like on a treadmill, side view facing right. He does not move across the frame; only his legs, arms and cloak move. Keep his face, clothes, colours, ink outlines and size exactly as in the image. Do not turn him into a different person, not photorealistic, not 3D. Pure white background, no floor, no shadow. Static camera: no zoom, no pan, no cut. No motion trails, no sparks, no glow, no smoke, no text. |
+
+Jeśli Flow nie ma pola na ostatnią klatkę, wystarczy pierwsza: szukamy wtedy pętli w filmie tak jak przy chodzie przodem.
+
 ## Jak ocenimy próbkę
 
 1. **Klimat** (decyduje Patryk): czy to wygląda jak nasza gra?

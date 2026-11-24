@@ -13,6 +13,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     bohater: null, wrogowie: [], krew: [], iskry: [], slady: [], zdarzenia: [],
     etap: 0, faza: 'przerwa', fazaCzas: NOC.przerwa, walkaCzas: 0, kolejka: [],
     mysl: { tekst: '', czas: 0 },
+    drzwi: { otwarte: false, o: 0 },   // drzwi chaty: czy otwarte i jak daleko obrócone (0 zamknięte, 1 otwarte)
     statystyki: { zabici: 0, upadki: 0, parowania: 0, czas: 0 },
   };
   postawBohatera(gra);
@@ -203,7 +204,21 @@ function uderzKlatwa(gra) {
 // Zwraca true, gdy bohater śpi (wtedy nic więcej się z nim nie dzieje).
 function wChacie(gra, dt, w) {
   const b = gra.bohater, O = CHATA_ODPOCZYNEK;
-  CHATA.drzwiOtwarte = gra.faza !== 'walka';
+  // drzwi: E otwiera i zamyka (Patryk, 24 XI 13:51: „trzeba dodać otwieranie drzwi”); przejść można, gdy są prawie otwarte
+  const D = gra.drzwi;
+  if (gra.faza === 'walka' && D.otwarte) { D.otwarte = false; gra.zdarzenia.push({ typ: 'drzwi', otwarte: false }); }   // w walce trzaskają
+  D.o = Math.max(0, Math.min(1, D.o + (D.otwarte ? 1 : -1) * dt / 0.45));
+  CHATA.drzwiOtwarte = D.o > 0.7;
+  const przyDrzwiach = b.stan === 'wolny' && Math.abs(b.x - CHATA.drzwi.x) < 45 && Math.abs(b.y - CHATA.prog.y) < O.zasiegDrzwi;
+  const wPrzejsciu = Math.abs(b.x - CHATA.drzwi.x) < 40 && b.y > CHATA.przejscie.y0 - 8 && b.y < CHATA.przejscie.y1 + 8;
+  if (przyDrzwiach && !b.spi) {
+    if (gra.faza === 'walka') gra.akcja = 'wejdz';                                       // HUD: „Nie teraz”
+    else if (!D.otwarte) gra.akcja = 'otworz';
+    else if (!wPrzejsciu) gra.akcja = 'zamknij';
+    if (w.akcja && (gra.akcja === 'otworz' || gra.akcja === 'zamknij')) {
+      D.otwarte = gra.akcja === 'otworz'; w.akcja = false; gra.zdarzenia.push({ typ: 'drzwi', otwarte: D.otwarte });
+    }
+  }
   const wSrodku = wIzbie(b);
   if (wSrodku !== b.wChacie) {
     b.wChacie = wSrodku;
@@ -213,17 +228,14 @@ function wChacie(gra, dt, w) {
       if (gra.faza === 'przerwa') gra.fazaCzas = Math.max(gra.fazaCzas, O.ciszaPoWyjsciu);   // etap rusza dopiero po wyjściu
     }
   }
-  if (!b.wChacie) {
-    if (!CHATA.drzwiOtwarte && b.stan === 'wolny' && Math.hypot(b.x - CHATA.drzwi.x, b.y - CHATA.drzwi.y) < O.zasiegDrzwi) gra.akcja = 'wejdz';   // HUD: „Nie teraz”
-    return false;
-  }
+  if (!b.wChacie) return false;
   b.zycie = Math.min(BOHATER.zycie, b.zycie + (b.spi ? O.leczenieSen : O.leczenie) * dt);
   if (b.spi) {                                                             // śpi: ruch albo czynność budzi
     b.idzie = false; b.blok = false; b.sila = BOHATER.sila; gra.akcja = 'wstan';
     if (w.akcja || (Math.hypot(w.ruchX, w.ruchY) > 0.3 && gra.czas - b.spiOd > 0.8)) { b.spi = false; powiedz(gra, 'Wstajesz.', 1.2); }
     return b.spi;
   }
-  if (b.stan === 'wolny' && Math.hypot(b.x - CHATA.poslanie.x, b.y - CHATA.poslanie.y) < CHATA.poslanie.r) {
+  if (b.stan === 'wolny' && !gra.akcja && Math.hypot(b.x - CHATA.poslanie.x, b.y - CHATA.poslanie.y) < CHATA.poslanie.r) {
     gra.akcja = 'odpocznij';
     if (w.akcja) { b.spi = true; b.spiOd = gra.czas; b.idzie = false; b.blok = false; powiedz(gra, 'Śpisz pod wilczą skórą. Rany się zasklepiają.', 3); return true; }
   }

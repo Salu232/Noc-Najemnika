@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 24 XI 2026 | Patryk | Chata jak w Tibii „wyszła fajnie”, ale trzeba dodać otwieranie drzwi; mgła „strasznie żle wygląda”; przemyśleć głębiej polecenie do Flow | zrobiony | drzwi otwierane E z animacją i skrzypieniem, nowa mgła ([docs/chata.md](../docs/chata.md)); polecenie w dwóch krokach ([docs/grafika.md](../docs/grafika.md), punkt 13) |
 | 24 XI 2026 | Patryk | Cięcie ma wyglądać jak prawdziwym mieczem, nie „nożykiem” | zrobiony (pierwsza wersja) | sierp na pełny zasięg i ostrze w łuku; lepsze będzie nowe cięcie z filmu: [docs/grafika.md](../docs/grafika.md), punkt 12 |
 | 24 XI 2026 | Patryk | W trybie walki miecz wyciągnięty, po pokonaniu wrogów chowany | zrobiony (garda bez chowania) | garda z końca filmu cięcia; wyciąganie i chowanie czeka na filmy, polecenia w [docs/grafika.md](../docs/grafika.md), punkt 12 |
 | 24 XI 2026 | Patryk | Interakcja z obiektami, na początek chata: wejść do środka i odpocząć w niej, co daje regenerację. Chata jest dziś tylko obrazkiem, ma być obiektem | w toku: bryła, drzwi, odpoczynek i izba z obrazu Gemini zrobione (24 XI); [docs/chata.md](../docs/chata.md) | następny etap po walce i materiałach Przemka (Patryk: „najpierw skonczymy z wyglądem i walką bohatera”); błędy chaty niżej w feedbacku |

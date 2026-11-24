@@ -74,7 +74,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     ziemia: tx(O.kafelZiemi()), plamy: tx(O.plamyZiemi()),
     drzewa: [0, 1, 2, 3].map(w => { const d = O.obrazDrzewa(w); return { t: tx(d.canvas), ax: d.ox / d.w, ay: d.oy / d.h }; }),
     chata: tx(plotnoChaty), podworko: tx(plotnoPodworka),
-    cien: tx(O.cien()), kreski: tx(O.kreskowanie()), mgla: tx(O.mgielka()),
+    cien: tx(O.cien()), kreski: tx(O.kreskowanie()), mgla: [0, 1, 2].map(w => tx(O.mgielka(w))),
     stempel: tx(O.kolo(256, [[0, 'rgba(0,0,0,1)'], [0.45, 'rgba(0,0,0,0.62)'], [1, 'rgba(0,0,0,0)']])),
     cieplo: tx(O.kolo(256, [[0, 'rgba(255,150,70,0.5)'], [0.5, 'rgba(200,90,40,0.18)'], [1, 'rgba(0,0,0,0)']])),
     okoCzerwone: tx(O.kolo(64, [[0, 'rgba(255,80,60,1)'], [0.22, 'rgba(235,30,30,0.65)'], [1, 'rgba(0,0,0,0)']])),
@@ -164,6 +164,20 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // chata
   const chata = new P.Sprite(T.chata); chata.position.set(CHATA.x, CHATA.y); chata.scale.set(CHATA.skala); chata.zIndex = CHATA.podstawa;
   aktorzy.addChild(chata, izbaPrzod);
+  // Drzwi chaty (Patryk, 24 XI 13:51): skrzydło wycięte z obrazu obraca się do środka na zawiasach po lewej,
+  // za nim ciemna sień z blaskiem ognia. Zamknięte drzwi są po prostu częścią obrazu chaty.
+  const SK = CHATA.skrzydlo, skW = Math.round((SK.x1 - SK.x0) / CHATA.skala), skH = Math.round((SK.y1 - SK.y0) / CHATA.skala);
+  const sien = document.createElement('canvas'); sien.width = skW; sien.height = skH;
+  { const g = sien.getContext('2d'); g.fillStyle = '#120c08'; g.fillRect(0, 0, skW, skH);
+    const gr = g.createRadialGradient(skW * 0.55, skH * 1.05, 4, skW * 0.55, skH * 1.05, skH * 0.95);
+    gr.addColorStop(0, 'rgba(235,140,60,0.55)'); gr.addColorStop(0.5, 'rgba(150,80,35,0.25)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, skW, skH); }
+  const liscC = document.createElement('canvas'); liscC.width = skW; liscC.height = skH;
+  liscC.getContext('2d').drawImage(plotnoChaty, Math.round((SK.x0 - CHATA.x) / CHATA.skala), Math.round((SK.y0 - CHATA.y) / CHATA.skala), skW, skH, 0, 0, skW, skH);
+  const drzwiC = new P.Container(); drzwiC.zIndex = CHATA.podstawa + 0.01; drzwiC.visible = false;
+  const sienS = new P.Sprite(tx(sien)), lisc = new P.Sprite(tx(liscC));
+  for (const sp of [sienS, lisc]) { sp.position.set(SK.x0, SK.y0); sp.scale.set(CHATA.skala); }
+  drzwiC.addChild(sienS, lisc); aktorzy.addChild(drzwiC);
 
   // ognisko: kamienie i polana (ogień jest nad ciemnością)
   const kamienie = new P.Graphics(); kamienie.position.set(OGNISKO.x, OGNISKO.y); kamienie.zIndex = OGNISKO.y - 1;
@@ -186,9 +200,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const kleby = [];
   for (const k in MGLY) {
     const m = MGLY[k];
-    for (let i = 0; i < 8; i++) {
-      const s = new P.Sprite(T.mgla); s.anchor.set(0.5);
-      kleby.push({ s, m, a: i / 8 * TAU, r: m.r * losuj(0.15, 0.55), v: losuj(0.05, 0.12) * (i % 2 ? 1 : -1), roz: m.r * losuj(1.0, 1.5), alfa: losuj(0.55, 0.85) });
+    // Mgła: wiele przygaszonych, postrzępionych pasm w chłodnym szarym kolorze, nisko przy ziemi, wolno dryfuje.
+    // Przy bohaterze rzednie, żeby go nie zakrywać.
+    for (let i = 0; i < 14; i++) {
+      const s = new P.Sprite(T.mgla[i % 3]); s.anchor.set(0.5); s.tint = 0x9aa6b8;
+      kleby.push({ s, m, a: i / 14 * TAU + losuj(-0.2, 0.2), r: m.r * losuj(0.1, 0.75), v: losuj(0.02, 0.06) * (i % 2 ? 1 : -1),
+        roz: m.r * losuj(0.55, 1.05), splaszcz: losuj(0.42, 0.6), alfa: losuj(0.28, 0.48), faza: losuj(0, TAU), obrot: losuj(-0.15, 0.15) });
       mgla.addChild(s);
     }
   }
@@ -681,10 +698,15 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     czas += dt;
     const b = gra.bohater;
     // dach znika w ćwierć sekundy, gdy bohater wejdzie do izby, i wraca, gdy wyjdzie (jak w Tibii)
-    if (bezDachu) stanRys.bezDachu = ogr(stanRys.bezDachu + (b.wChacie ? 1 : -1) * dt * 4, 0, 1);
+    const wProgu = b.x > CHATA.przejscie.x0 && b.x < CHATA.przejscie.x1 && b.y > CHATA.przejscie.y0 && b.y < CHATA.przejscie.y1 + 6;   // w progu dach już gaśnie
+    if (bezDachu) stanRys.bezDachu = ogr(stanRys.bezDachu + (b.wChacie || wProgu ? 1 : -1) * dt * 4, 0, 1);
     const fD = stanRys.bezDachu;
     chata.alpha = 1 - fD; chata.visible = fD < 1;
     izbaSpod.alpha = izbaPrzod.alpha = fD; izbaSpod.visible = izbaPrzod.visible = fD > 0;
+    const oD = gra.drzwi ? gra.drzwi.o : 0, eD = oD * oD * (3 - 2 * oD);                 // skrzydło zwalnia na końcu obrotu
+    drzwiC.visible = oD > 0.001 && fD < 1; drzwiC.alpha = 1 - fD;
+    lisc.scale.x = CHATA.skala * (1 - 0.8 * eD); lisc.skew.y = -0.32 * eD;              // obraca się do środka: węższe i uniesione z prawej
+    const cien = Math.round(255 - 110 * eD); lisc.tint = (cien << 16) | (cien << 8) | cien;
 
     // zdarzenia, które widać na obrazie
     for (const z of zdarzenia) {
@@ -1080,8 +1102,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // mgła płynie powoli wokół swoich miejsc
     for (const k of kleby) {
       k.a += k.v * dt;
-      k.s.position.set(k.m.x + Math.cos(k.a) * k.r, k.m.y + Math.sin(k.a) * k.r * 0.6);
-      k.s.width = k.roz * 2; k.s.height = k.roz * 1.3; k.s.alpha = k.alfa * (0.85 + Math.sin(czas * 0.7 + k.a) * 0.15) * (gra.faza === 'swit' || gra.faza === 'koniec' ? Math.max(0.2, gra.mroczek / 0.8) : 1);
+      const x = k.m.x + Math.cos(k.a) * k.r, y = k.m.y + Math.sin(k.a) * k.r * 0.5;
+      k.s.position.set(x, y); k.s.rotation = k.obrot + Math.sin(czas * 0.05 + k.faza) * 0.06;
+      k.s.width = k.roz * 2 * (1 + Math.sin(czas * 0.11 + k.faza) * 0.08); k.s.height = k.roz * 2 * k.splaszcz;
+      const przyBoh = Math.min(1, Math.hypot(x - b.x, (y - b.y) * 1.6) / (k.roz * 0.9));        // przy bohaterze rzednie
+      k.s.alpha = k.alfa * (0.75 + Math.sin(czas * 0.3 + k.faza) * 0.25) * (0.45 + 0.55 * przyBoh) * (gra.faza === 'swit' || gra.faza === 'koniec' ? Math.max(0.2, gra.mroczek / 0.8) : 1);
     }
 
     // ogień

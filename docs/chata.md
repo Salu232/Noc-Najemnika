@@ -48,6 +48,11 @@ Zdjęcia: [zrzuty/2026-11-24-chata-1.png](zrzuty/2026-11-24-chata-1.png), [-2](z
   - **Sprawdzone** w przeglądarce na komputerze: wejście drzwiami, dach znika, posłanie, sen, ściany od środka, wyjście i dach wraca, zamknięte drzwi w walce, sylwetka za chatą. Na telefonie: wejście, sen, wyjście. Bot półtoraręcznym: świt 5/5, rany 8,2 (jak wcześniej).
   - **Do dopieszczenia:** przy przedniej ścianie (tuż za nią) widać z bohatera tylko głowę, bo ściana sięga mu do piersi, a z tej strony patrzymy na nią z przodu.
 
+- **24 XI, 13:51, Patryk: drzwi i mgła.** *„trzeba dodać otwieranie drzwi bo tu tylko przechodzisz do pomieszczenia”* oraz *„tą mgłe trzeba poprawić bo strasznie żle wygląda”*.
+  - **Drzwi:** przy progu przycisk „Otwórz drzwi” albo „Zamknij drzwi” (komputer: E, telefon: przycisk). Skrzydło obraca się do środka w niecałe pół sekundy (zwęża się i przekrzywia, za nim ciemna sień), skrzypi, a zamykane stuka. Przejść można dopiero przy otwarciu ponad 70%; zamknięte drzwi zatrzymują w progu. Zamknąć się ich nie da, gdy bohater stoi w przejściu. Gdy zaczyna się etap walki, drzwi same trzaskają, a w walce przycisk mówi „Nie teraz, potwory blisko”. Stan jest w `gra.drzwi` ([gra/walka.js](../gra/walka.js)), rysunek w `drzwiC` ([gra/rysowanie.js](../gra/rysowanie.js)), dźwięk w [gra/dzwiek.js](../gra/dzwiek.js).
+  - **Mgła:** wcześniej były to rozmyte szare plamy. Teraz każda chmura to 14 smug z szumu (fBm, 5 oktaw, `mgielka` w [gra/obrazki.js](../gra/obrazki.js)), spłaszczonych, w zimnym kolorze, z wolnym dryfem i obrotem, przy bohaterze rzadsze.
+  - **Sprawdzone** w przeglądarce: E otwiera i zamyka, zamknięte drzwi blokują, wejście po otwarciu, trzask na początku etapu; zrzuty mgły. Bot półtoraręcznym: świt 5/5, rany 7,6.
+
 ## Decyzje
 
 - **Kiedy wolno odpoczywać w chacie?** Patryk, 24 XI (karta wyboru): *„W ciszy między etapami nocy”*.
