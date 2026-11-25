@@ -5,6 +5,9 @@ import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, wIzbie, zderzenia, punktWMg
 const TAU = Math.PI * 2;
 const rozn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 const losuj = (a, b) => a + Math.random() * (b - a);
+// Ruch w górę i w dół ekranu idzie w głąb polany, a ziemia jest spłaszczona (PERSP 0,62 w rysowanie.js), więc ten sam krok
+// wyglądał na szybszy niż w bok (Patryk, 25 XI 22:24). Pion chodu bohatera i potworów razy 0,8 (nie 0,62: byłoby ociężale).
+const PION = 0.8;
 
 export function nowaGra(bron = DOMYSLNA_BRON) {
   const gra = {
@@ -213,7 +216,7 @@ function aktualizujBohatera(gra, dt, w) {
   // prędkość idzie falą, krok i chwila postoju. Rysowanie dokłada do tego lekkie ugięcie kolan.
   if (b.stan === 'wolny' && b.blok && rl > 0.05) { b.krokGardy = (b.krokGardy || 0) + dt * TAU * BOHATER.blok.krokiNaSekunde; v *= 1 - (gra.bronKlucz === 'wielki' ? 1 : 0.6) * Math.cos(b.krokGardy); }   // krok i postój pod filmy cofania; zwykły miecz łagodniej (Patryk, 25 XI 15:34: „przeskakuje”)
   else if (b.stan === 'cios') v = BOHATER.szybkosc * (b.cios.faza === 'laduje' ? MOCNY.ruchLadowania : bron.ruch);
-  if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl) * (v / BOHATER.szybkosc + 0.3); }
+  if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt * PION; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl) * (v / BOHATER.szybkosc + 0.3); }
   else b.idzie = false;
   b.x += b.odrzutX * dt; b.y += b.odrzutY * dt;
   b.odrzutX *= Math.max(0, 1 - dt * 8); b.odrzutY *= Math.max(0, 1 - dt * 8);
@@ -598,7 +601,7 @@ function aktualizujWrogow(gra, dt) {
     const k = Math.min(1, dt * (e.stan === 'skok' ? 1 : 6));
     if (e.stan !== 'skok') { e.vx += (ax - e.vx) * k; e.vy += (ay - e.vy) * k; }
     else { e.vx *= Math.max(0, 1 - dt * 5); e.vy *= Math.max(0, 1 - dt * 5); }
-    e.x += e.vx * dt; e.y += e.vy * dt;
+    e.x += e.vx * dt; e.y += e.vy * dt * PION;
     // nie wchodzi w bohatera
     const bx = e.x - b.x, by = e.y - b.y, bd = Math.hypot(bx, by), bm = e.promien + b.promien;
     if (bohaterZywy && bd < bm && bd > 0.01) { e.x = b.x + bx / bd * bm; e.y = b.y + by / bd * bm; }
