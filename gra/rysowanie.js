@@ -791,22 +791,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const zn = sx === fw.patrzy ? 1 : -1, odB = e.x >= b.x ? 1 : -1;
     let rot = 0, skx = 1, sky = 1;
     if (e.flash > 0) { const f = e.flash / 0.12; rot += odB * (typ.ciezki ? 0.05 : 0.12) * f; sky *= 1 - 0.08 * f; skx *= 1 + 0.06 * f; }
-    // Ataki z arkusza póz (wbicie, doskok) mają po 6 póz, więc szarpały (Patryk, 25 XI 22:52: „za bardzo klatkowe”):
-    // poza przenika w następną, a ciało dostaje ruch z kodu: przysiad przed skokiem, łuk lotu, ugięcie przy uderzeniu.
+    // Wbicie i doskok mają już filmy (Veo z pierwszej i ostatniej klatki), więc przenikanie póz zniknęło.
+    // Doskok dostaje tylko łuk lotu z kodu, bo w filmie podskakuje w miejscu, a w grze leci na bohatera.
     let nast = null, przenik = 0, wzlot = 0;
-    const pozy = typ.boss && e.at && e.at.nazwa === 'doskok' && (e.stan === 'zamach' || e.stan === 'skok' || e.stan === 'odpoczynek');
-    if (pozy) {
-      const n = e.stan + '_' + e.at.nazwa, l = fw.anim[n];
-      const trwa = e.stan === 'zamach' ? czasy.zamach : e.stan === 'skok' ? czasy.skok : Math.max(0.3, e.odpoczynek * 0.85);
-      const f = ogr(e.t / trwa, 0, 0.999) * l.length, i = Math.floor(f), fr = f - i;
-      const kolej = i + 1 < l.length ? l[i + 1] : (e.stan === 'zamach' ? fw.anim['skok_' + e.at.nazwa][0] : null);
-      if (kolej && kolej !== l[i]) { nast = fw.k[kolej]; przenik = fr * fr * (3 - 2 * fr); }
-      const q = ogr(e.t / trwa, 0, 1);
-      if (e.stan === 'zamach') { sky *= 1 - 0.07 * Math.sin(Math.PI * Math.min(1, q * 1.4)); skx *= 1 + 0.04 * Math.sin(Math.PI * q); }   // przysiad, zbiera siłę
-      if (e.stan === 'skok' && e.at.leci) { const kk = Math.min(1, e.t / (czasy.skok * czasy.trafW)); wzlot = 70 * Math.sin(Math.PI * kk); sky *= 1 + 0.06 * Math.sin(Math.PI * kk); }
-      if (e.stan === 'skok' && !e.at.leci) { const u = Math.min(1, q * 2.5); sky *= 1.05 - 0.13 * u; skx *= 0.98 + 0.08 * u; }   // uderzenie: ciało siada w ziemię
-      if (e.stan === 'odpoczynek') { const u = Math.max(0, 1 - q * 2); sky *= 1 - 0.06 * u; }
-    }
+    if (typ.boss && e.at && e.at.leci && e.stan === 'skok') { const kk = Math.min(1, e.t / (czasy.skok * czasy.trafW)); wzlot = 45 * Math.sin(Math.PI * kk); }
     const sp = pulaWrogow.wez();
     sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.scale.set(fw.skala * zn * skx, fw.skala * sky); sp.rotation = rot;
     sp.position.set(e.x + (e.drzy || 0), e.y - wzlot); sp.zIndex = e.y; sp.alpha = e.stan === 'wynurza' ? e.widac : 1;
