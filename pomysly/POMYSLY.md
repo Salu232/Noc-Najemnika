@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 25 XI 2026 | Patryk | „Zmniejsz trochę ten pasek życia na telefonie, trochę za duży” | zrobiony | index.html: na dotyku i wąskim ekranie pasek ma 160–230 px (min z 28% szerokości i 46% wysokości ekranu), było 230–330 px; napis etapu w pionie wyżej |
 | 25 XI 2026 | Patryk | „Te drewniane płoty wywal, nie pasują” | zrobiony | płoty zdjęte z RZECZY w swiat.js (zostają w atlasie, nieużyte); zostały beczki, drewno i pochodnia |
 | 25 XI 2026 | Patryk | „Trzeba jakąś teksturę do tej drogi, bo wygląda źle” | zrobiony (próba) | grafika/droga.webp: łata suchej ziemi z kamykami z arkusza Przemka (narzedzia/kafel-drogi.py), kładziona wzdłuż drogi pod losowymi kątami i przycinana do jej kształtu; ?droga=farba pokazuje drogę z v38. Patryk dostał prompt na kafel z Gemini, jeśli ta nie wystarczy |
 | 25 XI 2026 | Claude (Patryk: „wszystko można zrobić”) | Rekwizyty i światło przy drodze | zrobiony | z arkusza rekwizyty-oboz.jpg: trzy połamane płoty, stos drewna, dwie beczki (zderzenia) i pochodnia na płocie przy furtce, która świeci w nocy; swiat.js RZECZY; drzewa, które wpadły na drogę, zdjęte |
