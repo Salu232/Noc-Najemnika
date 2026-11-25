@@ -21,7 +21,7 @@ const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
   wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },
-  rycerz: { ciecie: 75, droga: 420, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
+  rycerz: { ciecie: 75, droga: 420, drogaChod: 190, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
 export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null } = {}) {
@@ -303,6 +303,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const duchS = new P.Sprite(); duchS.alpha = 0.5;
   try { const cm = new P.filters.ColorMatrixFilter(); cm.matrix = [0, 0, 0, 0, 0.62, 0, 0, 0, 0, 0.76, 0, 0, 0, 0, 0.9, 0, 0, 0, 1, 0]; duchS.filters = [cm]; } catch (e) { duchS.alpha = 0.33; }
   const blaskBoh = new P.Sprite(T.cieplo); blaskBoh.anchor.set(0.5); blaskBoh.blendMode = P.BLEND_MODES.ADD; blaski.addChild(blaskBoh);
+  const blaskBossa = new P.Sprite(T.cieplo); blaskBossa.anchor.set(0.5); blaskBossa.blendMode = P.BLEND_MODES.ADD; blaskBossa.tint = 0xff5a20; blaski.addChild(blaskBossa);   // żar klątwy w rycerzu
   const blaskiTotemow = TOTEMY.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0x9a50ff; blaski.addChild(s); return s; });
   const blaskiPochodni = plomienieRzeczy.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffa860; blaski.addChild(s); return s; });
   const blaskKlatwy = new P.Sprite(T.cieplo); blaskKlatwy.anchor.set(0.5); blaskKlatwy.blendMode = P.BLEND_MODES.ADD; blaskKlatwy.tint = 0xa060ff; blaski.addChild(blaskKlatwy);
@@ -319,6 +320,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const stempel = () => { const s = new P.Sprite(T.stempel); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ERASE; stemple.addChild(s); return s; };
   const swiatloBoh = stempel(), swiatloOgnia = stempel(), swiatloOkna = stempel(), swiatloIzby = stempel();
   const swiatlaTotemow = TOTEMY.map(() => stempel());
+  const swiatloBossa = stempel(); let dymBossaNa = 0, pierscienBossaNa = 0;
   const swiatlaPochodni = plomienieRzeczy.map(() => stempel());
   swiatloBoh.texture = T.stempelBoh;
   ciemnoscC.addChild(ciemnoscG, kreski, stemple);
@@ -785,7 +787,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     else if (odTraf < fw.trafienie && trafA && !(typ.boss && e.stan === 'odpoczynek')) k = klatkaW(fw, trafA, 0.4 * odTraf / fw.trafienie);
     else if (e.stan === 'odpoczynek' && typ.boss && e.at) k = klatkaW(fw, 'odpoczynek' + at, e.t / Math.max(0.3, e.odpoczynek * 0.85));
     else if (e.stan === 'odpoczynek' && e.t < 0.6 && fw.anim.odpoczynek) k = klatkaW(fw, 'odpoczynek', e.t / 0.6);
-    else { k = klatkaPetliW(fw, typ.boss && e.faza === 2 ? 'chod2' : 'chod', e.anim * 70 / fw.droga); oczy = true; }
+    else { k = klatkaPetliW(fw, typ.boss && e.faza === 2 ? 'chod2' : 'chod', e.anim * 70 / (typ.boss && e.faza === 1 ? fw.drogaChod : fw.droga)); oczy = true; }   // boss w 1. fazie: 2 cykle kroków w liście (ok. 95 jednostek na cykl), w 2.: ok. 4,6 cyklu (Patryk, 25 XI 21:59: „jeździ po mapie”)
     const zn = sx === fw.patrzy ? 1 : -1, odB = e.x >= b.x ? 1 : -1;
     let rot = 0, skx = 1, sky = 1;
     if (e.flash > 0) { const f = e.flash / 0.12; rot += odB * (typ.ciezki ? 0.05 : 0.12) * f; sky *= 1 - 0.08 * f; skx *= 1 + 0.06 * f; }
@@ -1403,6 +1405,25 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       stawStempel(swiatlaPochodni[i], p.x, p.y + 20, 170 * m, 0.8);
       const bl = blaskiPochodni[i]; bl.position.set(p.x, p.y); bl.width = bl.height = 130 * m; bl.alpha = 0.6 * Math.max(0.3, gra.mroczek / 0.8);
     });
+    // Przemiana rycerza (Patryk, 25 XI 21:58: „nie widać, żeby dawał takiego efektu”): żar rośnie w nim i rozświetla noc,
+    // z ciała bije czarny dym i iskry, po ziemi co chwilę idzie krąg ognia. Po przemianie żar zostaje słabszy.
+    {
+      const e = gra.wrogowie.find(w => w.typ.boss);
+      let moc = 0, r = 0;
+      if (e && e.stan === 'przemiana') {
+        const q = ogr(e.t / e.typ.przemiana.czas, 0, 1), fala = Math.sin(Math.PI * q);
+        moc = (0.35 + 0.65 * fala) * (0.85 + 0.15 * Math.sin(czas * 23)); r = 220 + 260 * fala;
+        dymBossaNa -= dt; pierscienBossaNa -= dt;
+        if (dymBossaNa <= 0) {
+          dymBossaNa = 0.07;
+          obloczek(e.x + losuj(-30, 30), e.y - losuj(30, 120), losuj(-25, 25), losuj(-70, -35), 8, losuj(26, 44), losuj(1, 1.6), 0.3, 0x140c0a, false);
+          if (Math.random() < 0.6) obloczek(e.x + losuj(-40, 40), e.y - losuj(20, 130), losuj(-60, 60), losuj(-140, -60), 2, 3, losuj(0.5, 0.9), 0.95, 0xff9a40, false);
+        }
+        if (pierscienBossaNa <= 0) { pierscienBossaNa = 0.9 - 0.5 * q; pierscienie.push({ x: e.x, y: e.y, r0: 20, r1: 150 + 120 * fala, t: 0, czas: 0.6, kolor: 0xff5a20, ziemia: true }); gra.wstrzas = Math.max(gra.wstrzas, 3 + 6 * fala); }
+      } else if (e && e.faza === 2) { moc = 0.3 + 0.08 * Math.sin(czas * 5); r = 170; }
+      if (e) { blaskBossa.visible = moc > 0; blaskBossa.position.set(e.x, e.y - 70); blaskBossa.width = blaskBossa.height = r * 1.8; blaskBossa.alpha = 0.45 * moc * Math.max(0.4, gra.mroczek / 0.8); stawStempel(swiatloBossa, e.x, e.y - 60, r, Math.min(1, moc)); }
+      else { blaskBossa.visible = false; swiatloBossa.alpha = 0; }
+    }
     TOTEMY.forEach((t, i) => {                                            // totemy świecą fioletem, żeby było widać, skąd przyjdą
       const puls = 0.85 + 0.15 * Math.sin(czas * 2.1 + i * 1.7), jest = totemyS.length > 0 && !(gra.totemy && gra.totemy[i].zniszczony);
       stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 190 * puls, jest ? 0.55 : 0);

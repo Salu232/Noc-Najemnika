@@ -143,7 +143,7 @@ POSTACIE = {
         'stopy': (318, 324), 'wys_film': 293, 'wys_swiat': 150, 'skala_obrazu': 0.5,
         'sledz': ('chod', 'chod2'), 'srodek': 'glowa',
         'animacje': {
-            'chod':                ('boss/rycerz-chod-a', list(range(37, 182, 4))),          # pierwsze 1,5 s obraca się w miejscu
+            'chod':                ('boss/rycerz-chod-w-miejscu', list(range(29, 134, 4))),  # dwa równe cykle kroków; rycerz-chod-a chodził nierówno i bujał się (Patryk, 25 XI 21:58)
             'zamach_ciecie':       ('boss/rycerz-ciecie-poziome', list(range(46, 71, 3))),   # unosi miecz za plecy
             'skok_ciecie':         ('boss/rycerz-ciecie-poziome', [73, 76, 79, 82, 94, 103, 106, 109, 112, 115]),   # cięcie w poprzek i z powrotem
             'odpoczynek_ciecie':   ('boss/rycerz-ciecie-poziome', list(range(118, 158, 4))),
