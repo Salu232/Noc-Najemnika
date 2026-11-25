@@ -20,7 +20,7 @@ const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17 };   // na jakiej wysokoś
 const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
-  wiedzma: { ciecie: 45, droga: 50, smierc: 1.0, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
+  wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
 export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null } = {}) {
@@ -389,7 +389,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (s.typ === 'cialo' && s.pada) { padajace.push(nowyPadajacy(s)); continue; }      // najpierw upadek, ślad później
       if (s.typ === 'cialo' && filmW[s.wrog]) {
         const fw = filmW[s.wrog], k = fw.k[fw.anim.trup[0]], sp = new P.Sprite(k.t); sp.anchor.set(k.ax, k.ay);
-        sp.position.set(s.x, s.y); sp.scale.set(fw.skala * (s.sx === fw.patrzy ? 1 : -1), fw.skala); c.addChild(sp);
+        const sk = fw.skala * (fw.kaluza || 1); sp.position.set(s.x, s.y); sp.scale.set(sk * (s.sx === fw.patrzy ? 1 : -1), sk); c.addChild(sp);
       } else if (s.typ === 'cialo') {
         const at = atlasy[s.wrog], w = at.wzor, sk = (s.wrog === 'kolos' ? 2.3 : 1.25) / O.PX;
         const sp = new P.Sprite(at.martwy); sp.anchor.set(w.ox / w.w, w.oy / w.h);
@@ -820,12 +820,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const x = s.x + dx * slizg, y = s.y + dy * slizg, zn = s.sx === fw.patrzy ? 1 : -1;
     const al = f.gasnie >= 0 ? Math.max(0, 1 - f.gasnie / 0.15) : 1;
     const k = klatkaW(fw, 'smierc', q);
+    // wiedźma rozpływa się w kałużę: w filmie kałuża jest trzy razy szersza od niej, więc pod koniec ją zmniejszamy
+    const kz = fw.kaluza ? 1 - (1 - fw.kaluza) * latwo(ogr((q - 0.5) / 0.35, 0, 1)) : 1, sk = fw.skala * kz;
     const sp = pulaKawalkow.wez(); sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.position.set(x, y); sp.rotation = 0;
-    sp.scale.set(fw.skala * zn, fw.skala); sp.zIndex = y; sp.alpha = al;
+    sp.scale.set(sk * zn, sk); sp.zIndex = y; sp.alpha = al;
     if (f.t < 0.12) { const bl = pulaBlyskow.wez(); bl.texture = k.t; bl.anchor.set(k.ax, k.ay); bl.scale.copyFrom(sp.scale); bl.rotation = 0; bl.position.set(x, y); bl.zIndex = y + 0.01; bl.alpha = 0.7 * (1 - f.t / 0.12); }
     if (q >= 1 && f.gasnie < 0) {
       const kt = fw.k[fw.anim.trup[0]];
-      zostaw([{ tex: kt.t, ax: kt.ax, ay: kt.ay, x, y, rot: 0, sx: fw.skala * zn, sy: fw.skala }]); f.gasnie = 0;
+      zostaw([{ tex: kt.t, ax: kt.ax, ay: kt.ay, x, y, rot: 0, sx: sk * zn, sy: sk }]); f.gasnie = 0;
       if (f.ciezki) { pierscienie.push({ x: x + zn * 60, y, r0: 20, r1: 110, t: 0, czas: 0.4, kolor: 0xb8a890, ziemia: true }); kurz(x + zn * 60, y, 0, 6, 1.6); kurz(x + zn * 60, y, Math.PI, 6, 1.6); stanRys.kop.y += 6; }
       else kurz(x - zn * 25, y, s.kat, 3, 0.8);
     } else if (f.gasnie >= 0) { f.gasnie += dt; if (f.gasnie > 0.15) padajace.splice(i, 1); }

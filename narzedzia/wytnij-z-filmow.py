@@ -146,8 +146,8 @@ POSTACIE = {
             'skok':       ('wiedzma-atak', [81, 85, 89]),                  # wypuszcza kulę (dalej w filmie leci promień, ten pomijamy)
             'odpoczynek': ('wiedzma-atak', [121, 129, 137, 145, 153]),
             'trafienie':  ('wiedzma-trafienie', [41, 45, 49, 53, 57, 61, 65, 73, 81, 89, 97, 105, 113, 121, 137, 153]),
-            'smierc':     ('wiedzma-smierc', [41, 45, 49, 57, 65, 73, 77, 81, 85, 89]),   # pada na ziemię; wybuch błota (93–145) pomijamy, wyglądał śmiesznie (Patryk, 25 XI 16:17)
-            'trup':       ('wiedzma-smierc', [89]),
+            'smierc':     ('wiedzma-smierc', [41, 45, 49, 57, 65, 73, 81, 85, 89, 93, 97, 129, 137, 145, 153, 161, 177]),   # pada i rozpływa się w kałużę błota (Patryk, 25 XI 16:35); sam wybuch błota (101–125) pomijamy
+            'trup':       ('wiedzma-smierc', [189]),
         },
     },
 }
