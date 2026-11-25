@@ -1028,10 +1028,23 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
     pulaEch.koniec();
 
-    // duch bohatera, gdy zasłania go chata albo drzewo
+    // duch bohatera, gdy zasłania go chata
     duch.clear();
     let zasloniety = stanRys.bezDachu < 0.5 && b.y < CHATA.podstawa && (chataZaslania(b.x, b.y - 30) || chataZaslania(b.x, b.y - 60) || chataZaslania(b.x, b.y - 90));   // tułów na pikselach chaty, razem z kominem
-    if (!zasloniety) for (const d of DRZEWA) { if (d.y > b.y && d.y - b.y < d.h * 0.85 && Math.abs(d.x - b.x) < d.h * 0.22) { zasloniety = true; break; } }
+    // Drzewo, które zasłania bohatera, samo przygasa, a bohater zostaje zwykły, jak za totemem
+    // (Patryk, 24 XI 19:41: niebieski duch za drzewem „trochę słabo” wygląda). Przygasanie płynne, w około 0,2 s.
+    for (let i = 0; i < drzewa.length; i++) {
+      // zasłania, gdy stoi przed bohaterem, a tułów bohatera wypada w obrysie obrazu drzewa (bez 12% przezroczystych brzegów)
+      const d = DRZEWA[i], sp = drzewa[i];
+      let zaNim = false;
+      if (b.stan !== 'upadl' && d.y > b.y && d.y - b.y < d.h * 1.1) {
+        const w = Math.abs(sp.width), h = Math.abs(sp.height), ax = sp.scale.x < 0 ? 1 - sp.anchor.x : sp.anchor.x;
+        const xL = sp.x - ax * w + w * 0.12, xR = sp.x - ax * w + w * 0.88, yT = sp.y - sp.anchor.y * h;
+        zaNim = b.x > xL && b.x < xR && b.y - 50 > yT;
+      }
+      const cel = zaNim ? 0.38 : 1, a = drzewa[i].alpha;
+      drzewa[i].alpha = Math.abs(cel - a) < 0.01 ? cel : a + (cel - a) * Math.min(1, dt * 10);
+    }
     duchS.visible = false;
     if (zasloniety && b.stan !== 'upadl') {
       if (gem) { duchS.visible = true; ustawPostac(duchS, kB, pz.sx, bohS.x, bohS.y, lx, sy, bohS.rotation); }
