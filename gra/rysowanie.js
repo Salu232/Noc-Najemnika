@@ -1337,8 +1337,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     blaskIzby.position.set(CHATA.palenisko.x, CHATA.palenisko.y + 20); blaskIzby.width = blaskIzby.height = 260 * migot; blaskIzby.alpha = 0.5 * stanRys.bezDachu * Math.max(0.3, gra.mroczek / 0.8);
 
     // ciemność: zalewamy ekran nocą i wycinamy światło
-    ciemnoscG.clear(); ciemnoscG.beginFill(0x05060b, gra.mroczek * 0.9);   // 25 XI 17:49, Patryk: „nic nie widzę poza okręgiem światła”; 0,62 było „trochę za jasno”, więc 0,72 ciemnoscG.drawRect(0, 0, vw, vh); ciemnoscG.endFill();
-    kreski.alpha = 0.25 * gra.mroczek / 0.8;   // ukośne kreskowanie ciemności; przy jaśniejszej nocy było widać czarne pasy (Patryk, 25 XI 17:52)
+    ciemnoscG.clear(); ciemnoscG.beginFill(0x05060b, gra.mroczek * 0.95);   // 25 XI: 0,8 „nic nie widzę”, 0,62 „za jasno”, 0,72 „jeszcze ściemnić”, więc 0,76 ciemnoscG.drawRect(0, 0, vw, vh); ciemnoscG.endFill();
+    kreski.alpha = 0;   // ukośne kreskowanie ciemności wyłączone (Patryk, 25 XI 19:10: „usuń je, przeszkadzają”)
     const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zz, oy + y * zz); s.width = s.height = r * 2 * zz; s.alpha = al; };
     stawStempel(swiatloBoh, b.x, b.y - 30, 360 + 260 * stanRys.fiolet, 1);
     stawStempel(swiatloOgnia, fx, fy - 10, 380 * migotO, 0.95);
