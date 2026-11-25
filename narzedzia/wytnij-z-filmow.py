@@ -156,9 +156,12 @@ POSTACIE = {
             'zamach_pazur':        ('boss/rycerz-f2-pazur-pchniecie', [16, 19, 22, 25, 28, 31]),   # 34–43: dziwne machnięcie mieczem, pomijamy
             'skok_pazur':          ('boss/rycerz-f2-pazur-pchniecie', [46, 49, 52, 55, 58, 64]),
             'odpoczynek_pazur':    ('boss/rycerz-f2-pazur-pchniecie', list(range(70, 110, 4))),
-            'zamach_blyskawica':   ('boss/rycerz-f2-pazur-i-ciecie-blyskawica', [40, 46, 52, 58, 64, 70, 73, 76, 79, 82, 85, 88]),
-            'skok_blyskawica':     ('boss/rycerz-f2-pazur-i-ciecie-blyskawica', [91, 94, 97, 100, 103, 106, 109]),
-            'odpoczynek_blyskawica': ('boss/rycerz-f2-pazur-i-ciecie-blyskawica', list(range(112, 161, 4))),
+            # mocny atak 2. fazy: tylko pazur (Patryk, 25 XI 22:04: nie podobało się przejście z pazura na miecz z błyskawicą).
+            # Na razie: pazur żarzy się i unosi (z filmu z błyskawicą, zanim sięga po miecz), potem pchnięcie z czerwoną smugą.
+            # Docelowo: pazur w ziemię z pozy Gemini (polecenie w wiadomości do Patryka).
+            'zamach_blyskawica':   ('boss/rycerz-f2-pazur-i-ciecie-blyskawica', [40, 43, 46, 49, 52, 55, 58, 61, 64, 67, 70, 73]),
+            'skok_blyskawica':     ('boss/rycerz-f2-pazur-pchniecie', [46, 49, 52, 55, 58, 61, 64, 67]),
+            'odpoczynek_blyskawica': ('boss/rycerz-f2-pazur-pchniecie', list(range(70, 110, 4))),
             'smierc':              ('boss/rycerz-f2-smierc-na-ziemi', list(range(25, 146, 4))),   # klątwa pali go od środka, pada
             'trup':                ('boss/rycerz-f2-smierc-na-ziemi', [181]),
         },

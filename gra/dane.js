@@ -145,7 +145,7 @@ export const WROGOWIE = {
       ],
       2: [
         { nazwa: 'pazur', zasieg: 165, cel: 110, strefa: 62, zamach: 0.5, skok: 0.45, odpoczynek: 1.0, obrazenia: 0.9 },     // długie pchnięcie pazurem
-        { nazwa: 'blyskawica', zasieg: 130, cel: 60, strefa: 115, zamach: 1.2, skok: 0.6, odpoczynek: 1.5, obrazenia: 1.5 }, // obrót z błyskawicą
+        { nazwa: 'blyskawica', zasieg: 150, cel: 95, strefa: 90, zamach: 1.2, skok: 0.55, odpoczynek: 1.5, obrazenia: 1.5 },  // żarzący się pazur: długie ładowanie, mocne pchnięcie (25 XI 22:04: bez miecza)
       ],
     },
   },
