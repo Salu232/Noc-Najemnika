@@ -181,9 +181,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const powietrze = new P.Container();           // krew w locie
   const znakiZiemia = new P.Graphics();          // zapowiedź uderzenia kolosa i fala po nim: leżą na ziemi
   const para = new P.Graphics();                 // oddech w zimnej nocy
+  // Dym z komina i iskry z paleniska w izbie: chata ma wyglądać na zamieszkaną (Patryk, 25 XI 20:40, „dym z komina … jest w miejscu”).
+  // Dym był namalowany na obrazie chaty i stał; teraz obłoki wychodzą z wylotu, rosną, płyną z wiatrem i bledną.
+  const dymK = new P.Graphics(), dymy = [], iskryIzby = [];
+  const KOMIN = { x: CHATA.x + 768 * CHATA.skala, y: CHATA.y + 146 * CHATA.skala };
+  let dymNa = 0, iskraNa = 0;
   const trupyC = new P.Container();              // ostatnie ciała leżą jako ostre obrazy, starsze idą do śladów
   const ozdoby = new P.Container();                // kępy trawy, mchu i liści z arkuszy Przemka: leżą pod krwią
-  swiat.addChild(ziemia, plamy, droga, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
+  swiat.addChild(ziemia, plamy, droga, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para, dymK);
 
   // drzewa
   const drzewa = DRZEWA.map((d, i) => {
@@ -1284,6 +1289,34 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       for (const [szer, kol, al] of [[4, 0x9a5cff, 0.75], [1.5, 0xf4e8ff, 0.95]]) {
         smugi.lineStyle(szer, kol, al * (1 - q)); smugi.moveTo(p.pkt[0], p.pkt[1]);
         for (let k = 2; k < p.pkt.length; k += 2) smugi.lineTo(p.pkt[k] + losuj(-2, 2), p.pkt[k + 1]);
+      }
+    }
+
+    // dym z komina: czas rzeczywisty, więc dym idzie także, gdy gra stoi w ciszy chaty
+    {
+      const dtr = Math.min(0.05, dt);
+      dymNa -= dtr;
+      if (dymNa <= 0) { dymNa = losuj(0.09, 0.15); if (dymy.length < 70) dymy.push({ x: KOMIN.x + losuj(-4, 4), y: KOMIN.y, vx: losuj(4, 10), vy: losuj(-34, -26), r: losuj(5, 7), t: 0, czas: losuj(4.5, 6), f: losuj(0, TAU) }); }
+      dymK.clear();
+      const wid = 1 - 0.8 * stanRys.bezDachu;                    // w izbie dach znika, dym zostaje, ale cichszy
+      for (let i = dymy.length - 1; i >= 0; i--) {
+        const d = dymy[i]; d.t += dtr; const q = d.t / d.czas;
+        if (q >= 1) { dymy.splice(i, 1); continue; }
+        d.vx = Math.min(d.vx + (4 + 2 * Math.sin(czas * 0.4)) * dtr, 26);            // wiatr znosi w prawo, raz mocniej, raz słabiej
+        d.vy *= Math.exp(-dtr * 0.15);
+        d.x += (d.vx + Math.sin(d.f + d.t * 1.3) * 4) * dtr; d.y += d.vy * dtr;
+        const r = d.r + 24 * Math.sqrt(q), al = Math.min(1, q * 25) * Math.pow(1 - q, 1.5) * 0.42 * wid;
+        dymK.lineStyle(0);
+        dymK.beginFill(q < 0.1 ? 0x4a4846 : q < 0.35 ? 0x7c7f84 : 0x9a9fa7, al); dymK.drawEllipse(d.x, d.y, r, r * 0.82); dymK.drawEllipse(d.x + r * 0.45, d.y - r * 0.3, r * 0.6, r * 0.5); dymK.endFill();   // wyżej jaśniejszy, w świetle księżyca
+      }
+      // iskry nad paleniskiem w izbie, widać je, gdy dach jest zdjęty
+      iskraNa -= dtr;
+      if (stanRys.bezDachu > 0.05 && iskraNa <= 0) { iskraNa = losuj(0.12, 0.35); iskryIzby.push({ x: CHATA.palenisko.x + losuj(-14, 14), y: CHATA.palenisko.y + 34, vx: losuj(-8, 8), vy: losuj(-38, -22), t: 0, czas: losuj(0.7, 1.3) }); }
+      for (let i = iskryIzby.length - 1; i >= 0; i--) {
+        const k = iskryIzby[i]; k.t += dtr; const q = k.t / k.czas;
+        if (q >= 1 || stanRys.bezDachu < 0.05) { iskryIzby.splice(i, 1); continue; }
+        k.x += (k.vx + Math.sin(k.t * 9 + i) * 10) * dtr; k.y += k.vy * dtr;
+        dymK.lineStyle(0); dymK.beginFill(q < 0.5 ? 0xffd27a : 0xff8a3a, (1 - q) * stanRys.bezDachu); dymK.drawCircle(k.x, k.y, 1.6 * (1 - q * 0.5)); dymK.endFill();
       }
     }
 
