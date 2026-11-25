@@ -23,7 +23,9 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
   };
   zastosujBron(gra);
   postawBohatera(gra);
-  powiedz(gra, ETAPY[0].mysl, NOC.przerwa);
+  // chata wygląda na zamieszkałą, ale nikogo w niej nie ma; pierwsza kartka leży w izbie (Patryk, 25 XI 20:35)
+  const k0 = KARTKI[0].gdzie, p0 = { x: k0.x, y: k0.y }; zderzenia(p0, 18); gra.kartka = { nr: 0, x: p0.x, y: p0.y };
+  powiedz(gra, 'Drzwi chaty uchylone, w palenisku jeszcze żar. Ktoś tu mieszkał, i to niedawno. Przeszukaj chatę.', NOC.przerwa + 3);
   return gra;
 }
 
@@ -623,7 +625,7 @@ function aktualizujEtapy(gra, dt) {
     gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza stoi
     if (gra.fazaCzas <= 0) {
       gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = [];
-      const kt = KARTKI[gra.etap];
+      const kt = gra.etap > 0 && KARTKI[gra.etap];
       if (kt && !gra.kartka) { const p = { x: OGNISKO.x + kt.gdzie.dx, y: OGNISKO.y + kt.gdzie.dy }; zderzenia(p, 22); gra.kartka = { nr: gra.etap, x: p.x, y: p.y }; }
       for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) {
         const z = g.z[i % g.z.length];

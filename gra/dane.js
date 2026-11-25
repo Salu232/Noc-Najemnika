@@ -195,10 +195,11 @@ export const ULEPSZENIA = [
 // na własną klątwę. Przed nim był tu rycerz, który jej uległ (boss ostatniej nocy). Jedna kartka na każdą falę;
 // leży na polanie od początku fali, aż ją podniesiesz. Gra stoi, póki czytasz.
 export const KARTKI = [
-  { gdzie: { dx: -250, dy: 110 }, tekst: 'W wiosce mówili, że w domku na polanie ktoś zdjął z siebie klątwę. Przyszedłem z żarem pod skórą i z nadzieją. Ognisko było jeszcze ciepłe, a w mgle coś oddychało.' },
-  { gdzie: { dx: 290, dy: -40 }, tekst: 'Totemy nie są stąd. Ktoś je postawił, żeby coś trzymać w środku, nie na zewnątrz. Kiedy biję klątwą, robi się lżej. Za lekko.' },
-  { gdzie: { dx: 130, dy: 250 }, tekst: 'Ręka już nie jest moja. Pali, kiedy śpię, i nie boli, kiedy tnę. Wiedźma z bagien się śmiała. Mówiła, że domek nie zdejmuje klątwy, tylko szuka następcy.' },
-  { gdzie: { dx: -320, dy: -10 }, tekst: 'Jeśli to czytasz, nie używaj jej. Każde uderzenie klątwą to krok bliżej mnie. Zostanę tu, przy ogniu, i będę czekał, aż przyjdziesz. Wybacz, jeśli cię nie poznam.' },
+  // pierwsza leży w chacie: bohater przeszukuje ją, bo w wiosce słyszał, że tu można zdjąć klątwę (Patryk, 25 XI 20:35)
+  { gdzie: { izba: true, x: 1700, y: 975 }, tekst: 'Dotarłem. W wiosce mówili, że w tej chacie klątwa schodzi z człowieka. Chata stoi pusta, ale w palenisku jeszcze żar, a na posłaniu odcisk czyjegoś ciała. Ktokolwiek tu mieszkał, wyszedł w pośpiechu. Zostanę na noc i poszukam, jak on to zrobił.' },
+  { gdzie: { dx: 290, dy: -40 }, tekst: 'Wychodzą z mgły, kiedy ogień przygasa. Za dnia przeszukuję chatę: zioła, znaki, cokolwiek. Znalazłem tylko imiona wyryte w belce nad drzwiami. Pięć imion, każde inną ręką. Ostatnie jest świeże.' },
+  { gdzie: { dx: 130, dy: 250 }, tekst: 'Klątwa daje siłę, kiedy jej się poddaję. Wczoraj rozbiłem nią trzy bestie naraz i przez chwilę nie czułem bólu. Nie czułem też dłoni. Wiedźma z bagien się śmiała: ta chata nie zdejmuje klątwy, tylko szuka następcy.' },
+  { gdzie: { dx: -320, dy: -10 }, tekst: 'Jeśli to czytasz, jesteś tu, bo ja przestałem być sobą. Nie sięgaj po klątwę, choćby było ciężko. Każde uderzenie nią to krok bliżej mnie. Będę czekał przy ogniu ostatniej nocy. Wybacz, jeśli cię nie poznam.' },
 ];
 export const KARTKA = { zasieg: 42 };
 
