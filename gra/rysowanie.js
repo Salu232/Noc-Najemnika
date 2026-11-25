@@ -553,7 +553,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     } else if (b.blok) {
       p.blok = true; p.reka = 16; p.pochyl = 0.06; p.przysiad = 0.94; p.wykrok = 0.4;    // garda: nisko, na szerokich nogach
     } else if (b.stan === 'unik') {
-      const q = ogr(b.t / BOHATER.unik.czas, 0, 1);
+      const q = ogr(b.t / (b.unikCzas || BOHATER.unik.czas), 0, 1);
       p.wstecz = Math.cos(b.unikKat - b.kat) < -0.3;                                     // odskok do tyłu: dalej patrzy na wroga
       if (!p.wstecz) p.sx = Math.cos(b.unikKat) >= 0 ? 1 : -1;
       p.a = b.unikKat + Math.PI * 0.85 * p.sx; p.lift = 10;
@@ -606,8 +606,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (b.blok) return klatkaZ('blok', Math.min(0.99, (czas - stanRys.blokOd) / 0.15));   // unosi miecz do bloku w 0,15 s, potem trzyma
     if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
     if (b.stan === 'unik') {   // unik to przewrót w stronę uniku; w górę i w dół koziołek plecami albo przodem (niżej)
-      if (unikPionowy(b)) return klatkaZ(Math.sin(b.unikKat) > 0 ? 'przewrot_przod' : 'przewrot_tyl', b.t / BOHATER.unik.czas);
-      return klatkaZ('przewrot', b.t / BOHATER.unik.czas);
+      if (unikPionowy(b)) return klatkaZ(Math.sin(b.unikKat) > 0 ? 'przewrot_przod' : 'przewrot_tyl', b.t / (b.unikCzas || BOHATER.unik.czas));
+      return klatkaZ('przewrot', b.t / (b.unikCzas || BOHATER.unik.czas));
     }
     // Wyciąga miecz, gdy zaczyna się walka, i chowa go po niej (film Patryka z Flow, 24 XI; chowanie to ten sam film wstecz).
     // Ma pierwszeństwo przed chodem, żeby było go widać także w ruchu.
@@ -1024,7 +1024,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         bohS.skew.set(0, 0);
       } else if (b.stan === 'unik') {
         // Unik w bok i po skosie: przewrót bokiem z filmu, po skosie lekko obrócony w stronę uniku.
-        const p = Math.min(1, b.t / BOHATER.unik.czas), e = Math.sin(Math.PI * p);
+        const p = Math.min(1, b.t / (b.unikCzas || BOHATER.unik.czas)), e = Math.sin(Math.PI * p);
         const pion = Math.sin(b.unikKat), r = pz.sx * Math.atan2(pion, Math.abs(Math.cos(b.unikKat))) * 0.6 * e, c = 45;
         bohS.rotation = r;
         bohS.position.set(b.x + dj - c * Math.sin(r), b.y - c + c * Math.cos(r));

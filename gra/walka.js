@@ -194,7 +194,7 @@ function aktualizujBohatera(gra, dt, w) {
     b.t += dt;
     // Prędkość idzie za fazą przewrotu (Patryk, 25 XI 15:22: „wygląda jak kucanie i przyspieszenie i jeździ po mapie”):
     // w przysiadzie prawie stoi, najszybciej toczy się zwinięty w kulę (około 0,43 czasu), przy wstawaniu już stoi w miejscu.
-    const cfg = BOHATER.unik, p = Math.min(1, b.t / cfg.czas);
+    const cfg = { czas: b.unikCzas || BOHATER.unik.czas, dystans: b.unikDystans || BOHATER.unik.dystans }, p = Math.min(1, b.t / cfg.czas);
     const v = cfg.dystans / cfg.czas / 0.7036 * (0.3 * (1 - p) + Math.sin(Math.PI * Math.min(1, p * 1.15)));
     b.x += Math.cos(b.unikKat) * v * dt; b.y += Math.sin(b.unikKat) * v * dt;
     if (b.t >= cfg.czas) { b.stan = 'wolny'; if (b.kolejkaAtaku) zacznijCios(gra, w); }
@@ -302,7 +302,9 @@ function zacznijUnik(gra, rx, ry, rl) {
   const b = gra.bohater;
   b.stan = 'unik'; b.t = 0; b.cios = null; b.blok = false;
   b.unikKat = rl > 0.2 ? Math.atan2(ry, rx) : b.kat + Math.PI;     // bez kierunku: odskok do tyłu
-  b.nietykalny = BOHATER.unik.nietykalny;
+  const u = BOHATER.unik, pion = Math.abs(Math.sin(b.unikKat)) > 0.7;   // w górę i w dół pełny przewrót przez głowę: wolniej i krócej
+  b.unikCzas = pion ? u.czasPion : u.czas; b.unikDystans = pion ? u.dystansPion : u.dystans;
+  b.nietykalny = pion ? u.nietykalnyPion : u.nietykalny;
   b.kolejkaAtaku = false; b.rozped = 0;
   zuzyjSile(b, BOHATER.unik.koszt);
 }
