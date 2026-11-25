@@ -123,16 +123,12 @@ export function odDrogi(x, y) { let m = Infinity; for (const p of DROGA) m = Mat
 // Na drodze nie rosną drzewa (las był posadzony wcześniej, więc zdejmujemy te, które na nią wpadły).
 for (let i = DRZEWA.length - 1; i >= 0; i--) if (odDrogi(DRZEWA[i].x, DRZEWA[i].y) < DROGA_SZER * 0.75) DRZEWA.splice(i, 1);
 
-// Rzeczy przy drodze z arkusza obozu Przemka (rekwizyty-oboz.jpg): połamane płoty, stos drewna, beczki
+// Rzeczy przy drodze z arkusza obozu Przemka (rekwizyty-oboz.jpg): stos drewna, beczki
 // i pochodnia przy furtce. Stawiane względem drogi: f to miejsce na drodze (0 skraj lasu, 1 furtka),
 // bok to strona (-1 lewa, 1 prawa, patrząc ku chacie), od to odległość od środka drogi. szer: szerokość w świecie,
 // promien: zderzenie (0 = przechodzi się przez nie).
 export const RZECZY = [
-  { rys: 'plot_c', f: 0.22, bok: 1, od: 78, szer: 150, promien: 0 },
-  { rys: 'plot_a', f: 0.38, bok: -1, od: 80, szer: 120, promien: 0, lustro: true },
   { rys: 'drewno', f: 0.52, bok: 1, od: 82, szer: 78, promien: 22 },
-  { rys: 'plot_b', f: 0.6, bok: -1, od: 76, szer: 80, promien: 0 },
-  { rys: 'plot_a', f: 0.71, bok: 1, od: 80, szer: 115, promien: 0 },
   { rys: 'beczka', f: 0.86, bok: -1, od: 82, szer: 40, promien: 17 },
   { rys: 'beczka', f: 0.835, bok: -1, od: 112, szer: 38, promien: 16, lustro: true },
   { rys: 'pochodnia', f: 0.93, bok: -1, od: 58, szer: 30, promien: 0, swiatlo: true },

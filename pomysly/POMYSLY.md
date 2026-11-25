@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 25 XI 2026 | Patryk | „Te drewniane płoty wywal, nie pasują” | zrobiony | płoty zdjęte z RZECZY w swiat.js (zostają w atlasie, nieużyte); zostały beczki, drewno i pochodnia |
 | 25 XI 2026 | Patryk | „Trzeba jakąś teksturę do tej drogi, bo wygląda źle” | zrobiony (próba) | grafika/droga.webp: łata suchej ziemi z kamykami z arkusza Przemka (narzedzia/kafel-drogi.py), kładziona wzdłuż drogi pod losowymi kątami i przycinana do jej kształtu; ?droga=farba pokazuje drogę z v38. Patryk dostał prompt na kafel z Gemini, jeśli ta nie wystarczy |
 | 25 XI 2026 | Claude (Patryk: „wszystko można zrobić”) | Rekwizyty i światło przy drodze | zrobiony | z arkusza rekwizyty-oboz.jpg: trzy połamane płoty, stos drewna, dwie beczki (zderzenia) i pochodnia na płocie przy furtce, która świeci w nocy; swiat.js RZECZY; drzewa, które wpadły na drogę, zdjęte |
 | 25 XI 2026 | Patryk | „Od pierwszej fali trochę więcej potworów”, fale mocniejsze, potwory trudniejsze | zrobiony | gra/dane.js ETAPY: noc 1 to 5 ghuli z dwóch stron (było mniej), noc 2 to 9, noc 3 to 16, noc 4 dwa kolosy i 18 ghuli; zlosc ma teraz mnożniki życia i obrażeń (do 1.5× i 1.45×). Bot dobry/półtoraręczny: świt 5/5, rany 34 (było ~12); dwuręcznym nadal łatwiej (rany 13) |
