@@ -29,9 +29,9 @@ function pokaz(id, widac) { $(id).hidden = !widac; }
 
 async function start() {
   const cv = $('gra');
-  let obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi;
+  let obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi;
   try {
-    [, obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi] = await Promise.all([
+    [, obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi] = await Promise.all([
       zaladujPixi(), zaladujObraz(new URL('../grafika/chata.webp', import.meta.url).href, 'chata'),
       zaladujObraz(new URL('../grafika/bohater.webp', import.meta.url).href, 'bohater').catch(() => null),   // bez niego gra rysuje bohatera kodem
       zaladujObraz(new URL('../grafika/bohater-wielki.webp', import.meta.url).href, 'bohater z dwuręcznym').catch(() => null),   // cięcie, garda, bieg i blok z mieczem dwuręcznym
@@ -41,6 +41,7 @@ async function start() {
       zaladujObraz(new URL('../grafika/chata-drzwi-zamkniete.webp', import.meta.url).href, 'drzwi').catch(() => null),   // zamknięte drzwi widziane z izby
       zaladujObraz(new URL('../grafika/rekwizyty.webp', import.meta.url).href, 'rekwizyty').catch(() => null),   // drzewa, kępy, krew i ognisko z arkuszy Przemka; bez nich rysowane kodem
       /ziemia=stara/.test(location.search) ? null : zaladujObraz(new URL('../grafika/ziemia.webp', import.meta.url).href, 'ziemia').catch(() => null),   // ziemia z Gemini (Patryk, 25 XI); ?ziemia=stara pokazuje dawny kafel
+      /droga=farba/.test(location.search) ? null : zaladujObraz(new URL('../grafika/droga.webp', import.meta.url).href, 'droga').catch(() => null),   // łata drogi z rysunku ziemi Przemka; ?droga=farba pokazuje drogę z v38
     ]);
   } catch (e) {
     $('ladowanie').textContent = 'Nie udało się wczytać gry: ' + e.message + '. Odśwież stronę.';
@@ -52,7 +53,7 @@ async function start() {
   let wyglad = 'gemini';
   try { if (localStorage.getItem('noc-bohater') === 'rysowany') wyglad = 'rysowany'; } catch (e) { /* bez pamięci */ }
   if (/bohater=rysowany/.test(location.search)) wyglad = 'rysowany';
-  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, obrazBohateraWielki, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa }, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi }); }
+  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, obrazBohateraWielki, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa }, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi }); }
   catch (e) { $('ladowanie').textContent = 'Ta przeglądarka nie umie narysować gry: ' + (e && e.message || e); return; }
 
   const wejscie = przygotujWejscie(cv, {

@@ -74,8 +74,11 @@ export function plamyZiemi() {
 // Droga do chaty w połowie rozdzielczości świata: wydeptana ziemia z miękkimi brzegami, dwie koleiny, kamyki
 // i kreski tuszem wzdłuż brzegów, jak w rysunkach z arkuszy (Patryk, 25 XI 13:12).
 export const SKALA_DROGI = 2;
-export function obrazDrogi() {
-  const s = SKALA_DROGI, c = plotno(SZER / s, WYS / s), g = c.getContext('2d'), r = losowe(7);
+// lata: łata nawierzchni z rysunku ziemi Przemka (grafika/droga.webp, narzedzia/kafel-drogi.py). Kładziona wzdłuż drogi
+// pod losowymi kątami, żeby się nie powtarzała jak kafel, i przycinana miękko do kształtu drogi. Bez niej: sama farba.
+export function obrazDrogi(lata = null) {
+  const s = SKALA_DROGI, c = plotno(SZER / s, WYS / s), r = losowe(7);
+  let g = c.getContext('2d');
   g.scale(1 / s, 1 / s); g.lineCap = 'round'; g.lineJoin = 'round';
   const linia = (przes, szer, kolor) => {
     g.strokeStyle = kolor; g.lineWidth = szer; g.beginPath();
@@ -88,9 +91,24 @@ export function obrazDrogi() {
     g.stroke();
   };
   g.filter = 'blur(10px)'; linia(0, DROGA_SZER * 1.5, 'rgba(70,58,44,0.45)');      // miękki pas wydeptanej ziemi
-  g.filter = 'blur(3px)'; linia(0, DROGA_SZER, 'rgba(104,86,64,0.62)');
+  if (lata) {
+    const glowne = g, w = plotno(SZER / s, WYS / s), maska = plotno(SZER / s, WYS / s);
+    g = maska.getContext('2d'); g.scale(1 / s, 1 / s); g.lineCap = 'round'; g.lineJoin = 'round';
+    g.filter = 'blur(6px)'; linia(0, DROGA_SZER * 1.12, '#fff'); g.filter = 'none';
+    const gw = w.getContext('2d'); gw.scale(1 / s, 1 / s);
+    const sk = 0.36;
+    for (let i = 0; i < DROGA.length; i += 3) {
+      const p = DROGA[i];
+      gw.save(); gw.translate(p.x + (r() - 0.5) * 20, p.y + (r() - 0.5) * 20); gw.rotate(r() * TAU);
+      gw.scale(sk * (r() < 0.5 ? -1 : 1) * (0.9 + r() * 0.25), sk * (0.9 + r() * 0.25));
+      gw.drawImage(lata, -lata.width / 2, -lata.height / 2); gw.restore();
+    }
+    gw.setTransform(1, 0, 0, 1, 0, 0); gw.globalCompositeOperation = 'destination-in'; gw.drawImage(maska, 0, 0);
+    g = glowne; g.filter = 'none';
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(w, 0, 0); g.restore();
+  } else { g.filter = 'blur(3px)'; linia(0, DROGA_SZER, 'rgba(104,86,64,0.62)'); }
   g.filter = 'none';
-  for (const strona of [-1, 1]) linia(strona * DROGA_SZER * 0.22, 7, 'rgba(38,30,24,0.42)');   // koleiny
+  for (const strona of [-1, 1]) linia(strona * DROGA_SZER * 0.22, 7, lata ? 'rgba(30,24,20,0.28)' : 'rgba(38,30,24,0.42)');   // koleiny
   // kreski tuszem przy brzegach i w poprzek, kamyki
   g.strokeStyle = 'rgba(18,14,12,0.55)'; g.lineWidth = 1.4;
   for (let i = 1; i < DROGA.length - 1; i++) {

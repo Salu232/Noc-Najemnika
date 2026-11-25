@@ -120,6 +120,27 @@ export const DROGA = (() => {
   return wyn;
 })();
 export function odDrogi(x, y) { let m = Infinity; for (const p of DROGA) m = Math.min(m, Math.hypot(p.x - x, p.y - y)); return m; }
+// Na drodze nie rosną drzewa (las był posadzony wcześniej, więc zdejmujemy te, które na nią wpadły).
+for (let i = DRZEWA.length - 1; i >= 0; i--) if (odDrogi(DRZEWA[i].x, DRZEWA[i].y) < DROGA_SZER * 0.75) DRZEWA.splice(i, 1);
+
+// Rzeczy przy drodze z arkusza obozu Przemka (rekwizyty-oboz.jpg): połamane płoty, stos drewna, beczki
+// i pochodnia przy furtce. Stawiane względem drogi: f to miejsce na drodze (0 skraj lasu, 1 furtka),
+// bok to strona (-1 lewa, 1 prawa, patrząc ku chacie), od to odległość od środka drogi. szer: szerokość w świecie,
+// promien: zderzenie (0 = przechodzi się przez nie).
+export const RZECZY = [
+  { rys: 'plot_c', f: 0.22, bok: 1, od: 78, szer: 150, promien: 0 },
+  { rys: 'plot_a', f: 0.38, bok: -1, od: 80, szer: 120, promien: 0, lustro: true },
+  { rys: 'drewno', f: 0.52, bok: 1, od: 82, szer: 78, promien: 22 },
+  { rys: 'plot_b', f: 0.6, bok: -1, od: 76, szer: 80, promien: 0 },
+  { rys: 'plot_a', f: 0.71, bok: 1, od: 80, szer: 115, promien: 0 },
+  { rys: 'beczka', f: 0.86, bok: -1, od: 82, szer: 40, promien: 17 },
+  { rys: 'beczka', f: 0.835, bok: -1, od: 112, szer: 38, promien: 16, lustro: true },
+  { rys: 'pochodnia', f: 0.93, bok: -1, od: 58, szer: 30, promien: 0, swiatlo: true },
+].map(r => {
+  const i = Math.min(DROGA.length - 2, Math.round(r.f * (DROGA.length - 1))), p = DROGA[i], q = DROGA[i + 1];
+  const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1;
+  return { ...r, x: p.x - dy / d * r.od * r.bok, y: p.y + dx / d * r.od * r.bok };
+});
 
 export const OZDOBY = [];
 (function rozsyp() {
@@ -133,7 +154,8 @@ export const OZDOBY = [];
     if (naPolanie && los2() < 0.75) continue;                                            // polana rzadziej
     if (x > chata.x0 - 40 && x < chata.x1 + 30 && y > chata.y0 && y < chata.y1) continue;
     if (Math.hypot(x - OGNISKO.x, (y - OGNISKO.y) * 1.4) < 120) continue;
-    if (odDrogi(x, y) < DROGA_SZER * 0.9) continue;                                     // na drodze nic nie rośnie
+    if (odDrogi(x, y) < DROGA_SZER * 0.9) continue;
+    if (RZECZY.some(r => Math.hypot(r.x - x, r.y - y) < r.szer * 0.6)) continue;                                     // na drodze nic nie rośnie
     const lista = naPolanie ? POLANA : LASU, rys = lista[(los2() * lista.length) | 0];
     const odst = PLASKIE.test(rys) ? 110 : 60;
     if (OZDOBY.some(o => Math.hypot(o.x - x, o.y - y) < Math.max(odst, o.odst))) continue;
@@ -184,6 +206,10 @@ export function zderzenia(p, r) {
     }
   }
   for (const [a, b] of CHATA.ploty) odepchnijOdOdcinka(p, a, b, r);
+  for (const t of RZECZY) if (t.promien) {
+    const dx = p.x - t.x, dy = p.y - t.y, q = Math.hypot(dx, dy), m = r + t.promien;
+    if (q < m && q > 0.001) { p.x = t.x + dx / q * m; p.y = t.y + dy / q * m; }
+  }
   for (const t of TOTEMY) {
     const dx = p.x - t.x, dy = p.y - t.y, q = Math.hypot(dx, dy), m = r + t.promien;
     if (q < m && q > 0.001) { p.x = t.x + dx / q * m; p.y = t.y + dy / q * m; }

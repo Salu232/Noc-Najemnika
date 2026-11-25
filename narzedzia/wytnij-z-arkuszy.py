@@ -81,6 +81,13 @@ RYSUNKI = {
     'krag_kolce':  ('kregi-strzalki', 1, 0.5, 'srodek'),
     # łup: mikstura z potworów (pomysł Claude'a, Patryk 24 XI 18:41: „można je spróbować dodać”)
     'mikstura':    ('przedmioty', 2, 0.22, 'pien'),
+    # obóz przy drodze (25 XI): płoty, stos drewna, beczka, pochodnia
+    'plot_a':      ('rekwizyty-oboz', 3, 0.5, 'pien'),
+    'plot_b':      ('rekwizyty-oboz', 1, 0.5, 'pien'),
+    'plot_c':      ('rekwizyty-oboz', 7, 0.5, 'pien'),
+    'beczka':      ('rekwizyty-oboz', 2, 0.4, 'pien'),
+    'drewno':      ('rekwizyty-oboz', 9, 0.4, 'pien'),
+    'pochodnia':   ('rekwizyty-oboz', 4, 0.45, 'pien'),
 }
 
 # Ikony przycisków na telefonie (etap B): środek kwadratowej ramki z arkusza interfejsu, bez ramki z czaszkami,
