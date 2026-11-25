@@ -42,7 +42,9 @@ POSTACIE = {
             'blok_cios': ('film-blok', [41, 43, 45, 47, 49, 51, 53, 55, 57]),
             # Cofanie się w gardzie (Patryk z Flow, Veo, 25 XI 12:48, z klatki 88 filmu cięcia): w filmie idzie w miejscu do przodu,
             # więc gra puszcza go wstecz. Pętla: klatka 125 wygląda jak 73 (dwa kroki). Stopy idą za środkiem ciała.
-            'cofa': ('film-cofa', list(range(123, 72, -2))),
+            # cofanie w gardzie oburącz (Patryk z Veo, 25 XI 16:17, z kadru bloku). Veo kazał mu iść do przodu, więc klatki lecą wstecz:
+            # 41→107 to pełny cykl dwóch kroków (prawa noga z przodu w 41 i 109). Stary film-cofa miał miecz w jednej ręce.
+            'cofa': ('film-miecz-cofa-oburacz', list(range(107, 40, -2))),
             # postawa bojowa: miecz uniesiony przed sobą jak na końcu powrotu po cięciu (Patryk, 24 XI: w walce miecz ma być wyciągnięty)
             'gotowosc':  ('film-ciecie', [82, 85, 88, 91, 94]),
             # przewrót w przód przy uniku: od przysiadu do lądowania w przysiadzie z mieczem przed sobą
@@ -144,8 +146,8 @@ POSTACIE = {
             'skok':       ('wiedzma-atak', [81, 85, 89]),                  # wypuszcza kulę (dalej w filmie leci promień, ten pomijamy)
             'odpoczynek': ('wiedzma-atak', [121, 129, 137, 145, 153]),
             'trafienie':  ('wiedzma-trafienie', [41, 45, 49, 53, 57, 61, 65, 73, 81, 89, 97, 105, 113, 121, 137, 153]),
-            'smierc':     ('wiedzma-smierc', [41, 45, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 129, 137, 145, 161, 177]),   # pada i rozpływa się w błoto
-            'trup':       ('wiedzma-smierc', [189]),
+            'smierc':     ('wiedzma-smierc', [41, 45, 49, 57, 65, 73, 77, 81, 85, 89]),   # pada na ziemię; wybuch błota (93–145) pomijamy, wyglądał śmiesznie (Patryk, 25 XI 16:17)
+            'trup':       ('wiedzma-smierc', [89]),
         },
     },
 }
@@ -158,7 +160,7 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
+STOPY_FILMU = {'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
 SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}

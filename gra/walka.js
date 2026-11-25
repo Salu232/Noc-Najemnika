@@ -206,7 +206,7 @@ function aktualizujBohatera(gra, dt, w) {
   if (b.stan === 'wolny') v = BOHATER.szybkosc * (b.blok ? BOHATER.blok.spowolnienie : 1);
   // W bloku nie sunie po mapie (Patryk, 24 XI 19:09: „jak blokuje to jeździ po mapie”), tylko drobi krótkie kroki w gardzie:
   // prędkość idzie falą, krok i chwila postoju. Rysowanie dokłada do tego lekkie ugięcie kolan.
-  if (b.stan === 'wolny' && b.blok && rl > 0.05) { b.krokGardy = (b.krokGardy || 0) + dt * TAU * BOHATER.blok.krokiNaSekunde; v *= 1 - (gra.bronKlucz === 'wielki' ? 1 : 0.4) * Math.cos(b.krokGardy); }   // pełne kroki pod film cofania dwuręcznym; zwykły miecz bez filmu kroków tylko lekko faluje (Patryk, 25 XI 15:34: „przeskakuje”)
+  if (b.stan === 'wolny' && b.blok && rl > 0.05) { b.krokGardy = (b.krokGardy || 0) + dt * TAU * BOHATER.blok.krokiNaSekunde; v *= 1 - (gra.bronKlucz === 'wielki' ? 1 : 0.6) * Math.cos(b.krokGardy); }   // krok i postój pod filmy cofania; zwykły miecz łagodniej (Patryk, 25 XI 15:34: „przeskakuje”)
   else if (b.stan === 'cios') v = BOHATER.szybkosc * (b.cios.faza === 'laduje' ? MOCNY.ruchLadowania : bron.ruch);
   if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl) * (v / BOHATER.szybkosc + 0.3); }
   else b.idzie = false;
@@ -479,7 +479,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
     if (Math.random() < (e.typ.ciezki ? LUP.szansaKolos : LUP.szansaGhul)) gra.lup.push({ typ: 'mikstura', x: e.x + losuj(-10, 10), y: e.y + losuj(-6, 6), t: 0 });
     // ciało pada od bohatera (rysowanie najpierw pokazuje upadek, potem zostawia ślad na ziemi)
     const odBoh = Math.cos(kat) >= 0 ? 1 : -1;
-    gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: odBoh * losuj(0.75, 1.3), sx: -odBoh, kat, pada: true, przeciety: przecina });
+    gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: odBoh * losuj(0.75, 1.3), sx: -odBoh, kat, pada: true, przeciety: przecina && !e.typ.ciezki && !e.typ.pocisk });   // kolos i wiedźma padają z filmu (Patryk, 25 XI 16:17: przecięty boss „spada śmiesznie”)
     if (przecina) for (let i = 0; i < 10; i++) gra.krew.push({ x: e.x, y: e.y, z: 18 * e.typ.skala, vx: losuj(-60, 60), vy: losuj(-40, 40), vz: losuj(160, 300), r: losuj(1.5, 3.2) });
     gra.slady.push({ typ: 'kaluza', x: e.x, y: e.y, duza: true });
     gra.zdarzenia.push({ typ: 'smierc', ciezki: !!e.typ.ciezki });

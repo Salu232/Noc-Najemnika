@@ -20,7 +20,7 @@ const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17 };   // na jakiej wysokoś
 const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
-  wiedzma: { ciecie: 45, droga: 50, smierc: 1.6, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
+  wiedzma: { ciecie: 45, droga: 50, smierc: 1.0, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
 export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null } = {}) {
@@ -128,10 +128,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     Object.assign(ABW, AW);
     if (AW.przewrot) { ABW.przewrot_przod = AW.przewrot_przod || AW.przewrot; ABW.przewrot_tyl = AW.przewrot_tyl || AW.przewrot; }   // dwuręczny ma jeden unik (25 XI): w każdą stronę ten sam rzut, a nie przewrót zwykłym mieczem
   }
-  // Zwykły miecz w obronie trzyma gardę z filmu bloku (oburącz) i cofa się krótkimi krokami. Jego film cofania
-  // ma miecz w jednej ręce (Patryk, 25 XI 15:31: „jak cofa się to widać, że ma w jednej”), więc go nie używamy.
-  const ABZ = { ...AB }; delete ABZ.cofa;
-  let A = ABZ;
+  let A = AB;
   // ghul i kolos z filmów Przemka; bez obrazu zostają rysowane kodem (atlasy wyżej)
   const filmW = {};
   for (const nazwa in WROGOWIE_FILM) {
@@ -587,7 +584,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       return klatkaZ('powrot', c.utknal ? 0 : c.t / Math.max(0.001, koniec));
     }
     // cofanie się w gardzie z filmu (dwuręczny, Patryk z Flow, 24 XI 19:46): jeden krok filmu na jeden krok gardy z walka.js
-    if (b.blok && b.idzie && A.cofa && czas - stanRys.blokCios >= 0.4 && czas - stanRys.blokOd >= 0.2) return klatkaPetli('cofa', stanRys.cofaFaza);
+    if (b.blok && b.idzie && A.cofa && czas - stanRys.blokCios >= 0.4 && czas - stanRys.blokOd >= 0.2) return klatkaPetli('cofa', stanRys.cofaFaza * (A === AB ? 0.5 : 1));   // film zwykłego miecza ma w pętli dwa kroki
     if (b.blok && A.blok_trzyma) {
       // blok z filmu (Patryk, 24 XI 15:17: „żeby lepiej wygląda animacja blokowania”): unosi miecz w 0,2 s, trzyma
       // (klatki tam i z powrotem, powoli), a cios w ostrze odpycha go na 0,4 s i wraca do trzymania
@@ -901,7 +898,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     stanRys.poprzStan = b.stan;
     // tryb walki: wróg w promieniu 700 (albo cios w toku) trzyma miecz w gardzie, 2 s po ostatnim opuszcza go
     if (b.stan === 'cios' || gra.wrogowie.some(e => e.stan !== 'wynurza' && Math.abs(e.x - b.x) < 700 && Math.abs(e.y - b.y) < 700)) stanRys.walka = 2; else stanRys.walka = Math.max(0, stanRys.walka - dt);
-    A = gra.bronKlucz === 'wielki' ? ABW : ABZ;
+    A = gra.bronKlucz === 'wielki' ? ABW : AB;
     if (AB.wyciaga) {                                                     // miecz: schowany, wyciaga, w dłoni, chowa
       // walka: cały etap nocy (od chwili, gdy wychodzą potwory) albo wróg blisko; chowa po chwili spokoju
       const walczy = (gra.faza === 'walka' || stanRys.walka > 0) && !b.wChacie && b.stan !== 'upadl';
