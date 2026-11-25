@@ -101,8 +101,8 @@ POSTACIE = {
             # Przewroty w dół (do nas) i w górę (od nas): druga próba z Veo (25 XI 15:08, prompt z osią czasu). Veo i tak zrobił
             # stanie na rękach zamiast koziołka (Patryk: „stanie na rękach zrobił”), więc bierzemy tylko przysiad, zwinięcie
             # w kulę i wstanie, a klatki z nogami w górze pomijamy (przód 91–115, tył 56–70). Drogę uniku robi gra.
-            'przewrot_przod': ('film-wielki-przewrot', [37, 43, 49, 55, 61, 67, 70, 73, 76, 79, 82, 85, 121, 127, 133, 139, 145]),
-            'przewrot_tyl':   ('film-wielki-przewrot-tyl', [19, 25, 31, 34, 37, 40, 43, 46, 49, 73, 77, 81, 85, 91, 97]),
+            'przewrot_przod': ('film-wielki-przewrot', [37, 49, 61, 67, 70, 73, 76, 79, 82, 85, 88, 121, 127, 133, 139, 145]),
+            'przewrot_tyl':   ('film-wielki-przewrot-tyl', [19, 31, 37, 40, 43, 46, 49, 73, 77, 81, 85, 91, 97]),
         },
         'sledz': {'cofa', 'przewrot'},
     },

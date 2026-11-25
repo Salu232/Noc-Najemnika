@@ -9,7 +9,7 @@ export const BOHATER = {
   odnowaSily: 34,          // ile wytrzymałości wraca na sekundę
   opoznienieOdnowy: 0.6,   // po ilu sekundach od wysiłku zaczyna wracać
 
-  unik: { koszt: 24, czas: 0.4, dystans: 150, nietykalny: 0.3 },   // 24 XI: przewrót z filmu, więc trochę dłuższy niż dawny odskok (0,32 s)
+  unik: { koszt: 24, czas: 0.4, dystans: 150, nietykalny: 0.36 },   // 25 XI: 0,36, bo przewrót rusza wolniej z przysiadu; 24 XI: przewrót z filmu, więc trochę dłuższy niż dawny odskok (0,32 s)
   // 24 XI 15:17, Patryk: blok „bardziej efektywniejszy”. Było: koszt 14 (ciężki ×3), parowanie 0,18 s, spowolnienie 0,45, kąt 1,35 rad,
   // odrzut 160, ciężki cios przez blok 50% ran, odnowa siły w bloku 30%. Teraz blok obraca się sam do atakującego (bez myszki),
   // a zablokowany ghul odskakuje i musi się zebrać (odpoczynek), więc blok daje okazję do cięcia.

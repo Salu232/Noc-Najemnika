@@ -362,11 +362,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy);
       trupyC.addChild(sp); trupy.push({ sp, k });
     }
-    if (trupy.length > 50) { const stare = trupy.splice(0, trupy.length - 40); utrwal(stare.map(t => t.k)); for (const t of stare) t.sp.destroy(); }
+    if (trupy.length > 30) { const stare = trupy.splice(0, trupy.length - 22); utrwal(stare.map(t => t.k)); for (const t of stare) t.sp.destroy(); }
   }
   function utrwal(lista) {
     const c = new P.Container();
-    for (const k of lista) { const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy); c.addChild(sp); }
+    // Starsze ciała wsiąkają w ziemię: ciemniejsze i półprzezroczyste (Patryk, 25 XI: w hordzie bohater ginął w stosie trupów).
+    for (const k of lista) { const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy); sp.tint = 0x5a5048; sp.alpha = 0.45; c.addChild(sp); }
     renderer.render(c, { renderTexture: sladyRT, clear: false });
     c.destroy({ children: true });
   }
@@ -746,7 +747,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       let a = i / 10 * TAU + losuj(-0.25, 0.25), x = z.x, y = z.y; const dl = losuj(50, z.zasieg * 0.85);
       const pk = [[x, y]];
       for (let d = 0; d < dl; d += 16) { a += losuj(-0.5, 0.5); x += Math.cos(a) * 16; y += Math.sin(a) * 16 * PERSP; pk.push([x, y]); }
-      for (const [szer, kol, al] of [[5, 0x0b0710, 0.7], [2.2, 0x7a3cc8, 0.5]]) {      // ślady mają pół rozdzielczości, więc kreski grubsze
+      for (const [szer, kol, al] of [[4, 0x0b0710, 0.45]]) {      // ślady mają pół rozdzielczości; bez fioletu, bo na stałe wyglądał jak bazgroły (25 XI)
         g.lineStyle(szer, kol, al); g.moveTo(pk[0][0], pk[0][1]); for (const [px, py] of pk.slice(1)) g.lineTo(px, py);
       }
     }

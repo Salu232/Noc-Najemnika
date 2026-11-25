@@ -187,7 +187,10 @@ function aktualizujBohatera(gra, dt, w) {
     }
   } else if (b.stan === 'unik') {
     b.t += dt;
-    const cfg = BOHATER.unik, v = cfg.dystans / cfg.czas * 1.25 * Math.max(0, 1 - b.t / cfg.czas);
+    // Prędkość idzie za fazą przewrotu (Patryk, 25 XI 15:22: „wygląda jak kucanie i przyspieszenie i jeździ po mapie”):
+    // w przysiadzie prawie stoi, najszybciej toczy się zwinięty w kulę (około 0,43 czasu), przy wstawaniu już stoi w miejscu.
+    const cfg = BOHATER.unik, p = Math.min(1, b.t / cfg.czas);
+    const v = cfg.dystans / cfg.czas / 0.7036 * (0.3 * (1 - p) + Math.sin(Math.PI * Math.min(1, p * 1.15)));
     b.x += Math.cos(b.unikKat) * v * dt; b.y += Math.sin(b.unikKat) * v * dt;
     if (b.t >= cfg.czas) { b.stan = 'wolny'; if (b.kolejkaAtaku) zacznijCios(gra, w); }
   } else if (b.stan === 'zachwiany') {
