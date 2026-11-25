@@ -98,10 +98,11 @@ POSTACIE = {
             # Klatki 60–104 pomijamy: Veo dorysował tam drugi miecz w ręce. Po 56 ręka puszcza rękojeść nad barkiem, od 108 stoi z pustymi rękami.
             'wyciaga':     ('film-wielki-chowa', [121, 117, 113, 109, 57, 53, 49, 45, 41, 37, 33, 29, 25, 21, 17, 13, 9, 5, 1]),
             'stoi':        ('film-wielki-chowa', [125, 133, 141, 149, 157]),
-            # Przewrót w dół, do nas (Veo, 25 XI 14:45, z kadru przodem). Patryk: „źle mu wyszło”; bierzemy przysiad, koziołek i wstanie.
-            'przewrot_przod': ('film-wielki-przewrot', [25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69, 73, 77, 81, 85, 89, 93, 97, 105, 113]),
-            # Przewrót w górę, od nas (Veo, 25 XI 14:48, z kadru tyłem). Też chaotyczny; przysiad, koziołek, przysiad, wstanie.
-            'przewrot_tyl':   ('film-wielki-przewrot-tyl', [25, 31, 37, 41, 45, 49, 53, 57, 61, 65, 69, 73, 77, 81, 85, 89, 93, 97, 105, 113, 121]),
+            # Przewroty w dół (do nas) i w górę (od nas): druga próba z Veo (25 XI 15:08, prompt z osią czasu). Veo i tak zrobił
+            # stanie na rękach zamiast koziołka (Patryk: „stanie na rękach zrobił”), więc bierzemy tylko przysiad, zwinięcie
+            # w kulę i wstanie, a klatki z nogami w górze pomijamy (przód 91–115, tył 56–70). Drogę uniku robi gra.
+            'przewrot_przod': ('film-wielki-przewrot', [37, 43, 49, 55, 61, 67, 70, 73, 76, 79, 82, 85, 121, 127, 133, 139, 145]),
+            'przewrot_tyl':   ('film-wielki-przewrot-tyl', [19, 25, 31, 34, 37, 40, 43, 46, 49, 73, 77, 81, 85, 91, 97]),
         },
         'sledz': {'cofa', 'przewrot'},
     },
@@ -132,7 +133,7 @@ POSTACIE = {
         },
     },
     # Wiedźma z bagien (Patryk: obraz z Gemini i cztery filmy z Veo, 25 XI 14:45). W filmach ataku, trafienia i śmierci
-    # patrzy w lewo, więc te filmy odwracamy (ODWROC niżej). Z ataku bierzemy unoszenie kostura i kulę na czubku;
+    # patrzy w prawo jak w chodzie (Claude najpierw błędnie je odwrócił). Z ataku bierzemy unoszenie kostura, kulę i wyrzut ręki;
     # fioletowy promień z filmu (klatki 85–117) pomijamy, pocisk rysuje gra. Błyski trafienia (klatki 25–37) też.
     'wiedzma': {
         'obraz': 'grafika/wiedzma.webp',
@@ -140,7 +141,7 @@ POSTACIE = {
         'animacje': {
             'chod':       ('wiedzma-chod', list(range(41, 100, 3))),      # klatka 100 wygląda prawie jak 41
             'zamach':     ('wiedzma-atak', [9, 17, 25, 33, 41, 49, 57, 65]),
-            'skok':       ('wiedzma-atak', [69, 73, 77]),                  # wypuszcza kulę
+            'skok':       ('wiedzma-atak', [81, 85, 89]),                  # wypuszcza kulę (dalej w filmie leci promień, ten pomijamy)
             'odpoczynek': ('wiedzma-atak', [121, 129, 137, 145, 153]),
             'trafienie':  ('wiedzma-trafienie', [41, 45, 49, 53, 57, 61, 65, 73, 81, 89, 97, 105, 113, 121, 137, 153]),
             'smierc':     ('wiedzma-smierc', [41, 45, 49, 57, 65, 73, 81, 89, 97, 105, 113, 121, 129, 137, 145, 161, 177]),   # pada i rozpływa się w błoto
@@ -148,7 +149,7 @@ POSTACIE = {
         },
     },
 }
-ODWROC = {'wiedzma-atak', 'wiedzma-trafienie', 'wiedzma-smierc'}
+ODWROC = set()   # 25 XI 15:08: odwracanie filmów wiedźmy było błędem (patrzyła tyłem do bohatera), filmy zostają jak są
 # W klatkach 39–49 cięcia smuga z filmu zasłania biodra i po jej zdjęciu zostaje dziura.
 # Pas z dziurą bierzemy z klatki 55, w której bohater stoi w tym samym rozkroku, a smugi już nie ma.
 LATKI = {('film-ciecie', k): 55 for k in (39, 41, 43, 45, 47, 49)}
@@ -157,7 +158,7 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'wiedzma-atak': (300, 352), 'wiedzma-trafienie': (300, 352), 'wiedzma-smierc': (300, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
+STOPY_FILMU = {'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
 SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}

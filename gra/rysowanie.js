@@ -20,7 +20,7 @@ const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17 };   // na jakiej wysokoś
 const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
-  wiedzma: { ciecie: 45, droga: 60, smierc: 1.6, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
+  wiedzma: { ciecie: 45, droga: 50, smierc: 1.6, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
 export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null } = {}) {
@@ -1081,6 +1081,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       smugi.beginFill(0x7a30e0, 0.35); smugi.drawCircle(p.x, y, p.promien * 1.6 * puls); smugi.endFill();
       smugi.beginFill(0xc890ff, 0.85); smugi.drawCircle(p.x, y, p.promien * 0.85 * puls); smugi.endFill();
       smugi.beginFill(0xf4e8ff, 0.95); smugi.drawCircle(p.x, y, p.promien * 0.4); smugi.endFill();
+      for (let j = 0; j < 4; j++) {                                      // trzaskające pioruny wokół kuli, jak w filmie wiedźmy
+        const a0 = Math.random() * TAU, n = 4, r0 = p.promien * 0.6, r1 = p.promien * (1.8 + Math.random() * 1.2);
+        smugi.lineStyle(j ? 1.2 : 2, j ? 0xd8b0ff : 0xffffff, 0.9);
+        smugi.moveTo(p.x + Math.cos(a0) * r0, y + Math.sin(a0) * r0);
+        for (let k = 1; k <= n; k++) { const r = r0 + (r1 - r0) * k / n, a = a0 + (Math.random() - 0.5) * 0.9; smugi.lineTo(p.x + Math.cos(a) * r, y + Math.sin(a) * r); }
+      }
+      smugi.lineStyle(0);
+      for (let i = 1; i <= 5; i++) { smugi.beginFill(0x2a1640, 0.16 * (6 - i) / 5); smugi.drawCircle(p.x - ux * i * 15 + Math.sin(p.t * 20 + i) * 3, y - uy * i * 15 * PERSP - i * 2, p.promien * (0.5 + i * 0.18)); smugi.endFill(); }   // ciemny dym za kulą
       znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0x000000, 0.25); znakiZiemia.drawEllipse(p.x, p.y, p.promien, p.promien * PERSP); znakiZiemia.endFill();
     }
     for (const k of kregi) k.visible = false; kregiUzyte = 0; czasRys = czas; ruszBlyski(dt);

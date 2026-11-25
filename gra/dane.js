@@ -108,15 +108,15 @@ export const WROGOWIE = {
   wiedzma: {
     nazwa: 'wiedzma',
     zycie: [3, 4],
-    szybkosc: [52, 62],
+    szybkosc: [88, 104],   // 25 XI 15:09, Patryk: „musi się żywiej ruszać jak te nasze ghule” (było 52–62)
     promien: 14,
     skala: 1.3,
     zasiegAtaku: 380,      // z tej odległości zaczyna rzucać
-    dystans: 220,          // bliżej tego cofa się (wolniej niż idzie)
-    zamach: 1.0,
+    dystans: 220,          // bliżej tego cofa się; między rzutami krąży bokiem wokół bohatera
+    zamach: 0.75,
     skok: 0.3,             // wyrzut kuli
     obrazenia: 13,
-    odpoczynek: 1.8,
+    odpoczynek: 1.2,
     ciezki: false,
     pocisk: { szybkosc: 250, promien: 11, zycie: 2.4 },
   },

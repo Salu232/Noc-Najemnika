@@ -505,9 +505,13 @@ function aktualizujWrogow(gra, dt) {
     } else if (e.stan === 'idzie' && typ.pocisk) {
       // wiedźma: podchodzi na odległość rzutu, za blisko cofa się wolno, z dystansu zaczyna zbierać klątwę
       if (bohaterZywy) {
+        if (!e.strona) e.strona = Math.random() < 0.5 ? -1 : 1;
         if (d > typ.zasiegAtaku) { ax = dx / d * szyb; ay = dy / d * szyb; }
-        else if (d < typ.dystans) { ax = -dx / d * szyb * 0.6; ay = -dy / d * szyb * 0.6; }
-        if (d <= typ.zasiegAtaku && e.t > 0.4) { e.stan = 'zamach'; e.t = 0; e.kat = doBoh; }
+        else {                                                             // w zasięgu krąży bokiem, za blisko odskakuje
+          ax = -dy / d * szyb * 0.8 * e.strona; ay = dx / d * szyb * 0.8 * e.strona;
+          if (d < typ.dystans) { ax -= dx / d * szyb * 0.7; ay -= dy / d * szyb * 0.7; }
+        }
+        if (d <= typ.zasiegAtaku && e.t > 0.7) { e.stan = 'zamach'; e.t = 0; e.kat = doBoh; e.strona = -e.strona; }
       }
     } else if (e.stan === 'idzie') {
       if (bohaterZywy) {
