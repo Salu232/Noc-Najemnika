@@ -127,17 +127,17 @@ export const WROGOWIE = {
   rycerz: {
     nazwa: 'rycerz',
     boss: true,
-    zycie: [18, 18],      // razy 1,5 z ostatniej nocy: 27, przemiana przy 13
+    zycie: [26, 26],      // razy 1,5 z ostatniej nocy: 39, przemiana przy 20 (25 XI 21:46, Patryk: „za prosty”; było 18)
     szybkosc: [58, 64],
     promien: 26,
     skala: 2.0,
     zasiegAtaku: 110,
     zamach: 0.9, skok: 0.4,
-    obrazenia: 24,
+    obrazenia: 26,
     odpoczynek: 1.1,
     ciezki: true,
     strefa: 80,
-    przemiana: { prog: 0.5, czas: 5.2, szybkosc: 1.35, odpoczynek: 0.75 },
+    przemiana: { prog: 0.5, czas: 5.2, szybkosc: 1.4, odpoczynek: 0.65 },
     ataki: {
       1: [
         { nazwa: 'ciecie', zasieg: 105, cel: 55, strefa: 85, zamach: 0.75, skok: 0.55, odpoczynek: 1.4, obrazenia: 1 },      // szerokie cięcie przed sobą

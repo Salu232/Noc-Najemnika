@@ -21,7 +21,7 @@ const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
   wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },
-  rycerz: { ciecie: 75, droga: 70, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem)   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
+  rycerz: { ciecie: 75, droga: 420, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
 export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null } = {}) {

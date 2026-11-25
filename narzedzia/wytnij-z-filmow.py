@@ -141,7 +141,7 @@ POSTACIE = {
     'rycerz': {
         'obraz': 'grafika/rycerz.webp',
         'stopy': (318, 324), 'wys_film': 293, 'wys_swiat': 150, 'skala_obrazu': 0.5,
-        'sledz': ('chod', 'chod2'),
+        'sledz': ('chod', 'chod2'), 'srodek': 'glowa',
         'animacje': {
             'chod':                ('boss/rycerz-chod-a', list(range(37, 182, 4))),          # pierwsze 1,5 s obraca się w miejscu
             'zamach_ciecie':       ('boss/rycerz-ciecie-poziome', list(range(46, 71, 3))),   # unosi miecz za plecy
@@ -267,6 +267,25 @@ def latka(rgba, dawca):
     return Image.fromarray(a, 'RGBA')
 
 
+def srodek_glowy(rgba):
+    """Środek głowy i barków: mediana kolumn w górnej ćwierci postaci. Miecz i pazur odstają w bok, głowa nie,
+    więc chód bossa nie kołysze się już na boki (Patryk, 25 XI 21:46: „chodzenie ułomne, z boku na bok”)."""
+    a = np.asarray(rgba)[..., 3] > 128
+    ys = np.nonzero(a.any(1))[0]; y0 = ys[0]; y1 = y0 + max(8, (ys[-1] - y0) // 4)
+    return float(np.median(np.nonzero(a[y0:y1])[1]))
+
+
+def odbiel(rgba):
+    """Poświata i obwódka zmieszane z białym tłem filmu stają się półprzezroczyste w swoim kolorze
+    (Patryk, 25 XI 21:46: przemiana „jakby źle dodana na tle gry”, jasna obwódka jak na drzewach Przemka)."""
+    a = np.asarray(rgba).astype(np.float32); kol, al = a[..., :3], a[..., 3] / 255
+    mn = kol.min(2); m = (al > 0) & (mn > 90)
+    nowa = np.clip(1 - mn / 255, 0.02, 1)
+    kol2 = np.clip((kol - 255 * (1 - nowa[..., None])) / nowa[..., None], 0, 255)
+    kol[m] = kol2[m]; al = np.where(m, al * np.clip((1 - mn / 255) * 1.15, 0, 1), al)
+    return Image.fromarray(np.dstack([kol, al * 255]).astype(np.uint8), 'RGBA')
+
+
 def srodek(rgba):
     """Środek ciała w poziomie: średnia kolumna nieprzezroczystych pikseli."""
     a = np.asarray(rgba)[..., 3] > 0
@@ -286,11 +305,13 @@ def zrob(nazwa, cfg):
             numery = sorted(numery)
             for k, obr in zip(numery, klatki_filmu(film, numery, kat)):
                 kluczowane[(film, k)] = zdejmij_ziemie(kluczuj(obr), obr) if (film, k) in ZIEMIA else kluczuj(obr)
+                if film.startswith('boss/'): kluczowane[(film, k)] = odbiel(kluczowane[(film, k)])
         for an, (film, numery) in animacje.items():
             anim[an] = []
             sledz = an in cfg.get('sledz', ())
             stopy = STOPY_FILMU.get(film, cfg['stopy'])
-            s0 = srodek(kluczowane[(film, numery[0])]) if sledz else 0
+            sr = srodek_glowy if cfg.get('srodek') == 'glowa' else srodek
+            s0 = sr(kluczowane[(film, numery[0])]) if sledz else 0
             for k in numery:
                 rgba = kluczowane[(film, k)]
                 if (film, k) in LATKI: rgba = latka(rgba, kluczowane[(film, LATKI[(film, k)])])
@@ -299,7 +320,7 @@ def zrob(nazwa, cfg):
                 s = cfg['skala_obrazu'] * SKALA_FILMU.get(film, 1)
                 w, h = max(1, round(kaw.width * s)), max(1, round(kaw.height * s))
                 kaw = kaw.resize((w, h), Image.LANCZOS)
-                sx = stopy[0] + (srodek(rgba) - s0 if sledz else 0)
+                sx = stopy[0] + (sr(rgba) - s0 if sledz else 0)
                 klucz = f'{film}{k}' + ('s' if sledz else '')
                 if klucz not in klatki:
                     klatki[klucz] = {'w': w, 'h': h, 'ax': round((sx - box[0]) / (box[2] - box[0]), 4), 'ay': round((stopy[1] - box[1]) / (box[3] - box[1]), 4)}
