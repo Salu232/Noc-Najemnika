@@ -22,7 +22,7 @@ const FILM_WROGA = {
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -158,7 +158,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const nad = new P.Container();                 // nad ciemnością, ta sama kamera
   const ekran = new P.Container();               // deszcz, winieta, błyski
 
-  const ziemia = new P.TilingSprite(T.ziemia, SZER, WYS);
+  // Ziemia: bezszwowy kafel z Gemini (Patryk, 25 XI; 1024 px, rozjaśniony o 55%, bo noc przyciemnia go jeszcze raz),
+  // a bez niego dawny kafel rysowany kodem. Jeden kafel to około 460 jednostek świata, czyli prawie pięć wzrostów bohatera.
+  const ziemia = obrazZiemi ? new P.TilingSprite(P.Texture.from(obrazZiemi), SZER, WYS) : new P.TilingSprite(T.ziemia, SZER, WYS);
+  if (obrazZiemi) ziemia.tileScale.set(0.45);
   const plamy = new P.Sprite(T.plamy); plamy.scale.set(O.SKALA_PLAM);
   const podworko = new P.Sprite(T.podworko); podworko.position.set(CHATA.x, CHATA.y); podworko.scale.set(CHATA.skala);
   const izbaSpod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, false])) : P.Texture.EMPTY);
