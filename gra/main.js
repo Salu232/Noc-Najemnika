@@ -1,6 +1,6 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie } from './walka.js';
-import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA } from './dane.js';
+import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke } from './walka.js';
+import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
@@ -29,9 +29,9 @@ function pokaz(id, widac) { $(id).hidden = !widac; }
 
 async function start() {
   const cv = $('gra');
-  let obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi;
+  let obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki;
   try {
-    [, obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi] = await Promise.all([
+    [, obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki] = await Promise.all([
       zaladujPixi(), zaladujObraz(new URL('../grafika/chata.webp', import.meta.url).href, 'chata'),
       zaladujObraz(new URL('../grafika/bohater.webp', import.meta.url).href, 'bohater').catch(() => null),   // bez niego gra rysuje bohatera kodem
       zaladujObraz(new URL('../grafika/bohater-wielki.webp', import.meta.url).href, 'bohater z dwuręcznym').catch(() => null),   // cięcie, garda, bieg i blok z mieczem dwuręcznym
@@ -44,6 +44,7 @@ async function start() {
       /ziemia=stara/.test(location.search) ? null : zaladujObraz(new URL('../grafika/ziemia.webp', import.meta.url).href, 'ziemia').catch(() => null),   // ziemia z Gemini (Patryk, 25 XI); ?ziemia=stara pokazuje dawny kafel
       /droga=(farba|kafel)/.test(location.search) ? null : zaladujObraz(new URL('../grafika/droga.webp', import.meta.url).href, 'droga').catch(() => null),   // łata drogi z rysunku ziemi Przemka (v39; ?droga=laty); ?droga=farba pokazuje drogę z v38
       /droga=(farba|laty)/.test(location.search) ? null : zaladujObraz(new URL('../grafika/droga-kafel.webp', import.meta.url).href, 'droga-kafel').catch(() => null),   // kafel drogi z Gemini (Patryk, 25 XI)
+      zaladujObraz(new URL('../grafika/kartka-lezy.webp', import.meta.url).href, 'kartka').catch(() => null),   // kartka z dziennika rycerza na ziemi (Gemini, 25 XI)
     ]);
   } catch (e) {
     $('ladowanie').textContent = 'Nie udało się wczytać gry: ' + e.message + '. Odśwież stronę.';
@@ -55,7 +56,7 @@ async function start() {
   let wyglad = 'gemini';
   try { if (localStorage.getItem('noc-bohater') === 'rysowany') wyglad = 'rysowany'; } catch (e) { /* bez pamięci */ }
   if (/bohater=rysowany/.test(location.search)) wyglad = 'rysowany';
-  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, obrazBohateraWielki, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa, wiedzma: obrazWiedzmy }, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi }); }
+  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, obrazBohateraWielki, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa, wiedzma: obrazWiedzmy }, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki }); }
   catch (e) { $('ladowanie').textContent = 'Ta przeglądarka nie umie narysować gry: ' + (e && e.message || e); return; }
 
   const wejscie = przygotujWejscie(cv, {
@@ -117,7 +118,12 @@ async function start() {
   function pokazKoniec() {
     const s = gra.statystyki, min = Math.floor(s.czas / 60), sek = Math.floor(s.czas % 60);
     $('wynik').innerHTML = '';
-    for (const [co, ile] of [['Zabite potwory', s.zabici], ['Sparowane ciosy', s.parowania], ['Upadki', s.upadki], ['Czas', `${min}:${String(sek).padStart(2, '0')}`]]) {
+    // dwa zakończenia (25 XI): ile razy sięgnąłeś po klątwę, tyle żaru zostaje pod skórą
+    const zar = gra.przemiana >= PRZEMIANA.prog;
+    $('tekst-konca').textContent = zar
+      ? 'Mgła cofa się do lasu, ale żar pod skórą już nie gaśnie. Ręka pali, kiedy nie tniesz. Rycerz pisał, że domek szuka następcy.'
+      : 'Mgła cofa się do lasu, a żar pod skórą przygasa. Nie sięgałeś po klątwę bez potrzeby. Może jednak da się ją zdjąć.';
+    for (const [co, ile] of [['Zabite potwory', s.zabici], ['Sparowane ciosy', s.parowania], ['Upadki', s.upadki], ['Kartki dziennika', `${gra.kartki} z ${KARTKI.length}`], ['Żar klątwy', `${Math.round(gra.przemiana * 100)}%`], ['Czas', `${min}:${String(sek).padStart(2, '0')}`]]) {
       const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = co; dd.textContent = ile; $('wynik').append(dt, dd);
     }
     pokaz('ekran-konca', true);
@@ -136,7 +142,22 @@ async function start() {
     rys.rysuj(gra, dt, zd);
     hud.aktualizuj(gra, dt, rys.opis);
     pokazWybor();
+    pokazKartke();
   }
+  // Kartka z dziennika rycerza: gra stoi, dopóki jej nie schowasz (przycisk, E, Enter, spacja albo Esc).
+  let kartkaPokazana = null;
+  function pokazKartke() {
+    if (gra.czytana === kartkaPokazana) return; kartkaPokazana = gra.czytana;
+    pokaz('ekran-kartki', gra.czytana !== null);
+    if (gra.czytana === null) return;
+    $('tekst-kartki').textContent = KARTKI[gra.czytana].tekst;
+    $('nr-kartki').textContent = `Kartka ${gra.czytana + 1} z ${KARTKI.length}`;
+  }
+  $('schowaj-kartke').addEventListener('click', () => { zamknijKartke(gra); pokazKartke(); });
+  addEventListener('keydown', e => {
+    if (gra.czytana === null || !['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) return;
+    e.preventDefault(); e.stopImmediatePropagation(); zamknijKartke(gra); pokazKartke();
+  }, true);
   // Wybór ulepszenia po fali: trzy karty, gra stoi, dopóki nie wybierzesz (walka.js, wybierzUlepszenie).
   let wyborPokazany = null;
   function pokazWybor() {

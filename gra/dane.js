@@ -190,3 +190,18 @@ export const ULEPSZENIA = [
   { id: 'mikstura', nazwa: 'Zapas na noc', opis: 'Pełne życie teraz i jedna mikstura więcej.' },
   { id: 'cialo', nazwa: 'Twarda skóra', opis: 'Rany od potworów są o 20% lżejsze.' },
 ];
+
+// Kartki z dziennika rycerza (25 XI, historia Patryka): przeklęty najemnik szuka w przeklętym domku sposobu
+// na własną klątwę. Przed nim był tu rycerz, który jej uległ (boss ostatniej nocy). Jedna kartka na każdą falę;
+// leży na polanie od początku fali, aż ją podniesiesz. Gra stoi, póki czytasz.
+export const KARTKI = [
+  { gdzie: { dx: -250, dy: 110 }, tekst: 'W wiosce mówili, że w domku na polanie ktoś zdjął z siebie klątwę. Przyszedłem z żarem pod skórą i z nadzieją. Ognisko było jeszcze ciepłe, a w mgle coś oddychało.' },
+  { gdzie: { dx: 290, dy: -40 }, tekst: 'Totemy nie są stąd. Ktoś je postawił, żeby coś trzymać w środku, nie na zewnątrz. Kiedy biję klątwą, robi się lżej. Za lekko.' },
+  { gdzie: { dx: 130, dy: 250 }, tekst: 'Ręka już nie jest moja. Pali, kiedy śpię, i nie boli, kiedy tnę. Wiedźma z bagien się śmiała. Mówiła, że domek nie zdejmuje klątwy, tylko szuka następcy.' },
+  { gdzie: { dx: -320, dy: -10 }, tekst: 'Jeśli to czytasz, nie używaj jej. Każde uderzenie klątwą to krok bliżej mnie. Zostanę tu, przy ogniu, i będę czekał, aż przyjdziesz. Wybacz, jeśli cię nie poznam.' },
+];
+export const KARTKA = { zasieg: 42 };
+
+// Klątwa ma cenę (25 XI): każde jej użycie przybliża bohatera do przemiany. Widać to po żarze na nim,
+// a o świcie decyduje o zakończeniu (przemiana od progu w górę: żar już nie gaśnie).
+export const PRZEMIANA = { zaKlatwe: 0.15, prog: 0.5 };

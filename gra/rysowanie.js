@@ -23,7 +23,7 @@ const FILM_WROGA = {
   wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -360,9 +360,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   function zostaw(lista) {
     for (const k of lista) {
       const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy);
-      trupyC.addChild(sp); trupy.push({ sp, k });
+      trupyC.addChild(sp); trupy.push({ sp, k, od: czas });
     }
-    if (trupy.length > 30) { const stare = trupy.splice(0, trupy.length - 22); utrwal(stare.map(t => t.k)); for (const t of stare) t.sp.destroy(); }
+    if (trupy.length > 30) { const stare = trupy.splice(0, trupy.length - 22); utrwal(stare.filter(t => !t.k.znika).map(t => t.k)); for (const t of stare) t.sp.destroy(); }
   }
   function utrwal(lista) {
     const c = new P.Container();
@@ -471,6 +471,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const pulaBlyskow = pula(aktorzy, () => { const s = new P.Sprite(); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffd8c8; return s; });   // potwór rozbłyska, gdy dostaje
   const pulaEch = pula(echaS, () => { const s = new P.Sprite(); s.tint = 0x9fb4cc; return s; });
   const pulaLupu = pula(aktorzy, () => { const s = new P.Sprite(); return s; });
+  // kartka z dziennika rycerza leży na ziemi i ciepło się żarzy, żeby było ją widać w ciemności (25 XI)
+  const kartkaS = new P.Sprite(obrazKartki ? P.Texture.from(obrazKartki) : P.Texture.WHITE); kartkaS.anchor.set(0.5, 0.7); kartkaS.visible = false; aktorzy.addChild(kartkaS);
+  if (!obrazKartki) { kartkaS.tint = 0xd8c8a0; kartkaS.width = 26; kartkaS.height = 18; } else kartkaS.scale.set(0.42);
+  const blaskKartki = new P.Sprite(T.cieplo); blaskKartki.anchor.set(0.5); blaskKartki.blendMode = P.BLEND_MODES.ADD; blaskKartki.tint = 0xff9a50; blaskKartki.visible = false; blaski.addChild(blaskKartki);
   const pulaKrwi = pula(powietrze, () => { const s = new P.Sprite(T.krew[0]); s.anchor.set(0.5); return s; });
   const pulaIskier = pula(iskry, () => { const s = new P.Sprite(T.iskra); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; return s; });
 
@@ -827,7 +831,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (f.t < 0.12) { const bl = pulaBlyskow.wez(); bl.texture = k.t; bl.anchor.set(k.ax, k.ay); bl.scale.copyFrom(sp.scale); bl.rotation = 0; bl.position.set(x, y); bl.zIndex = y + 0.01; bl.alpha = 0.7 * (1 - f.t / 0.12); }
     if (q >= 1 && f.gasnie < 0) {
       const kt = fw.k[fw.anim.trup[0]];
-      zostaw([{ tex: kt.t, ax: kt.ax, ay: kt.ay, x, y, rot: 0, sx: sk * zn, sy: sk }]); f.gasnie = 0;
+      zostaw([{ tex: kt.t, ax: kt.ax, ay: kt.ay, x, y, rot: 0, sx: sk * zn, sy: sk, znika: fw.kaluza ? 20 : 0 }]); f.gasnie = 0;
       if (f.ciezki) { pierscienie.push({ x: x + zn * 60, y, r0: 20, r1: 110, t: 0, czas: 0.4, kolor: 0xb8a890, ziemia: true }); kurz(x + zn * 60, y, 0, 6, 1.6); kurz(x + zn * 60, y, Math.PI, 6, 1.6); stanRys.kop.y += 6; }
       else kurz(x - zn * 25, y, s.kat, 3, 0.8);
     } else if (f.gasnie >= 0) { f.gasnie += dt; if (f.gasnie > 0.15) padajace.splice(i, 1); }
@@ -836,6 +840,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   function rysuj(gra, dt, zdarzenia) {
     czas += dt;
     const b = gra.bohater;
+    // kałuża po wiedźmie wsiąka w ziemię: po 20 s blednie przez 4 s i znika (Patryk, 25 XI 16:57)
+    for (let i = trupy.length - 1; i >= 0; i--) {
+      const t = trupy[i]; if (!t.k.znika) continue;
+      const q = (czas - t.od - t.k.znika) / 4; if (q <= 0) continue;
+      if (q >= 1) { t.sp.destroy(); trupy.splice(i, 1); } else t.sp.alpha = 1 - q;
+    }
     // dach znika w ćwierć sekundy, gdy bohater wejdzie do izby, i wraca, gdy wyjdzie (jak w Tibii)
     const wProgu = b.x > CHATA.przejscie.x0 && b.x < CHATA.przejscie.x1 && b.y > CHATA.przejscie.y0 && b.y < CHATA.przejscie.y1 + 6;   // w progu dach już gaśnie
     if (bezDachu) stanRys.bezDachu = ogr(stanRys.bezDachu + (b.wChacie || wProgu ? 1 : -1) * dt * 4, 0, 1);
@@ -881,6 +891,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         for (let i = 0; i < 10; i++) obloczek(z.x + losuj(-20, 20), z.y - losuj(20, 120), losuj(-60, 60), losuj(-50, 10), 8, losuj(18, 30), losuj(0.6, 1.1), 0.5, 0x8a5cc8, false);
         napis(z.cicha ? 'Totem rozbity' : 'Pękł', z.x, z.y - 190, 0xc9a0ff);
       }
+      else if (z.typ === 'kartka') pierscienie.push({ x: z.x, y: z.y, r0: 10, r1: 70, t: 0, czas: 0.4, kolor: 0xffb070, ziemia: true });
       else if (z.typ === 'mikstura') { napis(`+${LUP.leczy}`, b.x + 18, b.y - 84, 0xff6a5a); pierscienie.push({ x: b.x, y: b.y, r0: 10, r1: 60, t: 0, czas: 0.35, kolor: 0xff7070, ziemia: true }); }
       else if (z.typ === 'podniesione') napis('Mikstura', z.x, z.y - 40, 0xf0b0b0);
       else if (z.typ === 'dorzucone') { for (let i = 0; i < 8; i++) obloczek(z.x + losuj(-10, 10), z.y - 20, losuj(-30, 30), losuj(-90, -40), 3, losuj(8, 14), losuj(0.4, 0.8), 0.6, 0xffa050, false); }
@@ -951,7 +962,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const upadl = b.stan === 'upadl', tUp = upadl ? Math.min(1, (czas - stanRys.upadlOd) / 0.35) : 0;
     const gemF = trybBohatera === 'gemini' && maObraz;                      // z filmu upadek pokazuje sam film, bez obracania
     const obrot = upadl && !gemF ? -pz.sx * 1.45 * tUp : 0, alfaB = upadl ? (gemF ? 1 : 1 - Math.max(0, czas - stanRys.upadlOd - 1.4) * 0.6) : (b.nietykalny > 0 && b.stan !== 'unik' ? 0.75 : 1);
-    const tint = b.flash > 0 ? 0xff8080 : (pz.blask > 0.05 ? 0xffe6c0 : 0xffffff);
+    // żar klątwy: im częściej po nią sięgasz, tym cieplejszy, czerwonawy odcień bohatera (cena klątwy, 25 XI)
+    const zarR = Math.round(255 - 30 * (gra.przemiana || 0)), zarG = Math.round(255 - 95 * (gra.przemiana || 0)), zarB = Math.round(255 - 120 * (gra.przemiana || 0));
+    const tint = b.flash > 0 ? 0xff8080 : (pz.blask > 0.05 ? 0xffe6c0 : (zarR << 16) | (zarG << 8) | zarB);
     const gem = trybBohatera === 'gemini' && maObraz;
     bohG.visible = !gem && !b.spi; bohS.visible = gem && !b.spi; bohCien.visible = !b.spi;   // śpiącego na posłaniu nie widać
     // chód: klatki biegną z przebytą drogą. W filmie bohater idzie w bok i trochę do nas, więc idąc tyłem
@@ -1215,7 +1228,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const P1 = f.fw ? { gora: f.fw.gora, dol: f.fw.dol, ax: f.fw.ax, ayDol: f.fw.ayDol, mG: f.fw.gora, mD: f.fw.dol } : null;
       const dx = Math.cos(s.kat), dy = Math.sin(s.kat), slizg = (f.ciezki ? 10 : 24) * latwo(q);
       const al = f.gasnie >= 0 ? Math.max(0, 1 - f.gasnie / 0.15) : 1;
-      const kawalek = (tex, ax, ay, x, y, r) => { const k = pulaKawalkow.wez(); k.texture = tex; k.anchor.set(ax, ay); k.position.set(x, y); k.rotation = r; k.scale.set(sk * znak, sk); k.zIndex = y; k.alpha = al; };
+      const kawalek = (tex, ax, ay, x, y, r, sy = 1) => { const k = pulaKawalkow.wez(); k.texture = tex; k.anchor.set(ax, ay); k.position.set(x, y); k.rotation = r; k.scale.set(sk * znak, sk * sy); k.zIndex = y; k.alpha = al; };
       if (!s.przeciety) {
         const x = s.x + dx * slizg, y = s.y + dy * slizg;
         kawalek(at.klatki[w * at.wzor.klatki], at.ax, at.ay, x, y, s.obrot * q * q);
@@ -1227,10 +1240,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         const gx = s.x + dx * lot, gy = s.y + dy * lot, rKon = f.dir * 1.4, rDol = f.dir * 1.1;
         const rG = f.ciezki ? rKon * latwo(q) : f.dir * (TAU + 1.4) * latwo(q);
         const dxD = s.x + dx * slizg * 0.3, dyD = s.y + dy * slizg * 0.3, rD = rDol * Math.pow(Math.max(0, (q - 0.25) / 0.75), 2);
-        if (P1) {                                                     // z filmu: połówki żywej klatki leżą obrócone
-          kawalek(P1.dol, P1.ax, P1.ayDol, dxD, dyD, rD * znak);
+        if (P1) {
+          // z filmu (ghul): nogi uginają się w kolanach i siadają w miejscu, zamiast przewracać się sztywno jak deska;
+          // z kikuta tryska krew, górna połowa leci łukiem (Patryk, 25 XI 16:57: lepsze padanie przeciętego ghula)
+          const ug = latwo(ogr((q - 0.15) / 0.6, 0, 1)), syD = 1 - 0.45 * ug, rDk = f.dir * 0.3 * ug * znak;
+          kawalek(P1.dol, P1.ax, P1.ayDol, dxD, dyD, rDk, syD);
           kawalek(P1.gora, P1.ax, 1, gx, gy - hz, rG * znak);
-          f.kon = [{ tex: P1.mD, ax: P1.ax, ay: P1.ayDol, x: dxD, y: dyD, rot: rDol * znak, sx: sk * znak, sy: sk },
+          if (q < 0.7 && Math.random() < 0.6) gra.krew.push({ x: dxD, y: dyD, z: wys * syD, vx: losuj(-40, 40), vy: losuj(-25, 25), vz: losuj(120, 220), r: losuj(1.2, 2.4) });
+          f.kon = [{ tex: P1.mD, ax: P1.ax, ay: P1.ayDol, x: dxD, y: dyD, rot: f.dir * 0.3 * znak, sx: sk * znak, sy: sk * 0.55 },
             { tex: P1.mG, ax: P1.ax, ay: 1, x: gx, y: gy, rot: rKon * znak, sx: sk * znak, sy: sk }];
         } else {
           kawalek(at.polowki[w].dol, at.ax, at.ayDol, dxD, dyD, rD);
@@ -1377,6 +1394,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       sp.alpha = l.t > LUP.znika - 4 ? 0.5 + 0.5 * Math.sin(czas * 12) : 1;
     }
     pulaLupu.koniec();
+    const kk = gra.kartka; kartkaS.visible = blaskKartki.visible = !!kk;
+    if (kk) {
+      kartkaS.position.set(kk.x, kk.y - 2 - Math.abs(Math.sin(czas * 2)) * 3); kartkaS.zIndex = kk.y;
+      const pl = 0.75 + 0.25 * Math.sin(czas * 3.1);
+      blaskKartki.position.set(kk.x, kk.y - 6); blaskKartki.width = blaskKartki.height = 90 * pl; blaskKartki.alpha = 0.55 * pl;
+    }
     stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7 * (1 - stanRys.bezDachu));
     stawStempel(swiatloIzby, CHATA.palenisko.x, CHATA.palenisko.y + 60, 240 * migot, 0.95 * stanRys.bezDachu);   // ogień z paleniska oświetla izbę
     renderer.render(ciemnoscC, { renderTexture: ciemnoscRT, clear: true });

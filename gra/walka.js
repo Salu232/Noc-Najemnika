@@ -1,5 +1,5 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA } from './dane.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA } from './dane.js';
 import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
@@ -18,6 +18,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
     totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
     lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [],
+    kartka: null, czytana: null, kartki: 0, przemiana: 0,   // dziennik rycerza i cena klątwy (25 XI)
     mod: { zasieg: 1, szybkosc: 1, garda: 1, oddech: 1, klatwa: 1, cialo: 1 },
   };
   zastosujBron(gra);
@@ -73,8 +74,10 @@ export function wybierzUlepszenie(gra, id) {
 }
 
 // ---------- jedna klatka ----------
+export function zamknijKartke(gra) { gra.czytana = null; }
+
 export function aktualizuj(gra, dt, w) {
-  if (gra.wybor) return;                                           // wybór ulepszenia: noc czeka
+  if (gra.wybor || gra.czytana !== null) return;                  // wybór ulepszenia albo czytanie kartki: noc czeka
   if (gra.zatrzymanie > 0) { gra.zatrzymanie -= dt; return; }   // krótkie zatrzymanie po trafieniu: czuć ciężar ciosu
   gra.czas += dt;
   if (gra.faza !== 'koniec') gra.statystyki.czas += dt;
@@ -226,6 +229,7 @@ function zacznijKlatwe(gra) {
   const b = gra.bohater;
   b.stan = 'klatwa'; b.t = 0; b.cios = null; b.blok = false; b.kolejkaAtaku = false; b.rozped = 0;
   b.klatwa = 0; b.klatwaUderzyla = false;
+  gra.przemiana = Math.min(1, gra.przemiana + PRZEMIANA.zaKlatwe);   // cena klątwy
   b.nietykalny = KLATWA.ladowanie + KLATWA.uderzenie + KLATWA.wstawanie;
   gra.zdarzenia.push({ typ: 'klatwa_laduje' });
 }
@@ -619,6 +623,8 @@ function aktualizujEtapy(gra, dt) {
     gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza stoi
     if (gra.fazaCzas <= 0) {
       gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = [];
+      const kt = KARTKI[gra.etap];
+      if (kt && !gra.kartka) { const p = { x: OGNISKO.x + kt.gdzie.dx, y: OGNISKO.y + kt.gdzie.dy }; zderzenia(p, 22); gra.kartka = { nr: gra.etap, x: p.x, y: p.y }; }
       for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) {
         const z = g.z[i % g.z.length];
         if (stronaCicha(gra, z)) continue;                                              // rozbite totemy: z tej strony nikt nie przyjdzie
@@ -687,6 +693,10 @@ function aktualizujCele(gra, dt, w) {
   if (w.mikstura && b.mikstury > 0 && b.stan !== 'upadl' && b.zycie < BOHATER.zycie) {
     b.mikstury--; b.zycie = Math.min(BOHATER.zycie, b.zycie + LUP.leczy); b.smuga = Math.max(0, Math.min(b.smuga, BOHATER.zycie - b.zycie));
     gra.zdarzenia.push({ typ: 'mikstura' });
+  }
+  // kartka z dziennika: podniesiona otwiera się do czytania
+  if (gra.kartka && b.stan !== 'upadl' && Math.hypot(gra.kartka.x - b.x, gra.kartka.y - b.y) < KARTKA.zasieg + b.promien) {
+    gra.czytana = gra.kartka.nr; gra.kartki++; gra.zdarzenia.push({ typ: 'kartka', x: gra.kartka.x, y: gra.kartka.y }); gra.kartka = null;
   }
   // ognisko gaśnie; drewno ze stosu pod chatą
   if (gra.faza === 'walka' || gra.faza === 'przerwa') gra.ogien = Math.max(OGIEN.minimum, gra.ogien - dt / OGIEN.czas);

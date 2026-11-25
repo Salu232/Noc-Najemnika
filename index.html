@@ -170,6 +170,10 @@ h1 { font-size: 30px; }
 h2 { font-size: 24px; }
 .karta p { margin: 0; line-height: 1.45; color: var(--przygaszony); }
 .karta p.wstep { color: var(--tekst); font-size: 17px; }
+.kartka-dziennika { text-align: center; max-width: 440px; }
+.kartka-dziennika img { display: block; margin: 0 auto 8px; width: 180px; height: auto; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6)); }
+.kartka-dziennika p.nr { margin: 0; font-size: 13px; color: var(--przygaszony); letter-spacing: 0.06em; text-transform: uppercase; }
+.kartka-dziennika p.wstep { font-style: italic; line-height: 1.5; }
 .sterowanie { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 @media (pointer: coarse) { .sterowanie .pc { order: 2; } }
 .sterowanie h3 { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--zar); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -284,10 +288,19 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
   </div>
 </div>
 
+<div class="ekran" id="ekran-kartki" hidden>
+  <div class="karta kartka-dziennika">
+    <img src="grafika/kartka.webp" alt="" width="180" height="168">
+    <p class="nr" id="nr-kartki"></p>
+    <p class="wstep" id="tekst-kartki"></p>
+    <div class="akcje"><button type="button" class="glowny" id="schowaj-kartke">Schowaj kartkę</button></div>
+  </div>
+</div>
+
 <div class="ekran" id="ekran-konca" hidden>
   <div class="karta">
     <h2>Świt</h2>
-    <p class="wstep">Mgła cofa się do lasu. Przetrwałeś noc.</p>
+    <p class="wstep" id="tekst-konca">Mgła cofa się do lasu. Przetrwałeś noc.</p>
     <dl id="wynik"></dl>
     <div class="akcje">
       <button type="button" class="glowny" id="jeszcze-raz">Jeszcze raz</button>
