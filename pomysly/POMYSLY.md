@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 25 XI 2026 | Patryk | Filmy z Veo 3.1 (kadr jako pierwsza klatka): blok dwuręcznym nad głową i krok w gardzie | zrobiony | film-wielki-blok3 (unosi 9–45, trzyma 45–93, cios 92–101 bez gwiazdy 94–98) i film-cofa (krok w przód w miejscu, pętla 73–125 puszczona wstecz) w obrazie dwuręcznego; oba filmy zrobione z kadru dwuręcznego, więc zwykły miecz dalej bez filmu cofania |
 | 25 XI 2026 | Przemek (przez Patryka) | „Część z wyciętych grafik ma białą obwódkę, nie wycięte odpowiednio dobrze, przez co drzewa i trawa wyglądają gorzej” | zrobiony | narzedzia/wytnij-z-arkuszy.py: jasne szare piksele przy tle idą do tła, brzeg bierze kolor z wnętrza rysunku; wszystkie rekwizyty, rama i panel wycięte od nowa |
 | 25 XI 2026 | Przemek (przez Patryka) | Tekstura ziemi częściowo stara i nie pasuje | zrobiony 25 XI (kafel z Gemini od Patryka, grafika/ziemia.webp; ?ziemia=stara pokazuje dawny) | z kafla kodu zniknęły jasne kamyki z obrysem („monety”), plamy słabsze; właściwa naprawa to bezszwowa tekstura ziemi z Gemini w stylu arkuszy (polecenie w wiadomości z 25 XI) |
 | 25 XI 2026 | Patryk | Zwykły miecz w bloku: „podskoki”, a nie cofanie jak przy dwuręcznym | częściowo | podskok usunięty; prawdziwe cofanie czeka na film z Flow z kadru zwykłego miecza (polecenie 1 z 24 XI 19:13) |
