@@ -94,6 +94,10 @@ POSTACIE = {
             'klatwa_lad':    ('film-wielki-klatwa', [24, 28, 32, 36, 40, 44, 48]),
             'klatwa_uderz':  ('film-wielki-klatwa', [52, 56, 58]),
             'klatwa_wstaje': ('film-wielki-klatwa', [128, 136, 144, 152, 160, 168, 172, 176, 180, 184]),
+            # Chowanie na plecy (Veo, 25 XI 14:13, z kadru z klatki 0 filmu cięcia). Wyciąganie to ta sama animacja wstecz, jak przy zwykłym.
+            # Klatki 60–104 pomijamy: Veo dorysował tam drugi miecz w ręce. Po 56 ręka puszcza rękojeść nad barkiem, od 108 stoi z pustymi rękami.
+            'wyciaga':     ('film-wielki-chowa', [121, 117, 113, 109, 57, 53, 49, 45, 41, 37, 33, 29, 25, 21, 17, 13, 9, 5, 1]),
+            'stoi':        ('film-wielki-chowa', [125, 133, 141, 149, 157]),
         },
         'sledz': {'cofa', 'przewrot'},
     },
