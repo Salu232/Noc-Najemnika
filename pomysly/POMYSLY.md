@@ -8,7 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
-| 24 XI 2026 | Patryk | Filmy z Flow: blok dwuręcznym nad głową i cofanie się w gardzie (19:46) | na jutro | grafika/zrodla/film-wielki-blok2.mp4: poza bloku dobra (miecz poziomo nad głową, klatki ~80–96), ale inny kadr i ucięte stopy; film-wielki-cofa.mp4: cały bohater, mniejszy, szare tło, kroki w tył od ~klatki 48; do sprawdzenia, czy da się wyciąć i dopasować skalę |
+| 24 XI 2026 | Patryk | Filmy z Flow: blok dwuręcznym nad głową i cofanie się w gardzie (19:46) | cofanie zrobione 25 XI, blok czeka | cofanie: klatki 56–90 filmu film-wielki-cofa jako pętla w bloku z ruchem dwuręcznym (idąc do przodu film leci wstecz); grafika/zrodla/film-wielki-blok2.mp4: poza bloku dobra (miecz poziomo nad głową, klatki ~80–96), ale inny kadr i ucięte stopy; film-wielki-cofa.mp4: cały bohater, mniejszy, szare tło, kroki w tył od ~klatki 48; do sprawdzenia, czy da się wyciąć i dopasować skalę |
 | 24 XI 2026 | Patryk | Za drzewem bohater robi się niebieskim, przezroczystym duchem i to słabo wygląda (za totemem tak nie ma) | zrobiony 25 XI | drzewo, w którego obrysie wypada tułów bohatera, płynnie przygasa do 38%; duch bohatera został tylko za chatą |
 | 24 XI 2026 | Patryk | Wyciąganie i chowanie miecza ma być widać także w biegu (teraz w biegu miecz pojawia się od razu) | na jutro | potrzebny film z Flow: dobywanie i chowanie w biegu albo w marszu |
 | 24 XI 2026 | Patryk | Przy wyciąganiu miecza bohater też „jeździ po mapie” | zrobiony | film wyciągania i chowania gra tylko na stojąco; w biegu miecz od razu w dłoni (bieg z mieczem) albo od razu schowany |

@@ -13,9 +13,9 @@ export const BOHATER = {
   // 24 XI 15:17, Patryk: blok „bardziej efektywniejszy”. Było: koszt 14 (ciężki ×3), parowanie 0,18 s, spowolnienie 0,45, kąt 1,35 rad,
   // odrzut 160, ciężki cios przez blok 50% ran, odnowa siły w bloku 30%. Teraz blok obraca się sam do atakującego (bez myszki),
   // a zablokowany ghul odskakuje i musi się zebrać (odpoczynek), więc blok daje okazję do cięcia.
-  // 24 XI 19:09, Patryk: w bloku „jeździ po mapie”. Było spowolnienie 0,55 płynnie; teraz 0,3 krótkimi krokami (2,2 na sekundę),
+  // 24 XI 19:09, Patryk: w bloku „jeździ po mapie”. Było spowolnienie 0,55 płynnie; teraz 0,3 krótkimi krokami (2,2 na sekundę; 25 XI 1,4, żeby film cofania dwuręcznym nie biegł za szybko),
   // a zablokowany cios cofa go o pół kroku (cofniecie: prędkość odrzutu, ciężki ×2).
-  blok: { kosztNaCios: 9, mnoznikCiezki: 2.2, oknoParowania: 0.25, spowolnienie: 0.3, krokiNaSekunde: 2.2, cofniecie: 70, kat: 1.75, odrzut: 240, ranaCiezka: 0.3, odnowa: 0.5, obrot: 9, zasiegObrotu: 260 },
+  blok: { kosztNaCios: 9, mnoznikCiezki: 2.2, oknoParowania: 0.25, spowolnienie: 0.3, krokiNaSekunde: 1.4, cofniecie: 70, kat: 1.75, odrzut: 240, ranaCiezka: 0.3, odnowa: 0.5, obrot: 9, zasiegObrotu: 260 },
 
   // Ciosy idą na zmianę: w prawo, w lewo, w prawo… Każdy następny zadany od razu po poprzednim
   // ma rozpęd: krótszy zamach (ciężar miecza pracuje dla ciebie, jeśli nie dasz mu stanąć).

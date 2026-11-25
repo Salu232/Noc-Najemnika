@@ -79,7 +79,11 @@ POSTACIE = {
             'blok_unosi':  ('film-wielki-blok', [96, 90, 84, 80, 77, 75]),
             'blok_trzyma': ('film-wielki-blok', [71, 72, 73, 74, 75]),
             'blok_cios':   ('film-wielki-blok', [72, 75, 78, 81, 78, 75, 72]),
+            # cofanie się w gardzie (Patryk z Flow, 24 XI 19:46): tylna noga w tył, przednia dostawiona; klatka 91 wygląda jak 56.
+            # W kadrze bohater sam odchodzi w lewo, więc stopy idą za środkiem ciała, a drogę robi gra.
+            'cofa':        ('film-wielki-cofa', list(range(56, 91, 2))),
         },
+        'sledz': {'cofa'},
     },
     'ghul': {
         'obraz': 'grafika/ghul.webp',
@@ -116,10 +120,10 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340)}
+STOPY_FILMU = {'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
-SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04}
+SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}
 
 
 def kluczuj(obraz, dol=0.80):

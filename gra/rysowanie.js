@@ -566,6 +566,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0);
       return klatkaZ('powrot', c.utknal ? 0 : c.t / Math.max(0.001, koniec));
     }
+    // cofanie się w gardzie z filmu (dwuręczny, Patryk z Flow, 24 XI 19:46): jeden krok filmu na jeden krok gardy z walka.js
+    if (b.blok && b.idzie && A.cofa && czas - stanRys.blokCios >= 0.4 && czas - stanRys.blokOd >= 0.2) return klatkaPetli('cofa', stanRys.cofaFaza);
     if (b.blok && A.blok_trzyma) {
       // blok z filmu (Patryk, 24 XI 15:17: „żeby lepiej wygląda animacja blokowania”): unosi miecz w 0,2 s, trzyma
       // (klatki tam i z powrotem, powoli), a cios w ostrze odpycha go na 0,4 s i wraca do trzymania
@@ -975,7 +977,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       lx *= 0.5;                                     // film sam porusza ciałem, kod tylko dodaje trochę wagi
       const dj = pz.drgaj ? (Math.random() - 0.5) * pz.drgaj : 0;
       // krok w gardzie: przy każdym kroku lekko ugina kolana i podnosi się (fala prędkości z walka.js)
-      const krokG = b.blok && b.idzie ? 0.5 - 0.5 * Math.cos(b.krokGardy || 0) : 0;
+      // Z filmem cofania faza filmu idzie za krokiem gardy; idąc do przodu (w stronę, w którą patrzy) film leci wstecz.
+      if (b.blok && b.idzie) { const f = (b.krokGardy || 0) / TAU; stanRys.cofaFaza = ddx * pz.sx > 0.2 * dd ? -f : f; }
+      const krokG = b.blok && b.idzie && !A.cofa ? 0.5 - 0.5 * Math.cos(b.krokGardy || 0) : 0;
       ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y - 2.5 * Math.sin(b.krokGardy || 0) * (krokG > 0 ? 1 : 0), lx, sy * (1 - 0.035 * krokG), obrot);
       if (b.stan === 'unik' && unikPionowy(b)) {
         // Przewrót w górę i w dół z filmów Patryka (Flow, 24 XI, 14:31): koziołek plecami albo przodem, bez obracania obrazu.
