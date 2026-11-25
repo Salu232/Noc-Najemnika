@@ -128,7 +128,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     Object.assign(ABW, AW);
     if (AW.przewrot) { ABW.przewrot_przod = AW.przewrot_przod || AW.przewrot; ABW.przewrot_tyl = AW.przewrot_tyl || AW.przewrot; }   // dwuręczny ma jeden unik (25 XI): w każdą stronę ten sam rzut, a nie przewrót zwykłym mieczem
   }
-  let A = AB;
+  // Zwykły miecz w obronie trzyma gardę z filmu bloku (oburącz) i cofa się krótkimi krokami. Jego film cofania
+  // ma miecz w jednej ręce (Patryk, 25 XI 15:31: „jak cofa się to widać, że ma w jednej”), więc go nie używamy.
+  const ABZ = { ...AB }; delete ABZ.cofa;
+  let A = ABZ;
   // ghul i kolos z filmów Przemka; bez obrazu zostają rysowane kodem (atlasy wyżej)
   const filmW = {};
   for (const nazwa in WROGOWIE_FILM) {
@@ -898,7 +901,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     stanRys.poprzStan = b.stan;
     // tryb walki: wróg w promieniu 700 (albo cios w toku) trzyma miecz w gardzie, 2 s po ostatnim opuszcza go
     if (b.stan === 'cios' || gra.wrogowie.some(e => e.stan !== 'wynurza' && Math.abs(e.x - b.x) < 700 && Math.abs(e.y - b.y) < 700)) stanRys.walka = 2; else stanRys.walka = Math.max(0, stanRys.walka - dt);
-    A = gra.bronKlucz === 'wielki' ? ABW : AB;
+    A = gra.bronKlucz === 'wielki' ? ABW : ABZ;
     if (AB.wyciaga) {                                                     // miecz: schowany, wyciaga, w dłoni, chowa
       // walka: cały etap nocy (od chwili, gdy wychodzą potwory) albo wróg blisko; chowa po chwili spokoju
       const walczy = (gra.faza === 'walka' || stanRys.walka > 0) && !b.wChacie && b.stan !== 'upadl';
