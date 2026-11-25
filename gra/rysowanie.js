@@ -124,6 +124,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const baza = new P.BaseTexture(obrazBohateraWielki); baza.mipmap = P.MIPMAP_MODES.ON;
     for (const k in KW) klatkiB[k] = { ...KW[k], t: new P.Texture(baza, new P.Rectangle(KW[k].x, KW[k].y, KW[k].w, KW[k].h)) };
     Object.assign(ABW, AW);
+    if (AW.przewrot) { ABW.przewrot_przod = AW.przewrot; ABW.przewrot_tyl = AW.przewrot; }   // dwuręczny ma jeden unik (25 XI): w każdą stronę ten sam rzut, a nie przewrót zwykłym mieczem
   }
   let A = AB;
   // ghul i kolos z filmów Przemka; bez obrazu zostają rysowane kodem (atlasy wyżej)

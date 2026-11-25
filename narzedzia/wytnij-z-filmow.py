@@ -85,8 +85,17 @@ POSTACIE = {
             # cofanie się w gardzie (Patryk z Flow, 24 XI 19:46): tylna noga w tył, przednia dostawiona; klatka 91 wygląda jak 56.
             # W kadrze bohater sam odchodzi w lewo, więc stopy idą za środkiem ciała, a drogę robi gra.
             'cofa':        ('film-wielki-cofa', list(range(56, 91, 2))),
+            # Filmy Patryka z Flow, Veo, 25 XI 13:59, z kadru z mieczem uniesionym przy barku.
+            # Unik: rzuca się w bok, przetacza i wstaje. Leżenie (klatki 40–56) pomijamy, żeby w czasie uniku było widać ruch.
+            'przewrot':    ('film-wielki-unik', [16, 20, 24, 28, 32, 36, 44, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112]),
+            # Trafiony: zgina się, miecz opada, potem wraca do gardy.
+            'rana':        ('film-wielki-rana', [22, 26, 30, 34, 38, 42, 48, 56, 66, 76, 86, 96, 104, 110, 116, 122, 128]),
+            # Klątwa: wyciąga lewą dłoń przed siebie. Fioletowy wybuch z filmu (klatki 68–124) pomijamy, wybuch rysuje gra.
+            'klatwa_lad':    ('film-wielki-klatwa', [24, 28, 32, 36, 40, 44, 48]),
+            'klatwa_uderz':  ('film-wielki-klatwa', [52, 56, 58]),
+            'klatwa_wstaje': ('film-wielki-klatwa', [128, 136, 144, 152, 160, 168, 172, 176, 180, 184]),
         },
-        'sledz': {'cofa'},
+        'sledz': {'cofa', 'przewrot'},
     },
     'ghul': {
         'obraz': 'grafika/ghul.webp',

@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 25 XI 2026 | Patryk | Filmy Veo dwuręcznego: unik, trafienie, klątwa (b, c, d z filmy-do-zrobienia.md) | zrobiony | film-wielki-unik: rzut w bok i przetoczenie (leżenie, klatki 40–56, wycięte), ten sam unik w każdą stronę; film-wielki-rana: zgina się i wraca do gardy; film-wielki-klatwa: gest lewej dłoni, fioletowy wybuch z filmu pominięty (rysuje go gra). Patryk: „jakoś teraz generuje dziwacznie” — do jego oceny w grze |
 | 25 XI 2026 | Patryk | Kafel drogi z Gemini (droga_las_noc_1024_seamless) | zrobiony | grafika/droga-kafel.webp (źródło zrodla/droga-gemini.png, rozjaśnione 1.6×): kafel kładziony pasami wzdłuż drogi i obrócony w jej kierunku, więc koleiny idą za zakrętami; płótno drogi tylko wokół niej, w pełnej rozdzielczości. ?droga=laty pokazuje wersję z łatami Przemka, ?droga=farba wersję z v38 |
 | 25 XI 2026 | Patryk | Film Veo: chowa i wyciąga dwuręczny | odrzucony | Veo wziął z kadru dwa miecze (w ręce i przy pasie), macha mieczem i nigdy nie ma pustych rąk; nie da się z niego wyciąć chowania. Następna próba z kadr-dwureczny.png i jednym ruchem: tylko chowa na plecy, wyciąganie to ten sam film od tyłu |
 | 25 XI 2026 | Patryk | „Zmniejsz trochę ten pasek życia na telefonie, trochę za duży” | zrobiony | index.html: na dotyku i wąskim ekranie pasek ma 160–230 px (min z 28% szerokości i 46% wysokości ekranu), było 230–330 px; napis etapu w pionie wyżej |
