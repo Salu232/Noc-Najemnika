@@ -432,11 +432,11 @@ function trafBohatera(gra, e) {
     b.odrzutX -= Math.cos(katDoWroga) * BOHATER.blok.cofniecie * (ciezki ? 2 : 1); b.odrzutY -= Math.sin(katDoWroga) * BOHATER.blok.cofniecie * (ciezki ? 2 : 1);   // cios w ostrze cofa go o pół kroku
     if (b.sila <= 0) {               // gardę przebito
       b.stan = 'zachwiany'; b.t = 0; b.trwanie = 0.55; b.blok = false;
-      zranBohatera(gra, e.typ.obrazenia * 0.5, odWroga, false);
-    } else if (ciezki) zranBohatera(gra, e.typ.obrazenia * BOHATER.blok.ranaCiezka, odWroga, false);
+      zranBohatera(gra, e.obrazenia * 0.5, odWroga, false);
+    } else if (ciezki) zranBohatera(gra, e.obrazenia * BOHATER.blok.ranaCiezka, odWroga, false);
     return;
   }
-  zranBohatera(gra, e.typ.obrazenia, odWroga, ciezki);
+  zranBohatera(gra, e.obrazenia, odWroga, ciezki);
 }
 
 function upadek(gra) {
@@ -448,12 +448,13 @@ function upadek(gra) {
 }
 
 // ---------- wrogowie ----------
-// zlosc: z każdym etapem nocy potwory są szybsze i krócej odpoczywają po ataku (Patryk, 24 XI 18:06)
+// zlosc: z każdym etapem nocy potwory są szybsze i krócej odpoczywają po ataku (Patryk, 24 XI 18:06),
+// od 25 XI także mocniej biją i mają więcej życia (Patryk, 25 XI 13:12: „potwory trudniejsze”)
 function nowyWrog(typNazwa, punkt, zlosc = { szybkosc: 1, odpoczynek: 1 }) {
   const typ = WROGOWIE[typNazwa];
   return {
     typ, x: punkt.x, y: punkt.y, vx: 0, vy: 0, promien: typ.promien, odpoczynek: typ.odpoczynek * zlosc.odpoczynek,
-    zycie: Math.round(losuj(typ.zycie[0], typ.zycie[1])), szybkosc: losuj(typ.szybkosc[0], typ.szybkosc[1]) * zlosc.szybkosc,
+    zycie: Math.round(losuj(typ.zycie[0], typ.zycie[1]) * (zlosc.zycie || 1)), obrazenia: typ.obrazenia * (zlosc.obrazenia || 1), szybkosc: losuj(typ.szybkosc[0], typ.szybkosc[1]) * zlosc.szybkosc,
     stan: 'wynurza', t: 0, kat: 0, anim: Math.random() * 10, flash: 0, widac: 0, drzy: 0, cel: null, trafil: false,
   };
 }

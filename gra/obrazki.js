@@ -1,7 +1,7 @@
 // Obrazki rysowane kodem, dopóki nie ma grafik z Gemini: ziemia, sosny, ghule, kolos, światło, mgła.
 // Wszystko jest w kolorach dnia. Noc dokłada silnik (ciemność z wyciętym światłem), tak jak ustaliliśmy w Próbie chaty.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DROGA, DROGA_SZER } from './swiat.js';
 
 const TAU = Math.PI * 2;
 export const PX = 2;                       // ile pikseli obrazka na jednostkę świata
@@ -67,6 +67,40 @@ export function plamyZiemi() {
     const m = MGLY[k], gr = g.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.r * 1.2);
     gr.addColorStop(0, 'rgba(20,24,26,0.55)'); gr.addColorStop(1, 'rgba(20,24,26,0)');
     g.fillStyle = gr; g.fillRect(m.x - m.r * 1.2, m.y - m.r * 1.2, m.r * 2.4, m.r * 2.4);
+  }
+  return c;
+}
+
+// Droga do chaty w połowie rozdzielczości świata: wydeptana ziemia z miękkimi brzegami, dwie koleiny, kamyki
+// i kreski tuszem wzdłuż brzegów, jak w rysunkach z arkuszy (Patryk, 25 XI 13:12).
+export const SKALA_DROGI = 2;
+export function obrazDrogi() {
+  const s = SKALA_DROGI, c = plotno(SZER / s, WYS / s), g = c.getContext('2d'), r = losowe(7);
+  g.scale(1 / s, 1 / s); g.lineCap = 'round'; g.lineJoin = 'round';
+  const linia = (przes, szer, kolor) => {
+    g.strokeStyle = kolor; g.lineWidth = szer; g.beginPath();
+    DROGA.forEach((p, i) => {
+      const q = DROGA[Math.min(DROGA.length - 1, i + 1)], o = DROGA[Math.max(0, i - 1)];
+      const dx = q.x - o.x, dy = q.y - o.y, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+      const x = p.x + nx * przes, y = p.y + ny * przes;
+      if (i) g.lineTo(x, y); else g.moveTo(x, y);
+    });
+    g.stroke();
+  };
+  g.filter = 'blur(10px)'; linia(0, DROGA_SZER * 1.5, 'rgba(70,58,44,0.45)');      // miękki pas wydeptanej ziemi
+  g.filter = 'blur(3px)'; linia(0, DROGA_SZER, 'rgba(104,86,64,0.62)');
+  g.filter = 'none';
+  for (const strona of [-1, 1]) linia(strona * DROGA_SZER * 0.22, 7, 'rgba(38,30,24,0.42)');   // koleiny
+  // kreski tuszem przy brzegach i w poprzek, kamyki
+  g.strokeStyle = 'rgba(18,14,12,0.55)'; g.lineWidth = 1.4;
+  for (let i = 1; i < DROGA.length - 1; i++) {
+    const p = DROGA[i], q = DROGA[i + 1], o = DROGA[i - 1], dx = q.x - o.x, dy = q.y - o.y, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+    for (const strona of [-1, 1]) if (r() < 0.8) {
+      const w = DROGA_SZER * (0.46 + r() * 0.12) * strona, x = p.x + nx * w, y = p.y + ny * w, dl = 6 + r() * 12;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + dx / d * dl + nx * strona * 3, y + dy / d * dl + ny * strona * 3); g.stroke();
+    }
+    if (r() < 0.35) { const w = (r() - 0.5) * DROGA_SZER * 0.8, x = p.x + nx * w, y = p.y + ny * w, rr = 2 + r() * 4;
+      g.fillStyle = 'rgba(120,112,100,0.8)'; g.beginPath(); g.ellipse(x, y, rr * 1.3, rr, 0, 0, TAU); g.fill(); g.stroke(); }
   }
   return c;
 }

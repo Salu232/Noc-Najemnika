@@ -83,7 +83,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const k = szer / f.w; sp.scale.set(lustro ? -k : k, k); return sp;
   };
   const T = {
-    ziemia: tx(O.kafelZiemi()), plamy: tx(O.plamyZiemi()),
+    ziemia: tx(O.kafelZiemi()), plamy: tx(O.plamyZiemi()), droga: tx(O.obrazDrogi()),
     drzewa: [0, 1, 2, 3].map(w => { const d = O.obrazDrzewa(w); return { t: tx(d.canvas), ax: d.ox / d.w, ay: d.oy / d.h }; }),
     chata: tx(plotnoChaty), podworko: tx(plotnoPodworka),
     cien: tx(O.cien()), kreski: tx(O.kreskowanie()), mgla: [0, 1, 2].map(w => tx(O.mgielka(w))),
@@ -163,6 +163,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const ziemia = obrazZiemi ? new P.TilingSprite(P.Texture.from(obrazZiemi), SZER, WYS) : new P.TilingSprite(T.ziemia, SZER, WYS);
   if (obrazZiemi) ziemia.tileScale.set(0.45);
   const plamy = new P.Sprite(T.plamy); plamy.scale.set(O.SKALA_PLAM);
+  const droga = new P.Sprite(T.droga); droga.scale.set(O.SKALA_DROGI);
   const podworko = new P.Sprite(T.podworko); podworko.position.set(CHATA.x, CHATA.y); podworko.scale.set(CHATA.skala);
   const izbaSpod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, false])) : P.Texture.EMPTY);
   const izbaPrzod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, true])) : P.Texture.EMPTY);
@@ -179,7 +180,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const para = new P.Graphics();                 // oddech w zimnej nocy
   const trupyC = new P.Container();              // ostatnie ciała leżą jako ostre obrazy, starsze idą do śladów
   const ozdoby = new P.Container();                // kępy trawy, mchu i liści z arkuszy Przemka: leżą pod krwią
-  swiat.addChild(ziemia, plamy, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
+  swiat.addChild(ziemia, plamy, droga, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para);
 
   // drzewa
   const drzewa = DRZEWA.map((d, i) => {
@@ -1062,36 +1063,27 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     smugi.clear(); znaki.clear(); znakiZiemia.clear();
     for (const k of kregi) k.visible = false; kregiUzyte = 0; czasRys = czas; ruszBlyski(dt);
     if (pz && pz.smuga) {
-      // Smuga miecza (Patryk, 24 XI: cięcie wyglądało jak „nożykiem”). Sierp zamiast wachlarza od środka:
-      // jasny i gęsty przy ostrzu, gaśnie ku tyłowi łuku, sięga tam, gdzie naprawdę rani cios (zasięg broni).
-      // Na czele sierpa leci samo ostrze, szerokie jak wybrany miecz.
-      const s = pz.smuga, sc = wSwiecie(0, -44), cx = sc.x, cy = sc.y, n = 18;
-      const r2 = Math.max(pz.L + 16, gra.bron.zasieg * (s.mocny ? 1.05 : 0.92)), r1 = r2 * (s.mocny ? 0.3 : 0.42);
+      // Smuga miecza. Patryk, 25 XI: „jakby wychodził z niego to ostrze co leci zamach i dziwacznie to wygląda”.
+      // Było: sierp od samego ciała, od punktu za plecami, i dorysowany drugi miecz na czele łuku.
+      // Teraz: tylko cienki sierp na końcu ostrza (zewnętrzne ~25% zasięgu), krótki ogon za ostrzem,
+      // bez drugiego miecza: ostrze rysuje już klatka z filmu.
+      const s = pz.smuga, sc = wSwiecie(0, -44), cx = sc.x, cy = sc.y, n = 16;
+      const r2 = Math.max(pz.L + 16, gra.bron.zasieg * (s.mocny ? 1.05 : 0.92));
+      const kier = Math.sign(s.do - s.od) || 1, ogon = Math.min(Math.abs(s.do - s.od), s.mocny ? 1.7 : 1.25), od = s.do - kier * ogon;
       const kol = s.utknal ? 0xffd090 : (s.mocny ? 0xfff0d0 : 0xe6ecf2);
-      const pkt = (f, r) => { const a = s.od + (s.do - s.od) * f, l = (s.l0 + (s.l1 - s.l0) * f) * r / r2; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r * PERSP + l]; };
-      const moc = (s.mocny ? 0.62 : 0.48) * s.alfa;
+      const pkt = (f, r) => { const a = od + (s.do - od) * f, l = (s.l0 + (s.l1 - s.l0) * f) * r / r2; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r * PERSP + l]; };
+      const wew = f => r2 * (1 - (s.mocny ? 0.3 : 0.22) * Math.pow(f, 1.3));   // sierp gruby przy ostrzu, ostry na ogonie
+      const moc = (s.mocny ? 0.55 : 0.42) * s.alfa;
       smugi.lineStyle(0);
       for (let i = 0; i < n; i++) {
-        const f0 = i / n, f1 = (i + 1) / n, al = moc * Math.pow(f1, 1.8);
+        const f0 = i / n, f1 = (i + 1) / n, al = moc * Math.pow(f1, 1.6);
         if (al < 0.01) continue;
-        const [ax, ay] = pkt(f0, r2), [bx, by] = pkt(f1, r2), [ci, di] = pkt(f1, r1 + (r2 - r1) * 0.35 * (1 - f1)), [ei, gi] = pkt(f0, r1 + (r2 - r1) * 0.35 * (1 - f0));
+        const [ax, ay] = pkt(f0, r2), [bx, by] = pkt(f1, r2), [ci, di] = pkt(f1, wew(f1)), [ei, gi] = pkt(f0, wew(f0));
         smugi.beginFill(kol, al); smugi.drawPolygon([ax, ay, bx, by, ci, di, ei, gi]); smugi.endFill();
       }
-      for (let i = Math.floor(n * 0.35); i < n; i++) {                 // ostra krawędź na zewnątrz łuku
+      for (let i = Math.floor(n * 0.3); i < n; i++) {                 // ostra krawędź na zewnątrz łuku
         const [ax, ay] = pkt(i / n, r2), [bx, by] = pkt((i + 1) / n, r2);
-        smugi.lineStyle(s.mocny ? 4 : 2.6, 0xffffff, 0.85 * s.alfa * Math.pow((i + 1) / n, 1.4)); smugi.moveTo(ax, ay); smugi.lineTo(bx, by);
-      }
-      if (s.alfa > 0.6) {                                              // ostrze na czele łuku
-        const [hx, hy] = pkt(1, r2 * 0.2), [tx2, ty2] = pkt(1, r2), dx = tx2 - hx, dy = ty2 - hy, d = Math.hypot(dx, dy) || 1;
-        const nx = -dy / d, ny = dx / d, w = (gra.bron.szerokosc * 0.9 + 1.4) * (s.mocny ? 1.15 : 1), ux = dx / d, uy = dy / d;
-        const [mx, my] = [hx + dx * 0.84, hy + dy * 0.84];
-        smugi.lineStyle(4, 0x2a211b, 0.95 * s.alfa); smugi.moveTo(hx - ux * 12, hy - uy * 12); smugi.lineTo(hx, hy);             // rękojeść
-        smugi.lineStyle(3.2, 0x3a3029, 0.95 * s.alfa); smugi.moveTo(hx + nx * w * 2.2, hy + ny * w * 2.2); smugi.lineTo(hx - nx * w * 2.2, hy - ny * w * 2.2);   // jelec
-        smugi.lineStyle(1.4, 0x15120f, 0.9 * s.alfa); smugi.beginFill(0x9aa4ae, 0.97 * s.alfa);
-        smugi.drawPolygon([hx + nx * w, hy + ny * w, mx + nx * w * 0.85, my + ny * w * 0.85, tx2, ty2, mx - nx * w * 0.85, my - ny * w * 0.85, hx - nx * w, hy - ny * w]);
-        smugi.endFill();
-        smugi.lineStyle(1.1, 0xf4f8ff, 0.9 * s.alfa); smugi.moveTo(hx + nx * w * 0.75, hy + ny * w * 0.75); smugi.lineTo(mx + nx * w * 0.7, my + ny * w * 0.7); smugi.lineTo(tx2, ty2);   // błysk na krawędzi
-        smugi.lineStyle(1, 0x5d6670, 0.8 * s.alfa); smugi.moveTo(hx, hy); smugi.lineTo(mx, my);                                     // zbrocze
+        smugi.lineStyle(s.mocny ? 3 : 2, 0xffffff, 0.75 * s.alfa * Math.pow((i + 1) / n, 1.4)); smugi.moveTo(ax, ay); smugi.lineTo(bx, by);
       }
     }
     // ładowany miecz żarzy się nad ciemnością
@@ -1104,8 +1096,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (b.stan === 'cios' && b.cios && (b.cios.faza === 'zamach' || b.cios.faza === 'laduje')) {
       const c = b.cios, pelny = c.naladowanie >= 1;
       const zas = gra.bron.zasieg * (pelny ? 1.15 : 1), luk = gra.bron.luk + (pelny ? 0.7 : 0);
-      const pts = [b.x, b.y];
+      const pts = [], rw = zas * 0.55;                                 // pas na końcu zasięgu, nie klin od stóp (25 XI)
       for (let i = 0; i <= 16; i++) { const a = c.kat - luk + 2 * luk * i / 16; pts.push(b.x + Math.cos(a) * zas, b.y + Math.sin(a) * zas * PERSP); }
+      for (let i = 16; i >= 0; i--) { const a = c.kat - luk + 2 * luk * i / 16; pts.push(b.x + Math.cos(a) * rw, b.y + Math.sin(a) * rw * PERSP); }
       znakiZiemia.lineStyle(2.5, pelny ? 0xffd890 : 0xe6ecf2, pelny ? 0.7 : 0.45); znakiZiemia.beginFill(pelny ? 0xffd890 : 0xe6ecf2, pelny ? 0.18 : 0.1);
       znakiZiemia.drawPolygon(pts); znakiZiemia.endFill();
       if (c.faza === 'laduje') {                                       // ładowanie: krąg pod stopami zapełnia się

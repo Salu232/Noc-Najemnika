@@ -100,6 +100,27 @@ for (let i = 0; i < DRZEWA.length; i++) {
 
 // Kępy trawy, mchu, ziemi i liści na ziemi (bez zderzeń): gęściej w lesie, rzadziej na polanie,
 // nie w chacie, na podwórku ani przy ognisku.
+// Droga do chaty (Patryk, 25 XI 13:12: „żeby jakaś droga prowadziła do tej chatki”): z lasu na południowym zachodzie,
+// między totemem z czaszką a totemami na południu, łukiem obok ogniska pod samą furtkę. Punkty to oś drogi, gęsto co ~12 jednostek.
+export const DROGA_SZER = 74;
+export const DROGA = (() => {
+  const furtka = { x: CHATA.x + 455 * CHATA.skala, y: CHATA.y + 860 * CHATA.skala };
+  const P = [{ x: 820, y: WYS + 60 }, { x: 980, y: 2080 }, { x: 1180, y: 1760 }, { x: 1330, y: 1480 }, { x: 1470, y: 1290 }, { x: furtka.x - 40, y: furtka.y + 40 }, { x: furtka.x, y: furtka.y - 10 }];
+  const wyn = [];
+  for (let i = 0; i < P.length - 1; i++) {                                   // Catmull-Rom przez punkty
+    const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+    const n = Math.max(2, Math.ceil(Math.hypot(p2.x - p1.x, p2.y - p1.y) / 12));
+    for (let k = 0; k < n; k++) {
+      const t = k / n, t2 = t * t, t3 = t2 * t;
+      const f = (a, b, c, d) => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+      wyn.push({ x: f(p0.x, p1.x, p2.x, p3.x), y: f(p0.y, p1.y, p2.y, p3.y) });
+    }
+  }
+  wyn.push(P[P.length - 1]);
+  return wyn;
+})();
+export function odDrogi(x, y) { let m = Infinity; for (const p of DROGA) m = Math.min(m, Math.hypot(p.x - x, p.y - y)); return m; }
+
 export const OZDOBY = [];
 (function rozsyp() {
   const POLANA = ['trawa_a', 'trawa_b', 'trawa_c', 'trawa_d', 'trawa_e', 'trawa_f', 'trawa_g', 'trawa_a', 'trawa_b', 'trawa_e', 'ziemia_b', 'mech_c', 'bloto'];
@@ -112,6 +133,7 @@ export const OZDOBY = [];
     if (naPolanie && los2() < 0.75) continue;                                            // polana rzadziej
     if (x > chata.x0 - 40 && x < chata.x1 + 30 && y > chata.y0 && y < chata.y1) continue;
     if (Math.hypot(x - OGNISKO.x, (y - OGNISKO.y) * 1.4) < 120) continue;
+    if (odDrogi(x, y) < DROGA_SZER * 0.9) continue;                                     // na drodze nic nie rośnie
     const lista = naPolanie ? POLANA : LASU, rys = lista[(los2() * lista.length) | 0];
     const odst = PLASKIE.test(rys) ? 110 : 60;
     if (OZDOBY.some(o => Math.hypot(o.x - x, o.y - y) < Math.max(odst, o.odst))) continue;

@@ -109,32 +109,35 @@ export const WROGOWIE = {
 // Patryk, 24 XI 18:06: „z początku fali przeciętne, ale z każdą nową falą jest ich więcej i są bardziej agresywne”.
 // zlosc: mnożnik szybkości i czasu odpoczynku po ataku (mniej odpoczynku to częstsze ataki).
 // Do 24 XI etapy miały 1, 3, 16 i 1 + 8 potworów, wszystkie tak samo szybkie.
+// 25 XI 13:12, Patryk: fale mocniejsze, potwory trudniejsze, od pierwszej fali więcej potworów.
+// Było: 2, 5, 12, kolos + 14 ghuli; złość tylko szybkość i odpoczynek. Teraz 5, 9, 16, dwa kolosy + 18 ghuli,
+// a złość dokłada też życie (mnożnik, zaokrąglony) i siłę ciosu.
 export const ETAPY = [
   {
     nazwa: 'Coś przy totemach',
     mysl: 'Totemy się budzą. Coś przy nich oddycha.',
-    zlosc: { szybkosc: 1, odpoczynek: 1 },
-    grupy: [{ typ: 'ghul', ile: 2, z: ['zachod'], co: 2.5 }],
+    zlosc: { szybkosc: 1.05, odpoczynek: 0.95, zycie: 1, obrazenia: 1 },
+    grupy: [{ typ: 'ghul', ile: 5, z: ['zachod', 'wschod'], co: 1.6 }],
   },
   {
     nazwa: 'Kilku',
     mysl: 'Więcej oczu. Trzymaj się ognia.',
-    zlosc: { szybkosc: 1.08, odpoczynek: 0.85 },
-    grupy: [{ typ: 'ghul', ile: 5, z: ['wschod', 'poludnie'], co: 1.2 }],
+    zlosc: { szybkosc: 1.12, odpoczynek: 0.8, zycie: 1.2, obrazenia: 1.15 },
+    grupy: [{ typ: 'ghul', ile: 9, z: ['wschod', 'poludnie', 'zachod'], co: 0.9 }],
   },
   {
     nazwa: 'Horda',
     mysl: 'Idą wszystkie naraz.',
-    zlosc: { szybkosc: 1.15, odpoczynek: 0.72 },
-    grupy: [{ typ: 'ghul', ile: 12, z: ['zachod', 'wschod', 'poludnie'], co: 0.3 }],
+    zlosc: { szybkosc: 1.2, odpoczynek: 0.66, zycie: 1.4, obrazenia: 1.3 },
+    grupy: [{ typ: 'ghul', ile: 16, z: ['zachod', 'wschod', 'poludnie'], co: 0.25 }],
   },
   {
     nazwa: 'Kolos',
     mysl: 'Ziemia drży. To coś dużego.',
-    zlosc: { szybkosc: 1.22, odpoczynek: 0.62 },
+    zlosc: { szybkosc: 1.28, odpoczynek: 0.55, zycie: 1.5, obrazenia: 1.45 },
     grupy: [
-      { typ: 'kolos', ile: 1, z: ['poludnie'], co: 0 },
-      { typ: 'ghul', ile: 14, z: ['zachod', 'wschod'], co: 0.6 },
+      { typ: 'kolos', ile: 2, z: ['poludnie', 'zachod'], co: 6 },
+      { typ: 'ghul', ile: 18, z: ['zachod', 'wschod'], co: 0.5 },
     ],
   },
 ];
