@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-26 | Boss ma 4 ataki w 2. fazie: pchnięcie pazurem, wbicie samą łapą (nowy film Veo 4 s), płonący miecz z przyklękiem (dawny film wbicia) i doskok. Na tym boss zamknięty (Patryk). | zrobione |
 | 2026-11-25 | Doskok bossa z filmu Veo (16:9, 4 s, pierwsza i ostatnia klatka z póz): pazur zapala się, skok, wbicie z wybuchem ognia. Zamiast 6 póz z przenikaniem; z kodu został tylko łuk lotu (45). | zrobione |
 | 25 XI 2026 | Patryk (23:19–23:21, cztery filmy Veo z pozy 1 i 5) | Wbicie pazura z filmu zamiast póz | zrobiony | Wybrany film 3 (rycerz-f2-wbicie-3): bokiem, płonący pazur, uderzenie z ognistymi pęknięciami. Odpadły: 1 (dym i odjazd kamery), 2 (pęknięcia przez cały kadr), 4 (unosi miecz, czarny dym). Rycerz w filmie mniejszy (226 zamiast 303 pikseli), więc SKALA_FILMU 1,34. Doskok dalej z póz z przenikaniem |
 | 25 XI 2026 | Patryk (22:52, „ataki specjalne za bardzo klatkowe”) | Płynniejsze wbicie i doskok | zrobiony | Poza przenika w następną (wygładzone przejście), ciało dostaje ruch z kodu: przysiad przed atakiem, łuk lotu w doskoku (do 70 w górę, cień zostaje na ziemi), ugięcie przy uderzeniu. Docelowo filmy z Veo z póz arkusza (pierwsza i ostatnia klatka) |
