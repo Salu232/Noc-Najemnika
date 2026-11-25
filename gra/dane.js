@@ -145,7 +145,7 @@ export const WROGOWIE = {
       ],
       2: [
         { nazwa: 'pazur', zasieg: 165, cel: 110, strefa: 62, zamach: 0.5, skok: 0.45, odpoczynek: 1.0, obrazenia: 0.9 },     // długie pchnięcie pazurem
-        { nazwa: 'wbicie', zasieg: 135, cel: 70, strefa: 125, zamach: 1.3, skok: 0.45, odpoczynek: 1.6, obrazenia: 1.5 },   // płonący pazur w ziemię: szeroki krąg (arkusz Gemini, 25 XI 22:40)
+        { nazwa: 'wbicie', zasieg: 135, cel: 70, strefa: 125, zamach: 1.5, skok: 0.45, odpoczynek: 1.6, obrazenia: 1.5 },   // płonący pazur w ziemię: szeroki krąg (arkusz Gemini, 25 XI 22:40)
         { nazwa: 'doskok', zasieg: 330, cel: 0, strefa: 85, zamach: 0.75, skok: 0.7, odpoczynek: 1.5, obrazenia: 1.4, leci: true, trafW: 0.85 },   // skok z daleka tam, gdzie stoi bohater; ląduje pazurem
       ],
     },

@@ -794,7 +794,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // Ataki z arkusza póz (wbicie, doskok) mają po 6 póz, więc szarpały (Patryk, 25 XI 22:52: „za bardzo klatkowe”):
     // poza przenika w następną, a ciało dostaje ruch z kodu: przysiad przed skokiem, łuk lotu, ugięcie przy uderzeniu.
     let nast = null, przenik = 0, wzlot = 0;
-    const pozy = typ.boss && e.at && (e.at.nazwa === 'wbicie' || e.at.nazwa === 'doskok') && (e.stan === 'zamach' || e.stan === 'skok' || e.stan === 'odpoczynek');
+    const pozy = typ.boss && e.at && e.at.nazwa === 'doskok' && (e.stan === 'zamach' || e.stan === 'skok' || e.stan === 'odpoczynek');
     if (pozy) {
       const n = e.stan + '_' + e.at.nazwa, l = fw.anim[n];
       const trwa = e.stan === 'zamach' ? czasy.zamach : e.stan === 'skok' ? czasy.skok : Math.max(0.3, e.odpoczynek * 0.85);

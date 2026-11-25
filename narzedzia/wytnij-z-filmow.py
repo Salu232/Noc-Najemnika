@@ -158,9 +158,10 @@ POSTACIE = {
             'odpoczynek_pazur':    ('boss/rycerz-f2-pazur-pchniecie', list(range(70, 110, 4))),
             # dwa mocne ataki 2. fazy z arkuszy póz Gemini (Patryk, 25 XI 22:40). Powtórzona poza to dłuższa klatka.
             # wbicie: unosi płonący pazur i wbija go w ziemię; doskok: kuca, skacze na bohatera, ląduje pazurem w ziemi.
-            'zamach_wbicie':       ('boss/arkusz-wbicie', [1, 2, 2, 3, 3, 3, 3, 3]),
-            'skok_wbicie':         ('boss/arkusz-wbicie', [4, 4, 5, 5]),
-            'odpoczynek_wbicie':   ('boss/arkusz-wbicie', [5, 5, 5, 6, 6, 6]),
+            # wbicie z filmu Veo z pozy 1 i 5 arkusza (Patryk, 25 XI 23:19, trzeci z trzech: bokiem, bez dymu i bez odjazdu kamery)
+            'zamach_wbicie':       ('boss/rycerz-f2-wbicie-3', [5, 13, 21, 29, 37, 45, 55, 65, 75, 85, 90, 95, 100, 105, 110, 114]),
+            'skok_wbicie':         ('boss/rycerz-f2-wbicie-3', [117, 120, 123, 126, 130, 135]),
+            'odpoczynek_wbicie':   ('boss/rycerz-f2-wbicie-3', [140, 147, 154, 161, 168, 175, 182, 189]),
             'zamach_doskok':       ('boss/arkusz-doskok', [1, 2, 2, 2, 2]),
             'skok_doskok':         ('boss/arkusz-doskok', [3, 3, 3, 3, 4]),
             'odpoczynek_doskok':   ('boss/arkusz-doskok', [4, 4, 5, 5, 6, 6]),
@@ -194,10 +195,10 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'boss/arkusz-wbicie': (337, 445), 'boss/arkusz-doskok': (337, 445), **{f'boss/rycerz-f2-{n}': (337, 325) for n in ('chod', 'pazur-pchniecie', 'pazur-i-ciecie-blyskawica', 'smierc-na-ziemi')}, 'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
+STOPY_FILMU = {'boss/rycerz-f2-wbicie-3': (332, 333), 'boss/arkusz-wbicie': (337, 445), 'boss/arkusz-doskok': (337, 445), **{f'boss/rycerz-f2-{n}': (337, 325) for n in ('chod', 'pazur-pchniecie', 'pazur-i-ciecie-blyskawica', 'smierc-na-ziemi')}, 'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
-SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}
+SKALA_FILMU = {'boss/rycerz-f2-wbicie-3': 1.34, 'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}
 
 
 def kluczuj(obraz, dol=0.80):
