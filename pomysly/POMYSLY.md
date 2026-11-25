@@ -8,6 +8,8 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 25 XI 2026 | Patryk (wybór z karty) | Wiedźma z bagien: nowy potwór walczący z daleka | zrobiony | obraz z Gemini i 4 filmy Veo (chód, atak, trafienie, śmierć; trzy ostatnie odwrócone, bo patrzyła w lewo). dane.js WROGOWIE.wiedzma: trzyma dystans 220–380, zbiera klątwę 1 s, rzuca fioletową kulę (blok i parowanie działają, unik przepuszcza, drzewa zatrzymują). Fale: 1 w nocy 2, po 2 w nocy 3 i 4. Bot dobry: rany 48 (było 35), świt 5/5 |
+| 25 XI 2026 | Patryk | Przewroty dwuręcznym w górę i w dół (Veo) | wstawione, do oceny | Patryk: „źle mu wyszło” (oba). Wstawione w skrócie (przysiad, koziołek, wstanie); nowe prompty z osią czasu podane 14:49 |
 | 25 XI 2026 | Patryk | Film Veo: dwuręczny chowa miecz na plecy | zrobiony | film-wielki-chowa: chowa na plecy (klatki 1–57), potem stoi z pustymi rękami (109+); 61–105 pominięte, bo Veo dorysował drugi miecz. Wyciąganie to ta sama animacja wstecz. W biegu z mieczem w pochwie dalej zwykły bieg (brak filmu biegu z mieczem na plecach) |
 | 25 XI 2026 | Patryk | Przewroty dwuręcznym w górę i w dół jak przy zwykłym mieczu | czeka na filmy | do tego czasu w każdą stronę ten sam rzut w bok; potrzebne kadry dwuręcznego przodem i tyłem (Gemini), potem dwa filmy Veo |
 | 25 XI 2026 | Patryk | Pełzacz z Gemini: „już mamy podobnego” (do ghula) | odrzucony | obraz zapisany w grafika/zrodla/pelzacz-gemini.jpg; Patryk wybiera innego potwora (wiedźma, wilki albo upiór) |

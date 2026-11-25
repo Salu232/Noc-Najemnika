@@ -15,11 +15,12 @@ const OB = 0x0b0a09;           // kolor obrysu
 const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
-const CIECIE_WYS = { ghul: 17, kolos: 30 };   // na jakiej wysokości miecz przecina ciało wroga
+const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17 };   // na jakiej wysokości miecz przecina ciało wroga
 // Potwory z filmów Przemka (narzedzia/wytnij-z-filmow.py): ghul ma 72 jednostki wzrostu, kolos 165.
 const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
+  wiedzma: { ciecie: 45, droga: 60, smierc: 1.6, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
 export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null } = {}) {
@@ -110,6 +111,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       ax: wzor.ox / wzor.w, ay: wzor.oy / wzor.h, ayDol: (wzor.oy * O.PX - cut) / (a.ch - cut),
     };
   }
+  atlasy.wiedzma = atlasy.ghul;                     // wiedźma nie ma rysunku kodem: bez obrazu z filmów wygląda jak ghul
   // bohater z filmów Przemka (Gemini): klatki animacji w grafika/bohater.webp, wycięte narzędziem narzedzia/wytnij-z-filmow.py
   const klatkiB = {};
   if (obrazBohatera) {
@@ -124,7 +126,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const baza = new P.BaseTexture(obrazBohateraWielki); baza.mipmap = P.MIPMAP_MODES.ON;
     for (const k in KW) klatkiB[k] = { ...KW[k], t: new P.Texture(baza, new P.Rectangle(KW[k].x, KW[k].y, KW[k].w, KW[k].h)) };
     Object.assign(ABW, AW);
-    if (AW.przewrot) { ABW.przewrot_przod = AW.przewrot; ABW.przewrot_tyl = AW.przewrot; }   // dwuręczny ma jeden unik (25 XI): w każdą stronę ten sam rzut, a nie przewrót zwykłym mieczem
+    if (AW.przewrot) { ABW.przewrot_przod = AW.przewrot_przod || AW.przewrot; ABW.przewrot_tyl = AW.przewrot_tyl || AW.przewrot; }   // dwuręczny ma jeden unik (25 XI): w każdą stronę ten sam rzut, a nie przewrót zwykłym mieczem
   }
   let A = AB;
   // ghul i kolos z filmów Przemka; bez obrazu zostają rysowane kodem (atlasy wyżej)
@@ -784,7 +786,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const oko = pulaOczu.wez(); oko.texture = typ.ciezki ? T.okoBursztyn : T.okoCzerwone;
       oko.position.set(e.x + (e.drzy || 0) + sx * fw.oko.x, e.y + fw.oko.y);
       const mocOka = e.stan === 'zamach' ? 1.7 + Math.sin(czas * 40) * 0.3 : 1;
-      oko.width = oko.height = (typ.ciezki ? 16 : 11) * mocOka; oko.alpha = sp.alpha * 0.8;
+      oko.width = oko.height = (typ.ciezki ? 16 : 11) * mocOka; oko.alpha = sp.alpha * 0.8; oko.tint = typ.pocisk ? 0xc890ff : 0xffffff;   // wiedźma ma fioletowe oczy
     }
     if (e.stan === 'ogluszony') {                                          // wiruje mu w głowie (i dostaje podwójne obrażenia)
       for (let i = 0; i < 3; i++) {
@@ -849,6 +851,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
       else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);
+      else if (z.typ === 'pocisk_zgasl') pierscienie.push({ x: z.x, y: z.y, r0: 8, r1: 46, t: 0, czas: 0.25, kolor: 0xb070ff });
       else if (z.typ === 'naladowany') pierscienie.push({ x: b.x, y: b.y, r0: 50, r1: 20, t: 0, czas: 0.22, kolor: 0xffd890, ziemia: true });
       else if (z.typ === 'zamach' && z.mocny) pierscienie.push({ x: b.x, y: b.y, r0: 30, r1: gra.bron.zasieg * 1.1, t: 0, czas: 0.3, kolor: 0xffe8c0, ziemia: true });
       // animacje ciała i uderzenia
@@ -1071,6 +1074,15 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
     // smuga cięcia i garda
     smugi.clear(); znaki.clear(); znakiZiemia.clear();
+    for (const p of gra.pociski || []) {                                 // kule klątwy wiedźmy: fioletowa poświata, jasne jądro, krótki ogon
+      const y = p.y - p.z, d = Math.hypot(p.vx, p.vy) || 1, ux = p.vx / d, uy = p.vy / d, puls = 1 + 0.15 * Math.sin(czas * 30 + p.t * 7);
+      smugi.lineStyle(0);
+      for (let i = 4; i >= 1; i--) { smugi.beginFill(0x9a50ff, 0.12 * (5 - i)); smugi.drawCircle(p.x - ux * i * 9, y - uy * i * 9 * PERSP, p.promien * (1 - i * 0.15)); smugi.endFill(); }
+      smugi.beginFill(0x7a30e0, 0.35); smugi.drawCircle(p.x, y, p.promien * 1.6 * puls); smugi.endFill();
+      smugi.beginFill(0xc890ff, 0.85); smugi.drawCircle(p.x, y, p.promien * 0.85 * puls); smugi.endFill();
+      smugi.beginFill(0xf4e8ff, 0.95); smugi.drawCircle(p.x, y, p.promien * 0.4); smugi.endFill();
+      znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0x000000, 0.25); znakiZiemia.drawEllipse(p.x, p.y, p.promien, p.promien * PERSP); znakiZiemia.endFill();
+    }
     for (const k of kregi) k.visible = false; kregiUzyte = 0; czasRys = czas; ruszBlyski(dt);
     if (pz && pz.smuga) {
       // Smuga miecza. Patryk, 25 XI: „jakby wychodził z niego to ostrze co leci zamach i dziwacznie to wygląda”.

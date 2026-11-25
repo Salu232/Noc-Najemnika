@@ -10,7 +10,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
   const gra = {
     bronKlucz: BRONIE[bron] ? bron : DOMYSLNA_BRON, bron: BRONIE[BRONIE[bron] ? bron : DOMYSLNA_BRON],
     czas: 0, zatrzymanie: 0, wstrzas: 0, mroczek: NOC.mroczek,
-    bohater: null, wrogowie: [], krew: [], iskry: [], slady: [], zdarzenia: [],
+    bohater: null, wrogowie: [], pociski: [], krew: [], iskry: [], slady: [], zdarzenia: [],
     etap: 0, faza: 'przerwa', fazaCzas: NOC.przerwa, walkaCzas: 0, kolejka: [],
     mysl: { tekst: '', czas: 0 },
     drzwi: { otwarte: false, o: 0 },   // drzwi chaty: czy otwarte i jak daleko obrócone (0 zamknięte, 1 otwarte)
@@ -84,6 +84,7 @@ export function aktualizuj(gra, dt, w) {
   aktualizujBohatera(gra, dt, w);
   aktualizujCele(gra, dt, w);
   aktualizujWrogow(gra, dt);
+  aktualizujPociski(gra, dt);
   aktualizujKrew(gra, dt);
   aktualizujEtapy(gra, dt);
 }
@@ -501,6 +502,13 @@ function aktualizujWrogow(gra, dt) {
       e.widac = Math.min(1, e.t / 1.2);
       ax = dx / d * szyb * 0.3; ay = dy / d * szyb * 0.3;
       if (e.t >= 1.2) { e.stan = 'idzie'; e.t = 0; }
+    } else if (e.stan === 'idzie' && typ.pocisk) {
+      // wiedźma: podchodzi na odległość rzutu, za blisko cofa się wolno, z dystansu zaczyna zbierać klątwę
+      if (bohaterZywy) {
+        if (d > typ.zasiegAtaku) { ax = dx / d * szyb; ay = dy / d * szyb; }
+        else if (d < typ.dystans) { ax = -dx / d * szyb * 0.6; ay = -dy / d * szyb * 0.6; }
+        if (d <= typ.zasiegAtaku && e.t > 0.4) { e.stan = 'zamach'; e.t = 0; e.kat = doBoh; }
+      }
     } else if (e.stan === 'idzie') {
       if (bohaterZywy) {
         ax = dx / d * szyb; ay = dy / d * szyb;
@@ -512,16 +520,22 @@ function aktualizujWrogow(gra, dt) {
     } else if (e.stan === 'zamach') {
       if (!typ.ciezki) { e.kat = doBoh; ax = -dx / d * 25; ay = -dy / d * 25; }
       e.drzy = (Math.random() - 0.5) * 2.4;
+      if (typ.pocisk) { ax = 0; ay = 0; e.drzy *= 0.4; }
       if (e.t >= typ.zamach) {
         e.stan = 'skok'; e.t = 0; e.drzy = 0; e.trafil = false;
-        if (!typ.ciezki) { e.vx = Math.cos(e.kat) * 400; e.vy = Math.sin(e.kat) * 400; }
+        if (typ.pocisk) {                                                   // rzuca kulę tam, gdzie bohater stoi teraz
+          const pc = typ.pocisk, sx = Math.cos(doBoh) >= 0 ? 1 : -1;
+          gra.pociski.push({ x: e.x + sx * 14, y: e.y, z: 95, vx: Math.cos(doBoh) * pc.szybkosc, vy: Math.sin(doBoh) * pc.szybkosc, t: 0, zycie: pc.zycie, promien: pc.promien, obrazenia: e.obrazenia });
+          gra.zdarzenia.push({ typ: 'rzut', x: e.x, y: e.y });
+        }
+        else if (!typ.ciezki) { e.vx = Math.cos(e.kat) * 400; e.vy = Math.sin(e.kat) * 400; }
         else { gra.wstrzas = Math.max(gra.wstrzas, 10); gra.zdarzenia.push({ typ: 'tapniecie' }); }
       }
     } else if (e.stan === 'skok') {
       if (!e.trafil && typ.ciezki && e.t >= typ.skok * 0.5) {
         e.trafil = true;
         if (e.cel && Math.hypot(b.x - e.cel.x, b.y - e.cel.y) < typ.strefa + b.promien) trafBohatera(gra, e);
-      } else if (!e.trafil && !typ.ciezki && e.t >= 0.03 && d < e.promien + b.promien + 22) {
+      } else if (!e.trafil && !typ.ciezki && !typ.pocisk && e.t >= 0.03 && d < e.promien + b.promien + 22) {
         e.trafil = true; trafBohatera(gra, e);          // ghul trafia, jeśli w czasie skoku dosięgnie bohatera
       }
       if (e.t >= typ.skok) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; }
@@ -555,6 +569,26 @@ function aktualizujWrogow(gra, dt) {
     e.anim += dt * Math.hypot(e.vx, e.vy) / 70;
   }
   gra.wrogowie = zywi.filter(e => e.stan !== 'martwy');
+}
+
+// Kule klątwy wiedźmy: lecą prosto, opadają do wysokości piersi, trafiają bohatera jak cios (blok i parowanie działają,
+// unik przepuszcza), giną na drzewach, chacie i po czasie.
+function aktualizujPociski(gra, dt) {
+  const b = gra.bohater;
+  for (const p of gra.pociski) {
+    p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += (45 - p.z) * Math.min(1, dt * 3);
+    if (p.t > p.zycie) { p.zgas = true; continue; }
+    const q = { x: p.x, y: p.y }; zderzenia(q, 2);
+    if (Math.hypot(q.x - p.x, q.y - p.y) > 0.5) { p.zgas = true; gra.zdarzenia.push({ typ: 'pocisk_zgasl', x: p.x, y: p.y - p.z }); continue; }
+    if (b.stan !== 'upadl' && Math.hypot(b.x - p.x, b.y - p.y) < b.promien + p.promien) {
+      if (b.nietykalny > 0) continue;                                      // unik: kula przelatuje
+      p.zgas = true;
+      const k = Math.atan2(p.vy, p.vx);
+      trafBohatera(gra, { x: b.x - Math.cos(k) * 30, y: b.y - Math.sin(k) * 30, typ: { ciezki: false }, obrazenia: p.obrazenia, vx: 0, vy: 0, stan: 'pocisk' });
+      gra.zdarzenia.push({ typ: 'pocisk_zgasl', x: p.x, y: p.y - p.z });
+    }
+  }
+  gra.pociski = gra.pociski.filter(p => !p.zgas);
 }
 
 function aktualizujKrew(gra, dt) {
@@ -606,7 +640,7 @@ function aktualizujEtapy(gra, dt) {
     gra.fazaCzas -= dt;
     if (gra.fazaCzas <= 0) {
       postawBohatera(gra);
-      gra.wrogowie = []; gra.kolejka = [];
+      gra.wrogowie = []; gra.kolejka = []; gra.pociski = [];
       gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa;
       powiedz(gra, 'Znowu ten ogień. Znowu ta noc.', NOC.przerwa);
     }

@@ -102,6 +102,24 @@ export const WROGOWIE = {
     ciezki: true,          // miecz w nim grzęźnie (chyba że to wielki miecz albo mocny cios)
     strefa: 78,            // promień uderzenia w ziemię
   },
+  // Wiedźma z bagien (Patryk, 25 XI 14:15, wybór z karty; obraz i filmy 14:45). Walczy z daleka: trzyma dystans,
+  // zbiera klątwę na kosturze (zamach) i rzuca w bohatera fioletową kulę. Kulę można zablokować albo przeskoczyć unikiem.
+  // Gdy bohater podejdzie, cofa się, ale wolno, więc warto do niej dobiec.
+  wiedzma: {
+    nazwa: 'wiedzma',
+    zycie: [3, 4],
+    szybkosc: [52, 62],
+    promien: 14,
+    skala: 1.3,
+    zasiegAtaku: 380,      // z tej odległości zaczyna rzucać
+    dystans: 220,          // bliżej tego cofa się (wolniej niż idzie)
+    zamach: 1.0,
+    skok: 0.3,             // wyrzut kuli
+    obrazenia: 13,
+    odpoczynek: 1.8,
+    ciezki: false,
+    pocisk: { szybkosc: 250, promien: 11, zycie: 2.4 },
+  },
 };
 
 // Etapy nocy: wrogów przybywa stopniowo (Patryk, 23 XI).
@@ -123,13 +141,13 @@ export const ETAPY = [
     nazwa: 'Kilku',
     mysl: 'Więcej oczu. Trzymaj się ognia.',
     zlosc: { szybkosc: 1.12, odpoczynek: 0.8, zycie: 1.2, obrazenia: 1.15 },
-    grupy: [{ typ: 'ghul', ile: 9, z: ['wschod', 'poludnie', 'zachod'], co: 0.9 }],
+    grupy: [{ typ: 'ghul', ile: 9, z: ['wschod', 'poludnie', 'zachod'], co: 0.9 }, { typ: 'wiedzma', ile: 1, z: ['poludnie'], co: 4 }],
   },
   {
     nazwa: 'Horda',
     mysl: 'Idą wszystkie naraz.',
     zlosc: { szybkosc: 1.2, odpoczynek: 0.66, zycie: 1.4, obrazenia: 1.3 },
-    grupy: [{ typ: 'ghul', ile: 16, z: ['zachod', 'wschod', 'poludnie'], co: 0.25 }],
+    grupy: [{ typ: 'ghul', ile: 16, z: ['zachod', 'wschod', 'poludnie'], co: 0.25 }, { typ: 'wiedzma', ile: 2, z: ['zachod', 'wschod'], co: 5 }],
   },
   {
     nazwa: 'Kolos',
@@ -138,6 +156,7 @@ export const ETAPY = [
     grupy: [
       { typ: 'kolos', ile: 2, z: ['poludnie', 'zachod'], co: 6 },
       { typ: 'ghul', ile: 18, z: ['zachod', 'wschod'], co: 0.5 },
+      { typ: 'wiedzma', ile: 2, z: ['wschod', 'poludnie'], co: 7 },
     ],
   },
 ];
