@@ -22,7 +22,7 @@ const FILM_WROGA = {
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -83,7 +83,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const k = szer / f.w; sp.scale.set(lustro ? -k : k, k); return sp;
   };
   const T = {
-    ziemia: tx(O.kafelZiemi()), plamy: tx(O.plamyZiemi()), droga: tx(O.obrazDrogi(obrazDrogi)),
+    ziemia: tx(O.kafelZiemi()), plamy: tx(O.plamyZiemi()), droga: tx(O.obrazDrogi(obrazDrogi, obrazKaflaDrogi)),
     drzewa: [0, 1, 2, 3].map(w => { const d = O.obrazDrzewa(w); return { t: tx(d.canvas), ax: d.ox / d.w, ay: d.oy / d.h }; }),
     chata: tx(plotnoChaty), podworko: tx(plotnoPodworka),
     cien: tx(O.cien()), kreski: tx(O.kreskowanie()), mgla: [0, 1, 2].map(w => tx(O.mgielka(w))),
@@ -163,7 +163,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const ziemia = obrazZiemi ? new P.TilingSprite(P.Texture.from(obrazZiemi), SZER, WYS) : new P.TilingSprite(T.ziemia, SZER, WYS);
   if (obrazZiemi) ziemia.tileScale.set(0.45);
   const plamy = new P.Sprite(T.plamy); plamy.scale.set(O.SKALA_PLAM);
-  const droga = new P.Sprite(T.droga); droga.scale.set(O.SKALA_DROGI);
+  const droga = new P.Sprite(T.droga); droga.scale.set(O.SKALA_DROGI); droga.position.set(O.RAMKA_DROGI.x, O.RAMKA_DROGI.y);
   const podworko = new P.Sprite(T.podworko); podworko.position.set(CHATA.x, CHATA.y); podworko.scale.set(CHATA.skala);
   const izbaSpod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, false])) : P.Texture.EMPTY);
   const izbaPrzod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, true])) : P.Texture.EMPTY);

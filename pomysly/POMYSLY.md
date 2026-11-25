@@ -8,6 +8,8 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 25 XI 2026 | Patryk | Kafel drogi z Gemini (droga_las_noc_1024_seamless) | zrobiony | grafika/droga-kafel.webp (źródło zrodla/droga-gemini.png, rozjaśnione 1.6×): kafel kładziony pasami wzdłuż drogi i obrócony w jej kierunku, więc koleiny idą za zakrętami; płótno drogi tylko wokół niej, w pełnej rozdzielczości. ?droga=laty pokazuje wersję z łatami Przemka, ?droga=farba wersję z v38 |
+| 25 XI 2026 | Patryk | Film Veo: chowa i wyciąga dwuręczny | odrzucony | Veo wziął z kadru dwa miecze (w ręce i przy pasie), macha mieczem i nigdy nie ma pustych rąk; nie da się z niego wyciąć chowania. Następna próba z kadr-dwureczny.png i jednym ruchem: tylko chowa na plecy, wyciąganie to ten sam film od tyłu |
 | 25 XI 2026 | Patryk | „Zmniejsz trochę ten pasek życia na telefonie, trochę za duży” | zrobiony | index.html: na dotyku i wąskim ekranie pasek ma 160–230 px (min z 28% szerokości i 46% wysokości ekranu), było 230–330 px; napis etapu w pionie wyżej |
 | 25 XI 2026 | Patryk | „Te drewniane płoty wywal, nie pasują” | zrobiony | płoty zdjęte z RZECZY w swiat.js (zostają w atlasie, nieużyte); zostały beczki, drewno i pochodnia |
 | 25 XI 2026 | Patryk | „Trzeba jakąś teksturę do tej drogi, bo wygląda źle” | zrobiony (próba) | grafika/droga.webp: łata suchej ziemi z kamykami z arkusza Przemka (narzedzia/kafel-drogi.py), kładziona wzdłuż drogi pod losowymi kątami i przycinana do jej kształtu; ?droga=farba pokazuje drogę z v38. Patryk dostał prompt na kafel z Gemini, jeśli ta nie wystarczy |

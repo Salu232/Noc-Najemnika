@@ -73,13 +73,18 @@ export function plamyZiemi() {
 
 // Droga do chaty w połowie rozdzielczości świata: wydeptana ziemia z miękkimi brzegami, dwie koleiny, kamyki
 // i kreski tuszem wzdłuż brzegów, jak w rysunkach z arkuszy (Patryk, 25 XI 13:12).
-export const SKALA_DROGI = 2;
+export const SKALA_DROGI = 1;   // 25 XI: płótno tylko wokół drogi (RAMKA_DROGI), więc stać nas na pełną rozdzielczość kafla
+export const RAMKA_DROGI = (() => {
+  const x0 = Math.max(0, Math.min(...DROGA.map(p => p.x)) - 120), y0 = Math.max(0, Math.min(...DROGA.map(p => p.y)) - 120);
+  const x1 = Math.min(SZER, Math.max(...DROGA.map(p => p.x)) + 120), y1 = Math.min(WYS, Math.max(...DROGA.map(p => p.y)) + 120);
+  return { x: x0, y: y0, w: Math.ceil(x1 - x0), h: Math.ceil(y1 - y0) };
+})();
 // lata: łata nawierzchni z rysunku ziemi Przemka (grafika/droga.webp, narzedzia/kafel-drogi.py). Kładziona wzdłuż drogi
 // pod losowymi kątami, żeby się nie powtarzała jak kafel, i przycinana miękko do kształtu drogi. Bez niej: sama farba.
-export function obrazDrogi(lata = null) {
-  const s = SKALA_DROGI, c = plotno(SZER / s, WYS / s), r = losowe(7);
+export function obrazDrogi(lata = null, kafel = null) {
+  const s = SKALA_DROGI, c = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s), r = losowe(7);
   let g = c.getContext('2d');
-  g.scale(1 / s, 1 / s); g.lineCap = 'round'; g.lineJoin = 'round';
+  g.scale(1 / s, 1 / s); g.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y);  g.lineCap = 'round'; g.lineJoin = 'round';
   const linia = (przes, szer, kolor) => {
     g.strokeStyle = kolor; g.lineWidth = szer; g.beginPath();
     DROGA.forEach((p, i) => {
@@ -90,12 +95,36 @@ export function obrazDrogi(lata = null) {
     });
     g.stroke();
   };
-  g.filter = 'blur(10px)'; linia(0, DROGA_SZER * 1.5, 'rgba(70,58,44,0.45)');      // miękki pas wydeptanej ziemi
-  if (lata) {
-    const glowne = g, w = plotno(SZER / s, WYS / s), maska = plotno(SZER / s, WYS / s);
-    g = maska.getContext('2d'); g.scale(1 / s, 1 / s); g.lineCap = 'round'; g.lineJoin = 'round';
-    g.filter = 'blur(6px)'; linia(0, DROGA_SZER * 1.12, '#fff'); g.filter = 'none';
-    const gw = w.getContext('2d'); gw.scale(1 / s, 1 / s);
+  g.filter = 'blur(20px)'; linia(0, DROGA_SZER * 1.5, 'rgba(70,58,44,0.45)');      // miękki pas wydeptanej ziemi
+  if (kafel) {
+    // Kafel drogi z Gemini (Patryk, 25 XI): koleiny biegną w nim pionowo, więc kładziemy go pasami wzdłuż drogi,
+    // obróconymi w jej kierunku, a wysokość kafla odmierzamy długością przebytej drogi. Potem miękko przycinamy do kształtu.
+    const glowne = g, w = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s), maska = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s);
+    g = maska.getContext('2d'); g.scale(1 / s, 1 / s); g.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y);  g.lineCap = 'round'; g.lineJoin = 'round';
+    g.filter = 'blur(10px)'; linia(0, DROGA_SZER * 1.08, '#fff'); g.filter = 'none';
+    const gw = w.getContext('2d'); gw.scale(1 / s, 1 / s); gw.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y); 
+    const szerK = DROGA_SZER * 1.35, k = szerK / kafel.width, wysK = kafel.height * k;
+    let v = 0;
+    for (let i = 0; i < DROGA.length - 1; i++) {
+      const p = DROGA[i], q = DROGA[i + 1], dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
+      if (d < 0.01) continue;
+      gw.save(); gw.translate(p.x, p.y); gw.rotate(Math.atan2(dy, dx) - Math.PI / 2);
+      let zrobione = 0;
+      while (zrobione < d + 1.5) {                                        // +1,5: zakładka, żeby na zakrętach nie było szpar
+        const sy = ((v + zrobione) % wysK + wysK) % wysK, ile = Math.min(d + 1.5 - zrobione, wysK - sy);
+        gw.drawImage(kafel, 0, sy / k, kafel.width, ile / k, -szerK / 2, zrobione, szerK, ile);
+        zrobione += ile;
+      }
+      gw.restore(); v += d;
+    }
+    gw.setTransform(1, 0, 0, 1, 0, 0); gw.globalCompositeOperation = 'destination-in'; gw.drawImage(maska, 0, 0);
+    g = glowne; g.filter = 'none';
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(w, 0, 0); g.restore();
+  } else if (lata) {
+    const glowne = g, w = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s), maska = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s);
+    g = maska.getContext('2d'); g.scale(1 / s, 1 / s); g.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y);  g.lineCap = 'round'; g.lineJoin = 'round';
+    g.filter = 'blur(12px)'; linia(0, DROGA_SZER * 1.12, '#fff'); g.filter = 'none';
+    const gw = w.getContext('2d'); gw.scale(1 / s, 1 / s); gw.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y); 
     const sk = 0.36;
     for (let i = 0; i < DROGA.length; i += 3) {
       const p = DROGA[i];
@@ -106,9 +135,9 @@ export function obrazDrogi(lata = null) {
     gw.setTransform(1, 0, 0, 1, 0, 0); gw.globalCompositeOperation = 'destination-in'; gw.drawImage(maska, 0, 0);
     g = glowne; g.filter = 'none';
     g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(w, 0, 0); g.restore();
-  } else { g.filter = 'blur(3px)'; linia(0, DROGA_SZER, 'rgba(104,86,64,0.62)'); }
+  } else { g.filter = 'blur(6px)'; linia(0, DROGA_SZER, 'rgba(104,86,64,0.62)'); }
   g.filter = 'none';
-  for (const strona of [-1, 1]) linia(strona * DROGA_SZER * 0.22, 7, lata ? 'rgba(30,24,20,0.28)' : 'rgba(38,30,24,0.42)');   // koleiny
+  if (!kafel) for (const strona of [-1, 1]) linia(strona * DROGA_SZER * 0.22, 7, lata ? 'rgba(30,24,20,0.28)' : 'rgba(38,30,24,0.42)');   // koleiny (kafel ma własne)
   // kreski tuszem przy brzegach i w poprzek, kamyki
   g.strokeStyle = 'rgba(18,14,12,0.55)'; g.lineWidth = 1.4;
   for (let i = 1; i < DROGA.length - 1; i++) {
@@ -117,7 +146,7 @@ export function obrazDrogi(lata = null) {
       const w = DROGA_SZER * (0.46 + r() * 0.12) * strona, x = p.x + nx * w, y = p.y + ny * w, dl = 6 + r() * 12;
       g.beginPath(); g.moveTo(x, y); g.lineTo(x + dx / d * dl + nx * strona * 3, y + dy / d * dl + ny * strona * 3); g.stroke();
     }
-    if (r() < 0.35) { const w = (r() - 0.5) * DROGA_SZER * 0.8, x = p.x + nx * w, y = p.y + ny * w, rr = 2 + r() * 4;
+    if (!kafel && r() < 0.35) { const w = (r() - 0.5) * DROGA_SZER * 0.8, x = p.x + nx * w, y = p.y + ny * w, rr = 2 + r() * 4;
       g.fillStyle = 'rgba(120,112,100,0.8)'; g.beginPath(); g.ellipse(x, y, rr * 1.3, rr, 0, 0, TAU); g.fill(); g.stroke(); }
   }
   return c;
