@@ -121,6 +121,34 @@ export const WROGOWIE = {
     ciezki: false,
     pocisk: { szybkosc: 250, promien: 11, zycie: 2.4 },
   },
+  // Boss ostatniej nocy (Patryk, 25 XI: dwie fazy, „widzimy, kim możemy się stać”). Rycerz z kartek dziennika: czekał przy ogniu.
+  // W połowie życia klątwa go bierze (przemiana, wtedy nietykalny), w drugiej fazie jest szybszy i bije pazurem.
+  // Każdy atak ostrzega czerwonym kręgiem na ziemi, jak kolos: cel to punkt przed nim, strefa to promień trafienia.
+  rycerz: {
+    nazwa: 'rycerz',
+    boss: true,
+    zycie: [18, 18],      // razy 1,5 z ostatniej nocy: 27, przemiana przy 13
+    szybkosc: [58, 64],
+    promien: 26,
+    skala: 2.0,
+    zasiegAtaku: 110,
+    zamach: 0.9, skok: 0.4,
+    obrazenia: 24,
+    odpoczynek: 1.1,
+    ciezki: true,
+    strefa: 80,
+    przemiana: { prog: 0.5, czas: 5.2, szybkosc: 1.35, odpoczynek: 0.75 },
+    ataki: {
+      1: [
+        { nazwa: 'ciecie', zasieg: 105, cel: 55, strefa: 85, zamach: 0.75, skok: 0.55, odpoczynek: 1.4, obrazenia: 1 },      // szerokie cięcie przed sobą
+        { nazwa: 'uderzenie', zasieg: 120, cel: 80, strefa: 70, zamach: 1.1, skok: 0.3, odpoczynek: 1.6, obrazenia: 1.35 },  // miecz w ziemię
+      ],
+      2: [
+        { nazwa: 'pazur', zasieg: 165, cel: 110, strefa: 62, zamach: 0.5, skok: 0.45, odpoczynek: 1.0, obrazenia: 0.9 },     // długie pchnięcie pazurem
+        { nazwa: 'blyskawica', zasieg: 130, cel: 60, strefa: 115, zamach: 1.2, skok: 0.6, odpoczynek: 1.5, obrazenia: 1.5 }, // obrót z błyskawicą
+      ],
+    },
+  },
 };
 
 // Etapy nocy: wrogów przybywa stopniowo (Patryk, 23 XI).
@@ -151,13 +179,16 @@ export const ETAPY = [
     grupy: [{ typ: 'ghul', ile: 16, z: ['zachod', 'wschod', 'poludnie'], co: 0.25 }, { typ: 'wiedzma', ile: 2, z: ['zachod', 'wschod'], co: 5 }],
   },
   {
-    nazwa: 'Kolos',
-    mysl: 'Ziemia drży. To coś dużego.',
+    // Ostatnia noc: rycerz z kartek czeka przy ogniu (25 XI wieczorem; wcześniej tu były dwa kolosy i 18 ghuli).
+    // boss: wychodzi z drogi na południe od ogniska, nie z totemu, więc rozbite totemy go nie zatrzymają.
+    nazwa: 'Rycerz',
+    mysl: 'Przy drodze ktoś stoi. Nie oddycha jak człowiek.',
     zlosc: { szybkosc: 1.28, odpoczynek: 0.55, zycie: 1.5, obrazenia: 1.45 },
     grupy: [
-      { typ: 'kolos', ile: 2, z: ['poludnie', 'zachod'], co: 6 },
-      { typ: 'ghul', ile: 18, z: ['zachod', 'wschod'], co: 0.5 },
-      { typ: 'wiedzma', ile: 2, z: ['wschod', 'poludnie'], co: 7 },
+      { typ: 'rycerz', ile: 1, z: ['boss'], co: 0, od: 4 },
+      { typ: 'kolos', ile: 1, z: ['poludnie'], co: 0, od: 30 },
+      { typ: 'ghul', ile: 10, z: ['zachod', 'wschod'], co: 1.4 },
+      { typ: 'wiedzma', ile: 1, z: ['wschod'], co: 0, od: 18 },
     ],
   },
 ];

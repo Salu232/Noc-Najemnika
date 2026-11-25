@@ -52,6 +52,8 @@ export function zagraj(z) {
     case 'podniesione': ton(t, 0.12, 'sine', 880, 1200, 0.12); break;
     case 'drewno': szum(t, 0.12, 'bandpass', 600, 300, 0.25, 2); break;
     case 'dorzucone': szum(t, 0.5, 'bandpass', 900, 300, 0.35, 1); ton(t, 0.2, 'sine', 120, 70, 0.3); break;
+    case 'przemiana': ton(t, 1.6, 'sawtooth', 55, 30, 0.35); szum(t, 1.4, 'lowpass', 900, 60, 0.6); ton(t + 0.2, 1.2, 'sine', 140, 40, 0.5); break;   // klątwa bierze rycerza
+    case 'boss': ton(t, 1.2, 'sine', 62, 48, 0.6); ton(t, 1.2, 'triangle', 93, 72, 0.15); break;
     case 'tapniecie': ton(t, 0.55, 'sine', 70, 28, 0.9); szum(t, 0.35, 'lowpass', 500, 80, 0.5); break;
     case 'drzwi':                                                          // skrzypnięcie zawiasów, przy zamykaniu głuche stuknięcie
       ton(t, 0.35, 'sawtooth', z.otwarte ? 210 : 260, z.otwarte ? 320 : 180, 0.05); szum(t, 0.3, 'bandpass', 900, 1400, 0.08, 6);

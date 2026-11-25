@@ -7,6 +7,7 @@ export function przygotujHud() {
   const el = {
     zycie: $('zycie'), smuga: $('smuga'), sila: $('sila'), etap: $('etap'), mysl: $('mysl'),
     krew: $('krew-podpowiedz'), info: $('info'), pasekZycia: $('pasek-zycia'), portret: $('rama-portret'), klatwa: $('klatwa'), przyciskKlatwy: $('przycisk-klatwa'), akcja: $('akcja'), wnetrze: $('wnetrze'),
+    boss: $('boss'), bossZycie: $('boss-zycie'), bossNazwa: $('boss-nazwa'),
     mikstury: $('zapas-mikstur'), drewno: $('zapas-drewna'), ileMikstur: $('ile-mikstur'), przyciskMikstury: $('przycisk-mikstura'),
   };
   const ostatnie = {};
@@ -27,6 +28,14 @@ export function przygotujHud() {
     ustaw('klatwa', (b.klatwa * 100).toFixed(0), v => { el.klatwa.style.width = v + '%'; });
     ustaw('klatwaGotowa', b.klatwa >= 1, v => { el.klatwa.classList.toggle('gotowa', v); el.przyciskKlatwy.classList.toggle('gotowa', v); });
     ustaw('etap', etapNazwa(gra), v => { el.etap.textContent = v; });
+    // pasek bossa u dołu ekranu: widać go, póki rycerz żyje
+    const boss = gra.wrogowie.find(e => e.typ.boss);
+    ustaw('boss', !!boss, v => { if (el.boss) el.boss.hidden = !v; });
+    if (boss && el.boss) {
+      ustaw('bossZycie', (Math.max(0, boss.zycie) / boss.zycieMax * 100).toFixed(1), v => { el.bossZycie.style.width = v + '%'; });
+      ustaw('bossNazwa', boss.faza === 2 ? 'To, co zostało z rycerza' : 'Rycerz, który czekał przy ogniu', v => { el.bossNazwa.textContent = v; });
+      ustaw('bossFaza', boss.faza, v => el.boss.classList.toggle('druga', v === 2));
+    }
     const pokazMysl = gra.mysl.czas > 0 ? gra.mysl.tekst : '';
     ustaw('mysl', pokazMysl, v => { el.mysl.textContent = v; el.mysl.classList.toggle('widac', !!v); });
     ustaw('krew', b.smugaCzas > 0 && b.smuga > 0 && b.stan !== 'upadl', v => el.krew.classList.toggle('widac', v));

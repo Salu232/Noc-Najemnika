@@ -135,6 +135,34 @@ POSTACIE = {
             'trup':       ('kolos-smierc', [85]),
         },
     },
+    # Boss ostatniej nocy: rycerz, który był tu przed nami (kartki dziennika), a w połowie walki klątwa robi z niego potwora.
+    # Filmy Patryka z Veo, 25 XI wieczorem (grafika/zrodla/boss/rycerz-*.mp4). Faza 1: cięcie poziome i uderzenie w ziemię,
+    # faza 2 (po przemianie): pchnięcie pazurem i cięcie z czerwoną błyskawicą. Ataki mają nazwy z przyrostkiem _<atak>.
+    'rycerz': {
+        'obraz': 'grafika/rycerz.webp',
+        'stopy': (318, 324), 'wys_film': 293, 'wys_swiat': 150, 'skala_obrazu': 0.5,
+        'sledz': ('chod', 'chod2'),
+        'animacje': {
+            'chod':                ('boss/rycerz-chod-a', list(range(37, 182, 4))),          # pierwsze 1,5 s obraca się w miejscu
+            'zamach_ciecie':       ('boss/rycerz-ciecie-poziome', list(range(46, 71, 3))),   # unosi miecz za plecy
+            'skok_ciecie':         ('boss/rycerz-ciecie-poziome', [73, 76, 79, 82, 94, 103, 106, 109, 112, 115]),   # cięcie w poprzek i z powrotem
+            'odpoczynek_ciecie':   ('boss/rycerz-ciecie-poziome', list(range(118, 158, 4))),
+            'zamach_uderzenie':    ('boss/rycerz-uderzenie-w-ziemie', list(range(19, 68, 4))),   # miecz nad głową
+            'skok_uderzenie':      ('boss/rycerz-uderzenie-w-ziemie', [70, 73, 76, 79, 82]),
+            'odpoczynek_uderzenie': ('boss/rycerz-uderzenie-w-ziemie', list(range(88, 134, 4))),
+            'trafienie':           ('boss/rycerz-zachwianie', list(range(13, 74, 4))),
+            'przemiana':           ('boss/rycerz-przemiana-b', list(range(25, 188, 4))),     # kuli się, pęka, rośnie mu pazur i kolce
+            'chod2':               ('boss/rycerz-f2-chod', list(range(25, 146, 4))),
+            'zamach_pazur':        ('boss/rycerz-f2-pazur-pchniecie', [16, 19, 22, 25, 28, 31]),   # 34–43: dziwne machnięcie mieczem, pomijamy
+            'skok_pazur':          ('boss/rycerz-f2-pazur-pchniecie', [46, 49, 52, 55, 58, 64]),
+            'odpoczynek_pazur':    ('boss/rycerz-f2-pazur-pchniecie', list(range(70, 110, 4))),
+            'zamach_blyskawica':   ('boss/rycerz-f2-pazur-i-ciecie-blyskawica', [40, 46, 52, 58, 64, 70, 73, 76, 79, 82, 85, 88]),
+            'skok_blyskawica':     ('boss/rycerz-f2-pazur-i-ciecie-blyskawica', [91, 94, 97, 100, 103, 106, 109]),
+            'odpoczynek_blyskawica': ('boss/rycerz-f2-pazur-i-ciecie-blyskawica', list(range(112, 161, 4))),
+            'smierc':              ('boss/rycerz-f2-smierc-na-ziemi', list(range(25, 146, 4))),   # klątwa pali go od środka, pada
+            'trup':                ('boss/rycerz-f2-smierc-na-ziemi', [181]),
+        },
+    },
     # Wiedźma z bagien (Patryk: obraz z Gemini i cztery filmy z Veo, 25 XI 14:45). W filmach ataku, trafienia i śmierci
     # patrzy w prawo jak w chodzie (Claude najpierw błędnie je odwrócił). Z ataku bierzemy unoszenie kostura, kulę i wyrzut ręki;
     # fioletowy promień z filmu (klatki 85–117) pomijamy, pocisk rysuje gra. Błyski trafienia (klatki 25–37) też.
@@ -161,7 +189,7 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
+STOPY_FILMU = {**{f'boss/rycerz-f2-{n}': (337, 325) for n in ('chod', 'pazur-pchniecie', 'pazur-i-ciecie-blyskawica', 'smierc-na-ziemi')}, 'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
 SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}
@@ -200,9 +228,14 @@ def kluczuj(obraz, dol=0.80):
 
 def klatki_filmu(film, numery, katalog):
     wybor = '+'.join(f'eq(n\\,{k - 1})' for k in numery)
-    wyj = os.path.join(katalog, film + '-%03d.png')
+    plik = film.replace('/', '_')                    # filmy bossa leżą w podkatalogu boss/
+    wyj = os.path.join(katalog, plik + '-%03d.png')
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', f'{ZRODLA}/{film}.mp4', '-vf', f"select='{wybor}',scale=640:360:flags=lanczos" + (',hflip' if film in ODWROC else ''), '-vsync', '0', wyj], check=True)
-    return [Image.open(os.path.join(katalog, f'{film}-{i + 1:03d}.png')).convert('RGB') for i in range(len(numery))]
+    obrazy = [Image.open(os.path.join(katalog, f'{plik}-{i + 1:03d}.png')).convert('RGB') for i in range(len(numery))]
+    if film.startswith('boss/'):                     # filmy bossa mają ciemną ramkę na brzegach kadru: zamalowujemy ją bielą
+        for o in obrazy:
+            a = np.asarray(o).copy(); a[:6] = a[-12:] = 255; a[:, :6] = a[:, -6:] = 255; o.paste(Image.fromarray(a))
+    return obrazy
 
 
 def zdejmij_ziemie(rgba, zrodlo, od=235):

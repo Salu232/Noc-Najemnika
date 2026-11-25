@@ -15,12 +15,13 @@ const OB = 0x0b0a09;           // kolor obrysu
 const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
-const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17 };   // na jakiej wysokości miecz przecina ciało wroga
+const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32 };   // na jakiej wysokości miecz przecina ciało wroga
 // Potwory z filmów Przemka (narzedzia/wytnij-z-filmow.py): ghul ma 72 jednostki wzrostu, kolos 165.
 const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
-  wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
+  wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },
+  rycerz: { ciecie: 75, droga: 70, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem)   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
 export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null } = {}) {
@@ -770,17 +771,21 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // trafienie (rozpoznane po błysku) przerywa chód krótkim wstrząsem, ogłuszenie pokazuje cały film trafienia.
   function rysujWrogaZFilmu(e, fw, b, gra) {
     const typ = e.typ;
-    const sx = Math.cos(e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'odpoczynek' ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;
+    const sx = Math.cos(e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'przemiana' || (e.stan === 'odpoczynek' && !typ.boss) ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;
     if (e.flash > (e._fl || 0) + 0.001) e._trafOd = czas;                 // nowy cios: błysk urósł
     e._fl = e.flash;
     const odTraf = czas - (e._trafOd === undefined ? -9 : e._trafOd);
     let k, oczy = false;
-    if (e.stan === 'zamach') { k = klatkaW(fw, 'zamach', e.t / typ.zamach); oczy = !typ.ciezki; }   // kolos unosi pięść nad głowę i zasłania oczy; ostrzega go krąg na ziemi
-    else if (e.stan === 'skok') k = klatkaW(fw, 'skok', e.t / typ.skok);
-    else if (e.stan === 'ogluszony') k = klatkaW(fw, 'trafienie', e.t / 1.2);
-    else if (odTraf < fw.trafienie) k = klatkaW(fw, 'trafienie', 0.4 * odTraf / fw.trafienie);
-    else if (e.stan === 'odpoczynek' && e.t < 0.6) k = klatkaW(fw, 'odpoczynek', e.t / 0.6);
-    else { k = klatkaPetliW(fw, 'chod', e.anim * 70 / fw.droga); oczy = true; }
+    const at = e.at ? '_' + e.at.nazwa : '', czasy = e.at || typ;            // boss: każdy atak ma własne klatki (zamach_ciecie, skok_pazur…)
+    const trafA = typ.boss && e.faza === 2 ? null : 'trafienie';             // po przemianie nie ma filmu trafienia: zostaje błysk
+    if (e.stan === 'przemiana') k = klatkaW(fw, 'przemiana', e.t / typ.przemiana.czas);
+    else if (e.stan === 'zamach') { k = klatkaW(fw, 'zamach' + at, e.t / czasy.zamach); oczy = !typ.ciezki; }   // kolos unosi pięść nad głowę i zasłania oczy; ostrzega go krąg na ziemi
+    else if (e.stan === 'skok') k = klatkaW(fw, 'skok' + at, e.t / czasy.skok);
+    else if (e.stan === 'ogluszony' && trafA) k = klatkaW(fw, trafA, e.t / 1.2);
+    else if (odTraf < fw.trafienie && trafA && !(typ.boss && e.stan === 'odpoczynek')) k = klatkaW(fw, trafA, 0.4 * odTraf / fw.trafienie);
+    else if (e.stan === 'odpoczynek' && typ.boss && e.at) k = klatkaW(fw, 'odpoczynek' + at, e.t / Math.max(0.3, e.odpoczynek * 0.85));
+    else if (e.stan === 'odpoczynek' && e.t < 0.6 && fw.anim.odpoczynek) k = klatkaW(fw, 'odpoczynek', e.t / 0.6);
+    else { k = klatkaPetliW(fw, typ.boss && e.faza === 2 ? 'chod2' : 'chod', e.anim * 70 / fw.droga); oczy = true; }
     const zn = sx === fw.patrzy ? 1 : -1, odB = e.x >= b.x ? 1 : -1;
     let rot = 0, skx = 1, sky = 1;
     if (e.flash > 0) { const f = e.flash / 0.12; rot += odB * (typ.ciezki ? 0.05 : 0.12) * f; sky *= 1 - 0.08 * f; skx *= 1 + 0.06 * f; }
@@ -809,14 +814,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // kolos zapowiada uderzenie kręgiem na ziemi, a gdy wali, ziemia faluje
   function zapowiedzKolosa(e, gra) {
     if (e.typ.ciezki && e.stan === 'zamach' && e.cel) {
-      const q = ogr(e.t / e.typ.zamach, 0, 1);
-      { const zK = krag(e.cel.x, e.cel.y, e.typ.strefa, q); znakiZiemia.lineStyle(zK ? 0 : 3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
-        znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa, e.typ.strefa * PERSP); znakiZiemia.endFill(); }
-      znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0xff6a3a, 0.3); znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa * q, e.typ.strefa * PERSP * q); znakiZiemia.endFill();
+      const q = ogr(e.t / (e.at || e.typ).zamach, 0, 1);
+      { const zK = krag(e.cel.x, e.cel.y, (e.at || e.typ).strefa, q); znakiZiemia.lineStyle(zK ? 0 : 3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
+        znakiZiemia.drawEllipse(e.cel.x, e.cel.y, (e.at || e.typ).strefa, (e.at || e.typ).strefa * PERSP); znakiZiemia.endFill(); }
+      znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0xff6a3a, 0.3); znakiZiemia.drawEllipse(e.cel.x, e.cel.y, (e.at || e.typ).strefa * q, (e.at || e.typ).strefa * PERSP * q); znakiZiemia.endFill();
     }
     if (e.typ.ciezki && e.stan === 'skok' && e.cel && !e._uderzyl) {
       e._uderzyl = true;
-      pierscienie.push({ x: e.cel.x, y: e.cel.y, r0: 20, r1: e.typ.strefa * 1.4, t: 0, czas: 0.4, kolor: 0xd8c8b0, ziemia: true });
+      pierscienie.push({ x: e.cel.x, y: e.cel.y, r0: 20, r1: (e.at || e.typ).strefa * 1.4, t: 0, czas: 0.4, kolor: 0xd8c8b0, ziemia: true });
       kurz(e.cel.x, e.cel.y, 0, 6, 1.4); kurz(e.cel.x, e.cel.y, Math.PI, 6, 1.4);
       for (let i = 0; i < 8; i++) gra.slady.push({ typ: 'kropla', x: e.cel.x + losuj(-40, 40), y: e.cel.y + losuj(-20, 20), r: 0.1 });
     }
@@ -869,6 +874,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
       else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);
+      else if (z.typ === 'przemiana') { pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 260, t: 0, czas: 0.8, kolor: 0xff6a2a, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 80, r0: 10, r1: 140, t: 0, czas: 0.5, kolor: 0xffb070 }); }
       else if (z.typ === 'pocisk_zgasl') pierscienie.push({ x: z.x, y: z.y, r0: 8, r1: 46, t: 0, czas: 0.25, kolor: 0xb070ff });
       else if (z.typ === 'naladowany') pierscienie.push({ x: b.x, y: b.y, r0: 50, r1: 20, t: 0, czas: 0.22, kolor: 0xffd890, ziemia: true });
       else if (z.typ === 'zamach' && z.mocny) pierscienie.push({ x: b.x, y: b.y, r0: 30, r1: gra.bron.zasieg * 1.1, t: 0, czas: 0.3, kolor: 0xffe8c0, ziemia: true });

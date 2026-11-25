@@ -369,7 +369,7 @@ function tnij(gra, dt) {
     nowe++; c.trafienia++;
     krewZaKrew(b);
     b.klatwa = Math.min(1, b.klatwa + KLATWA.zaTrafienie * gra.mod.klatwa);
-    if (wrog.typ.ciezki && wrog.zycie > 0 && !bron.przecinaCiezkich && !c.mocny) {
+    if (wrog.typ.ciezki && !wrog.typ.boss && wrog.zycie > 0 && !bron.przecinaCiezkich && !c.mocny) {   // w bossie miecz nie grzęźnie: bot „słaby” utykał 136 razy na noc
       c.utknal = true;
       gra.zatrzymanie = Math.max(gra.zatrzymanie, BOHATER.miecz.zatrzymanieGrzeznie);
       iskry(gra, wrog.x - Math.cos(katOd) * wrog.promien, wrog.y - 30 - Math.sin(katOd) * wrog.promien, 10);
@@ -424,7 +424,7 @@ function trafBohatera(gra, e) {
   if (b.spi) return;
   if (b.nietykalny > 0) { gra.zdarzenia.push({ typ: 'unikniety' }); return; }
   const katDoWroga = Math.atan2(e.y - b.y, e.x - b.x), odWroga = katDoWroga + Math.PI;
-  const ciezki = !!e.typ.ciezki;
+  const ciezki = !!e.typ.ciezki, ob = e.obrazenia * (e.at ? e.at.obrazenia : 1);   // boss: każdy atak bije inaczej
   if (b.blok && Math.abs(rozn(katDoWroga, b.kat)) < BOHATER.blok.kat) {
     if (!ciezki && gra.czas - b.blokOd < BOHATER.blok.oknoParowania) {
       // parowanie: wróg odsłonięty, następny cios zadaje podwójne obrażenia
@@ -444,11 +444,11 @@ function trafBohatera(gra, e) {
     b.odrzutX -= Math.cos(katDoWroga) * BOHATER.blok.cofniecie * (ciezki ? 2 : 1); b.odrzutY -= Math.sin(katDoWroga) * BOHATER.blok.cofniecie * (ciezki ? 2 : 1);   // cios w ostrze cofa go o pół kroku
     if (b.sila <= 0) {               // gardę przebito
       b.stan = 'zachwiany'; b.t = 0; b.trwanie = 0.55; b.blok = false;
-      zranBohatera(gra, e.obrazenia * 0.5, odWroga, false);
-    } else if (ciezki) zranBohatera(gra, e.obrazenia * BOHATER.blok.ranaCiezka, odWroga, false);
+      zranBohatera(gra, ob * 0.5, odWroga, false);
+    } else if (ciezki) zranBohatera(gra, ob * BOHATER.blok.ranaCiezka, odWroga, false);
     return;
   }
-  zranBohatera(gra, e.obrazenia, odWroga, ciezki);
+  zranBohatera(gra, ob, odWroga, ciezki);
 }
 
 function upadek(gra) {
@@ -468,12 +468,24 @@ function nowyWrog(typNazwa, punkt, zlosc = { szybkosc: 1, odpoczynek: 1 }) {
     typ, x: punkt.x, y: punkt.y, vx: 0, vy: 0, promien: typ.promien, odpoczynek: typ.odpoczynek * zlosc.odpoczynek,
     zycie: Math.round(losuj(typ.zycie[0], typ.zycie[1]) * (zlosc.zycie || 1)), obrazenia: typ.obrazenia * (zlosc.obrazenia || 1), szybkosc: losuj(typ.szybkosc[0], typ.szybkosc[1]) * zlosc.szybkosc,
     stan: 'wynurza', t: 0, kat: 0, anim: Math.random() * 10, flash: 0, widac: 0, drzy: 0, cel: null, trafil: false,
+    faza: 1, at: null, mOdp: zlosc.odpoczynek, zycieMax: Math.round(losuj(typ.zycie[0], typ.zycie[0]) * (zlosc.zycie || 1)),
   };
 }
 
 // przecina: cios, który zabija, rozcina ciało na dwie części (mocny cios albo wielki miecz)
 function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy = false) {
+  if (e.stan === 'przemiana' || e.stan === 'martwy') return;                 // w czasie przemiany klątwa go chroni
   e.zycie -= ile; e.flash = 0.12;
+  const pm = e.typ.przemiana;
+  if (pm && e.faza === 1 && e.zycie <= e.zycieMax * pm.prog) {             // boss: klątwa go bierze, druga faza
+    e.zycie = Math.max(e.zycie, Math.ceil(e.zycieMax * pm.prog)); e.faza = 2;
+    e.stan = 'przemiana'; e.t = 0; e.at = null; e.cel = null; e.vx = e.vy = 0;
+    e.szybkosc *= pm.szybkosc; e.mOdp *= pm.odpoczynek;
+    gra.wstrzas = Math.max(gra.wstrzas, 14); gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.15);
+    powiedz(gra, 'Klątwa go bierze. Tak będę wyglądał, jeśli jej nie zatrzymam.', 5);
+    gra.zdarzenia.push({ typ: 'przemiana', x: e.x, y: e.y });
+    return;
+  }
   const sila = odrzut / (e.typ.ciezki ? 6 : 1);
   e.vx += Math.cos(kat) * sila; e.vy += Math.sin(kat) * sila;
   // lekki miecz nie przerywa zamachu ghula: przerwie go cięższy miecz, mocny cios, parowanie albo śmierć
@@ -527,7 +539,14 @@ function aktualizujWrogow(gra, dt) {
     } else if (e.stan === 'idzie') {
       if (bohaterZywy) {
         ax = dx / d * szyb; ay = dy / d * szyb;
-        if (d < typ.zasiegAtaku + b.promien) {
+        if (typ.ataki) {                                                      // boss: wybiera jeden z dwóch ataków swojej fazy
+          if (!e.nast) e.nast = typ.ataki[e.faza][(Math.random() * typ.ataki[e.faza].length) | 0];
+          if (d < e.nast.zasieg + b.promien) {
+            e.at = e.nast; e.nast = null; e.stan = 'zamach'; e.t = 0; e.kat = doBoh;
+            e.cel = { x: e.x + Math.cos(doBoh) * e.at.cel, y: e.y + Math.sin(doBoh) * e.at.cel };
+            e.odpoczynek = e.at.odpoczynek * e.mOdp;
+          }
+        } else if (d < typ.zasiegAtaku + b.promien) {
           e.stan = 'zamach'; e.t = 0; e.kat = doBoh;
           if (typ.ciezki) e.cel = { x: e.x + Math.cos(doBoh) * 62, y: e.y + Math.sin(doBoh) * 62 };
         }
@@ -536,7 +555,7 @@ function aktualizujWrogow(gra, dt) {
       if (!typ.ciezki) { e.kat = doBoh; ax = -dx / d * 25; ay = -dy / d * 25; }
       e.drzy = (Math.random() - 0.5) * 2.4;
       if (typ.pocisk) { ax = 0; ay = 0; e.drzy *= 0.4; }
-      if (e.t >= typ.zamach) {
+      if (e.t >= (e.at || typ).zamach) {
         e.stan = 'skok'; e.t = 0; e.drzy = 0; e.trafil = false;
         if (typ.pocisk) {                                                   // rzuca kulę tam, gdzie bohater stoi teraz
           const pc = typ.pocisk, sx = Math.cos(doBoh) >= 0 ? 1 : -1;
@@ -547,16 +566,19 @@ function aktualizujWrogow(gra, dt) {
         else { gra.wstrzas = Math.max(gra.wstrzas, 10); gra.zdarzenia.push({ typ: 'tapniecie' }); }
       }
     } else if (e.stan === 'skok') {
-      if (!e.trafil && typ.ciezki && e.t >= typ.skok * 0.5) {
+      if (!e.trafil && typ.ciezki && e.t >= (e.at || typ).skok * 0.5) {
         e.trafil = true;
-        if (e.cel && Math.hypot(b.x - e.cel.x, b.y - e.cel.y) < typ.strefa + b.promien) trafBohatera(gra, e);
+        if (e.cel && Math.hypot(b.x - e.cel.x, b.y - e.cel.y) < (e.at || typ).strefa + b.promien) trafBohatera(gra, e);
       } else if (!e.trafil && !typ.ciezki && !typ.pocisk && e.t >= 0.03 && d < e.promien + b.promien + 22) {
         e.trafil = true; trafBohatera(gra, e);          // ghul trafia, jeśli w czasie skoku dosięgnie bohatera
       }
-      if (e.t >= typ.skok) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; }
+      if (e.t >= (e.at || typ).skok) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; }
     } else if (e.stan === 'odpoczynek') {
       ax = dx / d * szyb * 0.35; ay = dy / d * szyb * 0.35;
-      if (e.t >= e.odpoczynek) { e.stan = 'idzie'; e.t = 0; }
+      if (e.t >= e.odpoczynek) { e.stan = 'idzie'; e.t = 0; e.at = null; }
+    } else if (e.stan === 'przemiana') {
+      e.drzy = (Math.random() - 0.5) * 3 * (1 - e.t / typ.przemiana.czas);
+      if (e.t >= typ.przemiana.czas) { e.stan = 'idzie'; e.t = 0; e.drzy = 0; }
     } else if (e.stan === 'ogluszony') {
       e.drzy = Math.sin(gra.czas * 40) * 1.5;
       if (e.t >= 1.2) { e.stan = 'idzie'; e.t = 0; e.drzy = 0; }
@@ -631,8 +653,8 @@ function aktualizujEtapy(gra, dt) {
       if (kt && !gra.kartka) { const p = { x: OGNISKO.x + kt.gdzie.dx, y: OGNISKO.y + kt.gdzie.dy }; zderzenia(p, 22); gra.kartka = { nr: gra.etap, x: p.x, y: p.y }; }
       for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) {
         const z = g.z[i % g.z.length];
-        if (stronaCicha(gra, z)) continue;                                              // rozbite totemy: z tej strony nikt nie przyjdzie
-        gra.kolejka.push({ typ: g.typ, z, t: i * g.co });
+        if (z !== 'boss' && stronaCicha(gra, z)) continue;                              // rozbite totemy: z tej strony nikt nie przyjdzie
+        gra.kolejka.push({ typ: g.typ, z, t: (g.od || 0) + i * g.co });
       }
       gra.kolejka.sort((a, b) => a.t - b.t);
     }
@@ -640,6 +662,13 @@ function aktualizujEtapy(gra, dt) {
     gra.walkaCzas += dt;
     while (gra.kolejka.length && gra.kolejka[0].t <= gra.walkaCzas) {
       const q = gra.kolejka.shift();
+      if (q.z === 'boss') {                                                            // rycerz wychodzi z drogi na południe od ogniska
+        const p = { x: OGNISKO.x + 30, y: OGNISKO.y + 360 }; zderzenia(p, 30);
+        gra.wrogowie.push(nowyWrog(q.typ, p, ETAPY[gra.etap].zlosc));
+        powiedz(gra, 'Ten pancerz… to on pisał te kartki. Czekał przy ogniu.', 4);
+        gra.zdarzenia.push({ typ: 'boss' });
+        continue;
+      }
       if (stronaCicha(gra, q.z)) continue;
       gra.wrogowie.push(nowyWrog(q.typ, punktWMgle(q.z, gra.totemy), ETAPY[gra.etap].zlosc));
     }
@@ -720,3 +749,6 @@ export function etapNazwa(gra) {
   if (gra.faza === 'swit' || gra.faza === 'koniec') return 'Świt';
   return `Noc ${Math.min(gra.etap, ETAPY.length - 1) + 1} z ${ETAPY.length}: ${ETAPY[Math.min(gra.etap, ETAPY.length - 1)].nazwa}`;
 }
+
+// do testów (testy/, narzędzia w przeglądarce): zranienie wroga z zewnątrz
+export const __test = { zranWroga };

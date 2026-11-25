@@ -60,6 +60,15 @@ body {
 #krew-podpowiedz { font-size: 13px; color: var(--krew-jasna); text-shadow: 0 1px 2px #000; opacity: 0; transition: opacity 0.2s; }
 #krew-podpowiedz.widac { opacity: 1; }
 
+/* pasek bossa ostatniej nocy */
+#boss { position: fixed; z-index: 2; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); width: min(520px, calc(100vw - 32px)); pointer-events: none; text-align: center; }
+#boss-nazwa { margin: 0 0 5px; font-family: var(--font-tytul); font-size: 15px; letter-spacing: 0.06em; color: #e6d2b0; text-shadow: 0 1px 3px #000; }
+.boss-belka { height: 10px; border: 1px solid #5a4636; background: #120c0a; box-shadow: 0 0 0 1px #000, 0 2px 8px #000; }
+#boss-zycie { height: 100%; width: 100%; background: linear-gradient(#8e1c16, #5a0e0b); transition: width 0.15s; }
+#boss.druga #boss-zycie { background: linear-gradient(#d0521e, #7a1d08); box-shadow: 0 0 10px #ff6a2a; }
+#boss.druga #boss-nazwa { color: #ffb070; }
+@media (pointer: coarse) { #boss { bottom: auto; top: calc(118px + env(safe-area-inset-top, 0px)); } }
+
 /* etap i myśl */
 #etap {
   position: fixed; z-index: 2; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
@@ -204,6 +213,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
   <div id="krew-podpowiedz">Krew za krew: tnij, żeby odzyskać</div>
 </div>
 <p id="etap"></p>
+<div id="boss" hidden><p id="boss-nazwa"></p><div class="boss-belka"><div id="boss-zycie"></div></div></div>
 <p id="mysl" aria-live="polite"></p>
 <p id="info"></p>
 <div id="wnetrze" aria-hidden="true"><p>Śpisz na posłaniu.</p><p class="male">Rany się goją. Noc poczeka, aż wyjdziesz.</p></div>
