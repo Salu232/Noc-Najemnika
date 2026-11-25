@@ -67,7 +67,8 @@ body {
 #boss-zycie { height: 100%; width: 100%; background: linear-gradient(#8e1c16, #5a0e0b); transition: width 0.15s; }
 #boss.druga #boss-zycie { background: linear-gradient(#d0521e, #7a1d08); box-shadow: 0 0 10px #ff6a2a; }
 #boss.druga #boss-nazwa { color: #ffb070; }
-@media (pointer: coarse) { #boss { bottom: auto; top: calc(118px + env(safe-area-inset-top, 0px)); } }
+/* telefon: wąski pasek przy górnej krawędzi, pod nazwą nocy (Patryk, 26 XI 0:38: na środku ekranu „bardzo przeszkadza”) */
+@media (pointer: coarse) { #boss { bottom: auto; top: calc(32px + env(safe-area-inset-top, 0px)); width: min(36vw, 300px); } #boss-nazwa { font-size: 11px; margin-bottom: 3px; } #boss .boss-belka { height: 7px; } }
 
 /* etap i myśl */
 #etap {
