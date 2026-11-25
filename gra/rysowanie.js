@@ -821,7 +821,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         znakiZiemia.drawEllipse(e.cel.x, e.cel.y, (e.at || e.typ).strefa, (e.at || e.typ).strefa * PERSP); znakiZiemia.endFill(); }
       znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0xff6a3a, 0.3); znakiZiemia.drawEllipse(e.cel.x, e.cel.y, (e.at || e.typ).strefa * q, (e.at || e.typ).strefa * PERSP * q); znakiZiemia.endFill();
     }
-    if (e.typ.ciezki && e.stan === 'skok' && e.cel && !e._uderzyl) {
+    if (e.typ.ciezki && e.stan === 'skok' && e.cel && !e._uderzyl && e.t >= (e.at || e.typ).skok * ((e.at && e.at.trafW) || 0)) {   // doskok: kurz dopiero przy lądowaniu
       e._uderzyl = true;
       pierscienie.push({ x: e.cel.x, y: e.cel.y, r0: 20, r1: (e.at || e.typ).strefa * 1.4, t: 0, czas: 0.4, kolor: 0xd8c8b0, ziemia: true });
       kurz(e.cel.x, e.cel.y, 0, 6, 1.4); kurz(e.cel.x, e.cel.y, Math.PI, 6, 1.4);

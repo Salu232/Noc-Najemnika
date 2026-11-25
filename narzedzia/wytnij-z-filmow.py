@@ -156,12 +156,14 @@ POSTACIE = {
             'zamach_pazur':        ('boss/rycerz-f2-pazur-pchniecie', [16, 19, 22, 25, 28, 31]),   # 34–43: dziwne machnięcie mieczem, pomijamy
             'skok_pazur':          ('boss/rycerz-f2-pazur-pchniecie', [46, 49, 52, 55, 58, 64]),
             'odpoczynek_pazur':    ('boss/rycerz-f2-pazur-pchniecie', list(range(70, 110, 4))),
-            # mocny atak 2. fazy: tylko pazur (Patryk, 25 XI 22:04: nie podobało się przejście z pazura na miecz z błyskawicą).
-            # Na razie: pazur żarzy się i unosi (z filmu z błyskawicą, zanim sięga po miecz), potem pchnięcie z czerwoną smugą.
-            # Docelowo: pazur w ziemię z pozy Gemini (polecenie w wiadomości do Patryka).
-            'zamach_blyskawica':   ('boss/rycerz-f2-pazur-i-ciecie-blyskawica', [40, 43, 46, 49, 52, 55, 58, 61, 64, 67, 70, 73]),
-            'skok_blyskawica':     ('boss/rycerz-f2-pazur-pchniecie', [46, 49, 52, 55, 58, 61, 64, 67]),
-            'odpoczynek_blyskawica': ('boss/rycerz-f2-pazur-pchniecie', list(range(70, 110, 4))),
+            # dwa mocne ataki 2. fazy z arkuszy póz Gemini (Patryk, 25 XI 22:40). Powtórzona poza to dłuższa klatka.
+            # wbicie: unosi płonący pazur i wbija go w ziemię; doskok: kuca, skacze na bohatera, ląduje pazurem w ziemi.
+            'zamach_wbicie':       ('boss/arkusz-wbicie', [1, 2, 2, 3, 3, 3, 3, 3]),
+            'skok_wbicie':         ('boss/arkusz-wbicie', [4, 4, 5, 5]),
+            'odpoczynek_wbicie':   ('boss/arkusz-wbicie', [5, 5, 5, 6, 6, 6]),
+            'zamach_doskok':       ('boss/arkusz-doskok', [1, 2, 2, 2, 2]),
+            'skok_doskok':         ('boss/arkusz-doskok', [3, 3, 3, 3, 4]),
+            'odpoczynek_doskok':   ('boss/arkusz-doskok', [4, 4, 5, 5, 6, 6]),
             'smierc':              ('boss/rycerz-f2-smierc-na-ziemi', list(range(25, 146, 4))),   # klątwa pali go od środka, pada
             'trup':                ('boss/rycerz-f2-smierc-na-ziemi', [181]),
         },
@@ -192,7 +194,7 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {**{f'boss/rycerz-f2-{n}': (337, 325) for n in ('chod', 'pazur-pchniecie', 'pazur-i-ciecie-blyskawica', 'smierc-na-ziemi')}, 'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
+STOPY_FILMU = {'boss/arkusz-wbicie': (337, 445), 'boss/arkusz-doskok': (337, 445), **{f'boss/rycerz-f2-{n}': (337, 325) for n in ('chod', 'pazur-pchniecie', 'pazur-i-ciecie-blyskawica', 'smierc-na-ziemi')}, 'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
 SKALA_FILMU = {'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}
@@ -230,6 +232,8 @@ def kluczuj(obraz, dol=0.80):
 
 
 def klatki_filmu(film, numery, katalog):
+    if '/arkusz-' in film:                           # pozy z arkusza Gemini (narzedzia/arkusz-bossa.py): gotowe obrazy, numer to numer pozy
+        return [Image.open(f'{ZRODLA}/{film}/{k:03d}.png').convert('RGB') for k in numery]
     wybor = '+'.join(f'eq(n\\,{k - 1})' for k in numery)
     plik = film.replace('/', '_')                    # filmy bossa leżą w podkatalogu boss/
     wyj = os.path.join(katalog, plik + '-%03d.png')

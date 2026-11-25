@@ -546,7 +546,8 @@ function aktualizujWrogow(gra, dt) {
           if (!e.nast) e.nast = typ.ataki[e.faza][(Math.random() * typ.ataki[e.faza].length) | 0];
           if (d < e.nast.zasieg + b.promien) {
             e.at = e.nast; e.nast = null; e.stan = 'zamach'; e.t = 0; e.kat = doBoh;
-            e.cel = { x: e.x + Math.cos(doBoh) * e.at.cel, y: e.y + Math.sin(doBoh) * e.at.cel };
+            e.cel = e.at.leci ? { x: e.x + Math.cos(doBoh) * Math.min(d, 300), y: e.y + Math.sin(doBoh) * Math.min(d, 300) }   // doskok: krąg tam, gdzie stoi bohater
+              : { x: e.x + Math.cos(doBoh) * e.at.cel, y: e.y + Math.sin(doBoh) * e.at.cel };
             e.odpoczynek = e.at.odpoczynek * e.mOdp;
           }
         } else if (d < typ.zasiegAtaku + b.promien) {
@@ -560,6 +561,7 @@ function aktualizujWrogow(gra, dt) {
       if (typ.pocisk) { ax = 0; ay = 0; e.drzy *= 0.4; }
       if (e.t >= (e.at || typ).zamach) {
         e.stan = 'skok'; e.t = 0; e.drzy = 0; e.trafil = false;
+        if (e.at && e.at.leci) e.skokOd = { x: e.x, y: e.y };
         if (typ.pocisk) {                                                   // rzuca kulę tam, gdzie bohater stoi teraz
           const pc = typ.pocisk, sx = Math.cos(doBoh) >= 0 ? 1 : -1;
           gra.pociski.push({ x: e.x + sx * 14, y: e.y, z: 95, vx: Math.cos(doBoh) * pc.szybkosc, vy: Math.sin(doBoh) * pc.szybkosc, t: 0, zycie: pc.zycie, promien: pc.promien, obrazenia: e.obrazenia });
@@ -569,7 +571,12 @@ function aktualizujWrogow(gra, dt) {
         else { gra.wstrzas = Math.max(gra.wstrzas, 10); gra.zdarzenia.push({ typ: 'tapniecie' }); }
       }
     } else if (e.stan === 'skok') {
-      if (!e.trafil && typ.ciezki && e.t >= (e.at || typ).skok * 0.5) {
+      if (e.at && e.at.leci && e.cel && e.skokOd) {                    // doskok: leci łukiem i ląduje tuż przed kręgiem
+        const k = Math.min(1, e.t / (e.at.skok * e.at.trafW)), kx = e.cel.x - e.skokOd.x, ky = e.cel.y - e.skokOd.y, kd = Math.hypot(kx, ky) || 1;
+        const cel = Math.max(0, kd - 45);
+        e.x = e.skokOd.x + kx / kd * cel * k; e.y = e.skokOd.y + ky / kd * cel * k; e.vx = e.vy = 0;
+      }
+      if (!e.trafil && typ.ciezki && e.t >= (e.at || typ).skok * ((e.at && e.at.trafW) || 0.5)) {
         e.trafil = true;
         if (e.cel && Math.hypot(b.x - e.cel.x, b.y - e.cel.y) < (e.at || typ).strefa + b.promien) trafBohatera(gra, e);
       } else if (!e.trafil && !typ.ciezki && !typ.pocisk && e.t >= 0.03 && d < e.promien + b.promien + 22) {
