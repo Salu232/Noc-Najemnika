@@ -24,7 +24,8 @@ export function kafelZiemi() {
   g.fillStyle = '#5f5a4d'; g.fillRect(0, 0, N, N);
   for (let i = 0; i < 260; i++) {
     const x = r() * N, y = r() * N, rx = 10 + r() * 46, ry = rx * (0.4 + r() * 0.3), ciemna = r() < 0.55;
-    zawin(() => { g.fillStyle = ciemna ? 'rgba(52,49,42,0.45)' : 'rgba(112,100,82,0.35)'; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, TAU); g.fill(); });
+    // 25 XI (Przemek: stara tekstura „nie pasuje”): plamy słabsze, a jasne nie odcinają się już jak monety
+    zawin(() => { g.fillStyle = ciemna ? 'rgba(52,49,42,0.22)' : 'rgba(104,94,78,0.14)'; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, TAU); g.fill(); });
   }
   for (let i = 0; i < 190; i++) {
     const x = r() * N, y = r() * N, dl = 5 + r() * 9;
@@ -34,10 +35,7 @@ export function kafelZiemi() {
       g.stroke();
     });
   }
-  for (let i = 0; i < 90; i++) {
-    const x = r() * N, y = r() * N, rr = 1.5 + r() * 3.5;
-    zawin(() => { g.fillStyle = '#88837a'; g.strokeStyle = 'rgba(20,18,16,0.8)'; g.lineWidth = 0.8; g.beginPath(); g.ellipse(x, y, rr * 1.3, rr, 0, 0, TAU); g.fill(); g.stroke(); });
-  }
+  // kamyki z obrysem (jasne „monety”) usunięte 25 XI: kamienie i ziemię dają teraz kępy z arkuszy Przemka
   g.strokeStyle = 'rgba(20,18,16,0.3)'; g.lineWidth = 0.7;
   for (let i = 0; i < 140; i++) {
     const x = r() * N, y = r() * N;

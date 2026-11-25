@@ -118,12 +118,20 @@ def skladowe(tlo):
 
 
 def alfa_z_bieli(a, maska):
-    """Miękka krawędź: kolor rozmieszany z bielą (biel → przezroczystość), w środku rysunku pełne krycie."""
+    """Miękka krawędź: kolor rozmieszany z bielą (biel → przezroczystość), w środku rysunku pełne krycie.
+    25 XI (Przemek: „część z wyciętych grafik ma białą obwódkę”): jasne, szare piksele przy samym tle też idą do tła,
+    a brzeg rysunku bierze kolor z najbliższego piksela w środku, więc po zmniejszeniu nie zostaje jasna obwódka."""
+    lum = a.mean(2); sat = a.max(2) - a.min(2)
+    przy_tle = ndimage.binary_dilation(~maska, iterations=2)
+    maska = maska & ~(przy_tle & (lum > 185) & (sat < 32))
     wyp = (255 - a.min(2)) / 255
-    alfa = np.clip(wyp * 3.2, 0, 1)
+    alfa = np.clip(wyp * 2.6 - 0.15, 0, 1)
     rdzen = ndimage.binary_erosion(maska, iterations=2)
     alfa = np.where(rdzen, 1.0, alfa) * maska
-    kol = np.clip((a - (1 - alfa)[..., None] * 255) / np.maximum(alfa, 0.05)[..., None], 0, 255)
+    kol = a.copy()
+    if rdzen.any():                                                   # brzeg i tło: kolor najbliższego piksela rdzenia
+        _, (iy, ix) = ndimage.distance_transform_edt(~rdzen, return_indices=True)
+        kol = np.where(rdzen[..., None], a, a[iy, ix])
     return np.dstack([kol, alfa * 255]).astype(np.uint8)
 
 

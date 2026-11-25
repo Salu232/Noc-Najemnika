@@ -980,7 +980,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       // Z filmem cofania faza filmu idzie za krokiem gardy; idąc do przodu (w stronę, w którą patrzy) film leci wstecz.
       if (b.blok && b.idzie) { const f = (b.krokGardy || 0) / TAU; stanRys.cofaFaza = ddx * pz.sx > 0.2 * dd ? -f : f; }
       const krokG = b.blok && b.idzie && !A.cofa ? 0.5 - 0.5 * Math.cos(b.krokGardy || 0) : 0;
-      ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y - 2.5 * Math.sin(b.krokGardy || 0) * (krokG > 0 ? 1 : 0), lx, sy * (1 - 0.035 * krokG), obrot);
+      ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y, lx, sy * (1 - 0.02 * krokG), obrot);   // bez podnoszenia: wyglądało jak podskoki (Patryk, 25 XI 11:57)
       if (b.stan === 'unik' && unikPionowy(b)) {
         // Przewrót w górę i w dół z filmów Patryka (Flow, 24 XI, 14:31): koziołek plecami albo przodem, bez obracania obrazu.
         bohS.skew.set(0, 0);
