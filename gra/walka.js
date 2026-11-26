@@ -22,11 +22,12 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
     totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
     lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [],
-    plecak: wczytaj('noc-plecak'),                                            // rzeczy zostają między grami (main.js zapisuje)
+    plecak: {},                                                               // nowa gra: pusty plecak (Patryk, 26 XI: bez zapisów, dopóki gra nie urośnie)
     kartka: null, czytana: null, kartki: 0, przemiana: 0,   // dziennik rycerza i cena klątwy (25 XI)
     mod: { zasieg: 1, szybkosc: 1, garda: 1, oddech: 1, klatwa: 1, cialo: 1 },
   };
-  gra.trwale = wczytaj('noc-trwale');
+  gra.trwale = {};
+  zapiszPlecak(gra);                                                          // zdejmuje stare zapisy plecaka z przeglądarki
   zastosujTrwale(gra);
   zastosujBron(gra);
   postawBohatera(gra);
@@ -56,10 +57,8 @@ function postawBohatera(gra) {
   };
 }
 
-function wczytaj(klucz) {
-  try { const p = JSON.parse(localStorage.getItem(klucz) || '{}'); return p && typeof p === 'object' ? p : {}; } catch (e) { return {}; }
-}
-export function zapiszPlecak(gra) { try { localStorage.setItem('noc-plecak', JSON.stringify(gra.plecak)); localStorage.setItem('noc-trwale', JSON.stringify(gra.trwale)); } catch (e) { /* bez pamięci */ } }
+// Do 26 XI plecak i ulepszenia ze stołu zostawały między grami. Teraz trwają jedną grę; zapis postaci przyjdzie, gdy gra urośnie.
+export function zapiszPlecak() { try { localStorage.removeItem('noc-plecak'); localStorage.removeItem('noc-trwale'); } catch (e) { /* bez pamięci */ } }
 
 // Stół w izbie: trwałe ulepszenia z łupów (dane.js, STOL)
 function efektStolu(gra, id) {
@@ -79,7 +78,7 @@ export function zrobNaStole(gra, id) {
   const k = kosztStolu(gra, r); for (const p in k) gra.plecak[p] -= k[p];
   gra.trwale[id] = (gra.trwale[id] || 0) + 1; efektStolu(gra, id); zastosujBron(gra);
   if (id === 'helm') gra.bohater.mikstury = Math.min(LUP.max, gra.bohater.mikstury + 1);
-  zapiszPlecak(gra); gra.zdarzenia.push({ typ: 'ulepszenie', id }); return true;
+  gra.zdarzenia.push({ typ: 'ulepszenie', id }); return true;
 }
 
 export function powiedz(gra, tekst, czas = 3.5) { gra.mysl.tekst = tekst; gra.mysl.czas = czas; }

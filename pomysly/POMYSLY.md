@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-26 | Patryk | Nowa gra zaczyna się z pustym plecakiem i bez ulepszeń ze stołu; zapisy postaci dopiero, gdy gra urośnie. Stare zapisy z przeglądarki są zdejmowane. | zrobione | v78 |
 | 2026-11-26 | Claude | Bestia: czworonożny skoczek z trzech filmów Patryka (Omni Flash). Biega szybko, z ok. 230 jednostek przysiada i skacze tam, gdzie stoisz, trochę dalej; trzeba odskoczyć albo odbić. Po skoku długo się zbiera. Śmierć wycięta od klatki 22, bez ręki z filmu. Fale: 1 w „Kilku”, 3 w „Hordzie”, 2 w ostatniej nocy. | zrobione | v77 |
 | 2026-11-26 | Stół w izbie (E poza walką): łupy na trwałe ulepszenia między grami — klinga z pazurów (szybsze cięcie), talizman z kła (−10% ran), wywar z krwi (klątwa szybciej), wyściółka z przyłbicy (+1 mikstura na start); po 3 poziomy, koszt rośnie. Kartki podniesione w walce czekają do ciszy po fali. | zrobione |
 | 2026-11-26 | Do zrobienia: czworonożny stwór, który doskakuje (trzeba robić unik); handel i sprzedaż u kupca. | plan |

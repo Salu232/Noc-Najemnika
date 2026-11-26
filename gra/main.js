@@ -239,8 +239,6 @@ async function start() {
   $('odejdz-od-stolu').addEventListener('click', () => { gra.stol = false; });
 
   // rzeczy zostają między grami: zapis, gdy coś przybędzie
-  let plecakZapisany = '';
-  setInterval(() => { const t = JSON.stringify(gra.plecak); if (t !== plecakZapisany) { plecakZapisany = t; zapiszPlecak(gra); } }, 1000);
 
   // Kartka z dziennika rycerza: gra stoi, dopóki jej nie schowasz (przycisk, E, Enter, spacja albo Esc).
   let kartkaPokazana = null;
