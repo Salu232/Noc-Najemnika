@@ -320,7 +320,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const stempel = () => { const s = new P.Sprite(T.stempel); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ERASE; stemple.addChild(s); return s; };
   const swiatloBoh = stempel(), swiatloOgnia = stempel(), swiatloOkna = stempel(), swiatloIzby = stempel();
   const swiatlaTotemow = TOTEMY.map(() => stempel());
-  const swiatloBossa = stempel(); let dymBossaNa = 0, pierscienBossaNa = 0;
+  const swiatloBossa = stempel(); let dymBossaNa = 0, pierscienBossaNa = 0, bossTrup = null;
   const swiatlaPochodni = plomienieRzeczy.map(() => stempel());
   swiatloBoh.texture = T.stempelBoh;
   ciemnoscC.addChild(ciemnoscG, kreski, stemple);
@@ -329,7 +329,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const deszcz = new P.Graphics();
   const winieta = new P.Sprite();
   const bolG = new P.Graphics();
-  ekran.addChild(deszcz, winieta, bolG);
+  // Słońce o świcie (26 XI): ciepła poświata z prawego górnego rogu i kilka ukośnych promieni, nad ciemnością i deszczem.
+  const slonceC = new P.Container(); slonceC.visible = false;
+  const slonceS = new P.Sprite(T.cieplo); slonceS.anchor.set(0.5); slonceS.blendMode = P.BLEND_MODES.ADD; slonceS.tint = 0xffd08a;
+  const promienie = [0, 1, 2, 3, 4].map(i => { const r = new P.Sprite(T.cieplo); r.anchor.set(0.5, 0); r.blendMode = P.BLEND_MODES.ADD; r.tint = 0xffe2a8; return { r, kat: 0.5 + i * 0.13, faza: i * 1.7, szer: 0.6 + (i % 3) * 0.35 }; });
+  slonceC.addChild(slonceS, ...promienie.map(p => p.r));
+  ekran.addChild(deszcz, winieta, slonceC, bolG);
   scena.addChild(swiat, ciemnosc, nad, ekran);
 
 
@@ -428,7 +433,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   }
   const blyski = []; let czasRys = 0;            // iskry i rozbryzgi z arkusza (etap B, niżej)
   function wyczysc() {
-    padajace.length = 0; ciecia.length = 0; obloczki.length = 0; pioruny.length = 0;
+    padajace.length = 0; ciecia.length = 0; obloczki.length = 0; pioruny.length = 0; bossTrup = null;
     for (const f of blyski) f.sp.destroy(); blyski.length = 0;
     for (const t of trupy) t.sp.destroy(); trupy.length = 0;
     renderer.render(new P.Container(), { renderTexture: sladyRT, clear: true });
@@ -885,6 +890,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
       else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);
       else if (z.typ === 'przemiana') { pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 260, t: 0, czas: 0.8, kolor: 0xff6a2a, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 80, r0: 10, r1: 140, t: 0, czas: 0.5, kolor: 0xffb070 }); }
+      else if (z.typ === 'bossPadl') { bossTrup = { x: z.x, y: z.y, od: czas }; pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 300, t: 0, czas: 1.1, kolor: 0xff6a2a, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 60, r0: 10, r1: 160, t: 0, czas: 0.7, kolor: 0x2a1410 }); }
       else if (z.typ === 'pocisk_zgasl') pierscienie.push({ x: z.x, y: z.y, r0: 8, r1: 46, t: 0, czas: 0.25, kolor: 0xb070ff });
       else if (z.typ === 'naladowany') pierscienie.push({ x: b.x, y: b.y, r0: 50, r1: 20, t: 0, czas: 0.22, kolor: 0xffd890, ziemia: true });
       else if (z.typ === 'zamach' && z.mocny) pierscienie.push({ x: b.x, y: b.y, r0: 30, r1: gra.bron.zasieg * 1.1, t: 0, czas: 0.3, kolor: 0xffe8c0, ziemia: true });
@@ -1377,7 +1383,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       k.s.position.set(x, y); k.s.rotation = k.obrot + Math.sin(czas * 0.05 + k.faza) * 0.06;
       k.s.width = k.roz * 2 * (1 + Math.sin(czas * 0.11 + k.faza) * 0.08); k.s.height = k.roz * 2 * k.splaszcz;
       const przyBoh = Math.min(1, Math.hypot(x - b.x, (y - b.y) * 1.6) / (k.roz * 0.9));        // przy bohaterze rzednie
-      k.s.alpha = k.alfa * (0.75 + Math.sin(czas * 0.3 + k.faza) * 0.25) * (0.45 + 0.55 * przyBoh) * (gra.faza === 'swit' || gra.faza === 'koniec' ? Math.max(0.2, gra.mroczek / 0.8) : 1);
+      k.s.alpha = k.alfa * (0.75 + Math.sin(czas * 0.3 + k.faza) * 0.25) * (0.45 + 0.55 * przyBoh) * (gra.faza === 'swit' || gra.faza === 'koniec' ? Math.max(0.2, gra.mroczek / 0.8) * (1 - 0.85 * (gra.slonce || 0)) : 1);
     }
 
     // ogień
@@ -1432,6 +1438,13 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (e) { blaskBossa.visible = moc > 0; blaskBossa.position.set(e.x, e.y - 70); blaskBossa.width = blaskBossa.height = r * 1.8; blaskBossa.alpha = 0.45 * moc * Math.max(0.4, gra.mroczek / 0.8); stawStempel(swiatloBossa, e.x, e.y - 60, r, Math.min(1, moc)); }
       else { blaskBossa.visible = false; swiatloBossa.alpha = 0; }
     }
+    // Z ciała rycerza schodzi klątwa: najpierw gęsty czarny dym i żar, z każdą sekundą słabszy; o świcie złote drobiny.
+    if (bossTrup) {
+      const wiek = czas - bossTrup.od, sl = gra.slonce || 0, gestosc = Math.max(0, 1 - wiek / 24);
+      if (Math.random() < dt * 14 * gestosc) obloczek(bossTrup.x + losuj(-35, 35), bossTrup.y - losuj(0, 30), losuj(-12, 12), losuj(-60, -30), 10, losuj(30, 52), losuj(1.6, 2.4), 0.5 * gestosc + 0.08, 0x140c0a, false);
+      if (Math.random() < dt * 8 * gestosc) obloczek(bossTrup.x + losuj(-40, 40), bossTrup.y - losuj(0, 40), losuj(-30, 30), losuj(-110, -50), 2, 3, losuj(0.6, 1.1), 0.9, 0xff8a3a, false);
+      if (Math.random() < dt * 10 * sl) obloczek(bossTrup.x + losuj(-70, 70), bossTrup.y - losuj(0, 60), losuj(-10, 10), losuj(-40, -18), 1.5, 2.5, losuj(1.5, 2.6), 0.85, 0xffe6a0, false);
+    }
     TOTEMY.forEach((t, i) => {                                            // totemy świecą fioletem, żeby było widać, skąd przyjdą
       const puls = 0.85 + 0.15 * Math.sin(czas * 2.1 + i * 1.7), jest = totemyS.length > 0 && !(gra.totemy && gra.totemy[i].zniszczony);
       stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 190 * puls, jest ? 0.55 : 0);
@@ -1475,12 +1488,24 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // ekran: deszcz i czerwony błysk po ranie
     deszcz.clear();
     if (!lekko) {
-      deszcz.lineStyle(1, 0xbec8d7, 0.22);
+      deszcz.lineStyle(1, 0xbec8d7, 0.22 * (1 - (gra.slonce || 0)));
       for (const kr of krople) {
         kr.y += kr.v * dt * 1.4; kr.x -= kr.v * dt * 0.25;
         if (kr.y > 1) { kr.y -= 1.05; kr.x = Math.random() * 1.2; }
         const x = kr.x * vw, y = kr.y * vh, d = 16 * kr.d;
         deszcz.moveTo(x, y); deszcz.lineTo(x - d * 0.18, y + d);
+      }
+    }
+    {
+      const sl = gra.slonce || 0; slonceC.visible = sl > 0.01;
+      if (slonceC.visible) {
+        const m = Math.max(vw, vh);
+        slonceS.position.set(vw * 0.92, -vh * 0.08); slonceS.width = slonceS.height = m * 2.2; slonceS.alpha = 0.45 * sl;
+        for (const p of promienie) {
+          const fal = 0.75 + 0.25 * Math.sin(czas * 0.4 + p.faza);
+          p.r.position.set(vw * 0.92, -vh * 0.08); p.r.rotation = p.kat + 0.03 * Math.sin(czas * 0.15 + p.faza);
+          p.r.width = m * 0.09 * p.szer; p.r.height = m * 2.2; p.r.alpha = 0.4 * sl * fal;
+        }
       }
     }
     bolG.clear();

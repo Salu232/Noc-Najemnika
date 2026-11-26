@@ -498,6 +498,11 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
   if (e.zycie <= 0) {
     e.stan = 'martwy';
     gra.statystyki.zabici++;
+    if (e.typ.boss) {                                                       // rycerz pada: klątwa schodzi z niego, a o świcie z polany
+      gra.bossPadl = { x: e.x, y: e.y };
+      powiedz(gra, 'Upadł. Klątwa schodzi z niego jak dym.', 4.5);
+      gra.zdarzenia.push({ typ: 'bossPadl', x: e.x, y: e.y });
+    }
     if (!zKlatwy) gra.bohater.klatwa = Math.min(1, gra.bohater.klatwa + KLATWA.zaZabicie * gra.mod.klatwa);
     if (Math.random() < (e.typ.ciezki ? LUP.szansaKolos : LUP.szansaGhul)) gra.lup.push({ typ: 'mikstura', x: e.x + losuj(-10, 10), y: e.y + losuj(-6, 6), t: 0 });
     // ciało pada od bohatera (rysowanie najpierw pokazuje upadek, potem zostawia ślad na ziemi)
@@ -690,7 +695,11 @@ function aktualizujEtapy(gra, dt) {
     }
     if (!gra.kolejka.length && !gra.wrogowie.length) {
       gra.etap++;
-      if (gra.etap >= ETAPY.length) { gra.faza = 'swit'; gra.fazaCzas = NOC.swit; powiedz(gra, 'Świt. Mgła się cofa. Przetrwałeś.', NOC.swit); }
+      if (gra.etap >= ETAPY.length) {
+        gra.faza = 'swit'; gra.switT = 0; gra.slonce = 0;
+        gra.fazaCzas = gra.bossPadl ? NOC.switBoss : NOC.swit;
+        if (!gra.bossPadl) powiedz(gra, 'Świt. Mgła się cofa. Przetrwałeś.', NOC.swit);   // po rycerzu najpierw wybrzmiewa „Upadł…”
+      }
       else {
         gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa; powiedz(gra, ETAPY[gra.etap].mysl, NOC.przerwa);
         const wolne = ULEPSZENIA.map(u => u.id).filter(id => id === 'mikstura' || !gra.ulepszenia.includes(id));
@@ -707,8 +716,21 @@ function aktualizujEtapy(gra, dt) {
       powiedz(gra, 'Znowu ten ogień. Znowu ta noc.', NOC.przerwa);
     }
   } else if (gra.faza === 'swit') {
-    gra.fazaCzas -= dt;
-    gra.mroczek = Math.max(0.12, NOC.mroczek * Math.max(0, gra.fazaCzas / NOC.swit));
+    // Świt po rycerzu (Patryk, 26 XI 0:56): słońce nad pokonanym, klątwa schodzi z polany, ale to dopiero pierwszy etap.
+    gra.fazaCzas -= dt; gra.switT += dt;
+    const dlugi = !!gra.bossPadl, cal = dlugi ? NOC.switBoss : NOC.swit;
+    const q = dlugi ? Math.min(1, Math.max(0, (gra.switT - 2) / 9)) : Math.min(1, gra.switT / NOC.swit); gra.slonce = q * q * (3 - 2 * q);
+    gra.mroczek = Math.max(dlugi ? 0 : 0.12, NOC.mroczek * (1 - gra.slonce));
+    if (dlugi) {
+      const zar = gra.przemiana >= PRZEMIANA.prog;
+      const kwestie = [
+        [4.5, 'Świt. Mgła cofa się do lasu.'],
+        [9, 'Klątwa zeszła z tej polany. Czuję to w ziemi.'],
+        [13.5, zar ? 'Ze mnie nie zeszła. Ręka dalej pali.' : 'Ze mnie jeszcze nie. Ale żar przygasa.'],
+        [18, 'Rycerz pisał o bagnach wiedźmy. Tam jest następny ślad.'],
+      ];
+      for (const [t, tekst] of kwestie) if (gra.switT >= t && gra.switT - dt < t) powiedz(gra, tekst, 4.6);
+    }
     if (gra.fazaCzas <= 0) { gra.faza = 'koniec'; gra.zdarzenia.push({ typ: 'koniec' }); }
   }
 }

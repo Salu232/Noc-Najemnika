@@ -121,9 +121,18 @@ async function start() {
     $('wynik').innerHTML = '';
     // dwa zakończenia (25 XI): ile razy sięgnąłeś po klątwę, tyle żaru zostaje pod skórą
     const zar = gra.przemiana >= PRZEMIANA.prog;
-    $('tekst-konca').textContent = zar
-      ? 'Mgła cofa się do lasu, ale żar pod skórą już nie gaśnie. Ręka pali, kiedy nie tniesz. Rycerz pisał, że domek szuka następcy.'
-      : 'Mgła cofa się do lasu, a żar pod skórą przygasa. Nie sięgałeś po klątwę bez potrzeby. Może jednak da się ją zdjąć.';
+    // po rycerzu (26 XI, Patryk): słońce nad pokonanym, klątwa zeszła z polany, ale to pierwszy etap jej zdejmowania
+    const boss = !!gra.bossPadl;
+    $('tytul-konca').textContent = boss ? 'Świt nad polaną' : 'Świt';
+    $('tekst-konca').textContent = boss
+      ? (zar
+        ? 'Rycerz leży w trawie, a słońce pierwszy raz od dawna dotyka polany. Klątwa zeszła z tego miejsca, ale żar pod Twoją skórą już nie gaśnie. Ręka pali, kiedy nie tniesz.'
+        : 'Rycerz leży w trawie, a słońce pierwszy raz od dawna dotyka polany. Klątwa zeszła z tego miejsca, a żar pod Twoją skórą przygasa. Nie sięgałeś po nią bez potrzeby.')
+      : zar
+        ? 'Mgła cofa się do lasu, ale żar pod skórą już nie gaśnie. Ręka pali, kiedy nie tniesz. Rycerz pisał, że domek szuka następcy.'
+        : 'Mgła cofa się do lasu, a żar pod skórą przygasa. Nie sięgałeś po klątwę bez potrzeby. Może jednak da się ją zdjąć.';
+    $('dalej-konca').hidden = !boss;
+    $('dalej-konca').textContent = 'To dopiero pierwszy etap. Rycerz pisał o bagnach wiedźmy: tam jest następny ślad.';
     for (const [co, ile] of [['Zabite potwory', s.zabici], ['Sparowane ciosy', s.parowania], ['Upadki', s.upadki], ['Kartki dziennika', `${gra.kartki} z ${KARTKI.length}`], ['Żar klątwy', `${Math.round(gra.przemiana * 100)}%`], ['Czas', `${min}:${String(sek).padStart(2, '0')}`]]) {
       const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = co; dd.textContent = ile; $('wynik').append(dt, dd);
     }

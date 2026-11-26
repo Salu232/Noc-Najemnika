@@ -199,6 +199,7 @@ export const NOC = {
   przerwa: 9,              // sekundy ciszy przed etapem, gdy widać myśl bohatera (do 24 XI 18:06 było 4; Patryk: „lekko mieć więcej czasu”)
   mroczek: 0.8,            // jak ciemna jest noc (0 to dzień)
   swit: 5,                 // jak długo wstaje świt po ostatnim etapie
+  switBoss: 23,            // świt po rycerzu: wschód słońca, klątwa schodzi z polany, trzy myśli bohatera
   powrot: 2.6,             // ile trwa powrót przy ognisku po upadku
 };
 

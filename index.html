@@ -163,6 +163,7 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 .etykieta { margin: 0; font-size: 14px; font-weight: 700; color: var(--zar); text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ekrany: start, pauza, koniec */
+#dalej-konca { color: #e8b070; font-style: italic; }
 .ekran {
   position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px;
   background: radial-gradient(ellipse at center, rgba(5, 5, 7, 0.55), rgba(5, 5, 7, 0.88));
@@ -310,8 +311,9 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 <div class="ekran" id="ekran-konca" hidden>
   <div class="karta">
-    <h2>Świt</h2>
+    <h2 id="tytul-konca">Świt</h2>
     <p class="wstep" id="tekst-konca">Mgła cofa się do lasu. Przetrwałeś noc.</p>
+    <p class="wstep dalej" id="dalej-konca" hidden></p>
     <dl id="wynik"></dl>
     <div class="akcje">
       <button type="button" class="glowny" id="jeszcze-raz">Jeszcze raz</button>
