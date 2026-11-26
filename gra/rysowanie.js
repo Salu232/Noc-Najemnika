@@ -331,8 +331,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const bolG = new P.Graphics();
   // Słońce o świcie (26 XI): ciepła poświata z prawego górnego rogu i kilka ukośnych promieni, nad ciemnością i deszczem.
   const slonceC = new P.Container(); slonceC.visible = false;
-  const slonceS = new P.Sprite(T.cieplo); slonceS.anchor.set(0.5); slonceS.blendMode = P.BLEND_MODES.ADD; slonceS.tint = 0xffd08a;
-  const promienie = [0, 1, 2, 3, 4].map(i => { const r = new P.Sprite(T.cieplo); r.anchor.set(0.5, 0); r.blendMode = P.BLEND_MODES.ADD; r.tint = 0xffe2a8; return { r, kat: 0.5 + i * 0.13, faza: i * 1.7, szer: 0.6 + (i % 3) * 0.35 }; });
+  const slonceS = new P.Sprite(T.cieplo); slonceS.anchor.set(0.5); slonceS.blendMode = P.BLEND_MODES.ADD; slonceS.tint = 0xd8d2c0;   // blade, chłodne światło przez mgłę, nie ciepły zachód (Patryk, 26 XI 11:43: żeby nie zepsuć mrocznego stylu)
+  const promienie = [0, 1, 2, 3, 4].map(i => { const r = new P.Sprite(T.cieplo); r.anchor.set(0.5, 0); r.blendMode = P.BLEND_MODES.ADD; r.tint = 0xe6e0cc; return { r, kat: 0.5 + i * 0.13, faza: i * 1.7, szer: 0.6 + (i % 3) * 0.35 }; });
   slonceC.addChild(slonceS, ...promienie.map(p => p.r));
   ekran.addChild(deszcz, winieta, slonceC, bolG);
   scena.addChild(swiat, ciemnosc, nad, ekran);
@@ -1500,11 +1500,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const sl = gra.slonce || 0; slonceC.visible = sl > 0.01;
       if (slonceC.visible) {
         const m = Math.max(vw, vh);
-        slonceS.position.set(vw * 0.92, -vh * 0.08); slonceS.width = slonceS.height = m * 2.2; slonceS.alpha = 0.45 * sl;
+        slonceS.position.set(vw * 0.92, -vh * 0.08); slonceS.width = slonceS.height = m * 2.2; slonceS.alpha = 0.3 * sl;
         for (const p of promienie) {
           const fal = 0.75 + 0.25 * Math.sin(czas * 0.4 + p.faza);
           p.r.position.set(vw * 0.92, -vh * 0.08); p.r.rotation = p.kat + 0.03 * Math.sin(czas * 0.15 + p.faza);
-          p.r.width = m * 0.09 * p.szer; p.r.height = m * 2.2; p.r.alpha = 0.4 * sl * fal;
+          p.r.width = m * 0.09 * p.szer; p.r.height = m * 2.2; p.r.alpha = 0.3 * sl * fal;
         }
       }
     }
