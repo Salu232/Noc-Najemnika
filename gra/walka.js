@@ -543,14 +543,15 @@ function aktualizujWrogow(gra, dt) {
       if (bohaterZywy) {
         ax = dx / d * szyb; ay = dy / d * szyb;
         if (typ.ataki) {                                                      // boss: wybiera jeden z dwóch ataków swojej fazy
-          // wściekłość (Patryk, 26 XI 0:56): poniżej 25% życia krócej odpoczywa i częściej doskakuje, poniżej 10% jeszcze bardziej
+          // wściekłość (Patryk, 26 XI 0:56): poniżej 25% życia krócej odpoczywa, poniżej 10% jeszcze krócej; doskok częściej, ale nie dwa razy pod rząd
           const wsc = e.zycie / e.zycieMax < 0.1 ? 2 : e.zycie / e.zycieMax < 0.25 ? 1 : 0;
           if (!e.nast) {
-            const l = typ.ataki[e.faza], dsk = l.find(a => a.leci);
-            e.nast = dsk && wsc && Math.random() < (wsc === 2 ? 0.55 : 0.35) ? dsk : l[(Math.random() * l.length) | 0];
+            // nigdy ten sam atak dwa razy pod rząd (Patryk, 26 XI 11:35: „4 skoki pod rząd niezbyt dobrze wygląda”)
+            const l = typ.ataki[e.faza].filter(a => a !== e.ostatni), dsk = l.find(a => a.leci);
+            e.nast = dsk && wsc && Math.random() < 0.4 ? dsk : l[(Math.random() * l.length) | 0];
           }
           if (d < e.nast.zasieg + b.promien) {
-            e.at = e.nast; e.nast = null; e.stan = 'zamach'; e.t = 0; e.kat = doBoh;
+            e.at = e.ostatni = e.nast; e.nast = null; e.stan = 'zamach'; e.t = 0; e.kat = doBoh;
             e.cel = e.at.leci ? { x: e.x + Math.cos(doBoh) * Math.min(d, 300), y: e.y + Math.sin(doBoh) * Math.min(d, 300) }   // doskok: krąg tam, gdzie stoi bohater
               : { x: e.x + Math.cos(doBoh) * e.at.cel, y: e.y + Math.sin(doBoh) * e.at.cel };
             e.odpoczynek = e.at.odpoczynek * e.mOdp * [1, 0.7, 0.45][wsc];

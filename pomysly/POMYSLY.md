@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-26 | Boss nie powtarza ataku dwa razy pod rząd (było: przy niskim życiu potrafił doskoczyć 4 razy z rzędu). Wściekłość zostaje jako krótszy odpoczynek. | zrobione |
 | 2026-11-26 | Plan na 26 XI (Patryk 0:56): (1) świt po bossie: słońce nad pokonanym rycerzem, klątwa schodzi z tego miejsca; to dopiero pierwszy etap zdejmowania klątwy, dalej kolejna zagadka/miejsce. (2) łupy z bossa i plecak. | plan |
 | 2026-11-26 | Wściekłość bossa: poniżej 25% życia odpoczynek ×0,7 i 35% szans na doskok, poniżej 10% odpoczynek ×0,45 i 55% na doskok. | zrobione |
 | 2026-11-26 | Telefon: pasek bossa przy górnej krawędzi, pod nazwą nocy, węższy (był na środku ekranu, „bardzo przeszkadza”). | zrobione |
