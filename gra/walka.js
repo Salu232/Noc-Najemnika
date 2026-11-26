@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA } from './dane.js';
-import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP } from './dane.js';
+import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
 const rozn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -12,9 +12,10 @@ const PION = 0.8;
 export function nowaGra(bron = DOMYSLNA_BRON) {
   const gra = {
     bronKlucz: BRONIE[bron] ? bron : DOMYSLNA_BRON, bron: BRONIE[BRONIE[bron] ? bron : DOMYSLNA_BRON],
-    czas: 0, zatrzymanie: 0, wstrzas: 0, mroczek: NOC.mroczek,
+    czas: 0, zatrzymanie: 0, wstrzas: 0, mroczek: WSTEP.zmierzch,
     bohater: null, wrogowie: [], pociski: [], krew: [], iskry: [], slady: [], zdarzenia: [],
-    etap: 0, faza: 'przerwa', fazaCzas: NOC.przerwa, walkaCzas: 0, kolejka: [],
+    etap: 0, faza: 'wstep', fazaCzas: NOC.przerwa, walkaCzas: 0, kolejka: [],
+    odkryte: [], odkryj: null,                                           // wstęp: obejrzane miejsca (swiat.js, MIEJSCA)
     mysl: { tekst: '', czas: 0 },
     drzwi: { otwarte: false, o: 0 },   // drzwi chaty: czy otwarte i jak daleko obrócone (0 zamknięte, 1 otwarte)
     statystyki: { zabici: 0, upadki: 0, parowania: 0, czas: 0, totemy: 0 },
@@ -28,7 +29,9 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
   postawBohatera(gra);
   // chata wygląda na zamieszkałą, ale nikogo w niej nie ma; pierwsza kartka leży w izbie (Patryk, 25 XI 20:35)
   const k0 = KARTKI[0].gdzie, p0 = { x: k0.x, y: k0.y }; zderzenia(p0, 18); gra.kartka = { nr: 0, x: p0.x, y: p0.y };
-  powiedz(gra, 'Drzwi chaty uchylone, w palenisku jeszcze żar. Ktoś tu mieszkał, i to niedawno. Przeszukaj chatę.', NOC.przerwa + 3);
+  // wstęp: bohater przychodzi drogą z południa o zmierzchu
+  gra.bohater.x = OGNISKO.x + 30; gra.bohater.y = OGNISKO.y + 560; gra.bohater.kat = -Math.PI / 2;
+  powiedz(gra, WSTEP.przyjscie, 5);
   return gra;
 }
 
@@ -89,7 +92,9 @@ export function aktualizuj(gra, dt, w) {
   gra.wstrzas = Math.max(0, gra.wstrzas - dt * 30);
   if (gra.mysl.czas > 0) gra.mysl.czas -= dt;
 
+  if (gra.faza === 'wstep') odkrywanie(gra, w);
   aktualizujBohatera(gra, dt, w);
+  if (gra.odkryj && gra.bohater.stan === 'wolny' && !gra.bohater.spi) gra.akcja = 'obejrzyj';
   aktualizujCele(gra, dt, w);
   aktualizujWrogow(gra, dt);
   aktualizujPociski(gra, dt);
@@ -664,8 +669,34 @@ function iskry(gra, x, y, n) {
   for (let i = 0; i < n; i++) { const a = Math.random() * TAU, v = losuj(120, 320); gra.iskry.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, t: losuj(0.15, 0.35) }); }
 }
 
+// ---------- wstęp: odkrywanie polany i chaty ----------
+// Przy nieobejrzanym miejscu E (na telefonie przycisk akcji) daje myśl bohatera. Noc zapada, gdy wszystko
+// obejrzane i przeczytana pierwsza kartka (Patryk, 26 XI 12:06).
+function odkrywanie(gra, w) {
+  const b = gra.bohater;
+  gra.odkryj = null;
+  let naj = WSTEP.zasieg + b.promien;
+  for (const m of MIEJSCA) {
+    if (gra.odkryte.includes(m.id)) continue;
+    const d = Math.hypot(m.x - b.x, m.y - b.y);
+    if (d < naj) { naj = d; gra.odkryj = m; }
+  }
+  if (gra.odkryj && w.akcja && b.stan === 'wolny' && !b.spi) {
+    const m = gra.odkryj; gra.odkryte.push(m.id); gra.odkryj = null; w.akcja = false;
+    powiedz(gra, m.mysl, 4.5); gra.zdarzenia.push({ typ: 'odkryte', x: m.x, y: m.y });
+  }
+}
+export const ileOdkryc = () => MIEJSCA.length + 1;   // miejsca i pierwsza kartka
+
 // ---------- etapy nocy ----------
 function aktualizujEtapy(gra, dt) {
+  if (gra.faza === 'wstep') {
+    if (gra.odkryte.length >= MIEJSCA.length && gra.kartki >= 1 && gra.mysl.czas < 1) {
+      gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa + 3; powiedz(gra, WSTEP.noc, NOC.przerwa);
+    }
+    return;
+  }
+  if (gra.faza === 'przerwa' && gra.etap === 0 && gra.mroczek < NOC.mroczek) gra.mroczek = Math.min(NOC.mroczek, gra.mroczek + dt * (NOC.mroczek - WSTEP.zmierzch) / 6);   // zapada noc
   if (gra.faza === 'przerwa') {
     gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza stoi
     if (gra.fazaCzas <= 0) {
@@ -785,6 +816,7 @@ function aktualizujCele(gra, dt, w) {
 
 export function etapNazwa(gra) {
   if (gra.faza === 'swit' || gra.faza === 'koniec') return 'Świt';
+  if (gra.faza === 'wstep') return `Zmierzch · obejrzane ${gra.odkryte.length + Math.min(1, gra.kartki)} z ${ileOdkryc()}`;
   return `Noc ${Math.min(gra.etap, ETAPY.length - 1) + 1} z ${ETAPY.length}: ${ETAPY[Math.min(gra.etap, ETAPY.length - 1)].nazwa}`;
 }
 

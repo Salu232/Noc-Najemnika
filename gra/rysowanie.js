@@ -1,7 +1,7 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA } from './swiat.js';
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
 import { BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
@@ -891,6 +891,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);
       else if (z.typ === 'przemiana') { pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 260, t: 0, czas: 0.8, kolor: 0xff6a2a, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 80, r0: 10, r1: 140, t: 0, czas: 0.5, kolor: 0xffb070 }); }
       else if (z.typ === 'bossPadl') { bossTrup = { x: z.x, y: z.y, od: czas }; pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 300, t: 0, czas: 1.1, kolor: 0xff6a2a, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 60, r0: 10, r1: 160, t: 0, czas: 0.7, kolor: 0x2a1410 }); }
+      else if (z.typ === 'odkryte') pierscienie.push({ x: z.x, y: z.y, r0: 10, r1: 60, t: 0, czas: 0.5, kolor: 0xffe0a0, ziemia: true });
       else if (z.typ === 'pocisk_zgasl') pierscienie.push({ x: z.x, y: z.y, r0: 8, r1: 46, t: 0, czas: 0.25, kolor: 0xb070ff });
       else if (z.typ === 'naladowany') pierscienie.push({ x: b.x, y: b.y, r0: 50, r1: 20, t: 0, czas: 0.22, kolor: 0xffd890, ziemia: true });
       else if (z.typ === 'zamach' && z.mocny) pierscienie.push({ x: b.x, y: b.y, r0: 30, r1: gra.bron.zasieg * 1.1, t: 0, czas: 0.3, kolor: 0xffe8c0, ziemia: true });
@@ -1409,7 +1410,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     blaskIzby.position.set(CHATA.palenisko.x, CHATA.palenisko.y + 20); blaskIzby.width = blaskIzby.height = 260 * migot; blaskIzby.alpha = 0.5 * stanRys.bezDachu * Math.max(0.3, gra.mroczek / 0.8);
 
     // ciemność: zalewamy ekran nocą i wycinamy światło
-    ciemnoscG.clear(); ciemnoscG.beginFill(0x05060b, gra.mroczek * 0.95);   // 25 XI: 0,8 „nic nie widzę”, 0,62 „za jasno”, 0,72 „jeszcze ściemnić”, więc 0,76 ciemnoscG.drawRect(0, 0, vw, vh); ciemnoscG.endFill();
+    // Ciemność nocy. Od 25 XI 16:49 do 26 XI komentarz połykał tu drawRect, więc ciemności nie było wcale (noc robiły same grafiki).
+    // Patryk, 26 XI 12:06: „można minimalnie, ale poza krawędziami widać, że noc”: lekka warstwa, kręgi światła ją wycinają.
+    ciemnoscG.clear(); ciemnoscG.beginFill(0x05060b, gra.mroczek * 0.55); ciemnoscG.drawRect(0, 0, vw, vh); ciemnoscG.endFill();
     kreski.alpha = 0;   // ukośne kreskowanie ciemności wyłączone (Patryk, 25 XI 19:10: „usuń je, przeszkadzają”)
     const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zz, oy + y * zz); s.width = s.height = r * 2 * zz; s.alpha = al; };
     stawStempel(swiatloBoh, b.x, b.y - 30, 360 + 260 * stanRys.fiolet, 1);
@@ -1437,6 +1440,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       } else if (e && e.faza === 2) { moc = 0.3 + 0.08 * Math.sin(czas * 5); r = 170; }
       if (e) { blaskBossa.visible = moc > 0; blaskBossa.position.set(e.x, e.y - 70); blaskBossa.width = blaskBossa.height = r * 1.8; blaskBossa.alpha = 0.45 * moc * Math.max(0.4, gra.mroczek / 0.8); stawStempel(swiatloBossa, e.x, e.y - 60, r, Math.min(1, moc)); }
       else { blaskBossa.visible = false; swiatloBossa.alpha = 0; }
+    }
+    // Wstęp: nad nieobejrzanymi miejscami unoszą się drobne złote błyski, żeby było wiadomo, gdzie podejść.
+    if (gra.faza === 'wstep') for (const m of MIEJSCA) {
+      if (gra.odkryte.includes(m.id) || Math.random() > dt * 3) continue;
+      obloczek(m.x + losuj(-18, 18), m.y - losuj(10, 40), losuj(-6, 6), losuj(-30, -14), 1.5, 2.6, losuj(0.9, 1.5), 0.9, 0xffe0a0, false);
     }
     // Z ciała rycerza schodzi klątwa: najpierw gęsty czarny dym i żar, z każdą sekundą słabszy; o świcie złote drobiny.
     if (bossTrup) {

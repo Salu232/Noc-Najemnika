@@ -241,3 +241,19 @@ export const KARTKA = { zasieg: 42 };
 // Klątwa ma cenę (25 XI): każde jej użycie przybliża bohatera do przemiany. Widać to po żarze na nim,
 // a o świcie decyduje o zakończeniu (przemiana od progu w górę: żar już nie gaśnie).
 export const PRZEMIANA = { zaKlatwe: 0.15, prog: 0.5 };
+
+// Wstęp (Patryk, 26 XI 12:06: „wstęp taki nijaki”, „lepiej tę mechanikę odkrywania zrobić”).
+// Prolog: kilka zdań na czarnym tle, potem bohater przychodzi drogą o zmierzchu. Noc zapada dopiero,
+// gdy obejrzy polanę i chatę (E przy błysku) i przeczyta pierwszą kartkę.
+export const WSTEP = {
+  prolog: [
+    'Od trzech tygodni prawa ręka nie jest moja. Czernieje od palców w górę i pali, kiedy nie walczę.',
+    'Najemnik bez ręki to trup. Szukałem kapłanów, zielarzy, nawet wiedźmy z bagien.',
+    'We wsi pod lasem karczmarka powiedziała mi o chacie na polanie we mgle. Kto przetrwa tam noc, wychodzi czysty.',
+    'Nikt nie chciał mnie zaprowadzić. Doszedłem sam, o zmierzchu.',
+  ],
+  zmierzch: 0.3,          // jak ciemno przy przyjściu (noc to NOC.mroczek)
+  zasieg: 70,             // jak blisko podejść, żeby obejrzeć
+  przyjscie: 'Polana. Chata, ognisko i nikogo. Rozejrzę się, zanim zajdzie słońce.',
+  noc: 'Słońce zaszło. Z lasu coś patrzy. Trzymaj się ognia.',
+};

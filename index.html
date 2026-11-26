@@ -162,6 +162,14 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 .opis-broni { font-size: 14px; min-height: 1.4em; }
 .etykieta { margin: 0; font-size: 14px; font-weight: 700; color: var(--zar); text-transform: uppercase; letter-spacing: 0.06em; }
 
+/* prolog (26 XI): zdania pojawiają się jedno po drugim na czarnym tle, dotknięcie albo spacja przyspiesza */
+#prolog { position: fixed; inset: 0; z-index: 30; background: #050507; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; cursor: pointer; }
+#prolog p { max-width: 640px; margin: 0 0 18px; font-family: var(--font-tytul); font-size: clamp(17px, 2.4vw, 23px); line-height: 1.5; color: #d8ccb6; text-align: center; opacity: 0; transform: translateY(6px); transition: opacity 1.4s ease, transform 1.4s ease; }
+#prolog p.widac { opacity: 1; transform: none; }
+#prolog p.minione { opacity: 0.38; }
+#prolog .pomin { position: absolute; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: none; border: 1px solid #4a3e30; color: #a89a84; font: inherit; font-size: 14px; padding: 8px 14px; border-radius: 4px; cursor: pointer; }
+#prolog .dalej { margin-top: 10px; font-size: 13px; color: #7a6e5e; letter-spacing: 0.08em; opacity: 0; transition: opacity 1s; }
+#prolog .dalej.widac { opacity: 1; }
 /* ekrany: start, pauza, koniec */
 #dalej-konca { color: #e8b070; font-style: italic; }
 .ekran {
@@ -234,6 +242,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 <div class="drazek" id="cel-tlo" hidden></div>
 <div class="drazek" id="cel-galka" hidden></div>
 
+<div id="prolog" hidden><div id="prolog-tekst"></div><p class="dalej" id="prolog-dalej">dotknij albo naciśnij spację</p><button type="button" class="pomin" id="prolog-pomin">Pomiń</button></div>
 <div class="ekran" id="ekran-startu">
   <div class="karta">
     <img class="portret" src="grafika/portret.webp" alt="Twarz najemnika w deszczu, w nocnym lesie" width="1040" height="400">

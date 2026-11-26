@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-26 | Wstęp: prolog na czarnym tle (4 zdania: ręka, szukanie lekarstwa, karczmarka we wsi, przyjście o zmierzchu), bohater przychodzi drogą z południa o zmierzchu, odkrywanie: 6 miejsc ze złotymi błyskami (E: ognisko, totem, stos drewna, belka z imionami, palenisko, posłanie) i pierwsza kartka; licznik „obejrzane X z 7”; po wszystkim zapada noc. Ciemność nocy znów rysowana (komentarz połykał drawRect od 25 XI), lekko: 0,55 × mroczek. | zrobione |
 | 2026-11-26 | Świt po rycerzu: z ciała schodzi klątwa (czarny dym, żar, potem złote drobiny), wschodzi słońce (ciepła poświata i promienie z prawego górnego rogu), deszcz i mgła znikają, cztery myśli bohatera, ekran „Świt nad polaną” z zapowiedzią: pierwszy etap, następny ślad na bagnach wiedźmy. | zrobione |
 | 2026-11-26 | Boss nie powtarza ataku dwa razy pod rząd (było: przy niskim życiu potrafił doskoczyć 4 razy z rzędu). Wściekłość zostaje jako krótszy odpoczynek. | zrobione |
 | 2026-11-26 | Plan na 26 XI (Patryk 0:56): (1) świt po bossie: słońce nad pokonanym rycerzem, klątwa schodzi z tego miejsca; to dopiero pierwszy etap zdejmowania klątwy, dalej kolejna zagadka/miejsce. (2) łupy z bossa i plecak. | plan |

@@ -1,6 +1,6 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
 import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke } from './walka.js';
-import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA } from './dane.js';
+import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
@@ -95,8 +95,28 @@ async function start() {
   }
   $('zacznij').addEventListener('click', () => {
     try { if (matchMedia('(pointer: coarse)').matches && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); } catch (e) { /* bez pełnego ekranu */ }
-    wznow();
+    obudzDzwiek(); pokaz('ekran-startu', false);
+    prolog(wznow);
   });
+  // Prolog (26 XI): zdania na czarnym tle, każde po kilku sekundach albo po dotknięciu; potem bohater przychodzi na polanę.
+  function prolog(potem) {
+    const el = $('prolog'), tekst = $('prolog-tekst'); tekst.textContent = ''; pokaz('prolog', true);
+    let i = 0, czekaj = null, koniec = false;
+    const zakoncz = () => { if (koniec) return; koniec = true; clearTimeout(czekaj); removeEventListener('keydown', klawisz, true); pokaz('prolog', false); potem(); };
+    const nastepne = () => {
+      clearTimeout(czekaj);
+      if (i >= WSTEP.prolog.length) { zakoncz(); return; }
+      for (const p of tekst.children) p.classList.add('minione');
+      const p = document.createElement('p'); p.textContent = WSTEP.prolog[i++]; tekst.append(p);
+      requestAnimationFrame(() => requestAnimationFrame(() => p.classList.add('widac')));
+      if (i === 1) setTimeout(() => $('prolog-dalej').classList.add('widac'), 2500);
+      czekaj = setTimeout(nastepne, 1800 + p.textContent.length * 55);
+    };
+    const klawisz = e => { if ([' ', 'enter', 'e'].includes(e.key.toLowerCase())) { e.preventDefault(); e.stopImmediatePropagation(); nastepne(); } else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); zakoncz(); } };
+    el.onclick = e => { if (e.target.id === 'prolog-pomin') zakoncz(); else nastepne(); };
+    addEventListener('keydown', klawisz, true);
+    nastepne();
+  }
   $('wroc').addEventListener('click', wznow);
   const zatrzymaj = () => { if (zaczeta && !pauza && gra.faza !== 'koniec') { pauza = true; pokaz('ekran-pauzy', true); } };
   $('przycisk-pauza').addEventListener('click', zatrzymaj);
