@@ -1,6 +1,6 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak } from './walka.js';
-import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY } from './dane.js';
+import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole } from './walka.js';
+import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
@@ -173,6 +173,7 @@ async function start() {
     hud.aktualizuj(gra, dt, rys.opis);
     pokazWybor();
     pokazKartke();
+    if (!!gra.stol !== stolPokazany) { stolPokazany = !!gra.stol; pokaz('ekran-stolu', stolPokazany); if (stolPokazany) pokazStol(); }
   }
   // Plecak (26 XI): I albo przycisk; gra stoi. Pola: mikstury, rzeczy z potworów i łup z rycerza, przeczytane kartki.
   let plecakOtwarty = false, kartkaZPlecaka = false;
@@ -216,6 +217,26 @@ async function start() {
     if (pauza && !plecakOtwarty) return; przelaczPlecak();
   });
   const ikonaPlecaka = new Image(); ikonaPlecaka.onload = () => { $('przycisk-plecak').style.backgroundImage = 'url(grafika/przedmioty/plecak.webp)'; $('przycisk-plecak').classList.add('ma-ikone'); }; ikonaPlecaka.src = 'grafika/przedmioty/plecak.webp';
+  // Stół w izbie (26 XI): przerabianie łupów na trwałe ulepszenia; gra stoi, dopóki nie odejdziesz.
+  let stolPokazany = false;
+  function pokazStol() {
+    const lista = $('przepisy'); lista.textContent = '';
+    for (const r of STOL) {
+      const poz = gra.trwale[r.id] || 0, k = kosztStolu(gra, r), d = document.createElement('div'); d.className = 'przepis';
+      const t = document.createElement('strong'); t.textContent = `${r.nazwa}${r.max > 1 ? ` (${poz}/${r.max})` : ''}`;
+      const o = document.createElement('p'); o.className = 'opis'; o.textContent = r.opis;
+      const ko = document.createElement('div'); ko.className = 'koszt';
+      if (poz < r.max) for (const id in k) {
+        const sp = document.createElement('span'), im = document.createElement('img'); im.src = `grafika/przedmioty/${id}.webp`; im.alt = '';
+        const ma = gra.plecak[id] || 0; sp.append(im, `${PRZEDMIOTY[id].nazwa}: ${ma}/${k[id]}`); if (ma < k[id]) sp.classList.add('brak'); ko.append(sp);
+      } else ko.textContent = 'Zrobione do końca.';
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'drugi'; b.textContent = 'Zrób'; b.disabled = !mozeZrobic(gra, r);
+      b.addEventListener('click', () => { if (zrobNaStole(gra, r.id)) pokazStol(); });
+      d.append(t, b, o, ko); lista.append(d);
+    }
+  }
+  $('odejdz-od-stolu').addEventListener('click', () => { gra.stol = false; });
+
   // rzeczy zostają między grami: zapis, gdy coś przybędzie
   let plecakZapisany = '';
   setInterval(() => { const t = JSON.stringify(gra.plecak); if (t !== plecakZapisany) { plecakZapisany = t; zapiszPlecak(gra); } }, 1000);

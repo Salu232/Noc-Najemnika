@@ -8,6 +8,8 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-26 | Stół w izbie (E poza walką): łupy na trwałe ulepszenia między grami — klinga z pazurów (szybsze cięcie), talizman z kła (−10% ran), wywar z krwi (klątwa szybciej), wyściółka z przyłbicy (+1 mikstura na start); po 3 poziomy, koszt rośnie. Kartki podniesione w walce czekają do ciszy po fali. | zrobione |
+| 2026-11-26 | Do zrobienia: czworonożny stwór, który doskakuje (trzeba robić unik); handel i sprzedaż u kupca. | plan |
 | 2026-11-26 | Ikony przedmiotów z arkusza Gemini (amulet, pazur, kieł, krew, plecak, przyłbica): narzedzia/wytnij-przedmioty.py, tło zdejmowane zalewaniem od brzegu (kolory zostają, poświata fiolki półprzezroczysta). Ikony w plecaku, na ziemi i na przycisku plecaka. | zrobione |
 | 2026-11-26 | Plecak (I albo przycisk obok pauzy, gra stoi): mikstury, rzeczy z potworów (pazur ghula 18%, kieł kolosa zawsze, krew wiedźmy 50%), łup z rycerza (przyłbica i amulet ze znakiem bagien, nie znikają), kartki do ponownego czytania. Rzeczy zostają między grami (localStorage). Ikony zastępcze, dopóki nie przyjdą z Gemini (grafika/przedmioty/<id>.webp, plecak.webp). | zrobione |
 | 2026-11-26 | Wstęp: start na drodze przy skraju lasu (dalej od chaty). Podpowiedzi rzadkie i zagadkowe (pierwsza po 35 s uczy tylko E, potem co 45 s bez odkrycia zagadka o najbliższym miejscu); błyski słabsze. Patryk: „nie takie zbyt proste”. | zrobione |

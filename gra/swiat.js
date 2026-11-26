@@ -36,6 +36,7 @@ CHATA.sprzety = [
 ];
 CHATA.poslanie = { ...zObrazu(330, 560), r: 42 }; // tu kładzie się spać
 CHATA.palenisko = zObrazu(518, 410);              // ogień w izbie: tu świeci
+CHATA.stol = { ...zObrazu(682, 592), r: 48 };     // stół przy ławie: przerabianie łupów (26 XI)
 CHATA.drzwiOtwarte = false;                       // ustawia walka.js: drzwi otwiera E, w walce są zamknięte
 CHATA.ploty = [
   [[160, 470], [45, 585]], [[45, 585], [30, 805]],

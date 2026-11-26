@@ -1,5 +1,5 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY } from './dane.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL } from './dane.js';
 import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
@@ -22,10 +22,12 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
     totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
     lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [],
-    plecak: wczytajPlecak(),                                            // rzeczy zostają między grami (main.js zapisuje)
+    plecak: wczytaj('noc-plecak'),                                            // rzeczy zostają między grami (main.js zapisuje)
     kartka: null, czytana: null, kartki: 0, przemiana: 0,   // dziennik rycerza i cena klątwy (25 XI)
     mod: { zasieg: 1, szybkosc: 1, garda: 1, oddech: 1, klatwa: 1, cialo: 1 },
   };
+  gra.trwale = wczytaj('noc-trwale');
+  zastosujTrwale(gra);
   zastosujBron(gra);
   postawBohatera(gra);
   // chata wygląda na zamieszkałą, ale nikogo w niej nie ma; pierwsza kartka leży w izbie (Patryk, 25 XI 20:35)
@@ -50,14 +52,35 @@ function postawBohatera(gra) {
     odrzutX: 0, odrzutY: 0, chod: 0, idzie: false, flash: 0,
     klatwa: KLATWA.start, klatwaUderzyla: false,
     wChacie: false, spi: false,     // w izbie chaty (cisza stoi, leczy się); śpi na posłaniu: niewidoczny, nietykalny
-    mikstury: gra.bohater ? gra.bohater.mikstury : LUP.start, drewno: false,
+    mikstury: gra.bohater ? gra.bohater.mikstury : Math.min(LUP.max, LUP.start + ((gra.trwale && gra.trwale.helm) || 0)), drewno: false,
   };
 }
 
-function wczytajPlecak() {
-  try { const p = JSON.parse(localStorage.getItem('noc-plecak') || '{}'); return p && typeof p === 'object' ? p : {}; } catch (e) { return {}; }
+function wczytaj(klucz) {
+  try { const p = JSON.parse(localStorage.getItem(klucz) || '{}'); return p && typeof p === 'object' ? p : {}; } catch (e) { return {}; }
 }
-export function zapiszPlecak(gra) { try { localStorage.setItem('noc-plecak', JSON.stringify(gra.plecak)); } catch (e) { /* bez pamięci */ } }
+export function zapiszPlecak(gra) { try { localStorage.setItem('noc-plecak', JSON.stringify(gra.plecak)); localStorage.setItem('noc-trwale', JSON.stringify(gra.trwale)); } catch (e) { /* bez pamięci */ } }
+
+// Stół w izbie: trwałe ulepszenia z łupów (dane.js, STOL)
+function efektStolu(gra, id) {
+  const m = gra.mod;
+  if (id === 'klinga') m.szybkosc *= 0.93;
+  else if (id === 'talizman') m.cialo *= 0.9;
+  else if (id === 'wywar') m.klatwa *= 1.25;
+}
+function zastosujTrwale(gra) { for (const r of STOL) for (let i = 0; i < (gra.trwale[r.id] || 0); i++) efektStolu(gra, r.id); }
+export function kosztStolu(gra, r) { const poz = (gra.trwale[r.id] || 0) + 1, k = {}; for (const id in r.koszt) k[id] = r.koszt[id] * poz; return k; }
+export function mozeZrobic(gra, r) {
+  if ((gra.trwale[r.id] || 0) >= r.max) return false;
+  const k = kosztStolu(gra, r); for (const id in k) if ((gra.plecak[id] || 0) < k[id]) return false; return true;
+}
+export function zrobNaStole(gra, id) {
+  const r = STOL.find(x => x.id === id); if (!r || !mozeZrobic(gra, r)) return false;
+  const k = kosztStolu(gra, r); for (const p in k) gra.plecak[p] -= k[p];
+  gra.trwale[id] = (gra.trwale[id] || 0) + 1; efektStolu(gra, id); zastosujBron(gra);
+  if (id === 'helm') gra.bohater.mikstury = Math.min(LUP.max, gra.bohater.mikstury + 1);
+  zapiszPlecak(gra); gra.zdarzenia.push({ typ: 'ulepszenie', id }); return true;
+}
 
 export function powiedz(gra, tekst, czas = 3.5) { gra.mysl.tekst = tekst; gra.mysl.czas = czas; }
 
@@ -94,7 +117,9 @@ export function wybierzUlepszenie(gra, id) {
 export function zamknijKartke(gra) { gra.czytana = null; }
 
 export function aktualizuj(gra, dt, w) {
-  if (gra.wybor || gra.czytana !== null) return;                  // wybór ulepszenia albo czytanie kartki: noc czeka
+  // kartka podniesiona w walce czeka na ciszę po fali (Patryk, 26 XI 13:27: trzy kartki w minutę przerywały walkę)
+  if (gra.kartkaCzeka != null && gra.faza !== 'walka' && !gra.wybor && gra.czytana === null) { gra.czytana = gra.kartkaCzeka; gra.kartkaCzeka = null; }
+  if (gra.wybor || gra.czytana !== null || gra.stol) return;      // wybór ulepszenia, kartka albo stół: noc czeka
   if (gra.zatrzymanie > 0) { gra.zatrzymanie -= dt; return; }   // krótkie zatrzymanie po trafieniu: czuć ciężar ciosu
   gra.czas += dt;
   if (gra.faza !== 'koniec') gra.statystyki.czas += dt;
@@ -104,6 +129,12 @@ export function aktualizuj(gra, dt, w) {
   if (gra.faza === 'wstep') odkrywanie(gra, w, dt);
   aktualizujBohatera(gra, dt, w);
   if (gra.odkryj && gra.bohater.stan === 'wolny' && !gra.bohater.spi) gra.akcja = 'obejrzyj';
+  {                                                                     // stół w izbie: poza walką
+    const b = gra.bohater;
+    if (!gra.akcja && b.wChacie && b.stan === 'wolny' && !b.spi && gra.faza !== 'walka' && Math.hypot(b.x - CHATA.stol.x, b.y - CHATA.stol.y) < CHATA.stol.r + b.promien) {
+      gra.akcja = 'stol'; if (w.akcja) { w.akcja = false; gra.stol = true; }
+    }
+  }
   aktualizujCele(gra, dt, w);
   aktualizujWrogow(gra, dt);
   aktualizujPociski(gra, dt);
@@ -834,7 +865,9 @@ function aktualizujCele(gra, dt, w) {
   }
   // kartka z dziennika: podniesiona otwiera się do czytania
   if (gra.kartka && b.stan !== 'upadl' && Math.hypot(gra.kartka.x - b.x, gra.kartka.y - b.y) < KARTKA.zasieg + b.promien) {
-    gra.czytana = gra.kartka.nr; gra.kartki++; gra.zdarzenia.push({ typ: 'kartka', x: gra.kartka.x, y: gra.kartka.y }); gra.kartka = null;
+    if (gra.faza === 'walka') { gra.kartkaCzeka = gra.kartka.nr; powiedz(gra, 'Kartka z dziennika. Przeczytam, kiedy ucichnie.', 2.5); }
+    else gra.czytana = gra.kartka.nr;
+    gra.kartki++; gra.zdarzenia.push({ typ: 'kartka', x: gra.kartka.x, y: gra.kartka.y }); gra.kartka = null;
   }
   // ognisko gaśnie; drewno ze stosu pod chatą
   if (gra.faza === 'walka' || gra.faza === 'przerwa') gra.ogien = Math.max(OGIEN.minimum, gra.ogien - dt / OGIEN.czas);

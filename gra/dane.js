@@ -278,3 +278,12 @@ export const PRZEDMIOTY = {
   helm: { nazwa: 'Przyłbica rycerza', opis: 'Okopcona, z dwoma rogami. W pęknięciach jeszcze tli się żar.', kolor: '#8a2a18', z: 'rycerz', szansa: 1 },
   amulet: { nazwa: 'Amulet rycerza', opis: 'Srebro na zerwanym łańcuszku. Wyryte trzciny i półksiężyc: znak bagien. Pierwszy ślad.', kolor: '#b8b8c8', z: 'rycerz', szansa: 1, wazny: true },
 };
+
+// Stół w izbie (26 XI, Patryk: „teraz je wykorzystać”): między falami przerabiasz rzeczy z plecaka na trwałe ulepszenia.
+// Zostają między grami (w tej przeglądarce). koszt rośnie z każdym poziomem (koszt × poziom). Amulet rycerza się nie zużywa.
+export const STOL = [
+  { id: 'klinga', nazwa: 'Klinga szlifowana pazurami', opis: 'Cięcie i powrót miecza o 7% szybsze.', koszt: { pazur: 4 }, max: 3 },
+  { id: 'talizman', nazwa: 'Talizman z kła', opis: 'Rany od potworów o 10% lżejsze.', koszt: { kiel: 1 }, max: 3 },
+  { id: 'wywar', nazwa: 'Wywar z krwi wiedźmy', opis: 'Pasek klątwy napełnia się o 25% szybciej.', koszt: { krew: 1 }, max: 3 },
+  { id: 'helm', nazwa: 'Wyściółka z przyłbicy', opis: 'Zaczynasz noc z jedną miksturą więcej.', koszt: { helm: 1, kiel: 1 }, max: 2 },
+];
