@@ -484,6 +484,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const pulaBlyskow = pula(aktorzy, () => { const s = new P.Sprite(); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffd8c8; return s; });   // potwór rozbłyska, gdy dostaje
   const pulaEch = pula(echaS, () => { const s = new P.Sprite(); s.tint = 0x9fb4cc; return s; });
   const pulaLupu = pula(aktorzy, () => { const s = new P.Sprite(); return s; });
+  const ikonyRzeczy = {};
+  const ikonaRzeczy = id => ikonyRzeczy[id] || (ikonyRzeczy[id] = P.Texture.from(new URL(`../grafika/przedmioty/${id}.webp`, import.meta.url).href));
   // kartka z dziennika rycerza leży na ziemi i ciepło się żarzy, żeby było ją widać w ciemności (25 XI)
   const kartkaS = new P.Sprite(obrazKartki ? P.Texture.from(obrazKartki) : P.Texture.WHITE); kartkaS.anchor.set(0.5, 0.7); kartkaS.visible = false; aktorzy.addChild(kartkaS);
   if (!obrazKartki) { kartkaS.tint = 0xd8c8a0; kartkaS.width = 26; kartkaS.height = 18; } else kartkaS.scale.set(0.42);
@@ -1478,10 +1480,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     pulaLupu.start();
     for (const l of gra.lup || []) {
       const sp = pulaLupu.wez(), f = R && R.mikstura;
-      if (l.typ !== 'mikstura') {                                         // rzecz do plecaka: na razie świecący punkt w jej kolorze (ikony z Gemini dojdą)
-        const pr = PRZEDMIOTY[l.typ]; sp.texture = T.iskra; sp.anchor.set(0.5); sp.blendMode = P.BLEND_MODES.ADD;
-        sp.tint = parseInt(pr.kolor.slice(1), 16) | 0x303030; const r = (pr.z === 'rycerz' ? 34 : 22) * (0.85 + 0.15 * Math.sin(czas * 4 + l.x));
-        sp.width = sp.height = r; sp.position.set(l.x, l.y - 8); sp.zIndex = l.y; sp.alpha = 1;
+      if (l.typ !== 'mikstura') {                                         // rzecz do plecaka: ikona z arkusza Gemini (26 XI), lekko podskakuje
+        const pr = PRZEDMIOTY[l.typ], tx = ikonaRzeczy(l.typ);
+        if (tx.valid) { sp.texture = tx; sp.anchor.set(0.5, 0.85); sp.blendMode = P.BLEND_MODES.NORMAL; sp.tint = 0xffffff; sp.width = sp.height = pr.z === 'rycerz' ? 40 : 30; }
+        else { sp.texture = T.iskra; sp.anchor.set(0.5); sp.blendMode = P.BLEND_MODES.ADD; sp.tint = parseInt(pr.kolor.slice(1), 16) | 0x303030; sp.width = sp.height = 24; }
+        sp.position.set(l.x, l.y - 2 - Math.abs(Math.sin(czas * 3 + l.x)) * 5); sp.zIndex = l.y; sp.alpha = l.t > LUP.znika - 4 && !l.trwa ? 0.5 + 0.5 * Math.sin(czas * 12) : 1;
         if (Math.random() < dt * 2) obloczek(l.x + losuj(-6, 6), l.y - 10, 0, losuj(-26, -12), 1.2, 2, 0.8, 0.8, 0xffe8b0, false);
         continue;
       }

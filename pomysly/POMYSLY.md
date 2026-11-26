@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-26 | Ikony przedmiotów z arkusza Gemini (amulet, pazur, kieł, krew, plecak, przyłbica): narzedzia/wytnij-przedmioty.py, tło zdejmowane zalewaniem od brzegu (kolory zostają, poświata fiolki półprzezroczysta). Ikony w plecaku, na ziemi i na przycisku plecaka. | zrobione |
 | 2026-11-26 | Plecak (I albo przycisk obok pauzy, gra stoi): mikstury, rzeczy z potworów (pazur ghula 18%, kieł kolosa zawsze, krew wiedźmy 50%), łup z rycerza (przyłbica i amulet ze znakiem bagien, nie znikają), kartki do ponownego czytania. Rzeczy zostają między grami (localStorage). Ikony zastępcze, dopóki nie przyjdą z Gemini (grafika/przedmioty/<id>.webp, plecak.webp). | zrobione |
 | 2026-11-26 | Wstęp: start na drodze przy skraju lasu (dalej od chaty). Podpowiedzi rzadkie i zagadkowe (pierwsza po 35 s uczy tylko E, potem co 45 s bez odkrycia zagadka o najbliższym miejscu); błyski słabsze. Patryk: „nie takie zbyt proste”. | zrobione |
 | 2026-11-26 | Wstęp: prolog na czarnym tle (4 zdania: ręka, szukanie lekarstwa, karczmarka we wsi, przyjście o zmierzchu), bohater przychodzi drogą z południa o zmierzchu, odkrywanie: 6 miejsc ze złotymi błyskami (E: ognisko, totem, stos drewna, belka z imionami, palenisko, posłanie) i pierwsza kartka; licznik „obejrzane X z 7”; po wszystkim zapada noc. Ciemność nocy znów rysowana (komentarz połykał drawRect od 25 XI), lekko: 0,55 × mroczek. | zrobione |
