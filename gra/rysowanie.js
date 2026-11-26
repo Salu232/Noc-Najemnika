@@ -15,12 +15,13 @@ const OB = 0x0b0a09;           // kolor obrysu
 const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
-const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32 };   // na jakiej wysokości miecz przecina ciało wroga
+const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32, bestia: 17 };   // na jakiej wysokości miecz przecina ciało wroga
 // Potwory z filmów Przemka (narzedzia/wytnij-z-filmow.py): ghul ma 72 jednostki wzrostu, kolos 165.
 const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
   wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },
+  bestia: { ciecie: 32, droga: 330, smierc: 1.4, trafienie: 0.3, oko: { x: 48, y: -66 }, cien: 3.0 },   // czworonożny skoczek z filmów Patryka (26 XI)
   rycerz: { ciecie: 75, droga: 420, drogaChod: 190, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
@@ -112,7 +113,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       ax: wzor.ox / wzor.w, ay: wzor.oy / wzor.h, ayDol: (wzor.oy * O.PX - cut) / (a.ch - cut),
     };
   }
-  atlasy.wiedzma = atlasy.ghul;                     // wiedźma nie ma rysunku kodem: bez obrazu z filmów wygląda jak ghul
+  atlasy.wiedzma = atlasy.bestia = atlasy.ghul;                     // wiedźma nie ma rysunku kodem: bez obrazu z filmów wygląda jak ghul
   // bohater z filmów Przemka (Gemini): klatki animacji w grafika/bohater.webp, wycięte narzędziem narzedzia/wytnij-z-filmow.py
   const klatkiB = {};
   if (obrazBohatera) {
@@ -802,6 +803,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // Doskok dostaje tylko łuk lotu z kodu, bo w filmie podskakuje w miejscu, a w grze leci na bohatera.
     let nast = null, przenik = 0, wzlot = 0;
     if (typ.boss && e.at && e.at.leci && e.stan === 'skok') { const kk = Math.min(1, e.t / (czasy.skok * czasy.trafW)); wzlot = 45 * Math.sin(Math.PI * kk); }
+    if (typ.doskok && e.stan === 'skok') wzlot = 18 * Math.sin(Math.PI * Math.min(1, e.t / typ.skok));
     const sp = pulaWrogow.wez();
     sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.scale.set(fw.skala * zn * skx, fw.skala * sky); sp.rotation = rot;
     sp.position.set(e.x + (e.drzy || 0), e.y - wzlot); sp.zIndex = e.y; sp.alpha = e.stan === 'wynurza' ? e.widac : 1;

@@ -188,6 +188,19 @@ POSTACIE = {
             'trup':       ('wiedzma-smierc', [189]),
         },
     },
+    'bestia': {   # czworonożny skoczek (Patryk z Omni Flash, 26 XI): biegnie, przysiada i skacze na bohatera
+        'obraz': 'grafika/bestia.webp',
+        'stopy': (347, 348), 'wys_film': 335, 'wys_swiat': 78, 'skala_obrazu': 0.4,
+        'animacje': {
+            'chod':       ('bestia-bieg', list(range(1, 72, 3))),
+            'zamach':     ('bestia-doskok', [1, 4, 8, 12, 16]),
+            'skok':       ('bestia-doskok', [20, 24, 28, 32, 36, 40]),
+            'odpoczynek': ('bestia-doskok', [44, 48, 52, 56, 60, 64, 68, 72]),
+            'trafienie':  ('bestia-smierc', [24, 26, 28, 30, 32]),
+            'smierc':     ('bestia-smierc', [22, 24, 26, 28, 30, 32, 34, 36, 40, 44, 48, 52, 56, 60, 66]),   # do klatki 20 w kadr wchodzi czyjaś ręka (Patryk, 26 XI): ją pomijamy
+            'trup':       ('bestia-smierc', [72]),
+        },
+    },
 }
 ODWROC = set()   # 25 XI 15:08: odwracanie filmów wiedźmy było błędem (patrzyła tyłem do bohatera), filmy zostają jak są
 # W klatkach 39–49 cięcia smuga z filmu zasłania biodra i po jej zdjęciu zostaje dziura.
@@ -198,7 +211,7 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'boss/rycerz-f2-wbicie-3': (332, 333), 'boss/rycerz-f2-doskok': (332, 333), 'boss/rycerz-f2-wbicie-lapa': (332, 333), 'boss/arkusz-wbicie': (337, 445), 'boss/arkusz-doskok': (337, 445), **{f'boss/rycerz-f2-{n}': (337, 325) for n in ('chod', 'pazur-pchniecie', 'pazur-i-ciecie-blyskawica', 'smierc-na-ziemi')}, 'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
+STOPY_FILMU = {'bestia-bieg': (348, 337), 'boss/rycerz-f2-wbicie-3': (332, 333), 'boss/rycerz-f2-doskok': (332, 333), 'boss/rycerz-f2-wbicie-lapa': (332, 333), 'boss/arkusz-wbicie': (337, 445), 'boss/arkusz-doskok': (337, 445), **{f'boss/rycerz-f2-{n}': (337, 325) for n in ('chod', 'pazur-pchniecie', 'pazur-i-ciecie-blyskawica', 'smierc-na-ziemi')}, 'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
 SKALA_FILMU = {'boss/rycerz-f2-wbicie-3': 1.34, 'boss/rycerz-f2-doskok': 1.34, 'boss/rycerz-f2-wbicie-lapa': 1.34, 'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}

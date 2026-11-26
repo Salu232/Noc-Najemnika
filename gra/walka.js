@@ -623,11 +623,16 @@ function aktualizujWrogow(gra, dt) {
       if (e.t >= (e.at || typ).zamach) {
         e.stan = 'skok'; e.t = 0; e.drzy = 0; e.trafil = false;
         if (e.at && e.at.leci) e.skokOd = { x: e.x, y: e.y };
+        if (typ.doskok) {                                                    // bestia: skacze tam, gdzie bohater stoi teraz, i trochę dalej
+          const dl = Math.min(d + 35, typ.zasiegAtaku + 60);
+          e.lot = { vx: Math.cos(doBoh) * dl / typ.skok, vy: Math.sin(doBoh) * dl / typ.skok / PION };
+        }
         if (typ.pocisk) {                                                   // rzuca kulę tam, gdzie bohater stoi teraz
           const pc = typ.pocisk, sx = Math.cos(doBoh) >= 0 ? 1 : -1;
           gra.pociski.push({ x: e.x + sx * 14, y: e.y, z: 95, vx: Math.cos(doBoh) * pc.szybkosc, vy: Math.sin(doBoh) * pc.szybkosc, t: 0, zycie: pc.zycie, promien: pc.promien, obrazenia: e.obrazenia });
           gra.zdarzenia.push({ typ: 'rzut', x: e.x, y: e.y });
         }
+        else if (typ.doskok) { e.vx = e.lot.vx; e.vy = e.lot.vy; }
         else if (!typ.ciezki) { e.vx = Math.cos(e.kat) * 400; e.vy = Math.sin(e.kat) * 400; }
         else { gra.wstrzas = Math.max(gra.wstrzas, 10); gra.zdarzenia.push({ typ: 'tapniecie' }); }
       }
@@ -643,7 +648,8 @@ function aktualizujWrogow(gra, dt) {
       } else if (!e.trafil && !typ.ciezki && !typ.pocisk && e.t >= 0.03 && d < e.promien + b.promien + 22) {
         e.trafil = true; trafBohatera(gra, e);          // ghul trafia, jeśli w czasie skoku dosięgnie bohatera
       }
-      if (e.t >= (e.at || typ).skok) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; }
+      if (typ.doskok && e.lot) { e.vx = e.lot.vx; e.vy = e.lot.vy; }       // leci równo do celu, ściany chaty go zatrzymują
+      if (e.t >= (e.at || typ).skok) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; e.lot = null; if (typ.doskok) { e.vx *= 0.15; e.vy *= 0.15; } }
     } else if (e.stan === 'odpoczynek') {
       ax = dx / d * szyb * 0.35; ay = dy / d * szyb * 0.35;
       if (e.t >= e.odpoczynek) { e.stan = 'idzie'; e.t = 0; e.at = null; }

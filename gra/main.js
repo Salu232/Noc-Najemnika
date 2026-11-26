@@ -29,9 +29,9 @@ function pokaz(id, widac) { $(id).hidden = !widac; }
 
 async function start() {
   const cv = $('gra');
-  let obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazRycerza, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki;
+  let obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazRycerza, obrazBestii, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki;
   try {
-    [, obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazRycerza, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki] = await Promise.all([
+    [, obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazRycerza, obrazBestii, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki] = await Promise.all([
       zaladujPixi(), zaladujObraz(new URL('../grafika/chata.webp', import.meta.url).href, 'chata'),
       zaladujObraz(new URL('../grafika/bohater.webp', import.meta.url).href, 'bohater').catch(() => null),   // bez niego gra rysuje bohatera kodem
       zaladujObraz(new URL('../grafika/bohater-wielki.webp', import.meta.url).href, 'bohater z dwuręcznym').catch(() => null),   // cięcie, garda, bieg i blok z mieczem dwuręcznym
@@ -39,6 +39,7 @@ async function start() {
       zaladujObraz(new URL('../grafika/kolos.webp', import.meta.url).href, 'kolos').catch(() => null),
       zaladujObraz(new URL('../grafika/wiedzma.webp', import.meta.url).href, 'wiedzma').catch(() => null),
       zaladujObraz(new URL('../grafika/rycerz.webp', import.meta.url).href, 'rycerz').catch(() => null),   // boss ostatniej nocy
+      zaladujObraz(new URL('../grafika/bestia.webp', import.meta.url).href, 'bestia').catch(() => null),   // czworonożny skoczek (26 XI)
       zaladujObraz(new URL('../grafika/chata-bez-dachu.webp', import.meta.url).href, 'chata bez dachu').catch(() => null),   // izba jak w Tibii (docs/chata.md)
       zaladujObraz(new URL('../grafika/chata-drzwi-zamkniete.webp', import.meta.url).href, 'drzwi').catch(() => null),   // zamknięte drzwi widziane z izby
       zaladujObraz(new URL('../grafika/rekwizyty.webp', import.meta.url).href, 'rekwizyty').catch(() => null),   // drzewa, kępy, krew i ognisko z arkuszy Przemka; bez nich rysowane kodem
@@ -57,7 +58,7 @@ async function start() {
   let wyglad = 'gemini';
   try { if (localStorage.getItem('noc-bohater') === 'rysowany') wyglad = 'rysowany'; } catch (e) { /* bez pamięci */ }
   if (/bohater=rysowany/.test(location.search)) wyglad = 'rysowany';
-  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, obrazBohateraWielki, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa, wiedzma: obrazWiedzmy, rycerz: obrazRycerza }, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki }); }
+  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, obrazBohateraWielki, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa, wiedzma: obrazWiedzmy, rycerz: obrazRycerza, bestia: obrazBestii }, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki }); }
   catch (e) { $('ladowanie').textContent = 'Ta przeglądarka nie umie narysować gry: ' + (e && e.message || e); return; }
 
   const wejscie = przygotujWejscie(cv, {

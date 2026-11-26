@@ -121,6 +121,23 @@ export const WROGOWIE = {
     ciezki: false,
     pocisk: { szybkosc: 250, promien: 11, zycie: 2.4 },
   },
+  // Bestia (Patryk, 26 XI: „4-nożny stwór, co doskakuje i musisz unikać”; filmy z Omni Flash). Biega szybko,
+  // z daleka przysiada (zamach) i skacze tam, gdzie bohater stał w chwili skoku. Trzeba odskoczyć albo odbić tarczą.
+  // Po pudle długo się zbiera: wtedy jest okazja do cięcia.
+  bestia: {
+    nazwa: 'bestia',
+    zycie: [3, 4],
+    szybkosc: [125, 145],
+    promien: 16,
+    skala: 1.3,
+    zasiegAtaku: 230,      // z tej odległości przysiada do skoku
+    zamach: 0.6,
+    skok: 0.45,            // lot: przez tyle sekund leci do celu
+    obrazenia: 16,
+    odpoczynek: 1.6,
+    ciezki: false,
+    doskok: true,
+  },
   // Boss ostatniej nocy (Patryk, 25 XI: dwie fazy, „widzimy, kim możemy się stać”). Rycerz z kartek dziennika: czekał przy ogniu.
   // W połowie życia klątwa go bierze (przemiana, wtedy nietykalny), w drugiej fazie jest szybszy i bije pazurem.
   // Każdy atak ostrzega czerwonym kręgiem na ziemi, jak kolos: cel to punkt przed nim, strefa to promień trafienia.
@@ -172,13 +189,13 @@ export const ETAPY = [
     nazwa: 'Kilku',
     mysl: 'Więcej oczu. Trzymaj się ognia.',
     zlosc: { szybkosc: 1.12, odpoczynek: 0.8, zycie: 1.2, obrazenia: 1.15 },
-    grupy: [{ typ: 'ghul', ile: 9, z: ['wschod', 'poludnie', 'zachod'], co: 0.9 }, { typ: 'wiedzma', ile: 1, z: ['poludnie'], co: 4 }],
+    grupy: [{ typ: 'ghul', ile: 9, z: ['wschod', 'poludnie', 'zachod'], co: 0.9 }, { typ: 'wiedzma', ile: 1, z: ['poludnie'], co: 4 }, { typ: 'bestia', ile: 1, z: ['wschod'], co: 0, od: 8 }],
   },
   {
     nazwa: 'Horda',
     mysl: 'Idą wszystkie naraz.',
     zlosc: { szybkosc: 1.2, odpoczynek: 0.66, zycie: 1.4, obrazenia: 1.3 },
-    grupy: [{ typ: 'ghul', ile: 16, z: ['zachod', 'wschod', 'poludnie'], co: 0.25 }, { typ: 'wiedzma', ile: 2, z: ['zachod', 'wschod'], co: 5 }],
+    grupy: [{ typ: 'ghul', ile: 16, z: ['zachod', 'wschod', 'poludnie'], co: 0.25 }, { typ: 'wiedzma', ile: 2, z: ['zachod', 'wschod'], co: 5 }, { typ: 'bestia', ile: 3, z: ['poludnie', 'zachod', 'wschod'], co: 6, od: 4 }],
   },
   {
     // Ostatnia noc: rycerz z kartek czeka przy ogniu (25 XI wieczorem; wcześniej tu były dwa kolosy i 18 ghuli).
@@ -191,6 +208,7 @@ export const ETAPY = [
       { typ: 'kolos', ile: 1, z: ['poludnie'], co: 0, od: 30 },
       { typ: 'ghul', ile: 10, z: ['zachod', 'wschod'], co: 1.4 },
       { typ: 'wiedzma', ile: 1, z: ['wschod'], co: 0, od: 18 },
+      { typ: 'bestia', ile: 2, z: ['zachod', 'poludnie'], co: 10, od: 40 },
     ],
   },
 ];
