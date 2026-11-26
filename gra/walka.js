@@ -556,7 +556,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
     }
     // ciało pada od bohatera (rysowanie najpierw pokazuje upadek, potem zostawia ślad na ziemi)
     const odBoh = Math.cos(kat) >= 0 ? 1 : -1;
-    gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: odBoh * losuj(0.75, 1.3), sx: -odBoh, kat, pada: true, przeciety: przecina && !e.typ.ciezki && !e.typ.pocisk && !e.typ.doskok });   // kolos i wiedźma padają z filmu (Patryk, 25 XI 16:17: przecięty boss „spada śmiesznie”)
+    gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: odBoh * losuj(0.75, 1.3), sx: -odBoh, kat, pada: true, przeciety: false });   // 26 XI, Patryk: przecięty ghul „pada śmiesznie”; wszyscy padają z filmu śmierci   // kolos i wiedźma padają z filmu (Patryk, 25 XI 16:17: przecięty boss „spada śmiesznie”)
     if (przecina) for (let i = 0; i < 10; i++) gra.krew.push({ x: e.x, y: e.y, z: 18 * e.typ.skala, vx: losuj(-60, 60), vy: losuj(-40, 40), vz: losuj(160, 300), r: losuj(1.5, 3.2) });
     gra.slady.push({ typ: 'kaluza', x: e.x, y: e.y, duza: true });
     gra.zdarzenia.push({ typ: 'smierc', ciezki: !!e.typ.ciezki });
