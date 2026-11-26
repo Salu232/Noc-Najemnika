@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-26 | Claude (z nagrania Patryka 20:43) | Kartki z walki nie otwierają się po fali jedna za drugą: czekają w plecaku ze znakiem „nowa kartka”. Przed bossem chwila na miksturę (bohater wchodzi z małym życiem po hordzie). | do zrobienia | |
 | 2026-11-26 | Patryk | Tempo fal: więcej czasu między falami (nie zdąży wejść do chaty); przed falą dźwięk ostrzegawczy; dynamiczna muzyka w walce; fala 1: bohater myśli, co się dzieje (nikt go tu nie chciał prowadzić); fala 2 zmusza do przygotowania; fala 3 podkreślona, że to nie koniec; fala 4 z bossem nie sam. | do zrobienia (następna sesja) | |
 | 2026-11-26 | Patryk | Zamiast totemów: portale przyzwane przez klątwę. Przeklęty bohater przyciąga przeklęte stwory (jak w Berserku). Przemek rozbił totemy, bo nie podszedł ich obejrzeć; Patryk na totemy nie zwracał uwagi, wciągała go walka. | do przemyślenia i zrobienia | |
 | 2026-11-26 | Patryk | Wytrzymałość: każdy przewrót (unik) zużywa jej więcej, po kilku pod rząd nie da się turlać, zostaje blok. Na bestię, która każe dużo unikać. | do zrobienia | |
