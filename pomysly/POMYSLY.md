@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-26 | Patryk, Przemek | Totemy: przed falą nie da się ich rozbić („Kamień śpi”), a rozbity ucisza swoją stronę tylko na tę falę; z każdą nową falą wstają. Powód: Przemek rozbił wszystkie przed pierwszą falą i skończył noc. Do tego chód w dół przodem tylko z mieczem w dłoni (film ma wyciągnięty miecz). | zrobione | v81 |
 | 2026-11-26 | Patryk | Ghul też już nie pada przecięty na pół: każdy potwór pada z filmu śmierci (mocny cios dalej daje więcej krwi). | zrobione | v80 |
 | 2026-11-26 | Patryk | Bestia nie daje się przeciąć na pół (źle wyglądało): zawsze pada z filmu śmierci. | zrobione | v79 |
 | 2026-11-26 | Patryk | Nowa gra zaczyna się z pustym plecakiem i bez ulepszeń ze stołu; zapisy postaci dopiero, gdy gra urośnie. Stare zapisy z przeglądarki są zdejmowane. | zrobione | v78 |

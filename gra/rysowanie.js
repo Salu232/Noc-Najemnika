@@ -1007,9 +1007,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const chodzi = b.idzie && b.stan === 'wolny' && !b.blok;
     if (chodzi && dd > 0 && dd < 40) {                                      // w górę ekranu plecami, z zapasem, żeby nie migało
       if (stanRys.ruch === 'bieg' && ddy < -0.8 * dd) { stanRys.ruch = 'chod_tyl'; }
-      else if (stanRys.ruch === 'bieg' && ddy > 0.8 * dd && AB.chod_przod) { stanRys.ruch = 'chod_przod'; }   // w dół przodem, gdy jest film
+      else if (stanRys.ruch === 'bieg' && ddy > 0.8 * dd && AB.chod_przod && stanRys.miecz === 'w_dloni') { stanRys.ruch = 'chod_przod'; }   // w dół przodem, gdy jest film; film ma miecz w dłoni, więc z mieczem w pochwie idzie bokiem (Patryk, 26 XI)
       else if (stanRys.ruch === 'chod_tyl' && ddy > -0.5 * dd) { stanRys.ruch = 'bieg'; }
-      else if (stanRys.ruch === 'chod_przod' && ddy < 0.5 * dd) { stanRys.ruch = 'bieg'; }
+      else if (stanRys.ruch === 'chod_przod' && (ddy < 0.5 * dd || stanRys.miecz !== 'w_dloni')) { stanRys.ruch = 'bieg'; }
     }
     // W walce, z mieczem w dłoni, biegnie z mieczem przed sobą (Patryk, 24 XI: „jak szarżuje … to z bronią w reku”).
     // Przy zmianie biegu na bieg z mieczem faza kroku przesuwa się tak, żeby nogi były w tym samym miejscu cyklu.

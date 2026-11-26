@@ -764,6 +764,9 @@ function aktualizujEtapy(gra, dt) {
     gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza stoi
     if (gra.fazaCzas <= 0) {
       gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = [];
+      // 26 XI (Przemek rozbił wszystkie totemy przed pierwszą falą i noc się skończyła): totem ucisza swoją stronę tylko na tę falę, z każdą nową falą wstaje
+      if (gra.totemy.some(t => t.zniszczony)) powiedz(gra, 'Totemy znów stoją. Noc je odbudowała.', 3);
+      for (const t of gra.totemy) { t.zniszczony = false; t.zycie = TOTEM.zycie; }
       const kt = gra.etap > 0 && KARTKI[gra.etap];
       if (kt && !gra.kartka) { const p = { x: OGNISKO.x + kt.gdzie.dx, y: OGNISKO.y + kt.gdzie.dy }; zderzenia(p, 22); gra.kartka = { nr: gra.etap, x: p.x, y: p.y }; }
       for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) {
@@ -833,6 +836,7 @@ function aktualizujEtapy(gra, dt) {
 const stronaCicha = (gra, z) => gra.totemy.filter(t => t.mgla === z).every(t => t.zniszczony);
 
 function zranTotem(gra, t, ile) {
+  if (gra.faza !== 'walka') { t.flash = 0.08; if (!gra.mysl || gra.mysl.czas < 0.5) powiedz(gra, 'Kamień śpi. Obudzi się, kiedy przyjdą.', 2); return; }   // przed falą totemu nie da się rozbić
   t.zycie -= ile; t.flash = 0.15;
   gra.zdarzenia.push({ typ: 'totem_traf', i: t.i, x: t.x, y: t.y });
   if (t.zycie > 0) return;
