@@ -256,4 +256,15 @@ export const WSTEP = {
   zasieg: 70,             // jak blisko podejść, żeby obejrzeć
   przyjscie: 'Polana. Chata, ognisko i nikogo. Rozejrzę się, zanim zajdzie słońce.',
   noc: 'Słońce zaszło. Z lasu coś patrzy. Trzymaj się ognia.',
+  // Patryk, 26 XI 12:28: „nie takie zbyt proste … jak cię samo prowadzi, to żadna frajda”: rzadko i zagadką, bez wskazywania palcem.
+  pierwszaPodpowiedz: 35, kolejnaPodpowiedz: 45,   // sekundy bez odkrycia
+  wskazowki: {
+    ognisko: 'Ogień płonie, a nikogo przy nim. Kto go pilnował?',
+    totem: 'Na skraju polany coś stoi. To nie jest drzewo.',
+    stos: 'Ktoś tu rąbał drewno. Dużo drewna.',
+    belka: 'Drzwi tej chaty widziały wielu gości. Każdy coś zostawił.',
+    palenisko: 'Z komina nie dymi, a w izbie czuć dym.',
+    poslanie: 'Gdzie spał ten, kto tu mieszkał?',
+  },
+
 };

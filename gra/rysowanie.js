@@ -1443,7 +1443,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
     // Wstęp: nad nieobejrzanymi miejscami unoszą się drobne złote błyski, żeby było wiadomo, gdzie podejść.
     if (gra.faza === 'wstep') for (const m of MIEJSCA) {
-      if (gra.odkryte.includes(m.id) || Math.random() > dt * 3) continue;
+      const wsk = gra.wskazane === m.id;                                // wskazane w podpowiedzi błyska mocniej
+      if (gra.odkryte.includes(m.id) || Math.random() > dt * (wsk ? 5 : 2.5)) continue;
       obloczek(m.x + losuj(-18, 18), m.y - losuj(10, 40), losuj(-6, 6), losuj(-30, -14), 1.5, 2.6, losuj(0.9, 1.5), 0.9, 0xffe0a0, false);
     }
     // Z ciała rycerza schodzi klątwa: najpierw gęsty czarny dym i żar, z każdą sekundą słabszy; o świcie złote drobiny.

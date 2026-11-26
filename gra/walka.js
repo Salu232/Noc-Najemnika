@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP } from './dane.js';
-import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
+import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
 const rozn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -30,7 +30,10 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
   // chata wygląda na zamieszkałą, ale nikogo w niej nie ma; pierwsza kartka leży w izbie (Patryk, 25 XI 20:35)
   const k0 = KARTKI[0].gdzie, p0 = { x: k0.x, y: k0.y }; zderzenia(p0, 18); gra.kartka = { nr: 0, x: p0.x, y: p0.y };
   // wstęp: bohater przychodzi drogą z południa o zmierzchu
-  gra.bohater.x = OGNISKO.x + 30; gra.bohater.y = OGNISKO.y + 560; gra.bohater.kat = -Math.PI / 2;
+  // (Patryk, 26 XI 12:27: „jeszcze dalej od chaty”): na drodze przy skraju lasu, chata daleko przed nim
+  const p = DROGA[Math.round(DROGA.length * 0.2)], q = DROGA[Math.round(DROGA.length * 0.2) + 3];
+  gra.bohater.x = p.x; gra.bohater.y = p.y; gra.bohater.kat = Math.atan2(q.y - p.y, q.x - p.x);
+  gra.podpowiedzZa = WSTEP.pierwszaPodpowiedz;
   powiedz(gra, WSTEP.przyjscie, 5);
   return gra;
 }
@@ -92,7 +95,7 @@ export function aktualizuj(gra, dt, w) {
   gra.wstrzas = Math.max(0, gra.wstrzas - dt * 30);
   if (gra.mysl.czas > 0) gra.mysl.czas -= dt;
 
-  if (gra.faza === 'wstep') odkrywanie(gra, w);
+  if (gra.faza === 'wstep') odkrywanie(gra, w, dt);
   aktualizujBohatera(gra, dt, w);
   if (gra.odkryj && gra.bohater.stan === 'wolny' && !gra.bohater.spi) gra.akcja = 'obejrzyj';
   aktualizujCele(gra, dt, w);
@@ -672,7 +675,7 @@ function iskry(gra, x, y, n) {
 // ---------- wstęp: odkrywanie polany i chaty ----------
 // Przy nieobejrzanym miejscu E (na telefonie przycisk akcji) daje myśl bohatera. Noc zapada, gdy wszystko
 // obejrzane i przeczytana pierwsza kartka (Patryk, 26 XI 12:06).
-function odkrywanie(gra, w) {
+function odkrywanie(gra, w, dt) {
   const b = gra.bohater;
   gra.odkryj = null;
   let naj = WSTEP.zasieg + b.promien;
@@ -684,6 +687,19 @@ function odkrywanie(gra, w) {
   if (gra.odkryj && w.akcja && b.stan === 'wolny' && !b.spi) {
     const m = gra.odkryj; gra.odkryte.push(m.id); gra.odkryj = null; w.akcja = false;
     powiedz(gra, m.mysl, 4.5); gra.zdarzenia.push({ typ: 'odkryte', x: m.x, y: m.y });
+    gra.podpowiedzZa = WSTEP.kolejnaPodpowiedz;
+  }
+  // Podpowiedź dla kogoś, kto gra pierwszy raz (Patryk, 26 XI 12:27): po chwili bez odkrycia bohater mówi,
+  // rzadko i zagadką, o najbliższym nieobejrzanym miejscu (Patryk, 12:28: bez prowadzenia za rękę). Pierwsza uczy tylko E.
+  gra.podpowiedzZa -= dt;
+  if (gra.podpowiedzZa <= 0 && gra.mysl.czas <= 0) {
+    gra.podpowiedzZa = WSTEP.kolejnaPodpowiedz;
+    const zostalo = MIEJSCA.filter(m => !gra.odkryte.includes(m.id));
+    if (gra.odkryte.length === 0 && !zostalo.some(m => Math.hypot(m.x - b.x, m.y - b.y) < 500)) powiedz(gra, 'Droga prowadzi do chaty. Tam, gdzie coś błyszczy, warto się zatrzymać (E).', 5);
+    else if (zostalo.length) {
+      const m = zostalo.reduce((a, c) => Math.hypot(c.x - b.x, c.y - b.y) < Math.hypot(a.x - b.x, a.y - b.y) ? c : a);
+      gra.wskazane = m.id; powiedz(gra, WSTEP.wskazowki[m.id], 4.5);
+    } else if (gra.kartki < 1) powiedz(gra, 'W izbie coś leży na podłodze. Kartka?', 4.5);
   }
 }
 export const ileOdkryc = () => MIEJSCA.length + 1;   // miejsca i pierwsza kartka
