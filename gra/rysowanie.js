@@ -3,7 +3,7 @@
 
 import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA } from './swiat.js';
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
-import { BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
+import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import { KLATKI as KW, ANIMACJE as AW } from './klatki-bohatera-wielki.js';
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
@@ -1478,6 +1478,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     pulaLupu.start();
     for (const l of gra.lup || []) {
       const sp = pulaLupu.wez(), f = R && R.mikstura;
+      if (l.typ !== 'mikstura') {                                         // rzecz do plecaka: na razie świecący punkt w jej kolorze (ikony z Gemini dojdą)
+        const pr = PRZEDMIOTY[l.typ]; sp.texture = T.iskra; sp.anchor.set(0.5); sp.blendMode = P.BLEND_MODES.ADD;
+        sp.tint = parseInt(pr.kolor.slice(1), 16) | 0x303030; const r = (pr.z === 'rycerz' ? 34 : 22) * (0.85 + 0.15 * Math.sin(czas * 4 + l.x));
+        sp.width = sp.height = r; sp.position.set(l.x, l.y - 8); sp.zIndex = l.y; sp.alpha = 1;
+        if (Math.random() < dt * 2) obloczek(l.x + losuj(-6, 6), l.y - 10, 0, losuj(-26, -12), 1.2, 2, 0.8, 0.8, 0xffe8b0, false);
+        continue;
+      }
+      sp.blendMode = P.BLEND_MODES.NORMAL; sp.tint = 0xffffff;
       if (!f) { sp.visible = false; continue; }
       sp.texture = f.t; sp.anchor.set(f.ax, f.ay); const k = 26 / f.w; sp.scale.set(k);
       sp.position.set(l.x, l.y - 4 - Math.abs(Math.sin(czas * 3 + l.x)) * 6); sp.zIndex = l.y;

@@ -268,3 +268,13 @@ export const WSTEP = {
   },
 
 };
+
+// Plecak (26 XI): rzeczy z potworów i łup z rycerza. Rzeczy zostają między grami (w tej przeglądarce),
+// później pójdą do kupca albo na ulepszenia. kolor: zastępcza ikona, dopóki nie ma grafik z Gemini (grafika/przedmioty/).
+export const PRZEDMIOTY = {
+  pazur: { nazwa: 'Pazur ghula', opis: 'Czarny, zakrzywiony, wyrwany z korzeniem. Ktoś we wsi da za niego parę groszy.', kolor: '#3a3430', z: 'ghul', szansa: 0.18 },
+  kiel: { nazwa: 'Kieł kolosa', opis: 'Pożółkły i pęknięty. Waży tyle, co sztylet.', kolor: '#c9b98a', z: 'kolos', szansa: 1 },
+  krew: { nazwa: 'Krew wiedźmy', opis: 'Mętna, fioletowa, ciepła mimo chłodu. Fiolka lekko świeci.', kolor: '#7a3cc0', z: 'wiedzma', szansa: 0.5 },
+  helm: { nazwa: 'Przyłbica rycerza', opis: 'Okopcona, z dwoma rogami. W pęknięciach jeszcze tli się żar.', kolor: '#8a2a18', z: 'rycerz', szansa: 1 },
+  amulet: { nazwa: 'Amulet rycerza', opis: 'Srebro na zerwanym łańcuszku. Wyryte trzciny i półksiężyc: znak bagien. Pierwszy ślad.', kolor: '#b8b8c8', z: 'rycerz', szansa: 1, wazny: true },
+};

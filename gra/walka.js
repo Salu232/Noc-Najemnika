@@ -1,5 +1,5 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP } from './dane.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY } from './dane.js';
 import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
@@ -22,6 +22,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
     totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
     lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [],
+    plecak: wczytajPlecak(),                                            // rzeczy zostają między grami (main.js zapisuje)
     kartka: null, czytana: null, kartki: 0, przemiana: 0,   // dziennik rycerza i cena klątwy (25 XI)
     mod: { zasieg: 1, szybkosc: 1, garda: 1, oddech: 1, klatwa: 1, cialo: 1 },
   };
@@ -52,6 +53,11 @@ function postawBohatera(gra) {
     mikstury: gra.bohater ? gra.bohater.mikstury : LUP.start, drewno: false,
   };
 }
+
+function wczytajPlecak() {
+  try { const p = JSON.parse(localStorage.getItem('noc-plecak') || '{}'); return p && typeof p === 'object' ? p : {}; } catch (e) { return {}; }
+}
+export function zapiszPlecak(gra) { try { localStorage.setItem('noc-plecak', JSON.stringify(gra.plecak)); } catch (e) { /* bez pamięci */ } }
 
 export function powiedz(gra, tekst, czas = 3.5) { gra.mysl.tekst = tekst; gra.mysl.czas = czas; }
 
@@ -513,6 +519,11 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
     }
     if (!zKlatwy) gra.bohater.klatwa = Math.min(1, gra.bohater.klatwa + KLATWA.zaZabicie * gra.mod.klatwa);
     if (Math.random() < (e.typ.ciezki ? LUP.szansaKolos : LUP.szansaGhul)) gra.lup.push({ typ: 'mikstura', x: e.x + losuj(-10, 10), y: e.y + losuj(-6, 6), t: 0 });
+    // rzeczy do plecaka (26 XI): pazur z ghula, kieł z kolosa, krew z wiedźmy, z rycerza przyłbica i amulet (te nie znikają)
+    for (const id in PRZEDMIOTY) {
+      const pr = PRZEDMIOTY[id];
+      if (pr.z === e.typ.nazwa && Math.random() < pr.szansa) gra.lup.push({ typ: id, x: e.x + losuj(-34, 34), y: e.y + losuj(-14, 18), t: 0, trwa: pr.z === 'rycerz' });
+    }
     // ciało pada od bohatera (rysowanie najpierw pokazuje upadek, potem zostawia ślad na ziemi)
     const odBoh = Math.cos(kat) >= 0 ? 1 : -1;
     gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: odBoh * losuj(0.75, 1.3), sx: -odBoh, kat, pada: true, przeciety: przecina && !e.typ.ciezki && !e.typ.pocisk });   // kolos i wiedźma padają z filmu (Patryk, 25 XI 16:17: przecięty boss „spada śmiesznie”)
@@ -803,7 +814,16 @@ function aktualizujCele(gra, dt, w) {
   // łup: podnosi się sam, gdy bohater przejdzie obok
   for (let i = gra.lup.length - 1; i >= 0; i--) {
     const l = gra.lup[i]; l.t += dt;
-    if (l.t > LUP.znika) { gra.lup.splice(i, 1); continue; }
+    if (l.t > LUP.znika && !l.trwa) { gra.lup.splice(i, 1); continue; }
+    if (l.typ !== 'mikstura') {                                            // rzecz do plecaka: bez limitu
+      if (b.stan !== 'upadl' && Math.hypot(l.x - b.x, l.y - b.y) < LUP.zasiegPodniesienia + b.promien) {
+        const pr = PRZEDMIOTY[l.typ], pierwszy = !gra.plecak[l.typ];
+        gra.plecak[l.typ] = (gra.plecak[l.typ] || 0) + 1; gra.lup.splice(i, 1);
+        gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y, rzecz: l.typ });
+        if (pierwszy || pr.wazny) powiedz(gra, pr.wazny ? pr.opis : `${pr.nazwa}. Do plecaka (I).`, pr.wazny ? 5 : 2.5);
+      }
+      continue;
+    }
     if (b.stan !== 'upadl' && b.mikstury < LUP.max && Math.hypot(l.x - b.x, l.y - b.y) < LUP.zasiegPodniesienia + b.promien) {
       b.mikstury++; gra.lup.splice(i, 1); gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y });
     }

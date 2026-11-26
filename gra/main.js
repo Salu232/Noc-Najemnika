@@ -1,6 +1,6 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke } from './walka.js';
-import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP } from './dane.js';
+import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak } from './walka.js';
+import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
@@ -90,7 +90,7 @@ async function start() {
 
   function wznow() {
     obudzDzwiek();
-    pokaz('ekran-startu', false); pokaz('ekran-pauzy', false);
+    pokaz('ekran-startu', false); pokaz('ekran-pauzy', false); pokaz('ekran-plecaka', false); plecakOtwarty = false;
     pauza = false; zaczeta = true;
   }
   $('zacznij').addEventListener('click', () => {
@@ -174,6 +174,52 @@ async function start() {
     pokazWybor();
     pokazKartke();
   }
+  // Plecak (26 XI): I albo przycisk; gra stoi. Pola: mikstury, rzeczy z potworów i łup z rycerza, przeczytane kartki.
+  let plecakOtwarty = false, kartkaZPlecaka = false;
+  const ikonaPrzedmiotu = (id, kolor) => {
+    const img = document.createElement('img'); img.className = 'ikona'; img.alt = ''; img.src = `grafika/przedmioty/${id}.webp`;
+    img.onerror = () => { const d = document.createElement('span'); d.className = 'zastepcza'; d.style.color = kolor; d.style.background = kolor; img.replaceWith(d); };
+    return img;
+  };
+  function pole(ikona, nazwa, ile, opis, naKlik) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pole';
+    const n = document.createElement('span'); n.textContent = nazwa; b.append(ikona, n);
+    if (ile > 1) { const c = document.createElement('b'); c.textContent = '×' + ile; b.append(c); }
+    b.addEventListener('click', () => { for (const x of $('pola-plecaka').children) x.setAttribute('aria-pressed', String(x === b)); $('opis-rzeczy').textContent = opis; if (naKlik) naKlik(); });
+    return b;
+  }
+  function pokazPlecak() {
+    const lista = $('pola-plecaka'); lista.textContent = ''; $('opis-rzeczy').textContent = 'Dotknij rzeczy, żeby ją obejrzeć. Kartki można przeczytać jeszcze raz.';
+    const mi = document.createElement('img'); mi.className = 'ikona'; mi.alt = ''; mi.src = 'grafika/ikona-mikstura.webp';
+    lista.append(pole(mi, 'Mikstura', gra.bohater.mikstury, `Leczy od razu (Q). Masz ${gra.bohater.mikstury}, uniesiesz najwyżej 3.`));
+    for (const id of ['amulet', 'helm', 'kiel', 'krew', 'pazur']) {
+      const ile = gra.plecak[id] || 0; if (!ile) continue;
+      const pr = PRZEDMIOTY[id]; lista.append(pole(ikonaPrzedmiotu(id, pr.kolor), pr.nazwa, ile, pr.opis));
+    }
+    for (let i = 0; i < KARTKI.length; i++) {
+      const czytal = i < gra.kartki;
+      const ki = document.createElement('img'); ki.className = 'ikona'; ki.alt = ''; ki.src = 'grafika/kartka.webp';
+      const b = pole(ki, `Kartka ${i + 1}`, 0, czytal ? 'Kartka z dziennika rycerza.' : 'Tej kartki jeszcze nie znalazłeś.', czytal ? () => { kartkaZPlecaka = true; gra.czytana = i; pokazKartke(); } : null);
+      if (!czytal) b.classList.add('puste');
+      lista.append(b);
+    }
+  }
+  function przelaczPlecak(otworz = !plecakOtwarty) {
+    if (otworz && (!zaczeta || gra.faza === 'koniec' || gra.czytana !== null || gra.wybor)) return;
+    plecakOtwarty = otworz; pokaz('ekran-plecaka', otworz);
+    if (otworz) { pauza = true; pokazPlecak(); } else pauza = false;
+  }
+  $('przycisk-plecak').addEventListener('click', () => przelaczPlecak(true));
+  $('zamknij-plecak').addEventListener('click', () => przelaczPlecak(false));
+  addEventListener('keydown', e => {
+    if (e.key.toLowerCase() !== 'i' || gra.czytana !== null) return;
+    if (pauza && !plecakOtwarty) return; przelaczPlecak();
+  });
+  const ikonaPlecaka = new Image(); ikonaPlecaka.onload = () => { $('przycisk-plecak').style.backgroundImage = 'url(grafika/przedmioty/plecak.webp)'; $('przycisk-plecak').classList.add('ma-ikone'); }; ikonaPlecaka.src = 'grafika/przedmioty/plecak.webp';
+  // rzeczy zostają między grami: zapis, gdy coś przybędzie
+  let plecakZapisany = '';
+  setInterval(() => { const t = JSON.stringify(gra.plecak); if (t !== plecakZapisany) { plecakZapisany = t; zapiszPlecak(gra); } }, 1000);
+
   // Kartka z dziennika rycerza: gra stoi, dopóki jej nie schowasz (przycisk, E, Enter, spacja albo Esc).
   let kartkaPokazana = null;
   function pokazKartke() {
@@ -183,10 +229,11 @@ async function start() {
     $('tekst-kartki').textContent = KARTKI[gra.czytana].tekst;
     $('nr-kartki').textContent = `Kartka ${gra.czytana + 1} z ${KARTKI.length}`;
   }
-  $('schowaj-kartke').addEventListener('click', () => { zamknijKartke(gra); pokazKartke(); });
+  const schowaj = () => { zamknijKartke(gra); pokazKartke(); if (kartkaZPlecaka) { kartkaZPlecaka = false; pokaz('ekran-plecaka', true); } };
+  $('schowaj-kartke').addEventListener('click', schowaj);
   addEventListener('keydown', e => {
     if (gra.czytana === null || !['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) return;
-    e.preventDefault(); e.stopImmediatePropagation(); zamknijKartke(gra); pokazKartke();
+    e.preventDefault(); e.stopImmediatePropagation(); schowaj();
   }, true);
   // Wybór ulepszenia po fali: trzy karty, gra stoi, dopóki nie wybierzesz (walka.js, wybierzUlepszenie).
   let wyborPokazany = null;

@@ -170,6 +170,17 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 #prolog .pomin { position: absolute; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: none; border: 1px solid #4a3e30; color: #a89a84; font: inherit; font-size: 14px; padding: 8px 14px; border-radius: 4px; cursor: pointer; }
 #prolog .dalej { margin-top: 10px; font-size: 13px; color: #7a6e5e; letter-spacing: 0.08em; opacity: 0; transition: opacity 1s; }
 #prolog .dalej.widac { opacity: 1; }
+/* plecak (26 XI): przycisk obok pauzy, okno z polami; I albo przycisk otwiera, gra stoi */
+#przycisk-plecak { position: fixed; z-index: 3; top: calc(8px + env(safe-area-inset-top, 0px)); right: calc(max(12px, env(safe-area-inset-right, 0px)) + 48px); width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--linia); background: rgba(0, 0, 0, 0.45) center / 70% no-repeat; font-size: 11px; padding: 0; }
+#przycisk-plecak.ma-ikone { font-size: 0; }
+.pola-plecaka { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
+.pole { position: relative; display: grid; justify-items: center; gap: 4px; padding: 8px 4px 6px; border: 1px solid var(--linia); border-radius: 4px; background: rgba(0, 0, 0, 0.35); font: inherit; color: inherit; font-size: 12px; line-height: 1.2; text-align: center; cursor: pointer; }
+.pole[aria-pressed="true"] { border-color: #c89a5a; background: rgba(200, 154, 90, 0.12); }
+.pole.puste { opacity: 0.35; cursor: default; }
+.pole .ikona { width: 46px; height: 46px; object-fit: contain; }
+.pole .zastepcza { width: 34px; height: 34px; margin: 6px; border-radius: 50%; box-shadow: 0 0 12px currentColor, inset 0 0 8px rgba(0,0,0,0.6); }
+.pole b { position: absolute; top: 4px; right: 6px; font-size: 12px; color: #e8c890; }
+#opis-rzeczy { min-height: 3em; margin: 0; color: var(--przygaszony); font-size: 14px; }
 /* ekrany: start, pauza, koniec */
 #dalej-konca { color: #e8b070; font-style: italic; }
 .ekran {
@@ -229,6 +240,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 <div id="wnetrze" aria-hidden="true"><p>Śpisz na posłaniu.</p><p class="male">Rany się goją. Noc poczeka, aż wyjdziesz.</p></div>
 <button type="button" id="akcja" hidden></button>
 <button type="button" id="przycisk-pauza" aria-label="Pauza">II</button>
+<button type="button" id="przycisk-plecak" aria-label="Plecak (I)">Plecak</button>
 
 <div id="przyciski" hidden>
   <button type="button" class="kciuk" id="przycisk-tnij">Tnij</button>
@@ -306,6 +318,15 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
       <button type="button" class="drugi przycisk-dzwiek">Dźwięk: włączony</button>
       <button type="button" class="drugi przycisk-bohater" hidden>Bohater: z Gemini</button>
     </div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-plecaka" hidden>
+  <div class="karta">
+    <h2>Plecak</h2>
+    <div class="pola-plecaka" id="pola-plecaka"></div>
+    <p id="opis-rzeczy">Dotknij rzeczy, żeby ją obejrzeć. Kartki można przeczytać jeszcze raz.</p>
+    <div class="akcje"><button type="button" class="glowny" id="zamknij-plecak">Zamknij (I)</button></div>
   </div>
 </div>
 
