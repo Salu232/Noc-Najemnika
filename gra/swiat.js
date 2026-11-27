@@ -5,7 +5,9 @@ export const SZER = 3200, WYS = 2400;
 
 // Która mapa (27 XI, początek bagna): ?mapa=bagno w adresie. Bez tego zawsze polana, tak jak dotąd.
 // Bagno to na razie polana przerobiona kodem (martwy las, woda płytka i głęboka); obrazy z Gemini przyjdą później (docs/bagno.md).
-export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || 'polana') === 'bagno' ? 'bagno' : 'polana';
+// W artefakcie adresu nie da się zmienić, więc przycisk na ekranie startu zapisuje wybór w przeglądarce (noc-mapa) i przeładowuje grę.
+const zPamieci = () => { try { return localStorage.getItem('noc-mapa'); } catch (e) { return null; } };
+export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || (typeof localStorage !== 'undefined' && zPamieci()) || 'polana') === 'bagno' ? 'bagno' : 'polana';
 export const BAGNO = MAPA === 'bagno';
 
 // Chata z Gemini (grafika/chata.webp, 951×951) w skali świata.

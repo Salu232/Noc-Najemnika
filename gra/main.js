@@ -5,7 +5,7 @@ import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
 import { obudzDzwiek, zagraj, przelaczDzwiek, muzyka, otoczenie } from './dzwiek.js';
-import { OGNISKO } from './swiat.js';
+import { OGNISKO, BAGNO } from './swiat.js';
 
 // Wersja „legacy” umie rysować także bez karty graficznej (decyzja 002: PixiJS).
 const PIXI_ADRESY = [
@@ -127,6 +127,14 @@ async function start() {
   document.addEventListener('visibilitychange', () => { if (document.hidden) zatrzymaj(); });
   const napisBohatera = () => { for (const x of document.querySelectorAll('.przycisk-bohater')) { x.hidden = !rys.maBohateraZGemini; x.textContent = rys.bohater === 'gemini' ? 'Bohater: z Gemini' : 'Bohater: rysowany kodem'; } };
   napisBohatera();
+  // Mapa (27 XI): polana albo bagno w próbie. Wybór zostaje w przeglądarce, gra przeładowuje się z nową mapą.
+  if ($('przycisk-mapa')) {
+    $('przycisk-mapa').textContent = BAGNO ? 'Mapa: bagno (próba)' : 'Mapa: polana';
+    $('przycisk-mapa').addEventListener('click', () => {
+      try { localStorage.setItem('noc-mapa', BAGNO ? 'polana' : 'bagno'); } catch (e) { /* bez pamięci */ }
+      const u = new URL(location.href); u.searchParams.set('mapa', BAGNO ? 'polana' : 'bagno'); location.replace(u.href);   // adres na wypadek, gdyby przeglądarka nie dała pamięci
+    });
+  }
   for (const b of document.querySelectorAll('.przycisk-bohater')) b.addEventListener('click', () => {
     const t = rys.ustawBohatera(rys.bohater === 'gemini' ? 'rysowany' : 'gemini');
     try { localStorage.setItem('noc-bohater', t); } catch (e) { /* */ }
