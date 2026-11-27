@@ -13,7 +13,10 @@ export const SZER = 3200, WYS = 2400;
 const zPamieci = () => { try { const m = localStorage.getItem('noc-przejscie'); localStorage.removeItem('noc-przejscie'); localStorage.removeItem('noc-mapa'); return m; } catch (e) { return null; } };
 // też jednorazowo: po odczycie nazwa ramki jest czyszczona, więc odświeżenie albo nowe otwarcie gry zaczyna od polany (Patryk, 27 XI 16:51)
 const zNazwy = () => { try { const m = /noc-mapa=(\w+)/.exec(window.name || ''); if (m) window.__nocStan = window.name; window.name = ''; return m && m[1]; } catch (e) { return null; } };
-export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || ((n, p) => n || p)(typeof window !== 'undefined' && zNazwy(), zPamieci()) || 'polana') === 'bagno' ? 'bagno' : 'polana';
+// Na czas testów (Patryk, 27 XI 23:09: „daj odrazu mape z bagien”, „jak wszytko bedzie grało to wtedy to zmienimy”): gra otwiera się na bagnie.
+// Polana jest w menu pauzy („Próba: wróć na polanę”). Po testach: false.
+export const START_NA_BAGNIE = true;
+export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || ((n, p) => n || p)(typeof window !== 'undefined' && zNazwy(), zPamieci()) || (START_NA_BAGNIE ? 'bagno' : 'polana')) === 'bagno' ? 'bagno' : 'polana';
 export const BAGNO = MAPA === 'bagno';
 
 // Chata z Gemini (grafika/chata.webp, 951×951) w skali świata.

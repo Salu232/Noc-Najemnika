@@ -187,11 +187,12 @@ export function wybierzUlepszenie(gra, id) {
 function otworzPortal(gra, p) {
   const bb = gra.bohater, sr = bb.wChacie ? OGNISKO : bb;
   let naj = null, najOdl = -1;
-  for (let k = 0; k < 8; k++) {
+  for (let k = 0; k < (BAGNO ? 16 : 8); k++) {
     const a = Math.random() * Math.PI * 2, d = PORTAL.od + Math.random() * (PORTAL.do - PORTAL.od);
     const c = { x: sr.x + Math.cos(a) * d, y: sr.y + Math.sin(a) * d * 0.75 }; zderzenia(c, 40);
     let m = 9999; for (const o of gra.portale) if (o.otwarty) m = Math.min(m, Math.hypot(o.x - c.x, o.y - c.y));
     if (BAGNO && wPlytkiej(c)) m -= 500;                               // na bagnie portal woli suchy ląd
+    if (BAGNO && !dlaBohatera(c)) m -= 5000;                           // i nigdy wysepki bez kładki (27 XI: wiedźma stała tam całą falę)
     if (m > najOdl) { najOdl = m; naj = c; }
   }
   p.x = naj.x; p.y = naj.y; p.otwarty = true; p.t = 0;
@@ -792,7 +793,7 @@ function miejsceWiedzmy(gra, e) {
     const a = Math.random() * Math.PI * 2, r = losuj(240, 330), p = { x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r * 0.8 };
     if (wGlebokiej(p) || wPlytkiej(p) || wIzbieWiedzmy(p)) continue;
     zderzenia(p, e.promien);
-    if (!wGlebokiej(p) && !wPlytkiej(p) && !wIzbieWiedzmy(p) && Math.hypot(p.x - b.x, p.y - b.y) > 180) return p;
+    if (!wGlebokiej(p) && !wPlytkiej(p) && !wIzbieWiedzmy(p) && dlaBohatera(p) && Math.hypot(p.x - b.x, p.y - b.y) > 180) return p;   // nie na wysepkę bez kładki
   }
   return { x: e.x, y: e.y };
 }
@@ -926,7 +927,7 @@ function aktualizujWrogow(gra, dt) {
     }
 
     // wiedźma z kulami poza lądem bohatera (w głębokiej wodzie albo na płyciźnie odciętej głębią) brnie prosto do niego (27 XI: stała tam, gdzie miecz nie sięga)
-    e.brnie = BAGNO && typ.pocisk && (e.stan === 'idzie' || e.stan === 'odpoczynek') && !dlaBohatera(e);
+    e.brnie = BAGNO && typ.pocisk && (e.stan === 'idzie' || e.stan === 'odpoczynek' || e.stan === 'zamach') && !dlaBohatera(e);
     if (e.brnie) { ax = dx / d * szyb; ay = dy / d * szyb; }
     // rozpychanie się w tłumie
     const cx = (e.x / KOM) | 0, cy = (e.y / KOM) | 0;

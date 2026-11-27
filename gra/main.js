@@ -92,6 +92,7 @@ async function start() {
   addEventListener('resize', () => rys.rozmiar());
   $('ladowanie').hidden = true;
   pokaz('zacznij', true);
+  if (!BAGNO) pokaz('od-bagna', true);
 
   function wznow() {
     obudzDzwiek();
@@ -140,18 +141,21 @@ async function start() {
     try { localStorage.setItem('noc-przejscie', mapa); if (stan) localStorage.setItem('noc-stan', JSON.stringify(stan)); else localStorage.removeItem('noc-stan'); } catch (e) { /* bez pamięci */ }
     location.reload();
   }
+  const STAN_TESTOWY = { grosze: 25, mikstury: 3, pas: true, plecak: { amulet: 1, helm: 1 }, trwale: {}, dary: {} };
   let stanZPolany = null;
   if (BAGNO) {
     try { const m = /noc-stan=([^;]*)/.exec(window.__nocStan || ''); if (m) stanZPolany = JSON.parse(decodeURIComponent(m[1])); } catch (e) { /* */ }
     if (!stanZPolany) try { const z = localStorage.getItem('noc-stan'); if (z) stanZPolany = JSON.parse(z); } catch (e) { /* bez pamięci */ }
     try { localStorage.removeItem('noc-stan'); } catch (e) { /* */ }
+    const doTestow = !stanZPolany;
+    if (doTestow) stanZPolany = STAN_TESTOWY;                            // od razu na bagnie: rzeczy jak po polanie
     przeniesStan(gra, stanZPolany);
     document.title = 'Noc najemnika: bagno wiedźmy';
     const h = document.querySelector('#ekran-startu h1') || document.querySelector('h1'); if (h) h.textContent = 'Bagno wiedźmy';
     const w = h && h.nextElementSibling;
-    if (w) w.textContent = stanZPolany
+    if (w) w.textContent = !doTestow
       ? 'Rozdział drugi. Przyszedłeś z polany z tym, co zostało w plecaku. Woda, martwy las i topielce, które chwytają: tnij, żeby puściły.'
-      : 'Rozdział drugi, wersja próbna (bez rzeczy z polany). Woda, martwy las i topielce, które chwytają: tnij, żeby puściły.';
+      : 'Rozdział drugi, na czas testów od razu tutaj, z rzeczami jak po polanie (25 monet, pas, 3 mikstury, amulet i przyłbica). Topielce chwytają: tnij, żeby puściły. Pełzacza bij z boku albo w plecy.';
   }
   // „Ruszaj na bagno”: ekran końca znika, bohater idzie drogą przez las; na skraju mapy ściemnia się i wczytuje bagno
   $('na-bagno').addEventListener('click', () => { ruszajNaBagno(gra); pokaz('ekran-konca', false); pauza = false; });
@@ -164,6 +168,9 @@ async function start() {
   // skrót do prób, póki bagno się buduje: w pauzie, nie na ekranie startu
   $('przeskocz-mapa').textContent = BAGNO ? 'Próba: wróć na polanę' : 'Próba: przeskocz na bagno';
   $('przeskocz-mapa').addEventListener('click', () => przejdz(BAGNO ? 'polana' : 'bagno', null));
+  // „Zacznij od bagna” (Patryk, 27 XI 23:09: „daj odrazu mape z bagien (…) jak mam testowac to musze mieć to”): od razu na bagno,
+  // z rzeczami, z jakimi zwykle schodzi się z polany (bot, 27 XI: 20–50 monet, pas, 2–3 mikstury, amulet i przyłbica z rycerza).
+  $('od-bagna').addEventListener('click', () => przejdz('bagno', STAN_TESTOWY));
   for (const b of document.querySelectorAll('.przycisk-bohater')) b.addEventListener('click', () => {
     const t = rys.ustawBohatera(rys.bohater === 'gemini' ? 'rysowany' : 'gemini');
     try { localStorage.setItem('noc-bohater', t); } catch (e) { /* */ }
