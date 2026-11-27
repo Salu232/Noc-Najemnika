@@ -44,6 +44,8 @@ export function przygotujHud() {
       if (el.ileMikstur) el.ileMikstur.textContent = v;
       if (el.przyciskMikstury) el.przyciskMikstury.classList.toggle('pusta', !v);
     });
+    const np = gra.napoj ? [gra.napoj.sila && 'siła', gra.napoj.oddech && 'oddech'].filter(Boolean).join(', ') : '';
+    ustaw('napoj', np, v => { const e = document.getElementById('zapas-napoju'); if (e) { e.hidden = !v; e.textContent = v ? `Wywar: ${v}` : ''; } });
     ustaw('drewno', !!b.drewno, v => { if (el.drewno) el.drewno.hidden = !v; });
     ustaw('rana', b.flash > 0.15, v => { el.pasekZycia.classList.toggle('rana', v); if (el.portret) el.portret.classList.toggle('rana', v); });
 

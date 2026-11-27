@@ -325,6 +325,12 @@ export const HANDLARZ = {
   zasieg: 62,          // jak blisko podejść, żeby handlować (E)
   pokaz: 170,          // z tej odległości wyjmuje fiolkę
   mikstura: 8,         // cena mikstury w groszach
+  // Patryk, 27 XI 12:00: „nic oprócz potów na życie nie kupisz, a możesz mieć tylko 3”. Wywary działają do końca następnej fali.
+  towary: [
+    { id: 'sila', nazwa: 'Wywar z wilczej jagody', cena: 12, opis: 'Do końca następnej fali cięcia ranią o 30% mocniej.', napoj: true },
+    { id: 'oddech', nazwa: 'Napar z kory dębu', cena: 10, opis: 'Do końca następnej fali siły wracają o połowę szybciej: więcej uników i bloków.', napoj: true },
+    { id: 'pas', nazwa: 'Pas na fiolki', cena: 20, opis: 'Uniesiesz o jedną miksturę więcej, do końca nocy.' },
+  ],
   powitania: [
     'Nie bój się, synu. Mnie one nie ruszają. Za stary jestem, za gorzki.',
     'Znowu żyjesz? To dobrze. Martwi nie płacą.',

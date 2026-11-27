@@ -129,7 +129,7 @@ function muzykaUtworu(moc) {
     granie = { zr, g, ciszaOd: null };
   }
   if (!granie) return;
-  if (gra_) { granie.ciszaOd = null; granie.g.gain.setTargetAtTime(moc > 1 ? 0.5 : 0.38, t, 0.5); return; }
+  if (gra_) { granie.ciszaOd = null; granie.g.gain.setTargetAtTime(moc > 1 ? 0.6 : 0.46, t, 0.5); return; }   // 27 XI 12:00: minimalnie głośniej
   if (granie.ciszaOd === null) { granie.ciszaOd = t; granie.g.gain.setTargetAtTime(wlaczony ? 0.16 : 0.0001, t, 0.8); }
   if (t - granie.ciszaOd > 6 || !wlaczony) {                          // fala się skończyła: wygasa i staje
     const { zr, g } = granie; g.gain.cancelScheduledValues(t); g.gain.setTargetAtTime(0.0001, t, 0.9); zr.stop(t + 4); granie = null;
@@ -243,7 +243,7 @@ export function otoczenie(s) {
   const t = ac.currentTime, on = wlaczony && s.gra;
   oto.wyj.gain.setTargetAtTime(on ? 1.3 : 0.0001, t, 0.6);
   oto.dzF.frequency.setTargetAtTime(s.wIzbie ? 700 : 7000, t, 0.25);
-  oto.dzG.gain.setTargetAtTime(s.wIzbie ? 0.16 : (s.walka ? 0.07 : 0.11), t, 0.3);
+  oto.dzG.gain.setTargetAtTime(s.wIzbie ? 0.13 : (s.walka ? 0.055 : 0.085), t, 0.3);   // 27 XI 12:00: deszcz minimalnie ciszej
   oto.wiG.gain.setTargetAtTime(s.wIzbie ? 0.02 : 0.07, t, 0.4);
   oto.ogG.gain.setTargetAtTime(0.0001 + 0.3 * s.ogien, t, 0.3);
   if (!on) return;

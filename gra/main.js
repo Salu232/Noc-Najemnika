@@ -1,5 +1,5 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole, sprzedaj, kupMiksture, mozeKupic, odejdzOdHandlarza } from './walka.js';
+import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole, sprzedaj, kupMiksture, mozeKupic, odejdzOdHandlarza, kupTowar, mozeKupicTowar, maxMikstur } from './walka.js';
 import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ, LUP } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
@@ -265,8 +265,13 @@ async function start() {
     const lista = $('towary'); lista.textContent = '';
     lista.append(naglowek('Kupujesz'));
     const mi = document.createElement('img'); mi.src = 'grafika/ikona-mikstura.webp'; mi.alt = '';
-    const pelno = gra.bohater.mikstury >= LUP.max;
-    lista.append(towar(mi, `Mikstura: ${grosze(HANDLARZ.mikstura)}`, pelno ? `Masz ${gra.bohater.mikstury}, więcej nie uniesiesz.` : `Leczy od razu (Q). Masz ${gra.bohater.mikstury} z ${LUP.max}.`, 'Kup', mozeKupic(gra), () => kupMiksture(gra)));
+    const mx = maxMikstur(gra), pelno = gra.bohater.mikstury >= mx;
+    lista.append(towar(mi, `Mikstura: ${grosze(HANDLARZ.mikstura)}`, pelno ? `Masz ${gra.bohater.mikstury}, więcej nie uniesiesz.` : `Leczy od razu (Q). Masz ${gra.bohater.mikstury} z ${mx}.`, 'Kup', mozeKupic(gra), () => kupMiksture(gra)));
+    for (const t of HANDLARZ.towary) {
+      const ma = t.napoj ? !!(gra.napoj && gra.napoj[t.id]) : !!gra[t.id];
+      const ik = document.createElement('img'); ik.src = 'grafika/ikona-mikstura.webp'; ik.alt = ''; if (!t.napoj) ik.style.filter = 'grayscale(1) brightness(0.8)'; else if (t.id === 'oddech') ik.style.filter = 'hue-rotate(80deg)'; else ik.style.filter = 'hue-rotate(250deg) saturate(1.4)';
+      lista.append(towar(ik, `${t.nazwa}: ${grosze(t.cena)}`, ma ? (t.napoj ? 'Już wypite. Działa do końca następnej fali.' : 'Już masz.') : t.opis, 'Kup', mozeKupicTowar(gra, t.id), () => kupTowar(gra, t.id)));
+    }
     lista.append(naglowek('Sprzedajesz'));
     let cos = false;
     for (const id of ['pazur', 'kiel', 'krew', 'helm']) {

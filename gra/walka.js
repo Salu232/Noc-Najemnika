@@ -78,7 +78,7 @@ export function zrobNaStole(gra, id) {
   const r = STOL.find(x => x.id === id); if (!r || !mozeZrobic(gra, r)) return false;
   const k = kosztStolu(gra, r); for (const p in k) gra.plecak[p] -= k[p];
   gra.trwale[id] = (gra.trwale[id] || 0) + 1; efektStolu(gra, id); zastosujBron(gra);
-  if (id === 'helm') gra.bohater.mikstury = Math.min(LUP.max, gra.bohater.mikstury + 1);
+  if (id === 'helm') gra.bohater.mikstury = Math.min(maxMikstur(gra), gra.bohater.mikstury + 1);
   gra.zdarzenia.push({ typ: 'ulepszenie', id }); return true;
 }
 
@@ -87,7 +87,19 @@ export function sprzedaj(gra, id) {
   const pr = PRZEDMIOTY[id]; if (!pr || !pr.cena || pr.wazny || !(gra.plecak[id] > 0)) return false;
   gra.plecak[id]--; gra.grosze += pr.cena; gra.handlarz.liczy = 3; gra.zdarzenia.push({ typ: 'grosze' }); return true;
 }
-export function mozeKupic(gra) { return gra.grosze >= HANDLARZ.mikstura && gra.bohater.mikstury < LUP.max; }
+export const maxMikstur = (gra) => LUP.max + (gra.pas ? 1 : 0);
+export function mozeKupic(gra) { return gra.grosze >= HANDLARZ.mikstura && gra.bohater.mikstury < maxMikstur(gra); }
+export function mozeKupicTowar(gra, id) {
+  const t = HANDLARZ.towary.find(x => x.id === id); if (!t || gra.grosze < t.cena) return false;
+  return t.napoj ? !(gra.napoj && gra.napoj[id]) : !gra[id];
+}
+export function kupTowar(gra, id) {
+  if (!mozeKupicTowar(gra, id)) return false;
+  const t = HANDLARZ.towary.find(x => x.id === id); gra.grosze -= t.cena; gra.handlarz.liczy = 3;
+  if (t.napoj) { gra.napoj = { ...(gra.napoj || {}), [id]: true }; gra.zdarzenia.push({ typ: 'mikstura' }); }
+  else gra[id] = true;
+  gra.zdarzenia.push({ typ: 'grosze' }); return true;
+}
 export function kupMiksture(gra) {
   if (!mozeKupic(gra)) return false;
   gra.grosze -= HANDLARZ.mikstura; gra.bohater.mikstury++; gra.handlarz.liczy = 3;
@@ -136,7 +148,7 @@ export function wybierzUlepszenie(gra, id) {
   else if (id === 'oddech') m.oddech *= 1.35;
   else if (id === 'klatwa') m.klatwa *= 1.5;
   else if (id === 'cialo') m.cialo *= 0.8;
-  else if (id === 'mikstura') { b.zycie = BOHATER.zycie; b.smuga = 0; b.mikstury = Math.min(LUP.max, b.mikstury + 1); }
+  else if (id === 'mikstura') { b.zycie = BOHATER.zycie; b.smuga = 0; b.mikstury = Math.min(maxMikstur(gra), b.mikstury + 1); }
   zastosujBron(gra);
   gra.ulepszenia.push(id); gra.wybor = null;
   gra.zdarzenia.push({ typ: 'ulepszenie', id });
@@ -315,7 +327,7 @@ function aktualizujBohatera(gra, dt, w) {
 
   // wytrzymałość i „Krew za krew”
   if (b.odnowaZa > 0) b.odnowaZa -= dt;
-  else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * gra.mod.oddech * dt * (b.blok ? BOHATER.blok.odnowa : 1));
+  else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * gra.mod.oddech * (gra.napoj && gra.napoj.oddech ? 1.5 : 1) * dt * (b.blok ? BOHATER.blok.odnowa : 1));
   if (b.smugaCzas > 0) b.smugaCzas -= dt; else b.smuga = Math.max(0, b.smuga - 60 * dt);
   if (b.seriaCzas > 0) { b.seriaCzas -= dt; if (b.seriaCzas <= 0) b.rozped = 0; }
 }
@@ -462,9 +474,10 @@ function tnij(gra, dt) {
   for (const { e: wrog, d } of cele) {
     c.trafieni.add(wrog);
     const obr = Math.round(bron.obrazenia * (c.mocny ? MOCNY.obrazenia : 1)) * (wrog.stan === 'ogluszony' ? 2 : 1);
+    const obrW = gra.napoj && gra.napoj.sila ? Math.ceil(obr * 1.3) : obr;   // wywar z wilczej jagody
     const katOd = Math.atan2(wrog.y - b.y, wrog.x - b.x);
     gdzie.push({ x: wrog.x, y: wrog.y, wys: 20 * wrog.typ.skala, kat: katOd + kier * Math.PI / 2 });
-    zranWroga(gra, wrog, obr, katOd, bron.odrzut * (c.mocny ? MOCNY.odrzut : 1), bron.przerywa || c.mocny, c.mocny || bron.przecinaCiezkich);
+    zranWroga(gra, wrog, obrW, katOd, bron.odrzut * (c.mocny ? MOCNY.odrzut : 1), bron.przerywa || c.mocny, c.mocny || bron.przecinaCiezkich);
     nowe++; c.trafienia++;
     krewZaKrew(b);
     b.klatwa = Math.min(1, b.klatwa + KLATWA.zaTrafienie * gra.mod.klatwa);
@@ -868,7 +881,7 @@ function aktualizujEtapy(gra, dt) {
       if (--pt.zostalo <= 0) { pt.zamyka = 0.001; gra.zdarzenia.push({ typ: 'portal_zamkniety', x: pt.x, y: pt.y }); }
     }
     if (!gra.kolejka.length && !gra.wrogowie.length) {
-      gra.etap++;
+      gra.etap++; gra.napoj = null;                                     // wywary handlarza działają jedną falę
       if (gra.etap >= ETAPY.length) {
         gra.faza = 'swit'; gra.switT = 0; gra.slonce = 0;
         gra.fazaCzas = gra.bossPadl ? NOC.switBoss : NOC.swit;
@@ -943,7 +956,7 @@ function aktualizujCele(gra, dt, w) {
       }
       continue;
     }
-    if (b.stan !== 'upadl' && b.mikstury < LUP.max && Math.hypot(l.x - b.x, l.y - b.y) < LUP.zasiegPodniesienia + b.promien) {
+    if (b.stan !== 'upadl' && b.mikstury < maxMikstur(gra) && Math.hypot(l.x - b.x, l.y - b.y) < LUP.zasiegPodniesienia + b.promien) {
       b.mikstury++; gra.lup.splice(i, 1); gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y }); b.schyla = 0.9;
     }
   }

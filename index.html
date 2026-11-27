@@ -195,6 +195,7 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 .przepis button { grid-column: 2; grid-row: 1 / span 3; }
 .przepis button:disabled { opacity: 0.35; cursor: default; }
 /* handlarz (27 XI): portret, sakiewka, kupno mikstury i sprzedaż łupu */
+#ekran-handlarza .karta { max-height: calc(100vh - 24px); overflow-y: auto; }
 .handlarz-glowa { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
 .handlarz-glowa img { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--linia); flex: none; object-fit: cover; }
 .handlarz-glowa h2 { margin: 0 0 4px; }
@@ -251,7 +252,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
     </div>
     <img class="rama-obraz" src="grafika/rama-paska.webp" alt="" onerror="this.remove()">
   </div>
-  <div id="zapasy"><span id="zapas-mikstur"></span><span id="zapas-drewna" hidden>Niesiesz polano</span></div>
+  <div id="zapasy"><span id="zapas-mikstur"></span><span id="zapas-napoju" hidden></span><span id="zapas-drewna" hidden>Niesiesz polano</span></div>
   <div id="krew-podpowiedz">Krew za krew: tnij, żeby odzyskać</div>
 </div>
 <p id="etap"></p>
