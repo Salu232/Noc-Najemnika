@@ -400,12 +400,14 @@ function uderzKlatwa(gra) {
   const b = gra.bohater; b.klatwaUderzyla = true;
   let ile = 0;
   for (const e of gra.wrogowie) {
-    if (e.stan === 'wynurza' || e.stan === 'martwy') continue;
+    // 27 XI 19:34 (Przemek: „użycie klątwy zawsze kończy się dostaniem wpierdol”): wynurzający się byli na nią odporni, wstawali
+    // i gryźli tuż po niej. Teraz klątwa bierze też tych, których już widać choć w jednej trzeciej.
+    if (e.stan === 'martwy' || (e.stan === 'wynurza' && e.widac < 0.3)) continue;
     const dx = e.x - b.x, dy = e.y - b.y, d = Math.hypot(dx, dy) - e.promien;
     if (d > KLATWA.zasieg) continue;
     const kat = Math.atan2(dy, dx), blisko = 1 - Math.max(0, d) / KLATWA.zasieg;
     zranWroga(gra, e, KLATWA.obrazenia, kat, KLATWA.odrzut * (0.5 + 0.5 * blisko), true, false, true);
-    if (e.zycie > 0) { e.stan = 'ogluszony'; e.t = 0; }                      // kto przeżył, chwieje się i dostaje podwójnie
+    if (e.zycie > 0) { e.stan = 'ogluszony'; e.t = 0; e.ogluszCzas = KLATWA.ogluszenie; e.widac = 1; }   // kto przeżył, chwieje się i dostaje podwójnie
     ile++;
   }
   for (const t of gra.totemy) if (!t.zniszczony && Math.hypot(t.x - b.x, t.y - b.y) - t.promien < KLATWA.zasieg) zranTotem(gra, t, TOTEM.zaKlatwe);
@@ -594,7 +596,7 @@ function trafBohatera(gra, e) {
   if (b.blok && Math.abs(rozn(katDoWroga, b.kat)) < BOHATER.blok.kat) {
     if (!ciezki && gra.czas - b.blokOd < BOHATER.blok.oknoParowania) {
       // parowanie: wróg odsłonięty, następny cios zadaje podwójne obrażenia
-      e.stan = 'ogluszony'; e.t = 0; e.vx = Math.cos(katDoWroga) * 260; e.vy = Math.sin(katDoWroga) * 260;
+      e.stan = 'ogluszony'; e.t = 0; e.ogluszCzas = 0; e.vx = Math.cos(katDoWroga) * 260; e.vy = Math.sin(katDoWroga) * 260;
       gra.statystyki.parowania++;
       gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.09); gra.wstrzas = Math.max(gra.wstrzas, 4);
       iskry(gra, (b.x + e.x) / 2, (b.y + e.y) / 2 - 40, 14);
@@ -790,7 +792,7 @@ function aktualizujWrogow(gra, dt) {
       if (e.t >= typ.przemiana.czas) { e.stan = 'idzie'; e.t = 0; e.drzy = 0; }
     } else if (e.stan === 'ogluszony') {
       e.drzy = Math.sin(gra.czas * 40) * 1.5;
-      if (e.t >= 1.2) { e.stan = 'idzie'; e.t = 0; e.drzy = 0; }
+      if (e.t >= (e.ogluszCzas || 1.2)) { e.stan = 'idzie'; e.t = 0; e.drzy = 0; e.ogluszCzas = 0; }
     }
 
     // rozpychanie się w tłumie

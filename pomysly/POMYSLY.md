@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 27 XI 2026 | Przemek (przez Patryka) | Klątwa bezużyteczna: po niej zawsze obrywa | Zrobione | Przyczyna: ghule wynurzające się z ziemi były na klątwę odporne i gryzły tuż po niej (symulacja: 31 ran w 2,5 s mimo klątwy). Teraz klątwa bierze też wynurzających się (0 ran), zasięg 230 (było 190), wstawanie 0,3 s (było 0,5), ogłuszenie po klątwie 2 s (było 1,2) |
 | 27 XI 2026 | Przemek, decyzja Patryka („lżej dla wszystkich, ciężar zostaje”) | Za dużo czekania, kondycja zabija, godzina bez przejścia 1. fali | Zrobione | Kondycja wraca 44/s po 0,35 s (było 34/s po 0,6 s); unik 20, 26, 32 (było 24, 35, 46); cios 10/16 (było 13/20); powrót miecza 0,2/0,34 s (było 0,26/0,42); wstawanie z przewrotu przerywa cios albo unik; po upadku 1,8 s (było 2,6); 1. fala: ghule słabsze i co 2,4 s |
 | 27 XI 2026 | Przemek (przez Patryka) | Za długo trzeba czekać na obronę po ataku | Zrobione | Blok przerywa powrót miecza: było 0,3–0,6 s, teraz 0,03 s po cięciu, najwyżej 0,17 s w trakcie samego cięcia. Cios kliknięty przed blokiem nie wyskakuje sam po jego puszczeniu |
 | 27 XI 2026 | Przemek (przez Patryka) | Sprint, bo jedyną drogą od wroga jest unik, a na unik brak kondycji | Zrobione | Unik trzymany dłużej: po przewrocie bohater biegnie ×1,5, 20 kondycji na sekundę (ok. 4 s z pełnej). Po zadyszce trzeba puścić i wcisnąć znowu |

@@ -900,7 +900,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (e.stan === 'przemiana') k = klatkaW(fw, 'przemiana', e.t / typ.przemiana.czas);
     else if (e.stan === 'zamach') { k = klatkaW(fw, 'zamach' + at, e.t / czasy.zamach); oczy = !typ.ciezki; }   // kolos unosi pięść nad głowę i zasłania oczy; ostrzega go krąg na ziemi
     else if (e.stan === 'skok') k = klatkaW(fw, 'skok' + at, e.t / czasy.skok);
-    else if (e.stan === 'ogluszony' && trafA) k = klatkaW(fw, trafA, e.t / 1.2);
+    else if (e.stan === 'ogluszony' && trafA) k = klatkaW(fw, trafA, Math.min(1, e.t / (e.ogluszCzas || 1.2)));
     else if (odTraf < fw.trafienie && trafA && !(typ.boss && e.stan === 'odpoczynek')) k = klatkaW(fw, trafA, 0.4 * odTraf / fw.trafienie);
     else if (e.stan === 'odpoczynek' && typ.boss && e.at) k = klatkaW(fw, 'odpoczynek' + at, e.t / Math.max(0.3, e.odpoczynek * 0.85));
     else if (e.stan === 'odpoczynek' && e.t < 0.6 && fw.anim.odpoczynek) k = klatkaW(fw, 'odpoczynek', e.t / 0.6);

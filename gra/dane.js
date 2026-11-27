@@ -69,8 +69,9 @@ export const MOCNY = { luk: 0.7, zasieg: 1.15, obrazenia: 2.5, odrzut: 1.8, kosz
 // Wszystko wokół dostaje i odlatuje, ghule zwykle giną, kolos się chwieje. Przez cały czas nikt go nie zrani.
 // Pasek klątwy napełnia się od trafień i zabitych; na początku nocy jest pełny, żeby dało się ją od razu wypróbować.
 export const KLATWA = {
-  ladowanie: 0.45, uderzenie: 0.25, wstawanie: 0.5,   // sekundy: unosi rękę, uderza, wstaje
-  zasieg: 190, obrazenia: 5, odrzut: 620,   // 27 XI: było 3; po podniesieniu życia klątwa dalej rozbija ghule
+  // 27 XI 19:34 (Przemek: po klątwie zawsze obrywa): było wstawanie 0,5 s, zasięg 190, ogłuszenie 1,2 s jak po parowaniu
+  ladowanie: 0.45, uderzenie: 0.25, wstawanie: 0.3,   // sekundy: unosi rękę, uderza, wstaje
+  ogluszenie: 2, zasieg: 230, obrazenia: 5, odrzut: 620,   // 27 XI: było 3; po podniesieniu życia klątwa dalej rozbija ghule
   zaTrafienie: 0.04, zaZabicie: 0.1, start: 1,
 };
 
