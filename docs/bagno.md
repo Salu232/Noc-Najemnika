@@ -79,7 +79,8 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
 ## Co już jest w grze (27 XI wieczorem)
 
 - **Bagno to osobna mapa**, nie polana z kałużami (Patryk, 27 XI: *„wgl inna mapa ma być”*). Prawie wszystko to woda. Jest dziewięć wysp, grobla od południa i kładki między wyspami. Na środkowej wyspie stoi chata wiedźmy na palach z kotłem. Martwe drzewa rosną tylko na wyspach, a trzciny w płytkiej wodzie. Chata i kocioł są na razie rysowane kodem.
-- **Wchodzi się tam tylko z historii** (Patryk, 27 XI: *„musi być połączone ze sobą”*). Po świcie nad polaną, kiedy padnie rycerz, na ekranie końca jest „Idź na bagno”. Bohater zabiera monety, mikstury, plecak z amuletem, pas i ulepszenia ze stołu. Ulepszenia z fal zostają na polanie, bo były „na resztę nocy”. „Jeszcze raz” na bagnie zaczyna bagno od nowa z tymi samymi rzeczami.
+- **Wchodzi się tam tylko z historii** (Patryk, 27 XI: *„musi być połączone ze sobą”*, *„będzie się szło drogą i później, jak w typowych grach, zmienia się mapa”*). Po świcie nad polaną, kiedy padnie rycerz, ekran końca ma „Ruszaj na bagno”. Ekran znika, jest ranek, a bohater idzie drogą z powrotem przez las. Na skraju mapy obraz ciemnieje i wczytuje się bagno. Bohater zabiera monety, mikstury, plecak z amuletem, pas i ulepszenia ze stołu. Ulepszenia z fal zostają na polanie, bo były „na resztę nocy”. „Jeszcze raz” na bagnie zaczyna bagno od nowa z tymi samymi rzeczami.
+- **Ziemia bagna z Gemini** (Patryk, 27 XI): `grafika/ziemia-bagno.webp`, rozjaśniona ×1,5 jak ziemia polany. Oryginał leży w `grafika/zrodla/ziemia-bagno-gemini.png`.
 - Na bagnie jest własny prolog, własne zdanie przy przyjściu i przy zapadnięciu nocy.
 - Przycisku mapy na ekranie startu już nie ma. Do prób w menu pauzy jest „Próba: przeskocz na bagno” (bez rzeczy z polany) i z powrotem.
 - W płytkiej wodzie bohater brnie wolniej (×0,62), potwory też (×0,72). Głęboka woda jest nie do przejścia.

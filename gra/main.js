@@ -1,5 +1,5 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole, sprzedaj, kupMiksture, mozeKupic, odejdzOdHandlarza, kupTowar, mozeKupicTowar, maxMikstur, stanDoPrzeniesienia, przeniesStan } from './walka.js';
+import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole, sprzedaj, kupMiksture, mozeKupic, odejdzOdHandlarza, kupTowar, mozeKupicTowar, maxMikstur, stanDoPrzeniesienia, przeniesStan, ruszajNaBagno } from './walka.js';
 import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ, LUP } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
@@ -44,7 +44,7 @@ async function start() {
       zaladujObraz(new URL('../grafika/chata-bez-dachu.webp', import.meta.url).href, 'chata bez dachu').catch(() => null),   // izba jak w Tibii (docs/chata.md)
       zaladujObraz(new URL('../grafika/chata-drzwi-zamkniete.webp', import.meta.url).href, 'drzwi').catch(() => null),   // zamknięte drzwi widziane z izby
       zaladujObraz(new URL('../grafika/rekwizyty.webp', import.meta.url).href, 'rekwizyty').catch(() => null),   // drzewa, kępy, krew i ognisko z arkuszy Przemka; bez nich rysowane kodem
-      /ziemia=stara/.test(location.search) ? null : zaladujObraz(new URL('../grafika/ziemia.webp', import.meta.url).href, 'ziemia').catch(() => null),   // ziemia z Gemini (Patryk, 25 XI); ?ziemia=stara pokazuje dawny kafel
+      /ziemia=stara/.test(location.search) ? null : zaladujObraz(new URL(BAGNO ? '../grafika/ziemia-bagno.webp' : '../grafika/ziemia.webp', import.meta.url).href, 'ziemia').catch(() => null),   // ziemia z Gemini (Patryk, 25 XI); ?ziemia=stara pokazuje dawny kafel
       /droga=(farba|kafel)/.test(location.search) ? null : zaladujObraz(new URL('../grafika/droga.webp', import.meta.url).href, 'droga').catch(() => null),   // łata drogi z rysunku ziemi Przemka (v39; ?droga=laty); ?droga=farba pokazuje drogę z v38
       /droga=(farba|laty)/.test(location.search) ? null : zaladujObraz(new URL('../grafika/droga-kafel.webp', import.meta.url).href, 'droga-kafel').catch(() => null),   // kafel drogi z Gemini (Patryk, 25 XI)
       zaladujObraz(new URL('../grafika/kartka-lezy.webp', import.meta.url).href, 'kartka').catch(() => null),   // kartka z dziennika rycerza na ziemi (Gemini, 25 XI)
@@ -150,7 +150,14 @@ async function start() {
       ? 'Rozdział drugi. Przyszedłeś z polany z tym, co zostało w plecaku. Woda, martwy las i topielce, które chwytają: tnij, żeby puściły.'
       : 'Rozdział drugi, wersja próbna (bez rzeczy z polany). Woda, martwy las i topielce, które chwytają: tnij, żeby puściły.';
   }
-  $('na-bagno').addEventListener('click', () => przejdz('bagno', stanDoPrzeniesienia(gra)));
+  // „Ruszaj na bagno”: ekran końca znika, bohater idzie drogą przez las; na skraju mapy ściemnia się i wczytuje bagno
+  $('na-bagno').addEventListener('click', () => { ruszajNaBagno(gra); pokaz('ekran-konca', false); pauza = false; });
+  function odejdzNaBagno() {
+    const z = document.createElement('div');
+    z.style.cssText = 'position:fixed;inset:0;background:#000;opacity:0;transition:opacity 1.6s ease;z-index:50;pointer-events:none';
+    document.body.append(z); requestAnimationFrame(() => requestAnimationFrame(() => { z.style.opacity = '1'; }));
+    setTimeout(() => przejdz('bagno', stanDoPrzeniesienia(gra)), 1800);
+  }
   // skrót do prób, póki bagno się buduje: w pauzie, nie na ekranie startu
   $('przeskocz-mapa').textContent = BAGNO ? 'Próba: wróć na polanę' : 'Próba: przeskocz na bagno';
   $('przeskocz-mapa').addEventListener('click', () => przejdz(BAGNO ? 'polana' : 'bagno', null));
@@ -202,7 +209,7 @@ async function start() {
     const w = wejscie.odczytaj(gra);
     if (!pauza && gra.faza !== 'koniec') aktualizuj(gra, dt, w);
     const zd = gra.zdarzenia.splice(0);
-    for (const z of zd) { zagraj(z); if (z.typ === 'koniec') setTimeout(pokazKoniec, 900); }
+    for (const z of zd) { zagraj(z); if (z.typ === 'koniec') setTimeout(pokazKoniec, 900); if (z.typ === 'na-bagno') odejdzNaBagno(); }
     muzyka(!pauza && gra.faza === 'walka' && gra.wrogowie.length ? (gra.etap >= 3 ? 2 : 1) : 0);
     { const b = gra.bohater, d = Math.hypot(b.x - OGNISKO.x, b.y - OGNISKO.y);
       otoczenie({ gra: zaczeta && !pauza && gra.faza !== 'koniec', wIzbie: !!b.wChacie, walka: gra.faza === 'walka', ogien: b.wChacie ? 0 : Math.max(0, 1 - d / 420) * (0.35 + 0.65 * (gra.ogien ?? 1)), napiecie: gra.faza === 'przerwa' && gra.etap > 0 && gra.fazaCzas < 12 ? 1 : 0 }); }

@@ -309,7 +309,7 @@ export const WSTEP = {
   prologBagno: [
     'Rycerz leżał w trawie, a ja trzymałem jego amulet. Trzciny i półksiężyc.',
     'Ręka przestała palić na jeden dzień. Potem znowu zaczęła.',
-    'Szedłem na północ, aż las zrobił się martwy, a droga zamieniła się w groblę.',
+    'Szedłem cały dzień, aż las zrobił się martwy, a droga zamieniła się w groblę.',
     'Wiedźma z bagien. Rycerz pisał, że ona wie, co dalej.',
   ],
   przyjscieBagno: 'Bagno. Chata na palach, kocioł jeszcze ciepły. Wiedźmy nie ma. Rozejrzę się, zanim zrobi się ciemno.',

@@ -196,7 +196,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // Zastępcze, dopóki nie przyjdą kafle ziemi i wody z Gemini (docs/bagno.md).
   const wodaG = new P.Container();
   if (BAGNO) {
-    ziemia.tint = 0x93a184; plamy.tint = 0x8a9a7c; droga.tint = 0x9c9480;
+    ziemia.tint = obrazZiemi ? 0xffffff : 0x93a184; plamy.tint = 0x8a9a7c; droga.tint = 0x9c9480;
     const K = 8, w = Math.ceil(SZER / K), h = Math.ceil(WYS / K), cv = document.createElement('canvas'); cv.width = w; cv.height = h;
     const cx = cv.getContext('2d'), im = cx.createImageData(w, h), d = im.data;
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
@@ -1498,7 +1498,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       k.s.position.set(x, y); k.s.rotation = k.obrot + Math.sin(czas * 0.05 + k.faza) * 0.06;
       k.s.width = k.roz * 2 * (1 + Math.sin(czas * 0.11 + k.faza) * 0.08); k.s.height = k.roz * 2 * k.splaszcz;
       const przyBoh = Math.min(1, Math.hypot(x - b.x, (y - b.y) * 1.6) / (k.roz * 0.9));        // przy bohaterze rzednie
-      k.s.alpha = k.alfa * (0.75 + Math.sin(czas * 0.3 + k.faza) * 0.25) * (0.45 + 0.55 * przyBoh) * (gra.faza === 'swit' || gra.faza === 'koniec' ? Math.max(0.2, gra.mroczek / 0.8) * (1 - 0.85 * (gra.slonce || 0)) : 1);
+      k.s.alpha = k.alfa * (0.75 + Math.sin(czas * 0.3 + k.faza) * 0.25) * (0.45 + 0.55 * przyBoh) * (gra.faza === 'swit' || gra.faza === 'koniec' || gra.faza === 'wedrowka' || gra.faza === 'odchodzi' ? Math.max(0.2, gra.mroczek / 0.8) * (1 - 0.85 * (gra.slonce || 0)) : 1);
     }
 
     // ogień
