@@ -189,7 +189,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const dymK = new P.Graphics(), dymy = [], iskryIzby = [];
   const KOMIN = { x: CHATA.x + 768 * CHATA.skala, y: CHATA.y + 146 * CHATA.skala };
   let dymNa = 0, iskraNa = 0;
-  const trupyC = new P.Container();              // ostatnie ciała leżą jako ostre obrazy, starsze idą do śladów
+  const trupyC = new P.Container();              // ciała leżą jako ostre obrazy, aż wsiąkną
   const ozdoby = new P.Container();                // kępy trawy, mchu i liści z arkuszy Przemka: leżą pod krwią
   swiat.addChild(ziemia, plamy, droga, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para, dymK);
 
@@ -378,23 +378,19 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (fw) return { s, fw, ciezki: !!typ.ciezki, dir: -s.sx, t: 0, czas: s.przeciety ? (typ.ciezki ? 0.65 : 0.42) : fw.smierc, gasnie: -1, kon: null };
     return { s, at: atlasy[s.wrog], sk: typ.skala, ciezki: !!typ.ciezki, dir: -s.sx, wiersz: s.sx < 0 ? 1 : 0, t: 0, czas: typ.ciezki ? 0.65 : 0.42, gasnie: -1, kon: null };
   }
-  // ciało zostaje na ziemi: rysujemy je raz do tekstury śladów
-  // Ciało zostaje na ziemi. Tekstura śladów ma połowę rozdzielczości, więc świeże ciała (do 50) leżą
-  // jako zwykłe obrazy w pełnej ostrości; dopiero najstarsze trafiają do śladów.
+  // Ciało leży jako zwykły obraz w pełnej ostrości (tekstura śladów ma połowę rozdzielczości).
   const trupy = [];
+  // Ciała wsiąkają w ziemię: po WSIAKA s ciemnieją, spłaszczają się i znikają przez 5 s. Krew zostaje w śladach
+  // (Patryk, 27 XI: pod koniec nocy polana była dywanem trupów — „tak niech wsiąkają”).
+  const WSIAKA = 40, WSIAKA_DL = 5;
   function zostaw(lista) {
     for (const k of lista) {
       const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy);
       trupyC.addChild(sp); trupy.push({ sp, k, od: czas });
     }
-    if (trupy.length > 30) { const stare = trupy.splice(0, trupy.length - 22); utrwal(stare.filter(t => !t.k.znika).map(t => t.k)); for (const t of stare) t.sp.destroy(); }
-  }
-  function utrwal(lista) {
-    const c = new P.Container();
-    // Starsze ciała wsiąkają w ziemię: ciemniejsze i półprzezroczyste (Patryk, 25 XI: w hordzie bohater ginął w stosie trupów).
-    for (const k of lista) { const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy); sp.tint = 0x5a5048; sp.alpha = 0.45; c.addChild(sp); }
-    renderer.render(c, { renderTexture: sladyRT, clear: false });
-    c.destroy({ children: true });
+    // za dużo ciał naraz: najstarsze zaczynają wsiąkać od razu, zamiast czekać swoje
+    let nad = trupy.length - 30;
+    for (const t of trupy) { if (nad <= 0) break; if (czas - t.od < (t.k.znika || WSIAKA)) { t.k.znika = Math.max(0, czas - t.od); } nad--; }
   }
   function obloczek(x, y, vx, vy, r0, r1, czas, alfa, kolor, ziemia) { if (obloczki.length < 80) obloczki.push({ x, y, vx, vy, r0, r1, t: 0, czas, alfa, kolor, ziemia }); }
   function kurz(x, y, kat, ile, moc = 1) {
@@ -898,10 +894,13 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     czas += dt;
     const b = gra.bohater;
     // kałuża po wiedźmie wsiąka w ziemię: po 20 s blednie przez 4 s i znika (Patryk, 25 XI 16:57)
+    // każde inne ciało po WSIAKA s ciemnieje, spłaszcza się i znika; krew pod nim zostaje
     for (let i = trupy.length - 1; i >= 0; i--) {
-      const t = trupy[i]; if (!t.k.znika) continue;
-      const q = (czas - t.od - t.k.znika) / 4; if (q <= 0) continue;
-      if (q >= 1) { t.sp.destroy(); trupy.splice(i, 1); } else t.sp.alpha = 1 - q;
+      const t = trupy[i], q = (czas - t.od - (t.k.znika || WSIAKA)) / (t.k.znika === 20 ? 4 : WSIAKA_DL); if (q <= 0) continue;
+      if (q >= 1) { t.sp.destroy(); trupy.splice(i, 1); continue; }
+      const c = Math.round(255 - 165 * Math.min(1, q * 1.6));
+      t.sp.tint = (c << 16) | (Math.round(c * 0.9) << 8) | Math.round(c * 0.8);
+      t.sp.alpha = 1 - q * q; t.sp.scale.y = t.k.sy * (1 - 0.35 * q);
     }
     // dach znika w ćwierć sekundy, gdy bohater wejdzie do izby, i wraca, gdy wyjdzie (jak w Tibii)
     const wProgu = b.x > CHATA.przejscie.x0 && b.x < CHATA.przejscie.x1 && b.y > CHATA.przejscie.y0 && b.y < CHATA.przejscie.y1 + 6;   // w progu dach już gaśnie
@@ -1326,7 +1325,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         }
       }
       if (q >= 1 && f.gasnie < 0) {                                  // leży: zostaje na ziemi, żywa klatka gaśnie nad śladem
-        (f.fw ? zostaw : utrwal)(f.kon); f.gasnie = 0;
+        zostaw(f.kon); f.gasnie = 0;
         if (f.ciezki) { pierscienie.push({ x: s.x, y: s.y, r0: 20, r1: 90, t: 0, czas: 0.35, kolor: 0xb8a890, ziemia: true }); kurz(s.x, s.y, s.kat, 7, 1.6); stanRys.kop.y += 5; }
         else kurz(s.x + dx * 20, s.y + dy * 20, s.kat, 2, 0.7);
       } else if (f.gasnie >= 0) { f.gasnie += dt; if (f.gasnie > 0.15) padajace.splice(i, 1); }
