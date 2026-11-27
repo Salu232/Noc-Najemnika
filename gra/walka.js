@@ -225,10 +225,13 @@ export function aktualizuj(gra, dt, w) {
 }
 
 // ---------- bohater ----------
+// Wynurzający się z portalu albo ziemi: do 27 XI miecz przez nich przechodził (Przemek, 20:02, film: „mój cios nic nie robi, wchodzę w tłum”).
+// Teraz da się ich ciąć, gdy widać ich choć w jednej trzeciej; cięty kończy wynurzanie i musi się zebrać.
+const nieDoTrafienia = e => e.stan === 'martwy' || (e.stan === 'wynurza' && e.widac < 0.3);
 function najblizszyWrog(gra, zasieg) {
   const b = gra.bohater; let naj = null, nd = zasieg;
   for (const e of gra.wrogowie) {
-    if (e.stan === 'wynurza' || e.stan === 'martwy') continue;
+    if (nieDoTrafienia(e)) continue;
     const d = Math.hypot(e.x - b.x, e.y - b.y) - e.promien;
     if (d < nd) { nd = d; naj = e; }
   }
@@ -405,7 +408,7 @@ function uderzKlatwa(gra) {
   for (const e of gra.wrogowie) {
     // 27 XI 19:34 (Przemek: „użycie klątwy zawsze kończy się dostaniem wpierdol”): wynurzający się byli na nią odporni, wstawali
     // i gryźli tuż po niej. Teraz klątwa bierze też tych, których już widać choć w jednej trzeciej.
-    if (e.stan === 'martwy' || (e.stan === 'wynurza' && e.widac < 0.3)) continue;
+    if (nieDoTrafienia(e)) continue;
     const dx = e.x - b.x, dy = e.y - b.y, d = Math.hypot(dx, dy) - e.promien;
     if (d > KLATWA.zasieg) continue;
     const kat = Math.atan2(dy, dx), blisko = 1 - Math.max(0, d) / KLATWA.zasieg;
@@ -521,7 +524,7 @@ function tnij(gra, dt) {
   let nowe = 0;
   const cele = [];
   for (const e2 of gra.wrogowie) {
-    if (e2.stan === 'wynurza' || e2.stan === 'martwy' || c.trafieni.has(e2)) continue;
+    if (nieDoTrafienia(e2) || c.trafieni.has(e2)) continue;
     const dx = e2.x - b.x, dy = e2.y - b.y, d = Math.hypot(dx, dy);
     if (d - e2.promien > zasieg) continue;
     const tol = Math.atan2(e2.promien, Math.max(d, 1)) + (d < b.promien + e2.promien + 10 ? 0.6 : 0);
@@ -663,6 +666,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
     gra.zdarzenia.push({ typ: 'przemiana', x: e.x, y: e.y });
     return;
   }
+  if (e.stan === 'wynurza' && e.zycie > 0) { e.stan = 'odpoczynek'; e.t = 0; e.widac = 1; e.at = null; }   // cięty w czasie wynurzania: wypada z portalu i musi się zebrać
   const sila = odrzut / (e.typ.ciezki ? 6 : 1);
   e.vx += Math.cos(kat) * sila; e.vy += Math.sin(kat) * sila;
   // lekki miecz nie przerywa zamachu ghula: przerwie go cięższy miecz, mocny cios, parowanie albo śmierć
