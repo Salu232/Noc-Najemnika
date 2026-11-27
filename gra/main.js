@@ -135,7 +135,7 @@ async function start() {
     let n = 'noc-mapa=' + mapa;
     if (stan) n += ';noc-stan=' + encodeURIComponent(JSON.stringify(stan));
     try { window.name = n; } catch (e) { /* */ }
-    try { localStorage.setItem('noc-mapa', mapa); if (stan) localStorage.setItem('noc-stan', JSON.stringify(stan)); else localStorage.removeItem('noc-stan'); } catch (e) { /* bez pamięci */ }
+    try { localStorage.setItem('noc-przejscie', mapa); if (stan) localStorage.setItem('noc-stan', JSON.stringify(stan)); else localStorage.removeItem('noc-stan'); } catch (e) { /* bez pamięci */ }
     location.reload();
   }
   let stanZPolany = null;
