@@ -123,12 +123,14 @@ function muzykaUtworu(moc) {
   const t = ac.currentTime, gra_ = wlaczony && moc > 0;
   if (gra_ && !granie) {
     const zr = ac.createBufferSource(); zr.buffer = utwor; zr.loop = true;
-    const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); zr.connect(g); g.connect(glosnosc); zr.start(t);
+    const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t);
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5500;   // ciszej i ciemniej, żeby siedziała pod ciosami (Patryk, 27 XI 11:41: „wtopić, nie tak głośno”)
+    zr.connect(lp); lp.connect(g); g.connect(glosnosc); zr.start(t);
     granie = { zr, g, ciszaOd: null };
   }
   if (!granie) return;
-  if (gra_) { granie.ciszaOd = null; granie.g.gain.setTargetAtTime(moc > 1 ? 0.95 : 0.8, t, 0.5); return; }
-  if (granie.ciszaOd === null) { granie.ciszaOd = t; granie.g.gain.setTargetAtTime(wlaczony ? 0.35 : 0.0001, t, 0.8); }
+  if (gra_) { granie.ciszaOd = null; granie.g.gain.setTargetAtTime(moc > 1 ? 0.5 : 0.38, t, 0.5); return; }
+  if (granie.ciszaOd === null) { granie.ciszaOd = t; granie.g.gain.setTargetAtTime(wlaczony ? 0.16 : 0.0001, t, 0.8); }
   if (t - granie.ciszaOd > 6 || !wlaczony) {                          // fala się skończyła: wygasa i staje
     const { zr, g } = granie; g.gain.cancelScheduledValues(t); g.gain.setTargetAtTime(0.0001, t, 0.9); zr.stop(t + 4); granie = null;
   }
