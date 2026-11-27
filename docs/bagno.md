@@ -28,7 +28,7 @@
    - Pierwsza propozycja (matka topielców) zostaje na później, na przykład na drugie spotkanie z bagnem.
 7. **Kładki do poprawy** (Patryk, 27 XI 17:37: *„trzeba te kładki poprawić, żeby wyglądały przyzwoicie”*). Dziś to deski rysowane kodem. Potrzebny obraz z Gemini: prosty odcinek kładki, powtarzalny w poziomie, kładziony wzdłuż kładki jak kafel drogi. Polecenie w tabeli obrazów, punkt 6.
 8. **Pomysły Claude na bagno** (27 XI 17:40, Patryk: *„sam też pomyśl, co można by fajnego dodać”*; nic jeszcze nie zatwierdzone):
-   - **Zioła na wyspach.** *(W grze od 27 XI 21:20, Patryk: „robimy coś innego”: 4 wiązki przed każdą falą na zewnętrznych wyspach, najwyżej 7 naraz; 3 wiązki w kotle to mikstura, poza walką. Ikona `grafika/przedmioty/ziele.webp` jest zastępcza, rysowana z kodu.)* W ciszy między falami zbiera się zioła i grzyby na dalszych wyspach. W kotle robi się z nich mikstury i ulepszenia razem z łupem z potworów. To daje powód, żeby chodzić po kładkach.
+   - **Zioła na wyspach.** *(W grze od 27 XI 21:20, Patryk: „robimy coś innego”: 4 wiązki przed każdą falą na zewnętrznych wyspach, najwyżej 7 naraz; 3 wiązki w kotle to mikstura, poza walką. Ikona `grafika/przedmioty/ziele.webp` z Gemini od Patryka (27 XI 21:10), oryginał w `grafika/zrodla/ziele-gemini.png`; kontury przy zmniejszaniu pocienione, żeby w 128 px nie zlewały się w czerń.)* W ciszy między falami zbiera się zioła i grzyby na dalszych wyspach. W kotle robi się z nich mikstury i ulepszenia razem z łupem z potworów. To daje powód, żeby chodzić po kładkach.
    - **Latarnie na palach zamiast jednego ogniska.** *(W grze od 27 XI 21:20 jako pochodnie z rysunku pochodni przy furtce: 5 na zewnętrznych wyspach, E zapala, w walce płoną 140 s, w ciszy 420 s, przy płonącej topielce nie wychodzą z wody w promieniu 340. Ognisko na środkowej wyspie zostaje.)* Na kilku wyspach stoją latarnie do zapalenia. Mgła z wody je gasi, a w ciemności topielce są śmielsze. Ogień robi się mapą, a nie jednym punktem.
    - **Kładki pękają.** Pod kolosem albo po mocnym ciosie deska się łamie i potwór wpada do wody. Kładkę da się przeciąć specjalnie, ale wtedy sam tamtędy nie przejdziesz.
    - **Skrzynia w wozie rycerza.** Za klucz z kartki otwiera się skrzynię, a w niej jest tarcza albo nowy miecz rycerza. To pierwsza zdobyta broń w grze.
@@ -90,7 +90,7 @@ Kolejność według tego, co odblokowuje najwięcej pracy. Każdy potwór robimy
 
 ### 7. Ziele (Gemini, ikona 128 px jak `grafika/przedmioty/oddech.webp`)
 
-Prompt: *„Ikona przedmiotu do gry, ten sam styl co załączona fiolka (malowana, ciemny kontur, przezroczyste tło): pęk bagiennego ziela przewiązany sznurkiem, kilka łodyg z wąskimi liśćmi i drobnymi bladożółtymi kwiatkami, trochę błota przy korzeniach. Widok z boku, na środku, bez tła, 1024 × 1024.”* Wynik wejdzie zamiast zastępczej `ziele.webp`.
+Prompt: *„Ikona przedmiotu do gry, ten sam styl co załączona fiolka (malowana, ciemny kontur, przezroczyste tło): pęk bagiennego ziela przewiązany sznurkiem, kilka łodyg z wąskimi liśćmi i drobnymi bladożółtymi kwiatkami, trochę błota przy korzeniach. Widok z boku, na środku, bez tła, 1024 × 1024.”* Zrobione 27 XI 21:10.
 
 ### 5. Kocioł (Gemini, ikony do okna kotła)
 
