@@ -331,3 +331,7 @@ export const HANDLARZ = {
   ],
   zobaczyl: 'Starzec z latarnią. Przy drodze, w środku nocy. Jak on tu przeszedł przez mgłę?',
 };
+
+// Portale klątwy (27 XI, druga wersja): otwarcie trwa 1,6 s, potem wypuszczają grupkę i zarastają w 1,2 s.
+// Grupka: najwyżej 4 potwory, kolejny najdalej 3 s po poprzednim, cała najdalej 9 s. Otwierają się 280–420 od bohatera.
+export const PORTAL = { otwarcie: 1.6, zamykanie: 1.2, naraz: 4, odstep: 3, najdluzej: 9, od: 280, do: 420 };

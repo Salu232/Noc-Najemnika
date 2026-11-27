@@ -57,11 +57,10 @@ export const MGLY = {
 
 // Totemy na miejscu mgieł (Patryk, 24 XI 18:20: „zamiast mgły to potwory mogłyby się pojawiać przez te kamienie i totemy”).
 // Rysunki i pętla fioletowego dymu z filmu Przemka (narzedzia/wytnij-z-arkuszy.py). wys: wysokość w jednostkach świata.
+// 27 XI (Patryk: „nie wiem, czy te totemy w ogóle są potrzebne”): potwory przychodzą z portali, więc zostaje jeden totem z czaszką,
+// jako znak dawnego mieszkańca (wstęp: „Kość i pióra na palu”). Rogi, obelisk i kamień zdjęte.
 export const TOTEMY = [
   { mgla: 'zachod', rys: 'totem_czaszka', x: MGLY.zachod.x, y: MGLY.zachod.y, wys: 175, promien: 22 },
-  { mgla: 'wschod', rys: 'totem_rogi', x: MGLY.wschod.x, y: MGLY.wschod.y, wys: 170, promien: 18 },
-  { mgla: 'poludnie', rys: 'totem_obelisk', x: MGLY.poludnie.x - 60, y: MGLY.poludnie.y, wys: 150, promien: 22 },
-  { mgla: 'poludnie', rys: 'totem_kamien', x: MGLY.poludnie.x + 70, y: MGLY.poludnie.y - 20, wys: 140, promien: 22 },
 ];
 
 // Drzewa: gęsty las dookoła, pusta polana w środku, prześwity przy mgłach.

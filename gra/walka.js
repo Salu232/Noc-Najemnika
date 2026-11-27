@@ -1,5 +1,5 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ } from './dane.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ, PORTAL } from './dane.js';
 import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
@@ -140,6 +140,20 @@ export function wybierzUlepszenie(gra, id) {
   zastosujBron(gra);
   gra.ulepszenia.push(id); gra.wybor = null;
   gra.zdarzenia.push({ typ: 'ulepszenie', id });
+}
+
+// Portal otwiera się wokół bohatera (albo ogniska, gdy siedzi w chacie), z dala od innych otwartych portali.
+function otworzPortal(gra, p) {
+  const bb = gra.bohater, sr = bb.wChacie ? OGNISKO : bb;
+  let naj = null, najOdl = -1;
+  for (let k = 0; k < 8; k++) {
+    const a = Math.random() * Math.PI * 2, d = PORTAL.od + Math.random() * (PORTAL.do - PORTAL.od);
+    const c = { x: sr.x + Math.cos(a) * d, y: sr.y + Math.sin(a) * d * 0.75 }; zderzenia(c, 40);
+    let m = 9999; for (const o of gra.portale) if (o.otwarty) m = Math.min(m, Math.hypot(o.x - c.x, o.y - c.y));
+    if (m > najOdl) { najOdl = m; naj = c; }
+  }
+  p.x = naj.x; p.y = naj.y; p.otwarty = true; p.t = 0;
+  gra.zdarzenia.push({ typ: 'portal', x: p.x, y: p.y });
 }
 
 // ---------- jedna klatka ----------
@@ -291,6 +305,8 @@ function aktualizujBohatera(gra, dt, w) {
   // prędkość idzie falą, krok i chwila postoju. Rysowanie dokłada do tego lekkie ugięcie kolan.
   if (b.stan === 'wolny' && b.blok && rl > 0.05) { b.krokGardy = (b.krokGardy || 0) + dt * TAU * BOHATER.blok.krokiNaSekunde; v *= 1 - (gra.bronKlucz === 'wielki' ? 1 : 0.6) * Math.cos(b.krokGardy); }   // krok i postój pod filmy cofania; zwykły miecz łagodniej (Patryk, 25 XI 15:34: „przeskakuje”)
   else if (b.stan === 'cios') v = BOHATER.szybkosc * (b.cios.faza === 'laduje' ? MOCNY.ruchLadowania : bron.ruch);
+  // schyla się po rzecz z ziemi (27 XI, Patryk: „nie widzę, jak zbiera”): chwila postoju; cios, blok albo unik ją przerywa
+  if (b.schyla > 0) { b.schyla -= dt; if (b.stan === 'wolny' && !b.blok) v = 0; else b.schyla = 0; }
   if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt * PION; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl) * (v / BOHATER.szybkosc + 0.3); }
   else b.idzie = false;
   b.x += b.odrzutX * dt; b.y += b.odrzutY * dt;
@@ -809,29 +825,30 @@ function aktualizujEtapy(gra, dt) {
     if (gra.fazaCzas <= 0) {
       gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = []; gra.ostrzezono = false;
       // Portale (27 XI, Patryk): potwory nie wychodzą już z totemów, tylko z ran w powietrzu, które otwiera klątwa bohatera.
-      // Przeklęty przyciąga przeklęte: portale otwierają się wokół niego (albo wokół ogniska, gdy siedzi w chacie) i zamykają, gdy wyjdzie z nich ostatni.
-      const bb = gra.bohater, sr = bb.wChacie ? OGNISKO : bb, ileP = Math.min(4, 2 + gra.etap), kat0 = Math.random() * Math.PI * 2;
-      gra.portale = [];
-      for (let i = 0; i < ileP; i++) {
-        const a = kat0 + i * Math.PI * 2 / ileP + (Math.random() - 0.5) * 0.8, d = 300 + Math.random() * 160;
-        const p = { x: sr.x + Math.cos(a) * d, y: sr.y + Math.sin(a) * d * 0.75 }; zderzenia(p, 40);
-        gra.portale.push({ x: p.x, y: p.y, t: 0, zostalo: 0, zamyka: 0 });
-      }
-      gra.zdarzenia.push({ typ: 'portal' });
-      let nrP = (Math.random() * ileP) | 0;
+      // Przeklęty przyciąga przeklęte. Druga wersja po teście Patryka (27 XI 10:35: „muszą znikać, jak już wyrzucą potwory”):
+      // każdy portal otwiera się tuż przed swoją grupką (najwyżej 4 potwory w krótkim odstępie), tam gdzie bohater stoi w tej chwili,
+      // i zrasta się zaraz po ostatnim. Kolejna grupka to nowy portal w innym miejscu.
       const kt = gra.etap > 0 && KARTKI[gra.etap];
       if (kt && !gra.kartka) { const p = { x: OGNISKO.x + kt.gdzie.dx, y: OGNISKO.y + kt.gdzie.dy }; zderzenia(p, 22); gra.kartka = { nr: gra.etap, x: p.x, y: p.y }; }
       for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) {
-        const z = g.z[i % g.z.length] === 'boss' ? 'boss' : (nrP++ % ileP);
-        if (z !== 'boss') gra.portale[z].zostalo++;
-        gra.kolejka.push({ typ: g.typ, z, t: 1.6 + (g.od || 0) + i * g.co });           // 1,6 s: portal się otwiera
+        gra.kolejka.push({ typ: g.typ, z: g.z[i % g.z.length] === 'boss' ? 'boss' : null, t: PORTAL.otwarcie + (g.od || 0) + i * g.co });
+      }
+      gra.kolejka.sort((a, b) => a.t - b.t);
+      gra.portale = [];
+      for (const q of gra.kolejka) {
+        if (q.z === 'boss') continue;
+        let p = gra.portale.find(p => p.ile < PORTAL.naraz && q.t - p.ostatni <= PORTAL.odstep && q.t - p.pierwszy <= PORTAL.najdluzej);
+        if (!p) { p = { od: q.t - PORTAL.otwarcie, pierwszy: q.t, ostatni: q.t, ile: 0, zostalo: 0, t: 0, zamyka: 0, otwarty: false, x: 0, y: 0 }; gra.portale.push(p); }
+        p.ile++; p.zostalo++; p.ostatni = q.t; q.z = gra.portale.indexOf(p);
       }
       gra.kolejka.sort((a, b) => a.t - b.t);
     }
   } else if (gra.faza === 'walka') {
     gra.walkaCzas += dt;
-    for (const p of gra.portale || []) { p.t += dt; if (p.zamyka) p.zamyka += dt; }
-    if (gra.portale) gra.portale = gra.portale.filter(p => !(p.zamyka > 1.4));
+    for (const p of gra.portale || []) {
+      if (!p.otwarty && !p.zamkniety && gra.walkaCzas >= p.od) otworzPortal(gra, p);
+      if (p.otwarty) { p.t += dt; if (p.zamyka) { p.zamyka += dt; if (p.zamyka > PORTAL.zamykanie) { p.otwarty = false; p.zamkniety = true; } } }
+    }
     while (gra.kolejka.length && gra.kolejka[0].t <= gra.walkaCzas) {
       const q = gra.kolejka.shift();
       if (q.z === 'boss') {                                                            // rycerz wychodzi z drogi na południe od ogniska
@@ -844,7 +861,7 @@ function aktualizujEtapy(gra, dt) {
       const pt = gra.portale[q.z], ka = Math.random() * Math.PI * 2, kd = Math.random() * 18;
       const pw = { x: pt.x + Math.cos(ka) * kd, y: pt.y + Math.sin(ka) * kd * 0.7 }; zderzenia(pw, 14);
       gra.wrogowie.push(nowyWrog(q.typ, pw, ETAPY[gra.etap].zlosc));
-      if (--pt.zostalo <= 0) pt.zamyka = 0.001;
+      if (--pt.zostalo <= 0) { pt.zamyka = 0.001; gra.zdarzenia.push({ typ: 'portal_zamkniety', x: pt.x, y: pt.y }); }
     }
     if (!gra.kolejka.length && !gra.wrogowie.length) {
       gra.etap++;
@@ -917,13 +934,13 @@ function aktualizujCele(gra, dt, w) {
       if (b.stan !== 'upadl' && Math.hypot(l.x - b.x, l.y - b.y) < LUP.zasiegPodniesienia + b.promien) {
         const pr = PRZEDMIOTY[l.typ], pierwszy = !gra.plecak[l.typ];
         gra.plecak[l.typ] = (gra.plecak[l.typ] || 0) + 1; gra.lup.splice(i, 1);
-        gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y, rzecz: l.typ });
+        gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y, rzecz: l.typ }); b.schyla = 0.75;
         if (pierwszy || pr.wazny) powiedz(gra, pr.wazny ? pr.opis : `${pr.nazwa}. Do plecaka (I).`, pr.wazny ? 5 : 2.5);
       }
       continue;
     }
     if (b.stan !== 'upadl' && b.mikstury < LUP.max && Math.hypot(l.x - b.x, l.y - b.y) < LUP.zasiegPodniesienia + b.promien) {
-      b.mikstury++; gra.lup.splice(i, 1); gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y });
+      b.mikstury++; gra.lup.splice(i, 1); gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y }); b.schyla = 0.75;
     }
   }
   if (w.mikstura && b.mikstury > 0 && b.stan !== 'upadl' && b.zycie < BOHATER.zycie) {

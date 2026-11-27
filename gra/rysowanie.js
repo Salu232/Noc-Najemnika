@@ -313,7 +313,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const blaskiTotemow = TOTEMY.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0x9a50ff; blaski.addChild(s); return s; });
   // portale klątwy (27 XI): czarna rana w ziemi z fioletowym brzegiem i wirem, blask nad ciemnością, światło wycięte w mroku
   const portaleG = new P.Graphics(); swiat.addChildAt(portaleG, swiat.getChildIndex(aktorzy));
-  const blaskiPortali = [0, 1, 2, 3].map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xa040ff; s.visible = false; blaski.addChild(s); return s; });
+  const NPORT = 6;
+  const blaskiPortali = Array.from({ length: NPORT }, () => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xa040ff; s.visible = false; blaski.addChild(s); return s; });
+  // druga wersja (27 XI, Patryk: „lepsze te portale”): pionowa szczelina w powietrzu, sortowana z postaciami, z trzeszczącym brzegiem
+  const szczeliny = Array.from({ length: NPORT }, () => { const g = new P.Graphics(); g.visible = false; aktorzy.addChild(g); return g; });
   const blaskiPochodni = plomienieRzeczy.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffa860; blaski.addChild(s); return s; });
   const blaskKlatwy = new P.Sprite(T.cieplo); blaskKlatwy.anchor.set(0.5); blaskKlatwy.blendMode = P.BLEND_MODES.ADD; blaskKlatwy.tint = 0xa060ff; blaski.addChild(blaskKlatwy);
   const napisy = new P.Container();
@@ -329,7 +332,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const stempel = () => { const s = new P.Sprite(T.stempel); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ERASE; stemple.addChild(s); return s; };
   const swiatloBoh = stempel(), swiatloOgnia = stempel(), swiatloOkna = stempel(), swiatloIzby = stempel();
   const swiatlaTotemow = TOTEMY.map(() => stempel());
-  const swiatloBossa = stempel(); const swiatlaPortali = [0, 1, 2, 3].map(() => stempel()); let dymBossaNa = 0, pierscienBossaNa = 0, bossTrup = null;
+  const swiatloBossa = stempel(); const swiatlaPortali = Array.from({ length: NPORT }, () => stempel()); let dymBossaNa = 0, pierscienBossaNa = 0, bossTrup = null;
   const swiatlaPochodni = plomienieRzeczy.map(() => stempel());
   swiatloBoh.texture = T.stempelBoh;
   ciemnoscC.addChild(ciemnoscG, kreski, stemple);
@@ -914,8 +917,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
     // zdarzenia, które widać na obrazie
     for (const z of zdarzenia) {
+      if (z.typ === 'portal_zamkniety') { pierscienie.push({ x: z.x, y: z.y - 70, r0: 8, r1: 70, t: 0, czas: 0.35, kolor: 0xe0c0ff }); pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 90, t: 0, czas: 0.45, kolor: 0x9a40ff, ziemia: true }); }
       if (z.typ === 'mikstura') stanRys.jedno = { n: 'pije', od: czas, dl: 1.5 };
       else if (z.typ === 'drewno' || z.typ === 'kartka') stanRys.jedno = { n: 'podnosi', od: czas, dl: 1.3 };
+      else if (z.typ === 'podniesione') stanRys.jedno = { n: 'podnosi', od: czas, dl: 0.75 };   // łup z ziemi: szybki skłon (walka.js, b.schyla)
       if (z.typ === 'parowanie') { napis('Sparowane!', b.x, b.y - 96, 0xffe2a0); pierscienie.push({ x: b.x, y: b.y - 40, r0: 20, r1: 90, t: 0, czas: 0.3, kolor: 0xfff0c0 }); }
       else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
@@ -1489,25 +1494,62 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (Math.random() < dt * 10 * sl) obloczek(bossTrup.x + losuj(-70, 70), bossTrup.y - losuj(0, 60), losuj(-10, 10), losuj(-40, -18), 1.5, 2.5, losuj(1.5, 2.6), 0.85, 0xffe6a0, false);
     }
     portaleG.clear();
-    blaskiPortali.forEach((s, i) => {
-      const p = gra.portale && gra.portale[i]; s.visible = !!p; if (!p) { if (swiatlaPortali[i]) swiatlaPortali[i].alpha = 0; return; }
-      const ot = Math.min(1, p.t / 1.2), sm = ot * ot * (3 - 2 * ot), zk = p.zamyka ? Math.max(0, 1 - p.zamyka / 1.4) : 1, r = 48 * sm * zk;
-      s.position.set(p.x, p.y - 20); s.width = s.height = r * 4.2; s.alpha = 0.55 * (0.85 + 0.15 * Math.sin(czas * 5 + i));
-      stawStempel(swiatlaPortali[i], p.x, p.y - 20, r * 3.2, 0.6 * sm * zk);
-      if (r < 1) return;
-      portaleG.beginFill(0x07020c, 0.9); portaleG.drawEllipse(p.x, p.y, r, r * 0.45); portaleG.endFill();
-      portaleG.lineStyle(3, 0xb070ff, 0.9); portaleG.drawEllipse(p.x, p.y, r, r * 0.45); portaleG.lineStyle(0);
-      for (let k = 0; k < 3; k++) {                                       // wir: trzy łuki kręcące się do środka
-        const a0 = czas * 2.4 + k * 2.09; portaleG.lineStyle(2, 0xd8a8ff, 0.55);
-        for (let j = 0; j <= 10; j++) { const a = a0 + j * 0.22, rr = r * (0.9 - j * 0.06); const x = p.x + Math.cos(a) * rr, y = p.y + Math.sin(a) * rr * 0.45; if (j) portaleG.lineTo(x, y); else portaleG.moveTo(x, y); }
-        portaleG.lineStyle(0);
+    {
+      const otwarte = (gra.portale || []).filter(p => p.otwarty);
+      for (let i = 0; i < NPORT; i++) {
+        const p = otwarte[i], bl = blaskiPortali[i], g = szczeliny[i];
+        bl.visible = g.visible = !!p; if (!p) { swiatlaPortali[i].alpha = 0; continue; }
+        const ot = Math.min(1, p.t / 1.1), sm = ot * ot * (3 - 2 * ot), zk = p.zamyka ? Math.max(0, 1 - p.zamyka / 1.2) : 1;
+        const H = 150 * sm * (0.35 + 0.65 * zk), W = 38 * sm * zk * zk, gora = p.y - 6 - H, sr = p.y - 6 - H / 2;
+        const puls = 0.85 + 0.15 * Math.sin(czas * 7 + i * 2);
+        // ziemia pod szczeliną: wypalony krąg i obracające się znaki
+        const R = 70 * sm * (0.5 + 0.5 * zk);
+        portaleG.beginFill(0x050208, 0.75 * zk); portaleG.drawEllipse(p.x, p.y, R, R * 0.42); portaleG.endFill();
+        portaleG.lineStyle(2, 0x9a40ff, 0.7 * zk);
+        for (let k = 0; k < 12; k++) {                                     // pierścień z przerwami: runy klątwy
+          const a0 = czas * 0.9 + k * TAU / 12, a1 = a0 + TAU / 12 * 0.55;
+          portaleG.moveTo(p.x + Math.cos(a0) * R * 1.12, p.y + Math.sin(a0) * R * 1.12 * 0.42);
+          for (let j = 1; j <= 4; j++) { const a = a0 + (a1 - a0) * j / 4; portaleG.lineTo(p.x + Math.cos(a) * R * 1.12, p.y + Math.sin(a) * R * 1.12 * 0.42); }
+        }
+        portaleG.lineStyle(1.5, 0xff5a30, 0.5 * zk * puls); portaleG.drawEllipse(p.x, p.y, R * 0.8, R * 0.8 * 0.42); portaleG.lineStyle(0);
+        // szczelina: soczewka od ziemi w górę, brzeg drga co klatkę
+        g.clear(); g.zIndex = p.y - 3;
+        if (H > 2) {
+          const N = 14, L = [], Pr = [];
+          for (let k = 0; k <= N; k++) {
+            const q = k / N, y = gora + q * H, sz = Math.sin(Math.PI * q) * W;
+            L.push(p.x - sz * (1 + losuj(-0.18, 0.18)) + losuj(-1.5, 1.5), y); Pr.push(p.x + sz * (1 + losuj(-0.18, 0.18)) + losuj(-1.5, 1.5), y);
+          }
+          const obrys = [];
+          for (let k = 0; k <= N; k++) obrys.push(L[k * 2], L[k * 2 + 1]);
+          for (let k = N; k >= 0; k--) obrys.push(Pr[k * 2], Pr[k * 2 + 1]);
+          g.lineStyle(10, 0x7a20e0, 0.28 * puls); g.drawPolygon(obrys);
+          g.lineStyle(4, 0xb060ff, 0.7); g.beginFill(0x030106, 0.97); g.drawPolygon(obrys); g.endFill();
+          g.lineStyle(1.5, 0xf4dcff, 0.9 * puls); g.drawPolygon(obrys); g.lineStyle(0);
+          for (let k = 0; k < 4; k++) {                                    // w środku: czerwone drobiny, jak oczy w ciemności
+            const q = (czas * 0.35 + k * 0.27 + i * 0.13) % 1, yy = gora + H * (0.2 + 0.6 * q), xx = p.x + Math.sin(czas * 2 + k * 1.7) * W * 0.35 * Math.sin(Math.PI * q);
+            g.beginFill(0xff3a1a, 0.6 * Math.sin(Math.PI * q)); g.drawCircle(xx, yy, 1.6); g.endFill();
+          }
+          if (Math.random() < dt * 4 * zk && W > 6) {                      // wyładowanie z brzegu do ziemi
+            const st = Math.random() < 0.5 ? -1 : 1, y0 = gora + H * losuj(0.3, 0.8); let x = p.x + st * W * 0.8, y = y0;
+            g.lineStyle(2, 0xe8c8ff, 0.95); g.moveTo(x, y);
+            for (let j = 0; j < 5; j++) { x += st * losuj(6, 16); y += losuj(2, 12); g.lineTo(x, y); }
+            g.lineStyle(0);
+          }
+          if (p.t < 0.3) { const fl = 1 - p.t / 0.3; g.beginFill(0xf0d8ff, 0.8 * fl); g.drawEllipse(p.x, sr, 18 + 40 * (1 - fl), H * 0.6); g.endFill(); }   // błysk przy otwarciu
+        }
+        bl.position.set(p.x, sr); bl.width = Math.max(20, W * 7) * puls; bl.height = Math.max(20, H * 1.7); bl.alpha = 0.6 * sm * zk;
+        stawStempel(swiatlaPortali[i], p.x, sr, (90 + H * 0.9) * puls, 0.75 * sm * zk);
+        if (Math.random() < dt * 16 * zk * sm) {                           // dym wciągany do środka
+          const a = Math.random() * TAU, d = losuj(60, 110), x0 = p.x + Math.cos(a) * d, y0 = sr + Math.sin(a) * d * 0.6;
+          obloczek(x0, y0, (p.x - x0) * 1.2, (sr - y0) * 1.2, 3, 1, 0.8, 0.7, Math.random() < 0.3 ? 0x2a0a40 : 0xb070ff, false);
+        }
       }
-      if (Math.random() < dt * 12 * zk) obloczek(p.x + losuj(-r, r) * 0.8, p.y + losuj(-r, r) * 0.3, losuj(-10, 10), losuj(-70, -35), 2, 3.5, losuj(0.5, 1), 0.9, 0xc080ff, false);
-    });
+    }
     TOTEMY.forEach((t, i) => {                                            // totemy świecą fioletem, żeby było widać, skąd przyjdą
       const puls = 0.85 + 0.15 * Math.sin(czas * 2.1 + i * 1.7), jest = totemyS.length > 0 && !(gra.totemy && gra.totemy[i].zniszczony);
-      stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 190 * puls, jest ? 0.55 : 0);
-      const bl = blaskiTotemow[i]; bl.visible = jest; bl.position.set(t.x, t.y - 30); bl.width = bl.height = 200 * puls; bl.alpha = 0.45 * Math.max(0.3, gra.mroczek / 0.8);
+      stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 150 * puls, jest ? 0.3 : 0);   // już tylko znak, nie brama: słabsze światło
+      const bl = blaskiTotemow[i]; bl.visible = jest; bl.position.set(t.x, t.y - 30); bl.width = bl.height = 200 * puls; bl.alpha = 0.2 * Math.max(0.3, gra.mroczek / 0.8);
     });
     for (const o of totemyS) {
       const st = gra.totemy && gra.totemy[o.i];
