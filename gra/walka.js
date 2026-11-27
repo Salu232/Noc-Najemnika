@@ -1,5 +1,5 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ, PORTAL } from './dane.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, PORTAL } from './dane.js';
 import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
@@ -173,7 +173,7 @@ export function aktualizuj(gra, dt, w) {
   if (gra.odkryj && gra.bohater.stan === 'wolny' && !gra.bohater.spi) gra.akcja = 'obejrzyj';
   {                                                                     // stół w izbie: poza walką
     const b = gra.bohater;
-    if (!gra.akcja && b.wChacie && b.stan === 'wolny' && !b.spi && gra.faza !== 'walka' && Math.hypot(b.x - CHATA.stol.x, b.y - CHATA.stol.y) < CHATA.stol.r + b.promien) {
+    if (STOL_NA_POLANIE && !gra.akcja && b.wChacie && b.stan === 'wolny' && !b.spi && gra.faza !== 'walka' && Math.hypot(b.x - CHATA.stol.x, b.y - CHATA.stol.y) < CHATA.stol.r + b.promien) {
       gra.akcja = 'stol'; if (w.akcja) { w.akcja = false; gra.stol = true; }
     }
   }

@@ -192,7 +192,7 @@ export const ETAPY = [
     mysl: 'Więcej oczu. Trzymaj się ognia.',
     // Przerwa przed falą (27 XI, Patryk: fale wchodziły za szybko, „nie zdążysz wejść do domku”) i myśli w ciszy po poprzedniej fali
     przerwa: 26,
-    przed: ['Co to było? Karczmarka mówiła, że stąd wychodzi się czystym.', 'Nikt nie chciał mnie tu prowadzić. Chcieli, żebym przyszedł sam.', 'Wrócą. Drewno do ognia, chata, stół. Muszę być gotowy.'],
+    przed: ['Co to było? Karczmarka mówiła, że stąd wychodzi się czystym.', 'Nikt nie chciał mnie tu prowadzić. Chcieli, żebym przyszedł sam.', 'Wrócą. Drewno do ognia, mikstury, ostry miecz. Muszę być gotowy.'],
     zlosc: { szybkosc: 1.12, odpoczynek: 0.8, zycie: 1.2, obrazenia: 1.15 },
     grupy: [{ typ: 'ghul', ile: 9, z: ['wschod', 'poludnie', 'zachod'], co: 0.9 }, { typ: 'wiedzma', ile: 1, z: ['poludnie'], co: 4 }, { typ: 'bestia', ile: 1, z: ['wschod'], co: 0, od: 8 }],
   },
@@ -309,6 +309,8 @@ export const PRZEDMIOTY = {
 
 // Stół w izbie (26 XI, Patryk: „teraz je wykorzystać”): między falami przerabiasz rzeczy z plecaka na trwałe ulepszenia.
 // Zostają między grami (w tej przeglądarce). koszt rośnie z każdym poziomem (koszt × poziom). Amulet rycerza się nie zużywa.
+// 27 XI (Patryk: „tak”): stołu nie ma już na polanie, bo z łupu korzysta handlarz. Przerabianie wróci na bagnie jako kocioł wiedźmy.
+export const STOL_NA_POLANIE = false;
 export const STOL = [
   { id: 'klinga', nazwa: 'Klinga szlifowana pazurami', opis: 'Cięcie i powrót miecza o 7% szybsze.', koszt: { pazur: 4 }, max: 3 },
   { id: 'talizman', nazwa: 'Talizman z kła', opis: 'Rany od potworów o 10% lżejsze.', koszt: { kiel: 1 }, max: 3 },

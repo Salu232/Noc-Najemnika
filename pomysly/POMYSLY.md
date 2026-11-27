@@ -8,6 +8,8 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Claude | Kocioł wiedźmy na bagnie: przerabianie rzeczy z bagna i z potworów na ulepszenia (zamiast stołu w izbie) | na bagno | Patryk 27 XI 11:04 „tak” |
+| 2026-11-27 | Claude | Stół w izbie zdjęty z polany: łup idzie do handlarza. Kod przepisów zostaje na kocioł | zrobione (v88) | Patryk 27 XI 11:04 „tak” |
 | 2026-11-27 | Claude | Naprawiony skłon przy zbieraniu łupu: animacja kasowała się w klatce podniesienia (bohater jeszcze szedł), a komentarz w środku linii połykał jej wywołanie. Skłon idzie teraz równo z 0,9 s postoju. Napis nad łupem pokazuje nazwę rzeczy, nie zawsze „Mikstura” | zrobione (v87) | Patryk 27 XI 10:59, nagranie |
 | 2026-11-27 | Claude | Po teście Patryka: portal otwiera się przy bohaterze tuż przed swoją grupką (do 4 potworów) i zarasta zaraz po ostatniej; wygląda jak pionowa szczelina z trzeszczącym brzegiem i runami na ziemi. Mocniejszy róg z pogłosem, nowa muzyka walki (bęben, galopujący bas, smyczki). Skłon przy zbieraniu łupu. Zostaje jeden totem z czaszką jako ozdoba | zrobione (v86) | Patryk 27 XI 10:35 |
 | 2026-11-27 | Claude | Handlarz przy drodze: po pierwszej fali staje z latarnią, w ciszy między falami kupuje pazury, kły i krew za grosze i sprzedaje mikstury (8 groszy); kiedy podchodzisz, pokazuje świecącą fiolkę; odchodzi we mgłę, gdy wracają potwory | zrobione (v85) | filmy i portret od Patryka; sprzedany łup nie pójdzie na stół, więc trzeba wybierać |
