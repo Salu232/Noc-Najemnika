@@ -1,9 +1,9 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, glebia, KLADKI, CHATA_WIEDZMY, wIzbieWiedzmy, DROGA_POLNOC } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, glebia, KLADKI, CHATA_WIEDZMY, wIzbieWiedzmy, DROGA_POLNOC, LATARNIE } from './swiat.js';
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
-import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
+import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP, LATARNIA } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import { KLATKI as KW, ANIMACJE as AW } from './klatki-bohatera-wielki.js';
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
@@ -342,6 +342,13 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const sp = rysunek(r.rys, r.x, r.y, r.szer, r.lustro); sp.zIndex = r.y; aktorzy.addChild(sp);
     if (r.swiatlo) plomienieRzeczy.push({ x: r.x + (0.33 - R[r.rys].ax) * Math.abs(sp.width), y: r.y - Math.abs(sp.height) * R[r.rys].ay * 0.86 });
   }
+  // Pochodnie na palach na bagnie (27 XI): zapalona to pełny rysunek pochodni z płomieniem; zgaszona to sam osmalony kosz (rysunek ucięty nad koszem).
+  const latarnieS = R && R.pochodnia ? LATARNIE.map(l => {
+    const f = R.pochodnia, pal = rysunek('pochodnia', l.x, l.y, 40); pal.zIndex = l.y; aktorzy.addChild(pal);
+    const odc = 0.34, fr = f.t.frame, tz = new P.Texture(f.t.baseTexture, new P.Rectangle(fr.x, fr.y + fr.height * odc, fr.width, fr.height * (1 - odc)));
+    const zgas = new P.Sprite(tz); zgas.anchor.set(f.ax, (f.ay - odc) / (1 - odc)); zgas.position.set(l.x, l.y); zgas.scale.copyFrom(pal.scale); zgas.tint = 0x6a6a6a; zgas.zIndex = l.y; aktorzy.addChild(zgas);
+    return { pal, zgas, blask: null, x: l.x + (0.33 - f.ax) * Math.abs(pal.width), y: l.y - Math.abs(pal.height) * f.ay * 0.86 };
+  }) : [];
   // Totemy z fioletowym dymem: tu wychodzą potwory zamiast z mgły. Każdy zaczyna pętlę w innym miejscu.
   const totemyS = [];
   if (R && R.totem_czaszka_00) TOTEMY.forEach((t, i) => {
@@ -397,6 +404,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // druga wersja (27 XI, Patryk: „lepsze te portale”): pionowa szczelina w powietrzu, sortowana z postaciami, z trzeszczącym brzegiem
   const szczeliny = Array.from({ length: NPORT }, () => { const g = new P.Graphics(); g.visible = false; aktorzy.addChild(g); return g; });
   const blaskiPochodni = plomienieRzeczy.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffa860; blaski.addChild(s); return s; });
+  for (const L of latarnieS) { L.blask = new P.Sprite(T.cieplo); L.blask.anchor.set(0.5); L.blask.blendMode = P.BLEND_MODES.ADD; L.blask.tint = 0xffa050; L.blask.visible = false; blaski.addChild(L.blask); }
   const blaskKlatwy = new P.Sprite(T.cieplo); blaskKlatwy.anchor.set(0.5); blaskKlatwy.blendMode = P.BLEND_MODES.ADD; blaskKlatwy.tint = 0xa060ff; blaski.addChild(blaskKlatwy);
   const napisy = new P.Container();
   const blyskiC = new P.Container();              // iskry z arkusza Przemka: nad ciemnością, świecą
@@ -413,6 +421,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const swiatlaTotemow = TOTEMY.map(() => stempel());
   const swiatloBossa = stempel(); const swiatlaPortali = Array.from({ length: NPORT }, () => stempel()); let dymBossaNa = 0, pierscienBossaNa = 0, bossTrup = null;
   const swiatlaPochodni = plomienieRzeczy.map(() => stempel());
+  const swiatlaLatarni = latarnieS.map(() => stempel());
   swiatloBoh.texture = T.stempelBoh;
   ciemnoscC.addChild(ciemnoscG, kreski, stemple);
   let ciemnoscRT = null; const ciemnosc = new P.Sprite();
@@ -1582,6 +1591,13 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const m = 0.9 + Math.sin(czas * 11.3 + i) * 0.06 + Math.sin(czas * 7.1 + 2 * i) * 0.05;
       stawStempel(swiatlaPochodni[i], p.x, p.y + 20, 170 * m, 0.8);
       const bl = blaskiPochodni[i]; bl.position.set(p.x, p.y); bl.width = bl.height = 130 * m; bl.alpha = 0.6 * Math.max(0.3, gra.mroczek / 0.8);
+    });
+    latarnieS.forEach((L, i) => {                                         // pochodnie na bagnie: światło maleje, gdy mgła je dusi
+      const o = gra.latarnie ? gra.latarnie[i].ogien : 0, jest = o > 0.001;
+      const m = (0.9 + Math.sin(czas * 10.7 + i * 1.7) * 0.06 + Math.sin(czas * 6.3 + i) * 0.05) * (0.45 + 0.55 * Math.min(1, o * 1.5)) * (o < 0.15 ? 0.75 + 0.25 * Math.sin(czas * 23 + i) : 1);
+      L.pal.visible = jest; L.zgas.visible = !jest;
+      stawStempel(swiatlaLatarni[i], L.x, L.y + 20, LATARNIA.zasieg * m, jest ? 0.85 : 0);
+      L.blask.visible = jest; L.blask.position.set(L.x, L.y); L.blask.width = L.blask.height = 150 * m; L.blask.alpha = 0.6 * Math.max(0.3, gra.mroczek / 0.8);
     });
     // Przemiana rycerza (Patryk, 25 XI 21:58: „nie widać, żeby dawał takiego efektu”): żar rośnie w nim i rozświetla noc,
     // z ciała bije czarny dym i iskry, po ziemi co chwilę idzie krąg ognia. Po przemianie żar zostaje słabszy.

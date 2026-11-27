@@ -266,6 +266,11 @@ export const TOTEM = { zycie: 24, zaKlatwe: 6 };
 // zaFale: monety za odpartą falę (27 XI 17:28, Patryk: „przy polanie zwiększyć te monety, bo ciężko przy 3 fali”).
 // Tylko po pierwszej i drugiej fali, żeby przed rycerzem nie było znów stać na wszystko (Patryk, 27 XI rano).
 export const GROSZE = { ghul: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, zaFale: [8, 12, 0, 0] };
+// Bagno (27 XI 20:54): zioła na wyspach i pochodnie na palach (docs/bagno.md, punkt 8).
+// ZIOLA: ile wyrasta przed każdą falą, najwięcej naraz na ziemi, ile wiązek na miksturę w kotle.
+// LATARNIA: zasięg światła, ile sekund płonie w walce i w ciszy, w jakiej odległości od płonącej topielce nie wychodzą z wody.
+export const ZIOLA = { naFale: 4, max: 7, naMiksture: 3 };
+export const LATARNIA = { zasieg: 300, plonieWalka: 140, plonieCisza: 420, bezTopielcow: 340 };
 export const LUP = { szansaGhul: 0.12, szansaKolos: 1, leczy: 40, max: 3, start: 1, zasiegPodniesienia: 34, znika: 25 };
 
 // Ognisko gaśnie: pełne starcza na czas sekund, światło kurczy się do minimum. Drewno bierze się ze stosu pod ścianą
@@ -342,6 +347,7 @@ export const PRZEDMIOTY = {
   kiel: { nazwa: 'Kieł kolosa', opis: 'Pożółkły i pęknięty. Waży tyle, co sztylet.', kolor: '#c9b98a', z: 'kolos', szansa: 1, cena: 5 },
   krew: { nazwa: 'Krew wiedźmy', opis: 'Mętna, fioletowa, ciepła mimo chłodu. Fiolka lekko świeci.', kolor: '#7a3cc0', z: 'wiedzma', szansa: 0.5, cena: 4 },
   helm: { nazwa: 'Przyłbica rycerza', opis: 'Okopcona, z dwoma rogami. W pęknięciach jeszcze tli się żar.', kolor: '#8a2a18', z: 'rycerz', szansa: 1, cena: 12 },
+  ziele: { nazwa: 'Ziele z bagna', opis: 'Gorzkie, pachnie mułem i miodem. Trzy wiązki w kotle wiedźmy dają miksturę.', kolor: '#6a8a3a', cena: 1 },   // 27 XI: rośnie na wyspach bagna, nie wypada z potworów
   amulet: { nazwa: 'Amulet rycerza', opis: 'Srebro na zerwanym łańcuszku. Wyryte trzciny i półksiężyc: znak bagien. Pierwszy ślad.', kolor: '#b8b8c8', z: 'rycerz', szansa: 1, wazny: true },
 };
 

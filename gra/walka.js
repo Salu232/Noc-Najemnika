@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL } from './dane.js';
-import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START } from './swiat.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL, ZIOLA, LATARNIA } from './dane.js';
+import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY } from './swiat.js';
 // Topielce na bagnie: ile w każdej fali (wychodzą z wody, oprócz potworów z portali)
 const TOPIELCE = [{ ile: 3, co: 3, od: 2 }, { ile: 5, co: 2.5, od: 4 }, { ile: 7, co: 1.6, od: 3 }, { ile: 4, co: 4, od: 12 }];
 // Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
@@ -25,6 +25,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     statystyki: { zabici: 0, upadki: 0, parowania: 0, czas: 0, totemy: 0 },
     // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
     totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
+    latarnie: LATARNIE.map(() => ({ ogien: 0 })),                         // bagno: pochodnie na palach, 0 zgaszona, 1 świeżo zapalona
     lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [], portale: [],
     handlarz: { widac: 0, pokazuje: 0, liczy: 0, blisko: false, zobaczyl: false, wizyty: 0 }, grosze: 0, handel: false,
     plecak: {},                                                               // nowa gra: pusty plecak (Patryk, 26 XI: bez zapisów, dopóki gra nie urośnie)
@@ -902,6 +903,7 @@ function aktualizujEtapy(gra, dt) {
   if (gra.faza === 'wstep') {
     if (gra.odkryte.length >= MIEJSCA.length && gra.kartki >= 1 && gra.mysl.czas < 1) {
       gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa + 3; powiedz(gra, BAGNO ? WSTEP.nocBagno : WSTEP.noc, NOC.przerwa);
+      rozsiejZiola(gra);
     }
     return;
   }
@@ -956,7 +958,8 @@ function aktualizujEtapy(gra, dt) {
         continue;
       }
       if (q.z === 'woda') {                                                            // topielec: z głębokiej wody najbliżej bohatera
-        const b = gra.bohater, pw = punktZWody(b.wChacie ? OGNISKO : b) || { x: b.x + 300, y: b.y };
+        const b = gra.bohater, plona = LATARNIE.filter((l, i) => gra.latarnie[i].ogien > 0.05).map(l => ({ ...l, r: LATARNIA.bezTopielcow }));
+        const pw = punktZWody(b.wChacie ? OGNISKO : b, plona) || punktZWody(b.wChacie ? OGNISKO : b) || { x: b.x + 300, y: b.y };
         const e = nowyWrog(q.typ, pw, ETAPY[gra.etap].zlosc);
         e.zWody = true; gra.wrogowie.push(e); gra.zdarzenia.push({ typ: 'wynurza', x: e.x, y: e.y });
         continue;
@@ -976,6 +979,7 @@ function aktualizujEtapy(gra, dt) {
         if (!gra.bossPadl) powiedz(gra, 'Świt. Mgła się cofa. Przetrwałeś.', NOC.swit);   // po rycerzu najpierw wybrzmiewa „Upadł…”
       }
       else {
+        rozsiejZiola(gra);
         gra.faza = 'przerwa'; gra.fazaCzas = ETAPY[gra.etap].przerwa || NOC.przerwa; gra.przerwaT = 0; gra.kwestie = (ETAPY[gra.etap].przed || []).slice();
         if (!gra.kwestie.length) powiedz(gra, ETAPY[gra.etap].mysl, NOC.przerwa);
         const wolne = ULEPSZENIA.map(u => u.id).filter(id => id === 'mikstura' || !gra.ulepszenia.includes(id));
@@ -1073,6 +1077,7 @@ function aktualizujCele(gra, dt, w) {
   if (gra.faza === 'walka' || gra.faza === 'przerwa') gra.ogien = Math.max(OGIEN.minimum, gra.ogien - dt / OGIEN.czas);
   if (gra.ogien < OGIEN.przygasa && !gra.ogienPrzygasl) { gra.ogienPrzygasl = true; powiedz(gra, 'Ogień przygasa. Drewno leży pod ścianą chaty.', 3.5); }
   if (gra.ogien > OGIEN.przygasa + 0.1) gra.ogienPrzygasl = false;
+  if (BAGNO) bagno(gra, dt, w);
   if (b.stan !== 'wolny' || gra.akcja || b.wChacie) return;
   if (!b.drewno && Math.hypot(b.x - STOS_DREWNA.x, b.y - STOS_DREWNA.y) < 70) {
     gra.akcja = 'drewno';
@@ -1080,6 +1085,48 @@ function aktualizujCele(gra, dt, w) {
   } else if (b.drewno && Math.hypot(b.x - OGNISKO.x, b.y - OGNISKO.y) < 95) {
     gra.akcja = 'dorzuc';
     if (w.akcja) { b.drewno = false; w.akcja = false; gra.ogien = Math.min(1, gra.ogien + OGIEN.polano); gra.zdarzenia.push({ typ: 'dorzucone', x: OGNISKO.x, y: OGNISKO.y }); }
+  }
+}
+
+// ---------- bagno: zioła i pochodnie (27 XI 20:54, docs/bagno.md, punkt 8) ----------
+// Zioła wyrastają na wyspach przed każdą falą i leżą, dopóki ktoś ich nie zbierze. Trzy wiązki w kotle to mikstura.
+function rozsiejZiola(gra) {
+  if (!BAGNO) return;
+  let jest = gra.lup.filter(l => l.typ === 'ziele').length;
+  for (let k = 0; k < ZIOLA.naFale && jest < ZIOLA.max; k++) {
+    const p = punktNaWyspie(1 + Math.floor(Math.random() * (WYSPY.length - 1)));   // nie na środkowej: zioła są powodem, żeby iść po kładkach
+    if (p) { gra.lup.push({ typ: 'ziele', x: p.x, y: p.y, t: 0, trwa: true }); jest++; }
+  }
+}
+function bagno(gra, dt, w) {
+  const b = gra.bohater, wolny = b.stan === 'wolny' && !b.spi && !b.wChacie;
+  if (!gra.ziolaZasiane) { gra.ziolaZasiane = true; rozsiejZiola(gra); }    // pierwsze rosną już o zmierzchu
+  // pochodnie: mgła z wody gasi je szybciej w walce niż w ciszy
+  LATARNIE.forEach((l, i) => {
+    const L = gra.latarnie[i], przed = L.ogien;
+    if (L.ogien > 0) L.ogien = Math.max(0, L.ogien - dt / (gra.faza === 'walka' ? LATARNIA.plonieWalka : LATARNIA.plonieCisza));
+    if (przed > 0.2 && L.ogien <= 0.2 && Math.hypot(l.x - b.x, l.y - b.y) < 700 && gra.mysl.czas <= 0) powiedz(gra, 'Mgła dusi pochodnię. Zaraz zgaśnie.', 2.5);
+    const d = Math.hypot(l.x - b.x, l.y - b.y);
+    if (!gra.widzialLatarnie && d < 260 && gra.faza !== 'wstep') { gra.widzialLatarnie = true; powiedz(gra, 'Pochodnia na palu. Topielce nie wyłażą tam, gdzie płonie ogień.', 4); }
+    if (!gra.akcja && wolny && d < 70 && L.ogien < 0.6) {
+      gra.akcja = 'latarnia';
+      if (w.akcja) { w.akcja = false; L.ogien = 1; gra.zdarzenia.push({ typ: 'dorzucone', x: l.x, y: l.y - 70 }); }
+    }
+  });
+  // kocioł wiedźmy: z trzech wiązek ziela mikstura, poza walką
+  const k = CHATA_WIEDZMY.kociol, ile = gra.plecak.ziele || 0;
+  if (!gra.akcja && wolny && Math.hypot(k.x - b.x, k.y - b.y) < 75 && ile > 0) {
+    if (gra.faza === 'walka') gra.akcja = 'kociolWalka';
+    else if (ile < ZIOLA.naMiksture) gra.akcja = 'kociolMalo';
+    else if (b.mikstury >= maxMikstur(gra)) gra.akcja = 'kociolPelne';
+    else {
+      gra.akcja = 'kociol';
+      if (w.akcja) {
+        w.akcja = false; gra.plecak.ziele -= ZIOLA.naMiksture; if (!gra.plecak.ziele) delete gra.plecak.ziele;
+        b.mikstury++; gra.zdarzenia.push({ typ: 'podniesione', x: k.x, y: k.y - 20 }); gra.zdarzenia.push({ typ: 'dorzucone', x: k.x, y: k.y - 10 });
+        powiedz(gra, 'Gęste, zielone, gorzkie. Mikstura do fiolki.', 2.5);
+      }
+    }
   }
 }
 

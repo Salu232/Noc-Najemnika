@@ -95,6 +95,18 @@ export const WYSPY = BAGNO ? [
   { x: 2880, y: 430, rx: 210, ry: 130 },
   { x: 2050, y: 2200, rx: 170, ry: 90 },
 ] : [];
+// Pochodnie na palach (27 XI 20:54, Patryk: „robimy coś innego”; pomysł Claude'a z docs/bagno.md, punkt 8): po jednej na zewnętrznych
+// wyspach. Zapala się je E, mgła z wody gasi je w nocy, a z wody przy płonącej pochodni topielce nie wychodzą.
+export const LATARNIE = BAGNO ? [{ x: 820, y: 900 }, { x: 2440, y: 1020 }, { x: 700, y: 1740 }, { x: 2470, y: 1770 }, { x: 1520, y: 360 }] : [];
+// Losowy punkt suchego lądu na wyspie i (zioła)
+export function punktNaWyspie(i) {
+  const w = WYSPY[i]; if (!w) return null;
+  for (let k = 0; k < 40; k++) {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * 0.72, p = { x: w.x + Math.cos(a) * w.rx * r, y: w.y + Math.sin(a) * w.ry * r };
+    if (glebia(p.x, p.y) < -0.3 && LATARNIE.every(l => Math.hypot(l.x - p.x, l.y - p.y) > 50)) return p;
+  }
+  return null;
+}
 export const KLADKI = BAGNO ? [
   { a: { x: 1185, y: 1120 }, b: { x: 1005, y: 1010 }, szer: 24 },   // środek – zachód
   { a: { x: 2020, y: 1130 }, b: { x: 2235, y: 1090 }, szer: 24 },   // środek – wschód
@@ -149,11 +161,12 @@ let DROGA_GOTOWA = false;
 export const wPlytkiej = (p) => { const g = glebia(p.x, p.y); return g > 0 && g <= 1; };
 export const wGlebokiej = (p) => glebia(p.x, p.y) > 1;
 // Punkt w głębokiej wodzie tuż za płycizną, 180–420 od celu: stąd wynurza się topielec.
-export function punktZWody(cel) {
+export function punktZWody(cel, unikaj = []) {                          // unikaj: [{x, y, r}], np. płonące pochodnie
   let naj = null;
   for (let i = 0; i < 60; i++) {
     const a = Math.random() * Math.PI * 2, r = 180 + Math.random() * 240, p = { x: cel.x + Math.cos(a) * r, y: cel.y + Math.sin(a) * r * 0.8 };
     if (p.x < 40 || p.y < 70 || p.x > SZER - 40 || p.y > WYS - 40) continue;
+    if (unikaj.some(u => Math.hypot(u.x - p.x, u.y - p.y) < u.r)) continue;
     const g = glebia(p.x, p.y);
     if (g > 1.02 && g < 1.6) return p;
     if (g > 1 && (!naj || g < naj.g)) naj = { ...p, g };
@@ -173,6 +186,7 @@ export const DRZEWA = [];
       if (q > 1.25 || (q > 1 && los() < 0.6)) continue;
       { const B = CHATA_WIEDZMY.bryla; if (x > B.x0 - 40 && x < B.x1 + 40 && y > B.y0 - 60 && y < B.y1 + 260) continue; }   // chata i jej kładka
       const cx = (x - 1600) / 430, cy = (y - 1150) / 260; if (cx * cx + cy * cy < 0.85 * 0.85) continue;   // środkowa wyspa wolna: tu się walczy
+      if (LATARNIE.some(l => Math.abs(x - l.x) < 140 && y > l.y - 90 && y < l.y + 280)) continue;   // drzewo nie zasłania pochodni
       if (DRZEWA.some(d => Math.hypot(d.x - x, d.y - y) < 105)) continue;
       DRZEWA.push({ x, y, h: 210 + los() * 120, wariant: (los() * 3) | 0, promien: 15 });
     }
@@ -362,6 +376,7 @@ export function zderzenia(p, r) {
       if (e < m && e > 0.001) { p.x = qx + (p.x - qx) / e * m; p.y = qy + (p.y - qy) / e * m; }
     }
     { const dx = p.x - cw.kociol.x, dy = p.y - cw.kociol.y, q = Math.hypot(dx, dy), m = r + cw.kociol.promien; if (q < m && q > 0.001) { p.x = cw.kociol.x + dx / q * m; p.y = cw.kociol.y + dy / q * m; } }
+    for (const l of LATARNIE) { const dx = p.x - l.x, dy = p.y - l.y, q = Math.hypot(dx, dy), m = r + 8; if (q < m && q > 0.001) { p.x = l.x + dx / q * m; p.y = l.y + dy / q * m; } }   // pal pochodni
     // głęboka woda: krok po kroku pod spadek głębokości, aż do płycizny
     for (let k = 0; k < 20 && glebia(p.x, p.y) > 1; k++) {
       const h = 6, gx = glebia(p.x + h, p.y) - glebia(p.x - h, p.y), gy = glebia(p.x, p.y + h) - glebia(p.x, p.y - h), gl = Math.hypot(gx, gy) || 1;
