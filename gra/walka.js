@@ -1,6 +1,8 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL } from './dane.js';
-import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej } from './swiat.js';
+import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, WODA } from './swiat.js';
+// Topielce na bagnie: ile w każdej fali (wychodzą z wody, oprócz potworów z portali)
+const TOPIELCE = [{ ile: 3, co: 3, od: 2 }, { ile: 5, co: 2.5, od: 4 }, { ile: 7, co: 1.6, od: 3 }, { ile: 4, co: 4, od: 12 }];
 // Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
 const BRODZI = 0.62, BRODZI_WROG = 0.72;
 
@@ -165,6 +167,7 @@ function otworzPortal(gra, p) {
     const a = Math.random() * Math.PI * 2, d = PORTAL.od + Math.random() * (PORTAL.do - PORTAL.od);
     const c = { x: sr.x + Math.cos(a) * d, y: sr.y + Math.sin(a) * d * 0.75 }; zderzenia(c, 40);
     let m = 9999; for (const o of gra.portale) if (o.otwarty) m = Math.min(m, Math.hypot(o.x - c.x, o.y - c.y));
+    if (BAGNO && wPlytkiej(c)) m -= 500;                               // na bagnie portal woli suchy ląd
     if (m > najOdl) { najOdl = m; naj = c; }
   }
   p.x = naj.x; p.y = naj.y; p.otwarty = true; p.t = 0;
@@ -259,7 +262,7 @@ function aktualizujBohatera(gra, dt, w) {
   }
 
   if (w.atakStart) b.kolejkaAtaku = true;
-  const mozeUnik = w.unik && b.sila >= kosztUniku(gra, b);
+  const mozeUnik = w.unik && b.sila >= kosztUniku(gra, b) && !(b.chwyt > 0);   // z chwytu topielca nie da się przeturlać
   if (w.unik && !mozeUnik && gra.czas - (b.zadyszkaOd ?? -9) > 2.5 && gra.mysl.czas < 0.5) { b.zadyszkaOd = gra.czas; powiedz(gra, 'Brak tchu. Nie przeturlam się.', 1.2); }
 
   // klątwa: z wolnego stanu albo w trakcie brania zamachu, gdy pasek jest pełny
@@ -323,6 +326,11 @@ function aktualizujBohatera(gra, dt, w) {
   // schyla się po rzecz z ziemi (27 XI, Patryk: „nie widzę, jak zbiera”): chwila postoju; cios, blok albo unik ją przerywa
   if (b.schyla > 0) { b.schyla -= dt; if (b.stan === 'wolny' && !b.blok) v = 0; else b.schyla = 0; }
   if (BAGNO) { b.brodzi = wPlytkiej(b); if (b.brodzi) v *= BRODZI; }
+  if (b.chwyt > 0) {                                                    // w chwycie topielca: nie idzie, topielec ciągnie go do siebie
+    b.chwyt -= dt; const e = b.chwytWrog;
+    if (!e || e.stan === 'martwy' || b.chwyt <= 0) { b.chwyt = 0; b.chwytWrog = null; b.chwytKoniec = gra.czas; }
+    else { v = 0; const d = Math.hypot(e.x - b.x, e.y - b.y) || 1; if (d > 40) { b.x += (e.x - b.x) / d * 30 * dt; b.y += (e.y - b.y) / d * 30 * dt; } }
+  }
   if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt * PION; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl) * (v / BOHATER.szybkosc + 0.3); }
   else b.idzie = false;
   b.x += b.odrzutX * dt; b.y += b.odrzutY * dt;
@@ -565,6 +573,11 @@ function trafBohatera(gra, e) {
     return;
   }
   zranBohatera(gra, ob, odWroga, ciezki);
+  if (e.typ.chwyt && b.zycie > 0 && gra.czas - (b.chwytKoniec ?? -9) > 2.5) {   // po puszczeniu 2,5 s spokoju, żeby nie trzymały na zmianę bez końca                                     // topielec chwyta: bohater stoi, dopóki go nie przetnie
+    b.chwyt = e.typ.chwyt; b.chwytWrog = e; b.odrzutX = b.odrzutY = 0;
+    if (b.stan === 'unik') b.stan = 'wolny';
+    gra.zdarzenia.push({ typ: 'chwyt', x: b.x, y: b.y });
+  }
 }
 
 function upadek(gra) {
@@ -592,6 +605,7 @@ function nowyWrog(typNazwa, punkt, zlosc = { szybkosc: 1, odpoczynek: 1 }) {
 function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy = false) {
   if (e.stan === 'przemiana' || e.stan === 'martwy') return;                 // w czasie przemiany klątwa go chroni
   e.zycie -= ile; e.flash = 0.12;
+  if (gra.bohater.chwytWrog === e) { gra.bohater.chwyt = 0; gra.bohater.chwytWrog = null; gra.bohater.chwytKoniec = gra.czas; }   // cięcie uwalnia z chwytu topielca
   const pm = e.typ.przemiana;
   if (pm && e.faza === 1 && e.zycie <= e.zycieMax * pm.prog) {             // boss: klątwa go bierze, druga faza
     e.zycie = Math.max(e.zycie, Math.ceil(e.zycieMax * pm.prog)); e.faza = 2;
@@ -646,7 +660,7 @@ function aktualizujWrogow(gra, dt) {
     const doBoh = Math.atan2(dy, dx);
     const bohaterZywy = b.stan !== 'upadl';
     let ax = 0, ay = 0, szyb = e.szybkosc;
-    if (BAGNO && !typ.wodny && wPlytkiej(e)) szyb *= BRODZI_WROG;
+    if (BAGNO && wPlytkiej(e)) szyb *= typ.wodny ? 1.25 : BRODZI_WROG;
     e.t += dt;
 
     if (e.stan === 'wynurza') {
@@ -854,13 +868,15 @@ function aktualizujEtapy(gra, dt) {
       // i zrasta się zaraz po ostatnim. Kolejna grupka to nowy portal w innym miejscu.
       const kt = gra.etap > 0 && KARTKI[gra.etap];
       if (kt && !gra.kartka) { const p = { x: OGNISKO.x + kt.gdzie.dx, y: OGNISKO.y + kt.gdzie.dy }; zderzenia(p, 22); gra.kartka = { nr: gra.etap, x: p.x, y: p.y }; }
-      for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) {
-        gra.kolejka.push({ typ: g.typ, z: g.z[i % g.z.length] === 'boss' ? 'boss' : null, t: PORTAL.otwarcie + (g.od || 0) + i * g.co });
+      const grupy = ETAPY[gra.etap].grupy.slice();
+      if (BAGNO && TOPIELCE[gra.etap]) grupy.push({ typ: 'topielec', z: ['woda'], ...TOPIELCE[gra.etap] });
+      for (const g of grupy) for (let i = 0; i < g.ile; i++) {
+        gra.kolejka.push({ typ: g.typ, z: g.z[i % g.z.length] === 'boss' || g.z[i % g.z.length] === 'woda' ? g.z[i % g.z.length] : null, t: PORTAL.otwarcie + (g.od || 0) + i * g.co });
       }
       gra.kolejka.sort((a, b) => a.t - b.t);
       gra.portale = [];
       for (const q of gra.kolejka) {
-        if (q.z === 'boss') continue;
+        if (q.z === 'boss' || q.z === 'woda') continue;
         let p = gra.portale.find(p => p.ile < PORTAL.naraz && q.t - p.ostatni <= PORTAL.odstep && q.t - p.pierwszy <= PORTAL.najdluzej);
         if (!p) { p = { od: q.t - PORTAL.otwarcie, pierwszy: q.t, ostatni: q.t, ile: 0, zostalo: 0, t: 0, zamyka: 0, otwarty: false, x: 0, y: 0 }; gra.portale.push(p); }
         p.ile++; p.zostalo++; p.ostatni = q.t; q.z = gra.portale.indexOf(p);
@@ -880,6 +896,13 @@ function aktualizujEtapy(gra, dt) {
         gra.wrogowie.push(nowyWrog(q.typ, p, ETAPY[gra.etap].zlosc));
         powiedz(gra, 'Ten pancerz… to on pisał te kartki. Czekał przy ogniu.', 4);
         gra.zdarzenia.push({ typ: 'boss' });
+        continue;
+      }
+      if (q.z === 'woda') {                                                            // topielec: z głębokiej wody najbliżej bohatera
+        const b = gra.bohater, w = WODA.slice().sort((p, r) => Math.hypot(p.x - b.x, p.y - b.y) - Math.hypot(r.x - b.x, r.y - b.y))[(Math.random() * Math.min(2, WODA.length)) | 0];
+        const kat = Math.atan2((b.y - w.y) / w.ry, (b.x - w.x) / w.rx) + (Math.random() - 0.5) * 1.2;
+        const e = nowyWrog(q.typ, { x: w.x + Math.cos(kat) * w.rx * 0.8, y: w.y + Math.sin(kat) * w.ry * 0.8 }, ETAPY[gra.etap].zlosc);
+        e.zWody = true; gra.wrogowie.push(e); gra.zdarzenia.push({ typ: 'wynurza', x: e.x, y: e.y });
         continue;
       }
       const pt = gra.portale[q.z], ka = Math.random() * Math.PI * 2, kd = Math.random() * 18;

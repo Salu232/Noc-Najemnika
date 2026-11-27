@@ -76,6 +76,12 @@ Kolejność według tego, co odblokowuje najwięcej pracy. Każdy potwór robimy
 
 Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkusza mikstur. Brakuje jednej ikony kotła: *a black iron cauldron on three legs with green bubbling liquid and steam, in exactly the same drawing style as the attached icons, single object centred on a pure white background, no text.*
 
+## Co już jest w grze (27 XI, adres `?mapa=bagno`)
+
+- Druga mapa: martwy las, zielonkawa ziemia, sześć oczek wody rysowanych kodem. Głęboka woda jest nie do przejścia, a w płytkiej bohater brnie wolniej (×0,62), potwory też (×0,72). Polana bez zmian.
+- Topielec na klatkach ghula w kolorze mułu: wynurza się z oczka, chwyta na 1,1 s, puszcza po cięciu. Fale na bagnie mają dodatkowo 3 / 5 / 7 / 4 topielców.
+- Jeszcze z polany: chata, ognisko, droga, teksty wstępu i nazwy fal.
+
 ## Co Claude zrobi, zanim przyjdą obrazy
 
 - Przełączanie map w `swiat.js`, bo dziś polana jest jedyną mapą, ze stałymi `SZER`, `WYS` i drogą.

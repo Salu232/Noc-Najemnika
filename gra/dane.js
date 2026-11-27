@@ -92,6 +92,23 @@ export const WROGOWIE = {
     odpoczynek: 1.1,
     ciezki: false,
   },
+  // Topielec (bagno, 27 XI, docs/bagno.md): wynurza się z głębokiej wody, chwyta i trzyma. Trzeba go ciąć, unik nie pomaga.
+  // Na razie bez własnego filmu: rysuje się jak ghul w kolorze mułu (nazwa 'ghul', żeby rysowanie wzięło jego klatki).
+  // W płytkiej wodzie jest szybszy, na suchym wolniejszy. Kiedy przyjdą obrazy z Gemini, dostanie własną nazwę i film.
+  topielec: {
+    nazwa: 'ghul', id: 'topielec', wodny: true, kolor: 0x8fae9c,
+    zycie: [5, 6],
+    szybkosc: [62, 78],
+    promien: 14,
+    skala: 1.3,
+    zasiegAtaku: 70,
+    zamach: 0.55,
+    skok: 0.25,
+    obrazenia: 10,
+    odpoczynek: 1.3,
+    ciezki: false,
+    chwyt: 1.1,          // ile sekund trzyma bohatera (albo do pierwszego cięcia w niego)
+  },
   kolos: {
     nazwa: 'kolos',
     zycie: [22, 22],     // 27 XI 13:06: było 16, rano 8

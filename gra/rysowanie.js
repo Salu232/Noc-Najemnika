@@ -860,9 +860,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (typ.doskok && e.stan === 'skok') wzlot = 18 * Math.sin(Math.PI * Math.min(1, e.t / typ.skok));
     const sp = pulaWrogow.wez();
     sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.scale.set(fw.skala * zn * skx, fw.skala * sky); sp.rotation = rot;
+    if (e.zWody && e.stan === 'wynurza') wzlot = -50 * (1 - e.widac);       // topielec wyłazi z wody: zaczyna niżej, jakby po pas w mule
     sp.position.set(e.x + (e.drzy || 0), e.y - wzlot); sp.zIndex = e.y; sp.alpha = e.stan === 'wynurza' ? e.widac : 1;
+    sp.tint = typ.kolor || 0xffffff;                                       // topielec: klatki ghula w kolorze mułu, dopóki nie ma własnego filmu
     if (nast && przenik > 0.02) {
-      const s2 = pulaWrogow.wez(); s2.texture = nast.t; s2.anchor.set(nast.ax, nast.ay); s2.scale.copyFrom(sp.scale); s2.rotation = rot;
+      const s2 = pulaWrogow.wez(); s2.tint = sp.tint; s2.texture = nast.t; s2.anchor.set(nast.ax, nast.ay); s2.scale.copyFrom(sp.scale); s2.rotation = rot;
       s2.position.copyFrom(sp.position); s2.zIndex = e.y + 0.005; s2.alpha = przenik; sp.alpha = 1 - 0.6 * przenik;
     }
     if (e.flash > 0) {                                                     // rozbłysk przy trafieniu
@@ -959,6 +961,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (z.typ === 'parowanie') { napis('Sparowane!', b.x, b.y - 96, 0xffe2a0); pierscienie.push({ x: b.x, y: b.y - 40, r0: 20, r1: 90, t: 0, czas: 0.3, kolor: 0xfff0c0 }); }
       else if (z.typ === 'grosze_z') napis(`+${z.ile}`, z.x - 12, z.y - 70, 0xe8c060, ikonaRzeczy('moneta'));
       else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
+      else if (z.typ === 'chwyt') { napis('Trzyma! Tnij!', b.x, b.y - 96, 0x9fd0b0); pierscienie.push({ x: b.x, y: b.y, r0: 50, r1: 20, t: 0, czas: 0.3, kolor: 0x6a9a80, ziemia: true }); }
+      else if (z.typ === 'wynurza') for (let i = 0; i < 3; i++) pierscienie.push({ x: z.x, y: z.y, r0: 6 + i * 10, r1: 50 + i * 30, t: 0, czas: 0.7 + i * 0.25, kolor: 0x90a890, ziemia: true, gr: 2.5, alfa: 0.6 });
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
       else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);
       else if (z.typ === 'przemiana') { pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 260, t: 0, czas: 0.8, kolor: 0xff6a2a, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 80, r0: 10, r1: 140, t: 0, czas: 0.5, kolor: 0xffb070 }); }
@@ -1275,7 +1279,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const faza = (((e.anim * (e.typ.ciezki ? 3 : 9)) % TAU) + TAU) % TAU;
       const klatka = Math.min(w.klatki - 1, (faza / TAU * w.klatki) | 0);
       const wiersz = (sx < 0 ? 1 : 0) | (zam ? 2 : 0) | (e.flash > 0 ? 4 : 0);
-      const sp = pulaWrogow.wez();
+      const sp = pulaWrogow.wez(); sp.tint = e.typ.kolor || 0xffffff;
       sp.texture = at.klatki[wiersz * w.klatki + klatka]; sp.anchor.set(w.ox / w.w, w.oy / w.h);
       const kucniecie = e.stan === 'zamach' && !e.typ.ciezki ? 0.88 : 1;
       // ciało reaguje: odchyla się od ciosu, ghul wyciąga się w skoku, kolos wznosi się i przysiada przy uderzeniu
