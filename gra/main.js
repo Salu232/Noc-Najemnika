@@ -4,7 +4,7 @@ import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
-import { obudzDzwiek, zagraj, przelaczDzwiek } from './dzwiek.js';
+import { obudzDzwiek, zagraj, przelaczDzwiek, muzyka } from './dzwiek.js';
 
 // Wersja „legacy” umie rysować także bez karty graficznej (decyzja 002: PixiJS).
 const PIXI_ADRESY = [
@@ -170,6 +170,7 @@ async function start() {
     if (!pauza && gra.faza !== 'koniec') aktualizuj(gra, dt, w);
     const zd = gra.zdarzenia.splice(0);
     for (const z of zd) { zagraj(z); if (z.typ === 'koniec') setTimeout(pokazKoniec, 900); }
+    muzyka(!pauza && gra.faza === 'walka' && gra.wrogowie.length ? (gra.etap >= 3 ? 2 : 1) : 0);
     rys.rysuj(gra, dt, zd);
     hud.aktualizuj(gra, dt, rys.opis);
     pokazWybor();

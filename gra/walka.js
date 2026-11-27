@@ -200,7 +200,8 @@ function aktualizujBohatera(gra, dt, w) {
   }
 
   if (w.atakStart) b.kolejkaAtaku = true;
-  const mozeUnik = w.unik && b.sila >= BOHATER.unik.koszt * 0.5;
+  const mozeUnik = w.unik && b.sila >= kosztUniku(gra, b);
+  if (w.unik && !mozeUnik && gra.czas - (b.zadyszkaOd ?? -9) > 2.5 && gra.mysl.czas < 0.5) { b.zadyszkaOd = gra.czas; powiedz(gra, 'Brak tchu. Nie przeturlam się.', 1.2); }
 
   // klątwa: z wolnego stanu albo w trakcie brania zamachu, gdy pasek jest pełny
   if (w.klatwa && b.klatwa >= 1 && (b.stan === 'wolny' || (b.stan === 'cios' && (b.cios.faza === 'zamach' || b.cios.faza === 'laduje')))) zacznijKlatwe(gra);
@@ -353,7 +354,12 @@ function zacznijUnik(gra, rx, ry, rl) {
   b.unikCzas = pion ? u.czasPion : u.czas; b.unikDystans = pion ? u.dystansPion : u.dystans;
   b.nietykalny = pion ? u.nietykalnyPion : u.nietykalny;
   b.kolejkaAtaku = false; b.rozped = 0;
-  zuzyjSile(b, BOHATER.unik.koszt);
+  zuzyjSile(b, kosztUniku(gra, b));
+  b.seriaUnikow = gra.czas - (b.ostatniUnik ?? -9) < BOHATER.unik.seriaCzas ? (b.seriaUnikow || 0) + 1 : 1; b.ostatniUnik = gra.czas;
+}
+function kosztUniku(gra, b) {
+  const u = BOHATER.unik, seria = gra.czas - (b.ostatniUnik ?? -9) < u.seriaCzas ? (b.seriaUnikow || 0) : 0;
+  return u.koszt * (1 + u.seria * seria);
 }
 
 // Branie zamachu. Cios zadany zaraz po poprzednim ma rozpęd i idzie w drugą stronę.
@@ -761,9 +767,17 @@ function aktualizujEtapy(gra, dt) {
   }
   if (gra.faza === 'przerwa' && gra.etap === 0 && gra.mroczek < NOC.mroczek) gra.mroczek = Math.min(NOC.mroczek, gra.mroczek + dt * (NOC.mroczek - WSTEP.zmierzch) / 6);   // zapada noc
   if (gra.faza === 'przerwa') {
+    // myśli w ciszy po fali, co kilka sekund; na koniec róg i zapowiedź tego, co idzie (27 XI)
+    gra.przerwaT = (gra.przerwaT || 0) + dt;
+    if (gra.kwestie && gra.kwestie.length && gra.przerwaT >= 1.2 + (3 - gra.kwestie.length) * 5.5 && gra.fazaCzas > NOC.ostrzezenie + 1) powiedz(gra, gra.kwestie.shift(), 5);
+    if (!gra.ostrzezono && gra.fazaCzas <= NOC.ostrzezenie) {
+      gra.ostrzezono = true; gra.kwestie = [];
+      if (ETAPY[gra.etap]) powiedz(gra, ETAPY[gra.etap].mysl, NOC.ostrzezenie);
+      gra.zdarzenia.push({ typ: 'ostrzezenie', boss: gra.etap >= ETAPY.length - 1 });
+    }
     gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza stoi
     if (gra.fazaCzas <= 0) {
-      gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = [];
+      gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = []; gra.ostrzezono = false;
       // 26 XI (Przemek rozbił wszystkie totemy przed pierwszą falą i noc się skończyła): totem ucisza swoją stronę tylko na tę falę, z każdą nową falą wstaje
       if (gra.totemy.some(t => t.zniszczony)) powiedz(gra, 'Totemy znów stoją. Noc je odbudowała.', 3);
       for (const t of gra.totemy) { t.zniszczony = false; t.zycie = TOTEM.zycie; }
@@ -798,7 +812,8 @@ function aktualizujEtapy(gra, dt) {
         if (!gra.bossPadl) powiedz(gra, 'Świt. Mgła się cofa. Przetrwałeś.', NOC.swit);   // po rycerzu najpierw wybrzmiewa „Upadł…”
       }
       else {
-        gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa; powiedz(gra, ETAPY[gra.etap].mysl, NOC.przerwa);
+        gra.faza = 'przerwa'; gra.fazaCzas = ETAPY[gra.etap].przerwa || NOC.przerwa; gra.przerwaT = 0; gra.kwestie = (ETAPY[gra.etap].przed || []).slice();
+        if (!gra.kwestie.length) powiedz(gra, ETAPY[gra.etap].mysl, NOC.przerwa);
         const wolne = ULEPSZENIA.map(u => u.id).filter(id => id === 'mikstura' || !gra.ulepszenia.includes(id));
         gra.wybor = []; while (gra.wybor.length < 3 && wolne.length) gra.wybor.push(wolne.splice((Math.random() * wolne.length) | 0, 1)[0]);
         gra.zdarzenia.push({ typ: 'wybor' });
@@ -809,7 +824,7 @@ function aktualizujEtapy(gra, dt) {
     if (gra.fazaCzas <= 0) {
       postawBohatera(gra);
       gra.wrogowie = []; gra.kolejka = []; gra.pociski = [];
-      gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa;
+      gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa; gra.kwestie = [];
       powiedz(gra, 'Znowu ten ogień. Znowu ta noc.', NOC.przerwa);
     }
   } else if (gra.faza === 'swit') {

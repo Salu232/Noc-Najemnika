@@ -9,7 +9,9 @@ export const BOHATER = {
   odnowaSily: 34,          // ile wytrzymałości wraca na sekundę
   opoznienieOdnowy: 0.6,   // po ilu sekundach od wysiłku zaczyna wracać
 
-  unik: { koszt: 24, czas: 0.4, dystans: 150, nietykalny: 0.36, czasPion: 0.6, dystansPion: 135, nietykalnyPion: 0.44 },   // 25 XI 20:54 Patryk: przewroty w górę i w dół „strasznie szybkie” (23 klatki w 0,4 s), więc w pionie 0,6 s
+  // 27 XI (Patryk): uniki pod rząd męczą coraz bardziej. Każdy kolejny w ciągu `seriaCzas` s kosztuje o `seria` więcej (24, 35, 46…),
+  // więc z pełnej wytrzymałości wychodzą dwa, trzeci już nie: zostaje blok.
+  unik: { koszt: 24, seria: 0.45, seriaCzas: 1.6, czas: 0.4, dystans: 150, nietykalny: 0.36, czasPion: 0.6, dystansPion: 135, nietykalnyPion: 0.44 },   // 25 XI 20:54 Patryk: przewroty w górę i w dół „strasznie szybkie” (23 klatki w 0,4 s), więc w pionie 0,6 s
   // 25 XI: 0,36, bo przewrót rusza wolniej z przysiadu; 24 XI: przewrót z filmu, więc trochę dłuższy niż dawny odskok (0,32 s)
   // 24 XI 15:17, Patryk: blok „bardziej efektywniejszy”. Było: koszt 14 (ciężki ×3), parowanie 0,18 s, spowolnienie 0,45, kąt 1,35 rad,
   // odrzut 160, ciężki cios przez blok 50% ran, odnowa siły w bloku 30%. Teraz blok obraca się sam do atakującego (bez myszki),
@@ -188,12 +190,17 @@ export const ETAPY = [
   {
     nazwa: 'Kilku',
     mysl: 'Więcej oczu. Trzymaj się ognia.',
+    // Przerwa przed falą (27 XI, Patryk: fale wchodziły za szybko, „nie zdążysz wejść do domku”) i myśli w ciszy po poprzedniej fali
+    przerwa: 26,
+    przed: ['Co to było? Karczmarka mówiła, że stąd wychodzi się czystym.', 'Nikt nie chciał mnie tu prowadzić. Chcieli, żebym przyszedł sam.', 'Wrócą. Drewno do ognia, chata, stół. Muszę być gotowy.'],
     zlosc: { szybkosc: 1.12, odpoczynek: 0.8, zycie: 1.2, obrazenia: 1.15 },
     grupy: [{ typ: 'ghul', ile: 9, z: ['wschod', 'poludnie', 'zachod'], co: 0.9 }, { typ: 'wiedzma', ile: 1, z: ['poludnie'], co: 4 }, { typ: 'bestia', ile: 1, z: ['wschod'], co: 0, od: 8 }],
   },
   {
     nazwa: 'Horda',
     mysl: 'Idą wszystkie naraz.',
+    przerwa: 24,
+    przed: ['Cisza. Za cicha.', 'Ręka pali. Czuję je w niej, zanim je zobaczę.', 'Zbierają się. Wszystkie.'],
     zlosc: { szybkosc: 1.2, odpoczynek: 0.66, zycie: 1.4, obrazenia: 1.3 },
     grupy: [{ typ: 'ghul', ile: 16, z: ['zachod', 'wschod', 'poludnie'], co: 0.25 }, { typ: 'wiedzma', ile: 2, z: ['zachod', 'wschod'], co: 5 }, { typ: 'bestia', ile: 3, z: ['poludnie', 'zachod', 'wschod'], co: 6, od: 4 }],
   },
@@ -202,6 +209,8 @@ export const ETAPY = [
     // boss: wychodzi z drogi na południe od ogniska, nie z totemu, więc rozbite totemy go nie zatrzymają.
     nazwa: 'Rycerz',
     mysl: 'Przy drodze ktoś stoi. Nie oddycha jak człowiek.',
+    przerwa: 30,
+    przed: ['Koniec? Tyle ich padło…', 'Nie. Mgła nie odchodzi, a ręka dalej pali.', 'To nie było ostatnie. Wypij, póki możesz.'],
     zlosc: { szybkosc: 1.28, odpoczynek: 0.55, zycie: 1.5, obrazenia: 1.45 },
     grupy: [
       { typ: 'rycerz', ile: 1, z: ['boss'], co: 0, od: 4 },
@@ -214,6 +223,7 @@ export const ETAPY = [
 ];
 
 export const NOC = {
+  ostrzezenie: 5,          // tyle sekund przed falą słychać róg i bohater mówi, co idzie (27 XI)
   przerwa: 9,              // sekundy ciszy przed etapem, gdy widać myśl bohatera (do 24 XI 18:06 było 4; Patryk: „lekko mieć więcej czasu”)
   mroczek: 0.8,            // jak ciemna jest noc (0 to dzień)
   swit: 5,                 // jak długo wstaje świt po ostatnim etapie

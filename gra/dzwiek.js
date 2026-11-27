@@ -61,6 +61,47 @@ export function zagraj(z) {
       break;
     case 'unikniety': szum(t, 0.15, 'bandpass', 1400, 600, 0.15, 2); break;
     case 'klatwa_laduje': ton(t, 0.45, 'sawtooth', 55, 140, 0.12); szum(t, 0.45, 'bandpass', 300, 1600, 0.12, 4); break;
+    case 'ostrzezenie': {                                                  // róg z mgły przed falą: niski, nabrzmiewa i opada (27 XI); przed bossem dwa razy
+      const rog = (t0) => { for (const [f, a] of [[73, 0.32], [110, 0.12], [146, 0.06]]) { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f * 0.94, t0); o.frequency.linearRampToValueAtTime(f, t0 + 0.5); o.frequency.linearRampToValueAtTime(f * 0.9, t0 + 2.2);
+        const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(300, t0); lp.frequency.linearRampToValueAtTime(900, t0 + 0.8); lp.frequency.linearRampToValueAtTime(250, t0 + 2.2);
+        const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(a, t0 + 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.3);
+        o.connect(lp); lp.connect(g); g.connect(glosnosc); o.start(t0); o.stop(t0 + 2.4); } };
+      rog(t); if (z.boss) rog(t + 2.6);
+      break;
+    }
     case 'klatwa': ton(t, 0.8, 'sine', 62, 24, 1); szum(t, 0.5, 'lowpass', 1400, 90, 0.7); szum(t, 0.25, 'highpass', 5000, 2500, 0.18); break;
+  }
+}
+
+// Muzyka walki (27 XI, Patryk: „przy walce jakaś dynamiczna muzyczka”). Składana w przeglądarce jak reszta dźwięków:
+// bęben (bas i tom), niski bordun i szum jak oddech. moc 0 to cisza, 1 zwykła fala, 2 ostatnia noc z rycerzem (szybciej i gęściej).
+let muz = null;
+export function muzyka(moc) {
+  if (!ac || ac.state !== 'running') return;
+  if (!muz) {
+    const g = ac.createGain(); g.gain.value = 0.0001; g.connect(glosnosc);
+    const dr = ac.createOscillator(); dr.type = 'sawtooth'; dr.frequency.value = 55;
+    const drf = ac.createBiquadFilter(); drf.type = 'lowpass'; drf.frequency.value = 160;
+    const drg = ac.createGain(); drg.gain.value = 0.05; dr.connect(drf); drf.connect(drg); drg.connect(g); dr.start();
+    muz = { g, nast: ac.currentTime + 0.1, krok: 0, moc: 0 };
+  }
+  const cel = wlaczony && moc > 0 ? (moc > 1 ? 0.75 : 0.6) : 0.0001;
+  muz.g.gain.setTargetAtTime(cel, ac.currentTime, moc > 0 ? 0.8 : 1.6);
+  muz.moc = moc;
+  if (moc <= 0) { muz.nast = ac.currentTime + 0.1; return; }
+  const bpm = moc > 1 ? 128 : 108, kr = 60 / bpm / 2;                 // ósemki
+  const bas = moc > 1 ? [1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1] : [1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0];
+  const tom = moc > 1 ? [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1] : [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0];
+  while (muz.nast < ac.currentTime + 0.25) {
+    const t = muz.nast, i = muz.krok % 16;
+    const do_ = (f0, f1, cz, a) => { const o = ac.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + cz);
+      const gg = ac.createGain(); gg.gain.setValueAtTime(0.0001, t); gg.gain.exponentialRampToValueAtTime(a, t + 0.006); gg.gain.exponentialRampToValueAtTime(0.0001, t + cz);
+      o.connect(gg); gg.connect(muz.g); o.start(t); o.stop(t + cz + 0.05); };
+    if (bas[i]) do_(90, 38, 0.32, 0.9);
+    if (tom[i]) do_(170, 95, 0.22, 0.45);
+    if (i % 4 === 2) { const z = ac.createBufferSource(); z.buffer = szumBufor; const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 5000;
+      const gg = ac.createGain(); gg.gain.setValueAtTime(0.0001, t); gg.gain.exponentialRampToValueAtTime(0.06, t + 0.005); gg.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+      z.connect(f); f.connect(gg); gg.connect(muz.g); z.start(t, Math.random() * 0.3); z.stop(t + 0.1); }
+    muz.nast += kr; muz.krok++;
   }
 }
