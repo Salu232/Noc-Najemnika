@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Patryk | Więcej monet na polanie przed trzecią falą | zrobione | +8 monet za pierwszą falę, +12 za drugą; po trzeciej nic, żeby przed rycerzem nie było stać na wszystko. |
 | 2026-11-27 | Patryk | Droga z polany na północ, nią idzie się na bagno; pod chatą wiedźmy woda, nie da się stanąć między palami | zrobione | „stoję jakby na grafice”, „drogę na polanie do góry”. |
 | 2026-11-27 | Patryk (obrazy z Gemini) | Chata wiedźmy na palach z dachem i wnętrzem, woda bagna | zrobione | Do chaty się wchodzi, dach znika jak na polanie. |
 | 2026-11-27 | Patryk | Gra ma się zaczynać od polany, a nie od bagna | zrobione | Błąd: przeglądarka pamiętała bagno po skrócie z pauzy. Teraz mapa przechodzi tylko przez jedno przeładowanie. |

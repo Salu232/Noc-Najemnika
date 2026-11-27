@@ -257,7 +257,9 @@ export const TOTEM = { zycie: 24, zaKlatwe: 6 };
 // Łup: z potwora czasem wypada mikstura (z kolosa zawsze). Mikstura leczy od razu; Q albo przycisk na telefonie.
 // Grosze z potworów (27 XI, Patryk: „przy pierwszej i drugiej fali nie masz kasy”): wpadają od razu do sakiewki.
 // 27 XI 13:06 (Patryk: „trochę mniej tego złota”): było ghul 2, bestia 3, wiedźma 4, kolos 8.
-export const GROSZE = { ghul: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0 };
+// zaFale: monety za odpartą falę (27 XI 17:28, Patryk: „przy polanie zwiększyć te monety, bo ciężko przy 3 fali”).
+// Tylko po pierwszej i drugiej fali, żeby przed rycerzem nie było znów stać na wszystko (Patryk, 27 XI rano).
+export const GROSZE = { ghul: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, zaFale: [8, 12, 0, 0] };
 export const LUP = { szansaGhul: 0.12, szansaKolos: 1, leczy: 40, max: 3, start: 1, zasiegPodniesienia: 34, znika: 25 };
 
 // Ognisko gaśnie: pełne starcza na czas sekund, światło kurczy się do minimum. Drewno bierze się ze stosu pod ścianą

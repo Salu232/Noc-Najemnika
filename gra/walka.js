@@ -931,6 +931,8 @@ function aktualizujEtapy(gra, dt) {
       if (--pt.zostalo <= 0) { pt.zamyka = 0.001; gra.zdarzenia.push({ typ: 'portal_zamkniety', x: pt.x, y: pt.y }); }
     }
     if (!gra.kolejka.length && !gra.wrogowie.length) {
+      { const n = (GROSZE.zaFale || [])[gra.etap] || 0, b = gra.bohater;   // nagroda za odpartą falę (Patryk, 27 XI 17:28: przed trzecią falą za mało na zakupy)
+        if (n) { gra.grosze += n; gra.statystyki.monety = (gra.statystyki.monety || 0) + n; gra.zdarzenia.push({ typ: 'grosze_z', ile: n, x: b.x, y: b.y - 40 }); } }
       gra.etap++; gra.napoj = null;                                     // wywary handlarza działają jedną falę
       if (gra.etap >= ETAPY.length) {
         gra.faza = 'swit'; gra.switT = 0; gra.slonce = 0;
