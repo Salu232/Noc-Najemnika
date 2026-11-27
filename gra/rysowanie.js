@@ -923,7 +923,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       else if (z.typ === 'drewno' || z.typ === 'kartka') stanRys.jedno = { n: 'podnosi', od: czas, dl: 1.3 };
       else if (z.typ === 'podniesione') stanRys.jedno = { n: 'podnosi', od: czas, dl: 0.9, schyla: true };   // łup z ziemi: szybki skłon (walka.js, b.schyla)
       if (z.typ === 'parowanie') { napis('Sparowane!', b.x, b.y - 96, 0xffe2a0); pierscienie.push({ x: b.x, y: b.y - 40, r0: 20, r1: 90, t: 0, czas: 0.3, kolor: 0xfff0c0 }); }
-      else if (z.typ === 'grosze_z') napis(`+${z.ile} gr`, z.x, z.y - 70, 0xe8c060);
+      else if (z.typ === 'grosze_z') napis(`+${z.ile} ${z.ile === 1 ? 'moneta' : z.ile < 5 ? 'monety' : 'monet'}`, z.x, z.y - 70, 0xe8c060);
       else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
       else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);

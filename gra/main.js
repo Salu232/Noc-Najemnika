@@ -249,7 +249,7 @@ async function start() {
 
   // Handlarz (27 XI): przy drodze między falami. Gra stoi, dopóki nie odejdziesz.
   let handelPokazany = false;
-  const grosze = n => `${n} ${n === 1 ? 'grosz' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'grosze' : 'groszy'}`;
+  const grosze = n => `${n} ${n === 1 ? 'moneta' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'monety' : 'monet'}`   // Patryk, 27 XI 12:36: „nie grosze, tylko monety”;
   function towar(ikona, nazwa, opis, przycisk, mozna, naKlik) {
     const d = document.createElement('div'); d.className = 'przepis';
     const t = document.createElement('strong'); t.textContent = nazwa;
@@ -277,7 +277,7 @@ async function start() {
     for (const id of ['pazur', 'kiel', 'krew', 'helm']) {
       const ile = gra.plecak[id] || 0; if (!ile) continue; cos = true;
       const pr = PRZEDMIOTY[id], im = document.createElement('img'); im.src = `grafika/przedmioty/${id}.webp`; im.alt = '';
-      lista.append(towar(im, `${pr.nazwa} ×${ile}: ${grosze(pr.cena)}`, 'Za grosze kupisz u niego mikstury.', 'Sprzedaj', true, () => sprzedaj(gra, id)));
+      lista.append(towar(im, `${pr.nazwa} ×${ile}: ${grosze(pr.cena)}`, 'Za monety kupisz u niego mikstury i wywary.', 'Sprzedaj', true, () => sprzedaj(gra, id)));
     }
     if (!cos) { const p = document.createElement('p'); p.className = 'pusto'; p.textContent = 'Nie masz nic, co by go zainteresowało. Pazury, kły i krew z potworów kupi chętnie.'; lista.append(p); }
   }
