@@ -287,7 +287,10 @@ function aktualizujBohatera(gra, dt, w) {
   else if (w.atakStart) b.kolejkaAtaku = true;
   // unik zapamiętany na 0,3 s (27 XI 19:04, Przemek: „po raz 10 przyciskam unik”, a postać kończy animację):
   // wciśnięty w trakcie cięcia, zachwiania albo innego uniku wykona się, gdy tylko będzie mógł
-  if (w.unik) b.unikChce = gra.czas;
+  // ale nie w pierwszej połowie przewrotu: wciśnięcia klepane w trakcie turlania dawały drugi przewrót
+  // (27 XI 19:37, Przemek: „daję raz unik, daje mi unik dwa razy”)
+  if (w.unik && !(b.stan === 'unik' && b.t < (b.unikCzas || BOHATER.unik.czas) * 0.5)) b.unikChce = gra.czas;
+  if (w.unik) b.kolejkaAtaku = false;                                      // unik wciśnięty po ataku kasuje cios czekający w kolejce, nawet bez tchu
   const chceUnik = w.unik || (b.unikChce != null && gra.czas - b.unikChce < 0.3);
   const mozeUnik = chceUnik && b.sila >= kosztUniku(gra, b) && !(b.chwyt > 0);   // z chwytu topielca nie da się przeturlać
   if (mozeUnik) b.kolejkaAtaku = false;                                       // unik ma pierwszeństwo przed kolejnym ciosem

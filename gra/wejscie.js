@@ -14,7 +14,7 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
   const mysz = { x: 0, y: 0, jest: false, blok: false, atak: false };
   const drazek = { id: null, ox: 0, oy: 0, x: 0, y: 0 };
   const atak = { id: null, ox: 0, oy: 0, x: 0, y: 0, celuje: false };
-  let blokPrzyciskiem = false, unikPrzyciskiem = false, dotyk = false;
+  let blokPrzyciskiem = false, unikPrzyciskiem = false, blokPalec = null, unikPalec = null, dotyk = false;
 
   function pokazDotyk() { if (!dotyk) { dotyk = true; elementy.przyciski.hidden = false; } }
   try { if (matchMedia('(pointer: coarse)').matches) pokazDotyk(); } catch (e) { /* stara przeglądarka */ }
@@ -68,7 +68,10 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
     if (e.clientX < innerWidth * 0.5 && drazek.id === null) {
       drazek.id = e.pointerId; drazek.ox = drazek.x = e.clientX; drazek.oy = drazek.y = e.clientY;
       pokazDrazki();
-    } else atakDol(e.pointerId, e.clientX, e.clientY);
+    } else {
+      const p = najblizszy(e.clientX, e.clientY);
+      if (p && p !== tnij) wcisnij(p, e.pointerId); else atakDol(e.pointerId, e.clientX, e.clientY);
+    }
   });
   cv.addEventListener('pointermove', e => {
     if (e.pointerType === 'mouse') { mysz.x = e.clientX; mysz.y = e.clientY; mysz.jest = true; return; }
@@ -82,6 +85,8 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
       return;
     }
     if (e.pointerId === drazek.id) { drazek.id = null; pokazDrazki(); }
+    if (e.pointerId === blokPalec) puscBlok();
+    if (e.pointerId === unikPalec) puscUnik();
     atakGora(e.pointerId);
   };
   cv.addEventListener('pointerup', pusc);
@@ -91,20 +96,56 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
 
   // ---------- przyciski na telefonie ----------
   const { tnij, blok, unik, klatwa } = elementy;
+  // Palec, który trochę chybi (27 XI 19:37, Przemek: „klikam unik, a zamiast uniku daje mi drugi atak”): Unik stoi tuż nad Tnij,
+  // a reszta prawej strony ekranu też tnie, więc dotyk obok Uniku był cięciem. Teraz dotyk idzie do przycisku, do którego
+  // palcu najbliżej (licząc w promieniach przycisku, więc mały Unik nie przegrywa z dużym Tnij), jeśli jest w 1,75 promienia.
+  const PRZYCISKI = [tnij, unik, blok, klatwa, elementy.mikstura];
+  function najblizszy(x, y, prog = 1.75) {
+    let naj = null, ocena = prog;
+    for (const p of PRZYCISKI) {
+      if (!p || p.offsetParent === null) continue;
+      const r = p.getBoundingClientRect(); if (!r.width) continue;
+      const o = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) / (r.width / 2);
+      if (o < ocena) { ocena = o; naj = p; }
+    }
+    return naj;
+  }
+  function wcisnij(p, id) {
+    if (p === unik) { jednorazowe.unik = true; unikPrzyciskiem = true; unikPalec = id; unik.classList.add('wcisniety'); }
+    else if (p === blok) { blokPrzyciskiem = true; blokPalec = id; blok.classList.add('wcisniety'); }
+    else if (p === elementy.mikstura) jednorazowe.mikstura = true;
+    else if (p === klatwa) { jednorazowe.klatwa = true; klatwa.classList.add('wcisniety'); setTimeout(() => klatwa.classList.remove('wcisniety'), 120); }
+  }
   tnij.addEventListener('pointerdown', e => {
     e.preventDefault(); pokazDotyk();
     try { tnij.setPointerCapture(e.pointerId); } catch (_) { /* bez przechwycenia */ }
+    const inny = najblizszy(e.clientX, e.clientY);
+    if (inny && inny !== tnij) { wcisnij(inny, e.pointerId); return; }   // brzeg Tnij bliżej środka Uniku: to był unik
     const r = tnij.getBoundingClientRect();
     atakDol(e.pointerId, r.left + r.width / 2, r.top + r.height / 2);
     atakRuch(e.pointerId, e.clientX, e.clientY);
   });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) tnij.addEventListener(ev, e => { if (e.pointerId === unikPalec) puscUnik(); if (e.pointerId === blokPalec) puscBlok(); });
+  // Między przyciskami była martwa strefa (pole przycisków 196 × 196 px łapało dotyk i nic nie robiło). Teraz dotyk tam idzie do najbliższego przycisku.
+  const pole = elementy.przyciski;
+  pole.addEventListener('pointerdown', e => {
+    if (e.target !== pole) return;
+    e.preventDefault(); pokazDotyk();
+    const p = najblizszy(e.clientX, e.clientY, 9);
+    if (!p) return;
+    try { pole.setPointerCapture(e.pointerId); } catch (_) { /* */ }
+    if (p === tnij) { const r = tnij.getBoundingClientRect(); atakDol(e.pointerId, r.left + r.width / 2, r.top + r.height / 2); atakRuch(e.pointerId, e.clientX, e.clientY); }
+    else wcisnij(p, e.pointerId);
+  });
+  pole.addEventListener('pointermove', e => atakRuch(e.pointerId, e.clientX, e.clientY));
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pole.addEventListener(ev, e => { if (e.pointerId === unikPalec) puscUnik(); if (e.pointerId === blokPalec) puscBlok(); atakGora(e.pointerId); });
   tnij.addEventListener('pointermove', e => atakRuch(e.pointerId, e.clientX, e.clientY));
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) tnij.addEventListener(ev, e => atakGora(e.pointerId));
   blok.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); blokPrzyciskiem = true; blok.classList.add('wcisniety'); try { blok.setPointerCapture(e.pointerId); } catch (_) { /* */ } });
-  const puscBlok = () => { blokPrzyciskiem = false; blok.classList.remove('wcisniety'); };
+  function puscBlok() { blokPrzyciskiem = false; blokPalec = null; blok.classList.remove('wcisniety'); }
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) blok.addEventListener(ev, puscBlok);
   unik.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.unik = true; unikPrzyciskiem = true; unik.classList.add('wcisniety'); try { unik.setPointerCapture(e.pointerId); } catch (_) { /* */ } });
-  const puscUnik = () => { unikPrzyciskiem = false; unik.classList.remove('wcisniety'); };   // trzymany dalej: bieg
+  function puscUnik() { unikPrzyciskiem = false; unikPalec = null; unik.classList.remove('wcisniety'); }   // trzymany dalej: bieg
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) unik.addEventListener(ev, puscUnik);
   klatwa.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.klatwa = true; klatwa.classList.add('wcisniety'); setTimeout(() => klatwa.classList.remove('wcisniety'), 120); });
   if (elementy.mikstura) elementy.mikstura.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.mikstura = true; });
