@@ -1597,8 +1597,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const hs = gra.handlarz, m = MIEJSCE_HANDLARZA, a = hs && handlK ? hs.widac : 0;
       handlS.visible = handlCien.visible = blaskLatarni.visible = a > 0.01; blaskFiolki.visible = false;
       if (a > 0.01) {
-        const pok = hs.pokazuje > 0, l = KH.ANIMACJE[pok ? 'pokazuje' : 'czeka'];
-        const q = pok ? 1 - hs.pokazuje / 4 : (czas / 3) % 1, f = handlK[l[Math.min(l.length - 1, Math.floor(q * l.length))]];
+        // Patryk, 27 XI 11:33: monety podrzuca tylko po zakupie albo sprzedaży (film „czeka” raz, 3 s); poza tym stoi spokojnie,
+        // na pierwszych klatkach tego filmu, tam i z powrotem jak oddech. Fiolka (film „pokazuje”) czeka na lepsze miejsce.
+        const pok = hs.pokazuje > 0, liczy = hs.liczy > 0, cz = KH.ANIMACJE.czeka;
+        let f;
+        if (pok || liczy) { const l = pok ? KH.ANIMACJE.pokazuje : cz, q = pok ? 1 - hs.pokazuje / 4 : 1 - hs.liczy / 3; f = handlK[l[Math.min(l.length - 1, Math.floor(q * l.length))]]; }
+        else { const sp = [cz[0], cz[1], cz[2], cz[1]]; f = handlK[sp[Math.floor(czas * 1.5) % sp.length]]; }
         const strona = gra.bohater.x < m.x ? -1 : 1;
         handlS.texture = f.t; handlS.anchor.set(f.ax, f.ay); handlS.scale.set(KH.SKALA * strona * KH.PATRZY, KH.SKALA);
         handlS.position.set(m.x, m.y); handlS.zIndex = m.y; handlS.alpha = a;

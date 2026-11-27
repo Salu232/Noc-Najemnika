@@ -8,6 +8,7 @@ export function obudzDzwiek() {
       ac = new AC(); glosnosc = ac.createGain(); glosnosc.gain.value = 0.55; glosnosc.connect(ac.destination);
       szumBufor = ac.createBuffer(1, ac.sampleRate * 0.6, ac.sampleRate);
       const d = szumBufor.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      wczytajUtwor();
     }
     if (ac.state === 'suspended') ac.resume();
   } catch (e) { ac = null; }
@@ -111,8 +112,31 @@ function bum(t, moc) { ton(t, 1.4, 'sine', 62, 28, 0.9 * moc); szum(t, 0.6, 'low
 // moc 0 to cisza, 1 zwykła fala, 2 ostatnia noc z rycerzem (szybciej, gęściej i z głosem rogu na początku taktu).
 const POCHOD = [[73.42, [146.8, 174.6, 220]], [73.42, [146.8, 174.6, 220]], [58.27, [116.5, 146.8, 174.6]], [65.41, [130.8, 164.8, 196]]];
 let muz = null;
+// Utwór Patryka do walki (Suno, „Blood on the Frozen River”, 27 XI). Gdy się wczyta, gra go zamiast muzyki składanej w kodzie.
+// Fala zaczyna go od początku (cichy wstęp narasta z falą). Przerwa między potworami do 6 s go nie urywa, tylko ścisza.
+let utwor = null, granie = null;
+function wczytajUtwor() {
+  fetch(new URL('../dzwiek/walka.mp3', import.meta.url).href).then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))
+    .then(b => new Promise((ok, zle) => ac.decodeAudioData(b, ok, zle))).then(b => { utwor = b; }).catch(() => { /* zostaje muzyka z kodu */ });
+}
+function muzykaUtworu(moc) {
+  const t = ac.currentTime, gra_ = wlaczony && moc > 0;
+  if (gra_ && !granie) {
+    const zr = ac.createBufferSource(); zr.buffer = utwor; zr.loop = true;
+    const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); zr.connect(g); g.connect(glosnosc); zr.start(t);
+    granie = { zr, g, ciszaOd: null };
+  }
+  if (!granie) return;
+  if (gra_) { granie.ciszaOd = null; granie.g.gain.setTargetAtTime(moc > 1 ? 0.95 : 0.8, t, 0.5); return; }
+  if (granie.ciszaOd === null) { granie.ciszaOd = t; granie.g.gain.setTargetAtTime(wlaczony ? 0.35 : 0.0001, t, 0.8); }
+  if (t - granie.ciszaOd > 6 || !wlaczony) {                          // fala się skończyła: wygasa i staje
+    const { zr, g } = granie; g.gain.cancelScheduledValues(t); g.gain.setTargetAtTime(0.0001, t, 0.9); zr.stop(t + 4); granie = null;
+  }
+}
+
 export function muzyka(moc) {
   if (!ac || ac.state !== 'running') return;
+  if (utwor) { muzykaUtworu(moc); return; }
   if (!muz) { const g = ac.createGain(); g.gain.value = 0.0001; g.connect(glosnosc); g.connect(poglos()); muz = { g, nast: ac.currentTime + 0.1, krok: 0 }; }
   const cel = wlaczony && moc > 0 ? (moc > 1 ? 0.62 : 0.5) : 0.0001;
   muz.g.gain.setTargetAtTime(cel, ac.currentTime, moc > 0 ? 0.6 : 1.4);

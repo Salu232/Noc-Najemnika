@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Patryk | Muzyka walki z utworu Patryka (Suno, „Blood on the Frozen River”, 3:06) wyciętego z nagrania; każda fala od początku utworu, cisza do 6 s jej nie urywa. Handlarz stoi spokojnie, a monety podrzuca tylko po zakupie albo sprzedaży | zrobione (v90) | Patryk 27 XI 11:33; muzyka z kodu zostaje jako zapas |
 | 2026-11-27 | Patryk | Handlarz przelicza monety po zakupie (osobny film) | czeka na film | na razie po zakupie wyjmuje fiolkę |
 | 2026-11-27 | Patryk | Totem z czaszką ostatni we wstępie: da się go obejrzeć dopiero po reszcie polany i kartce; dotknięcie budzi noc (róg, fioletowy rozbłysk). Handlarz wyjmuje fiolkę tylko po zakupie | zrobione (v89) | Patryk 27 XI 11:18 |
 | 2026-11-27 | Claude | Kocioł wiedźmy na bagnie: przerabianie rzeczy z bagna i z potworów na ulepszenia (zamiast stołu w izbie) | na bagno | Patryk 27 XI 11:04 „tak” |

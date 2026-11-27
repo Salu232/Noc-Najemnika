@@ -22,7 +22,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
     totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
     lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [], portale: [],
-    handlarz: { widac: 0, pokazuje: 0, blisko: false, zobaczyl: false, wizyty: 0 }, grosze: 0, handel: false,
+    handlarz: { widac: 0, pokazuje: 0, liczy: 0, blisko: false, zobaczyl: false, wizyty: 0 }, grosze: 0, handel: false,
     plecak: {},                                                               // nowa gra: pusty plecak (Patryk, 26 XI: bez zapisów, dopóki gra nie urośnie)
     kartka: null, czytana: null, kartki: 0, przemiana: 0,   // dziennik rycerza i cena klątwy (25 XI)
     mod: { zasieg: 1, szybkosc: 1, garda: 1, oddech: 1, klatwa: 1, cialo: 1 },
@@ -85,12 +85,12 @@ export function zrobNaStole(gra, id) {
 // Handel (27 XI): sprzedaż jednej rzeczy z plecaka i kupno mikstury.
 export function sprzedaj(gra, id) {
   const pr = PRZEDMIOTY[id]; if (!pr || !pr.cena || pr.wazny || !(gra.plecak[id] > 0)) return false;
-  gra.plecak[id]--; gra.grosze += pr.cena; gra.zdarzenia.push({ typ: 'grosze' }); return true;
+  gra.plecak[id]--; gra.grosze += pr.cena; gra.handlarz.liczy = 3; gra.zdarzenia.push({ typ: 'grosze' }); return true;
 }
 export function mozeKupic(gra) { return gra.grosze >= HANDLARZ.mikstura && gra.bohater.mikstury < LUP.max; }
 export function kupMiksture(gra) {
   if (!mozeKupic(gra)) return false;
-  gra.grosze -= HANDLARZ.mikstura; gra.bohater.mikstury++; gra.handlarz.pokazuje = 4;
+  gra.grosze -= HANDLARZ.mikstura; gra.bohater.mikstury++; gra.handlarz.liczy = 3;
   gra.zdarzenia.push({ typ: 'grosze' }); return true;
 }
 export function odejdzOdHandlarza(gra) { gra.handel = false; }
@@ -99,7 +99,7 @@ function handlarz(gra, dt, w) {
   const h = gra.handlarz, b = gra.bohater, m = MIEJSCE_HANDLARZA;
   const jest = gra.faza === 'przerwa' && gra.etap >= 1;              // po pierwszej fali, w ciszy między falami
   h.widac = jest ? Math.min(1, h.widac + dt / 1.6) : Math.max(0, h.widac - dt / 1.2);
-  h.pokazuje = Math.max(0, h.pokazuje - dt);
+  h.pokazuje = Math.max(0, h.pokazuje - dt); h.liczy = Math.max(0, h.liczy - dt);
   if (h.widac <= 0) { h.blisko = false; return; }
   const d = Math.hypot(b.x - m.x, b.y - m.y);
   if (jest && !h.zobaczyl && d < 420 && !b.wChacie) { h.zobaczyl = true; powiedz(gra, HANDLARZ.zobaczyl, 4); }
