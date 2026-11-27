@@ -164,6 +164,23 @@ export const WROGOWIE = {
     ciezki: false,
     doskok: true,
   },
+  // Upiór (bagno, z listy Patryka 25 XI; docs/bagno.md „Nowe potwory”). Półprzezroczysty, przenika przez potwory, ściany i wodę.
+  // Miecz go nie rani, póki nie zgęstnieje: od 35% zamachu, w czasie ciosu i przez okno (s) po nim. Klątwa rani zawsze.
+  // Do filmów Patryka rysuje się z filmu ghula, blady i przezroczysty (zastępczo).
+  upior: {
+    nazwa: 'upior', duch: true, kolor: 0xb8cce0,
+    zycie: [6, 7],
+    szybkosc: [74, 88],
+    promien: 14,
+    skala: 1.35,
+    zasiegAtaku: 78,
+    zamach: 0.75,
+    skok: 0.28,
+    obrazenia: 16,
+    odpoczynek: 1.3,
+    okno: 0.9,
+    ciezki: false,
+  },
   // Wiedźma, boss bagna (Patryk, 27 XI 17:37: „boss tej lokalizacji i jak się ją pokona, wtedy będzie można z nią porozmawiać”).
   // Walczy z daleka jak wiedźmy z polany, ale ma czary: kula, wachlarz kul, topielce z wody i mgła (znika i staje gdzie indziej).
   // W połowie życia wrzeszczy (przemiana): woda wrze, wychodzą topielce, czary szybsze. Nie umiera: pada na kolana (poddaje).
@@ -280,6 +297,9 @@ export const ETAPY = [
     ],
   },
 ];
+// Upiory na bagnie (27 XI 22:35): dwa w drugiej fali, trzy w trzeciej. Wyłączone, dopóki Patryk nie zdecyduje (22:30: „ale mieliśmy już potwory na bagno”).
+const UPIORY = false;
+if (BAGNO && UPIORY) { ETAPY[1].grupy.push({ typ: 'upior', ile: 2, z: ['wschod', 'zachod'], co: 7, od: 10 }); ETAPY[2].grupy.push({ typ: 'upior', ile: 3, z: ['zachod', 'wschod', 'poludnie'], co: 6, od: 6 }); }
 // Ostatnia noc na bagnie (27 XI 21:45): zamiast rycerza wychodzi wiedźma z chaty na palach.
 if (BAGNO) ETAPY[3] = {
   nazwa: 'Wiedźma',
@@ -325,7 +345,7 @@ export const TOTEM = { zycie: 24, zaKlatwe: 6 };
 // 27 XI 13:06 (Patryk: „trochę mniej tego złota”): było ghul 2, bestia 3, wiedźma 4, kolos 8.
 // zaFale: monety za odpartą falę (27 XI 17:28, Patryk: „przy polanie zwiększyć te monety, bo ciężko przy 3 fali”).
 // Tylko po pierwszej i drugiej fali, żeby przed rycerzem nie było znów stać na wszystko (Patryk, 27 XI rano).
-export const GROSZE = { ghul: 1, topielec: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, czarownica: 0, zaFale: [8, 12, 0, 0] };
+export const GROSZE = { ghul: 1, topielec: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, czarownica: 0, upior: 2, zaFale: [8, 12, 0, 0] };
 // Bagno (27 XI 20:54): zioła na wyspach i pochodnie na palach (docs/bagno.md, punkt 8).
 // ZIOLA: ile wyrasta przed każdą falą, najwięcej naraz na ziemi, ile wiązek na miksturę w kotle.
 // LATARNIA: zasięg światła, ile sekund płonie w walce i w ciszy, w jakiej odległości od płonącej topielce nie wychodzą z wody.

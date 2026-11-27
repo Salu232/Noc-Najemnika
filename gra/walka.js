@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL, ZIOLA, LATARNIA, DARY, ROZMOWA_WIEDZMY } from './dane.js';
-import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY, wGlebokiej, wIzbieWiedzmy } from './swiat.js';
+import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY, wGlebokiej, wIzbieWiedzmy, SZER, WYS } from './swiat.js';
 // Topielce na bagnie: ile w każdej fali (wychodzą z wody, oprócz potworów z portali)
 const TOPIELCE = [{ ile: 3, co: 3, od: 2 }, { ile: 5, co: 2.5, od: 4 }, { ile: 7, co: 1.6, od: 3 }, { ile: 4, co: 4, od: 12 }];
 // Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
@@ -245,6 +245,8 @@ export function aktualizuj(gra, dt, w) {
 // ---------- bohater ----------
 // Wynurzający się z portalu albo ziemi: do 27 XI miecz przez nich przechodził (Przemek, 20:02, film: „mój cios nic nie robi, wchodzę w tłum”).
 // Teraz da się ich ciąć, gdy widać ich choć w jednej trzeciej; cięty kończy wynurzanie i musi się zebrać.
+// Upiór (bagno): miecz przez niego przechodzi, chyba że gęstnieje do ataku albo zaraz po nim. Klątwa rani go zawsze.
+export const gesty = e => !e.typ.duch || (e.stan === 'zamach' && e.t > (e.typ.zamach * 0.35)) || e.stan === 'skok' || (e.stan === 'odpoczynek' && e.t < e.typ.okno) || e.stan === 'ogluszony';
 const nieDoTrafienia = e => e.stan === 'martwy' || ((e.stan === 'wynurza' || e.stan === 'mgla') && e.widac < 0.3);
 function najblizszyWrog(gra, zasieg) {
   const b = gra.bohater; let naj = null, nd = zasieg;
@@ -552,7 +554,13 @@ function tnij(gra, dt) {
     if (d - e2.promien > zasieg) continue;
     const tol = Math.atan2(e2.promien, Math.max(d, 1)) + (d < b.promien + e2.promien + 10 ? 0.6 : 0);
     let r = kier * (Math.atan2(dy, dx) - c.od); r = ((r % TAU) + TAU) % TAU; if (r > TAU - tol) r -= TAU;
-    if (r <= przeszlo + tol) cele.push({ e: e2, r, d });
+    if (r > przeszlo + tol) continue;
+    if (!gesty(e2)) {                                                    // upiór: ostrze przechodzi przez mgłę
+      c.trafieni.add(e2); gra.zdarzenia.push({ typ: 'przenika', x: e2.x, y: e2.y });
+      if (!gra.upiorRada) { gra.upiorRada = true; powiedz(gra, 'Miecz przechodzi przez niego jak przez mgłę. Tnij, kiedy gęstnieje do ciosu.', 4); }
+      continue;
+    }
+    cele.push({ e: e2, r, d });
   }
   cele.sort((p, q2) => p.r - q2.r);
   const gdzie = [];                       // gdzie ostrze weszło w ciało: dla obrazu (błysk cięcia)
@@ -731,6 +739,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
     }
     // ciało pada od bohatera (rysowanie najpierw pokazuje upadek, potem zostawia ślad na ziemi)
     const odBoh = Math.cos(kat) >= 0 ? 1 : -1;
+    if (e.typ.duch) { gra.zdarzenia.push({ typ: 'mgla', x: e.x, y: e.y }, { typ: 'smierc', ciezki: false }); return; }   // upiór nie zostawia ciała: rozwiewa się
     gra.slady.push({ typ: 'cialo', wrog: e.typ.nazwa, x: e.x, y: e.y, obrot: odBoh * losuj(0.75, 1.3), sx: -odBoh, kat, pada: true, przeciety: false });   // 26 XI, Patryk: przecięty ghul „pada śmiesznie”; wszyscy padają z filmu śmierci   // kolos i wiedźma padają z filmu (Patryk, 25 XI 16:17: przecięty boss „spada śmiesznie”)
     if (przecina) for (let i = 0; i < 10; i++) gra.krew.push({ x: e.x, y: e.y, z: 18 * e.typ.skala, vx: losuj(-60, 60), vy: losuj(-40, 40), vz: losuj(160, 300), r: losuj(1.5, 3.2) });
     gra.slady.push({ typ: 'kaluza', x: e.x, y: e.y, duza: true });
@@ -904,7 +913,7 @@ function aktualizujWrogow(gra, dt) {
     for (let ix = cx - 1; ix <= cx + 1; ix++) for (let iy = cy - 1; iy <= cy + 1; iy++) {
       const lista = siatka.get(ix * 4096 + iy); if (!lista) continue;
       for (const o of lista) {
-        if (o === e) continue;
+        if (o === e || typ.duch || o.typ.duch) continue;                  // upiór przenika przez inne potwory
         const ox = e.x - o.x, oy = e.y - o.y, dd = ox * ox + oy * oy, min = (e.promien + o.promien) * 1.05;
         if (dd < min * min && dd > 0.01) { const dl = Math.sqrt(dd), p = (min - dl) / min * 220; ax += ox / dl * p; ay += oy / dl * p; }
       }
@@ -918,7 +927,8 @@ function aktualizujWrogow(gra, dt) {
     // nie wchodzi w bohatera
     const bx = e.x - b.x, by = e.y - b.y, bd = Math.hypot(bx, by), bm = e.promien + b.promien;
     if (bohaterZywy && bd < bm && bd > 0.01) { e.x = b.x + bx / bd * bm; e.y = b.y + by / bd * bm; }
-    zderzenia(e, e.promien);
+    if (typ.duch) { e.x = Math.max(40, Math.min(SZER - 40, e.x)); e.y = Math.max(40, Math.min(WYS - 40, e.y)); }   // upiór przenika ściany i unosi się nad wodą
+    else zderzenia(e, e.promien);
     if (typ.czary && wIzbieWiedzmy(e) && !wIzbieWiedzmy({ x: px, y: py })) { e.x = px; e.y = py; }   // wiedźma walczy na zewnątrz, nie chowa się w izbie
     e.anim += dt * Math.hypot(e.vx, e.vy) / 70;
   }
