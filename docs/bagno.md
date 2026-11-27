@@ -44,6 +44,8 @@
 
 ## Lista obrazów i filmów do zrobienia
 
+**Limit Veo (Patryk, 27 XI 22:28–22:29):** zostało 6 animacji, limit odnawia się dopiero 22 grudnia. Najpierw poprawki po opiniach graczy; nowe potwory (upiór) najpierw w kodzie na zastępczej grafice, filmy dopiero, gdy się sprawdzą. Obrazy z Gemini limitu Veo nie zjadają.
+
 Kolejność według tego, co odblokowuje najwięcej pracy. Każdy potwór robimy tak jak ghula i kolosa ([grafika.md](grafika.md), punkt 10): najpierw jeden obraz z bohaterem jako wzorem stylu, potem z tego obrazu cztery filmy w Veo.
 
 **Końcówka do każdego filmu** (ta sama co przy ghulu): *Pure white background, no floor, no shadow. Static camera: no zoom, no pan, no cut. The character stays in the same place in the frame, whole body visible including the feet, side view from slightly above, facing right. No motion trails, no sparks, no glow, no smoke, no text.*
