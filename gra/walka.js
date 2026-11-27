@@ -103,7 +103,7 @@ function handlarz(gra, dt, w) {
   if (h.widac <= 0) { h.blisko = false; return; }
   const d = Math.hypot(b.x - m.x, b.y - m.y);
   if (jest && !h.zobaczyl && d < 420 && !b.wChacie) { h.zobaczyl = true; powiedz(gra, HANDLARZ.zobaczyl, 4); }
-  if (d < HANDLARZ.pokaz && !h.blisko) { h.blisko = true; if (h.widac > 0.9) h.pokazuje = 4; }
+  if (d < HANDLARZ.pokaz && !h.blisko) { h.blisko = true; }   // fiolkę wyjmuje dopiero po zakupie (Patryk, 27 XI 11:18: „po zakupionym towarze, a nie cały czas”)
   else if (d > HANDLARZ.pokaz + 60) h.blisko = false;
   if (!gra.akcja && jest && h.widac > 0.9 && b.stan === 'wolny' && !b.spi && !b.wChacie && d < HANDLARZ.zasieg + b.promien) {
     gra.akcja = 'handlarz';
@@ -778,14 +778,17 @@ function odkrywanie(gra, w, dt) {
   const b = gra.bohater;
   gra.odkryj = null;
   let naj = WSTEP.zasieg + b.promien;
+  // totem z czaszką jest ostatni (Patryk, 27 XI 11:18): da się go obejrzeć dopiero po reszcie polany i pierwszej kartce, a jego dotknięcie budzi noc
+  const totemGotowy = gra.kartki >= 1 && MIEJSCA.every(m => m.id === 'totem' || gra.odkryte.includes(m.id));
   for (const m of MIEJSCA) {
-    if (gra.odkryte.includes(m.id)) continue;
+    if (gra.odkryte.includes(m.id) || (m.id === 'totem' && !totemGotowy)) continue;
     const d = Math.hypot(m.x - b.x, m.y - b.y);
     if (d < naj) { naj = d; gra.odkryj = m; }
   }
   if (gra.odkryj && w.akcja && b.stan === 'wolny' && !b.spi) {
     const m = gra.odkryj; gra.odkryte.push(m.id); gra.odkryj = null; w.akcja = false;
     powiedz(gra, m.mysl, 4.5); gra.zdarzenia.push({ typ: 'odkryte', x: m.x, y: m.y });
+    if (m.id === 'totem') { gra.zdarzenia.push({ typ: 'totem_budzi', x: TOTEMY[0].x, y: TOTEMY[0].y }, { typ: 'ostrzezenie', boss: false }); gra.wstrzas = Math.max(gra.wstrzas, 10); }
     gra.podpowiedzZa = WSTEP.kolejnaPodpowiedz;
   }
   // Podpowiedź dla kogoś, kto gra pierwszy raz (Patryk, 26 XI 12:27): po chwili bez odkrycia bohater mówi,
@@ -793,12 +796,13 @@ function odkrywanie(gra, w, dt) {
   gra.podpowiedzZa -= dt;
   if (gra.podpowiedzZa <= 0 && gra.mysl.czas <= 0) {
     gra.podpowiedzZa = WSTEP.kolejnaPodpowiedz;
-    const zostalo = MIEJSCA.filter(m => !gra.odkryte.includes(m.id));
+    const zostalo = MIEJSCA.filter(m => !gra.odkryte.includes(m.id) && (m.id !== 'totem' || totemGotowy));
     if (gra.odkryte.length === 0 && !zostalo.some(m => Math.hypot(m.x - b.x, m.y - b.y) < 500)) powiedz(gra, 'Droga prowadzi do chaty. Tam, gdzie coś błyszczy, warto się zatrzymać (E).', 5);
     else if (zostalo.length) {
       const m = zostalo.reduce((a, c) => Math.hypot(c.x - b.x, c.y - b.y) < Math.hypot(a.x - b.x, a.y - b.y) ? c : a);
       gra.wskazane = m.id; powiedz(gra, WSTEP.wskazowki[m.id], 4.5);
     } else if (gra.kartki < 1) powiedz(gra, 'W izbie coś leży na podłodze. Kartka?', 4.5);
+    else powiedz(gra, WSTEP.wskazowki.totem, 4.5);
   }
 }
 export const ileOdkryc = () => MIEJSCA.length + 1;   // miejsca i pierwsza kartka

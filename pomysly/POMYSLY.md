@@ -8,6 +8,8 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Patryk | Handlarz przelicza monety po zakupie (osobny film) | czeka na film | na razie po zakupie wyjmuje fiolkę |
+| 2026-11-27 | Patryk | Totem z czaszką ostatni we wstępie: da się go obejrzeć dopiero po reszcie polany i kartce; dotknięcie budzi noc (róg, fioletowy rozbłysk). Handlarz wyjmuje fiolkę tylko po zakupie | zrobione (v89) | Patryk 27 XI 11:18 |
 | 2026-11-27 | Claude | Kocioł wiedźmy na bagnie: przerabianie rzeczy z bagna i z potworów na ulepszenia (zamiast stołu w izbie) | na bagno | Patryk 27 XI 11:04 „tak” |
 | 2026-11-27 | Claude | Stół w izbie zdjęty z polany: łup idzie do handlarza. Kod przepisów zostaje na kocioł | zrobione (v88) | Patryk 27 XI 11:04 „tak” |
 | 2026-11-27 | Claude | Naprawiony skłon przy zbieraniu łupu: animacja kasowała się w klatce podniesienia (bohater jeszcze szedł), a komentarz w środku linii połykał jej wywołanie. Skłon idzie teraz równo z 0,9 s postoju. Napis nad łupem pokazuje nazwę rzeczy, nie zawsze „Mikstura” | zrobione (v87) | Patryk 27 XI 10:59, nagranie |

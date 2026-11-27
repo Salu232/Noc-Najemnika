@@ -233,7 +233,7 @@ export function punktWMgle(nazwa, stan = null) {
 // Miejsca do obejrzenia we wstępie (dane.js, WSTEP). Ognisko i totem na polanie, reszta w chacie.
 export const MIEJSCA = [
   { id: 'ognisko', nazwa: 'ognisko', x: OGNISKO.x, y: OGNISKO.y + 20, mysl: 'Kamienie ułożone równo, jeden przy drugim. Ktoś dbał, żeby ten ogień nie zgasł.' },
-  { id: 'totem', nazwa: 'totem', x: TOTEMY[0].x + 30, y: TOTEMY[0].y + 20, mysl: 'Kość i pióra na palu. Ten, kto tu mieszkał, bał się lasu bardziej niż ja.' },
+  { id: 'totem', nazwa: 'totem', x: TOTEMY[0].x + 30, y: TOTEMY[0].y + 20, mysl: 'Kość i pióra na palu. Dotykam go i ręka zapłonęła. Z lasu coś odpowiada.' },
   { id: 'stos', nazwa: 'stos drewna', x: STOS_DREWNA.x, y: STOS_DREWNA.y, mysl: 'Drewna na całą zimę. Nie planował odchodzić.' },
   { id: 'belka', nazwa: 'belkę nad drzwiami', x: CHATA.prog.x, y: CHATA.prog.y - 45, mysl: 'Nad drzwiami pięć imion, każde wyryte inną ręką. Ostatnie jeszcze się nie zatarło.' },
   { id: 'palenisko', nazwa: 'palenisko', x: CHATA.palenisko.x, y: CHATA.palenisko.y + 55, mysl: 'Żar jeszcze ciepły. Wyszedł najwyżej wczoraj.' },

@@ -918,6 +918,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // zdarzenia, które widać na obrazie
     for (const z of zdarzenia) {
       if (z.typ === 'portal_zamkniety') { pierscienie.push({ x: z.x, y: z.y - 70, r0: 8, r1: 70, t: 0, czas: 0.35, kolor: 0xe0c0ff }); pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 90, t: 0, czas: 0.45, kolor: 0x9a40ff, ziemia: true }); }
+      if (z.typ === 'totem_budzi') { pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 420, t: 0, czas: 1.2, kolor: 0xa040ff, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 90, r0: 10, r1: 160, t: 0, czas: 0.6, kolor: 0xe0c0ff }); stanRys.totemBudzi = czas; }
       if (z.typ === 'mikstura') stanRys.jedno = { n: 'pije', od: czas, dl: 1.5 };
       else if (z.typ === 'drewno' || z.typ === 'kartka') stanRys.jedno = { n: 'podnosi', od: czas, dl: 1.3 };
       else if (z.typ === 'podniesione') stanRys.jedno = { n: 'podnosi', od: czas, dl: 0.9, schyla: true };   // łup z ziemi: szybki skłon (walka.js, b.schyla)
@@ -1548,8 +1549,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
     TOTEMY.forEach((t, i) => {                                            // totemy świecą fioletem, żeby było widać, skąd przyjdą
       const puls = 0.85 + 0.15 * Math.sin(czas * 2.1 + i * 1.7), jest = totemyS.length > 0 && !(gra.totemy && gra.totemy[i].zniszczony);
-      stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 150 * puls, jest ? 0.3 : 0);   // już tylko znak, nie brama: słabsze światło
-      const bl = blaskiTotemow[i]; bl.visible = jest; bl.position.set(t.x, t.y - 30); bl.width = bl.height = 200 * puls; bl.alpha = 0.2 * Math.max(0.3, gra.mroczek / 0.8);
+      const bud = stanRys.totemBudzi != null ? Math.max(0, 1 - (czas - stanRys.totemBudzi) / 4) : 0;   // rozbłysk, gdy jego dotknięcie budzi noc
+      stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 150 * puls * (1 + 1.5 * bud), jest ? 0.3 + 0.6 * bud : 0);   // już tylko znak, nie brama: słabsze światło
+      const bl = blaskiTotemow[i]; bl.visible = jest; bl.position.set(t.x, t.y - 30); bl.width = bl.height = 200 * puls; bl.alpha = (0.2 + 0.8 * bud) * Math.max(0.3, gra.mroczek / 0.8); bl.width = bl.height = 200 * puls * (1 + 1.5 * bud);
     });
     for (const o of totemyS) {
       const st = gra.totemy && gra.totemy[o.i];
