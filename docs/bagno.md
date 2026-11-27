@@ -57,6 +57,8 @@ Kolejność według tego, co odblokowuje najwięcej pracy. Każdy potwór robimy
 
 ### 2. Topielec (Gemini obraz + 4 filmy Veo, wzór: obraz bohatera na białym tle)
 
+*Obraz zrobiony (Patryk, 27 XI 21:15): `grafika/zrodla/topielec-obraz.jpg`. Czekamy na pięć filmów Veo: chód, atak, trafienie, śmierć, wynurzenie (polecenia wysłane Patrykowi; trafienie jak przy ghulu).*
+
 | Co | Polecenie |
 | --- | --- |
 | Obraz | Using the attached image of the mercenary as the style reference, draw a drowned man in exactly the same drawing style. A bloated, waterlogged corpse risen from the swamp: pale green-grey swollen skin, long black hair plastered to the face, white eyes without pupils, strands of weed and mud hanging from the arms, the rotten remains of a peasant shirt, long fingers with broken nails, water dripping from everything. About as tall as the mercenary, hunched forward with arms reaching. Full body, side view from slightly above, facing right. Pure white background, no floor, no shadow, no text. |
