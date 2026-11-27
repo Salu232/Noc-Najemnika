@@ -648,8 +648,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (stanRys.miecz === 'wyciaga' || stanRys.miecz === 'chowa') return klatkaZ('wyciaga', stanRys.mieczP);
     // picie mikstury i podnoszenie z ziemi (filmy Patryka, 27 XI): tylko gdy stoi; ruch albo walka przerywa
     if (stanRys.jedno) {
-      const j = stanRys.jedno, q = (czas - j.od) / j.dl;
-      if (q >= 1 || b.idzie || b.stan !== 'wolny' || b.blok || !A[j.n]) stanRys.jedno = null; else return klatkaZ(j.n, q);
+      const j = stanRys.jedno, q = j.schyla ? (b.schyla > 0 ? 1 - b.schyla / j.dl : 1) : (czas - j.od) / j.dl;   // skłon po łup idzie równo z postojem w walka.js
+      if (q >= 1 || (b.idzie && !(b.schyla > 0)) || b.stan !== 'wolny' || b.blok || !A[j.n]) stanRys.jedno = null; else return klatkaZ(j.n, q);   // b.schyla: w klatce podniesienia jeszcze szedł, więc skłon nie może tego przerwać (Patryk, 27 XI 10:59)
     }
     if (b.idzie || stanRys.dochodzi > 0) return klatkaPetli(stanRys.ruchR || stanRys.ruch, stanRys.krok);
     // W walce stoi w gardzie z mieczem uniesionym przed sobą; gdy wokół pusto, opuszcza miecz i oddycha (Patryk, 24 XI).
@@ -920,7 +920,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (z.typ === 'portal_zamkniety') { pierscienie.push({ x: z.x, y: z.y - 70, r0: 8, r1: 70, t: 0, czas: 0.35, kolor: 0xe0c0ff }); pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 90, t: 0, czas: 0.45, kolor: 0x9a40ff, ziemia: true }); }
       if (z.typ === 'mikstura') stanRys.jedno = { n: 'pije', od: czas, dl: 1.5 };
       else if (z.typ === 'drewno' || z.typ === 'kartka') stanRys.jedno = { n: 'podnosi', od: czas, dl: 1.3 };
-      else if (z.typ === 'podniesione') stanRys.jedno = { n: 'podnosi', od: czas, dl: 0.75 };   // łup z ziemi: szybki skłon (walka.js, b.schyla)
+      else if (z.typ === 'podniesione') stanRys.jedno = { n: 'podnosi', od: czas, dl: 0.9, schyla: true };   // łup z ziemi: szybki skłon (walka.js, b.schyla)
       if (z.typ === 'parowanie') { napis('Sparowane!', b.x, b.y - 96, 0xffe2a0); pierscienie.push({ x: b.x, y: b.y - 40, r0: 20, r1: 90, t: 0, czas: 0.3, kolor: 0xfff0c0 }); }
       else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
@@ -957,7 +957,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       }
       else if (z.typ === 'kartka') pierscienie.push({ x: z.x, y: z.y, r0: 10, r1: 70, t: 0, czas: 0.4, kolor: 0xffb070, ziemia: true });
       else if (z.typ === 'mikstura') { napis(`+${LUP.leczy}`, b.x + 18, b.y - 84, 0xff6a5a); pierscienie.push({ x: b.x, y: b.y, r0: 10, r1: 60, t: 0, czas: 0.35, kolor: 0xff7070, ziemia: true }); }
-      else if (z.typ === 'podniesione') napis('Mikstura', z.x, z.y - 40, 0xf0b0b0);
+      else if (z.typ === 'podniesione') napis(z.rzecz ? PRZEDMIOTY[z.rzecz].nazwa : 'Mikstura', z.x, z.y - 40, z.rzecz ? 0xe8d8b0 : 0xf0b0b0);
       else if (z.typ === 'dorzucone') { for (let i = 0; i < 8; i++) obloczek(z.x + losuj(-10, 10), z.y - 20, losuj(-30, 30), losuj(-90, -40), 3, losuj(8, 14), losuj(0.4, 0.8), 0.6, 0xffa050, false); }
       else if (z.typ === 'parowanie') { stanRys.pchniecie = 1; if (z.x != null) { blysk('iskry_wybuch', z.x, z.y, null, 130, 0.36, true); blysk(['iskry_a', 'iskry_b'][(Math.random() * 2) | 0], z.x, z.y, z.kat + Math.PI, 105, 0.34, true); } }
       else if (z.typ === 'klatwa_laduje') pierscienie.push({ x: b.x, y: b.y, r0: KLATWA.zasieg, r1: 24, t: 0, czas: KLATWA.ladowanie, kolor: 0x9a5cff, ziemia: true });

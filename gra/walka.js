@@ -934,13 +934,13 @@ function aktualizujCele(gra, dt, w) {
       if (b.stan !== 'upadl' && Math.hypot(l.x - b.x, l.y - b.y) < LUP.zasiegPodniesienia + b.promien) {
         const pr = PRZEDMIOTY[l.typ], pierwszy = !gra.plecak[l.typ];
         gra.plecak[l.typ] = (gra.plecak[l.typ] || 0) + 1; gra.lup.splice(i, 1);
-        gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y, rzecz: l.typ }); b.schyla = 0.75;
+        gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y, rzecz: l.typ }); b.schyla = 0.9;
         if (pierwszy || pr.wazny) powiedz(gra, pr.wazny ? pr.opis : `${pr.nazwa}. Do plecaka (I).`, pr.wazny ? 5 : 2.5);
       }
       continue;
     }
     if (b.stan !== 'upadl' && b.mikstury < LUP.max && Math.hypot(l.x - b.x, l.y - b.y) < LUP.zasiegPodniesienia + b.promien) {
-      b.mikstury++; gra.lup.splice(i, 1); gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y }); b.schyla = 0.75;
+      b.mikstury++; gra.lup.splice(i, 1); gra.zdarzenia.push({ typ: 'podniesione', x: l.x, y: l.y }); b.schyla = 0.9;
     }
   }
   if (w.mikstura && b.mikstury > 0 && b.stan !== 'upadl' && b.zycie < BOHATER.zycie) {
