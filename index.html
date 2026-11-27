@@ -138,6 +138,7 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 #przycisk-mikstura.pusta { opacity: 0.35; }
 #przycisk-mikstura b { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; border-radius: 9px; background: #8e1418; font-size: 11px; line-height: 18px; }
 #zapas-groszy { color: #e8c060; }
+#zapas-groszy::before { content: ""; display: inline-block; width: 15px; height: 15px; margin-right: 4px; vertical-align: -3px; background: url(grafika/przedmioty/moneta.webp) center / contain no-repeat; }
 #zapasy { display: flex; gap: 10px; font-size: 12px; color: var(--tekst, #e9e1d2); text-shadow: 0 1px 3px #000; padding-left: 6px; }
 #zapas-mikstur::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: -3px; border-radius: 50%; background: url(grafika/ikona-mikstura.webp) center / cover; }
 /* wybór ulepszenia w ramie z czaszkami i pasami (Patryk, 24 XI 19:06): border-image, więc rogi się nie rozciągają */
@@ -195,6 +196,10 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 .przepis .koszt img { width: 22px; height: 22px; }
 .przepis button { grid-column: 2; grid-row: 1 / span 3; }
 .przepis button:disabled { opacity: 0.35; cursor: default; }
+.przepis.towar { grid-template-columns: 56px 1fr auto; }
+.przepis.towar .obraz { grid-column: 1; grid-row: 1 / span 2; width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 2px 3px #000); }
+.przepis.towar strong, .przepis.towar .opis { grid-column: 2; }
+.przepis.towar button { grid-column: 3; grid-row: 1 / span 2; }
 /* handlarz (27 XI): portret, sakiewka, kupno mikstury i sprzedaż łupu */
 #ekran-handlarza .karta { max-height: calc(100vh - 24px); overflow-y: auto; }
 .handlarz-glowa { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
@@ -202,6 +207,7 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 .handlarz-glowa h2 { margin: 0 0 4px; }
 .handlarz-glowa .wstep { margin: 0; font-style: italic; }
 .grosze { margin: 4px 0 10px; font-size: 15px; color: #d8b45a; }
+.grosze::before { content: ""; display: inline-block; width: 26px; height: 26px; margin-right: 6px; vertical-align: -7px; background: url(grafika/przedmioty/sakiewka.webp) center / contain no-repeat; }
 .przepis .naglowek { grid-column: 1 / -1; margin: 6px 0 0; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--przygaszony); }
 .przepisy .pusto { margin: 0; font-size: 13px; color: var(--przygaszony); }
 /* ekrany: start, pauza, koniec */

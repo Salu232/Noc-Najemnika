@@ -8,6 +8,8 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Patryk | Ikony z arkusza Gemini w sklepie handlarza i na pasku (mikstura, wywar, napar, pas, sakiewka, moneta) | zrobione | Wycięte `narzedzia/wytnij-przedmioty.py grafika/zrodla/towary-arkusz.png …` do grafika/przedmioty/ |
+| 2026-11-27 | Patryk | Noc trudniejsza: mocniejsze potwory i boss, mniej monet, słabsze ulepszenia po falach, droższe towary | zrobione | ghul 4–5 HP, wiedźma/bestia 8–9, kolos 22, rycerz 56 (×1,5 = 84); rany +2–6; monety ghul 1 / bestia 2 / wiedźma 3 / kolos 5; mikstura 10, wywar 16, napar 14, pas 26; ulepszenia mniej więcej o połowę słabsze; wywar siły średnio +25% zamiast +50% |
 | 2026-11-27 | Patryk | Ciała wsiąkają w ziemię: pod koniec nocy polana nie jest dywanem trupów, zostaje sama krew | zrobione | Po 40 s ciało ciemnieje, spłaszcza się i znika w 5 s; przy ponad 30 ciałach najstarsze wsiąkają od razu |
 | 2026-11-27 | Patryk | Waluta to monety, nie grosze (sakiewka, ceny, licznik, napis nad potworem) | zrobione (v95) | Patryk 27 XI 12:36; prompt na arkusz ikon mikstur, wywarów, pasa, sakiewki i monety dostał Patryk |
 | 2026-11-27 | Patryk | Twardsze potwory: ghul 3–4 życia (było 2–3), wiedźma i bestia 6–7 (było 3–4), kolos 16 (było 8), rycerz 36, na ostatnią noc 54 (było 26/39); klątwa bije za 5 (było 3). Grosze z każdego potwora od razu do sakiewki (ghul 2, bestia 3, wiedźma 4, kolos 8), licznik groszy pod paskiem życia | zrobione (v94) | Patryk 27 XI 12:22; bot z testy/bot-noc.mjs jest nieaktualny (nie zna portali), trudność ocenia gra Patryka |

@@ -80,27 +80,27 @@ export const CHATA_ODPOCZYNEK = { zasiegDrzwi: 70, leczenie: 2, leczenieSen: 9, 
 export const WROGOWIE = {
   ghul: {
     nazwa: 'ghul',
-    zycie: [3, 4],       // 27 XI (Patryk: „żeby ich na hita nie ubijać”): było 2–3         // losowo od-do
+    zycie: [4, 5],       // 27 XI 13:06 (Patryk: „dalej za proste”): było 3–4, rano 2–3         // losowo od-do
     szybkosc: [80, 105],
     promien: 13,
     skala: 1.25,
     zasiegAtaku: 72,
     zamach: 0.45,          // jak długo zapowiada atak
     skok: 0.22,
-    obrazenia: 12,
+    obrazenia: 14,        // 27 XI 13:06: było 12
     odpoczynek: 1.1,
     ciezki: false,
   },
   kolos: {
     nazwa: 'kolos',
-    zycie: [16, 16],     // 27 XI: elita, było 8
+    zycie: [22, 22],     // 27 XI 13:06: było 16, rano 8
     szybkosc: [42, 48],
     promien: 30,
     skala: 2.3,
     zasiegAtaku: 100,
     zamach: 0.95,
     skok: 0.25,
-    obrazenia: 30,
+    obrazenia: 34,        // 27 XI 13:06: było 30
     odpoczynek: 1.7,
     ciezki: true,          // miecz w nim grzęźnie (chyba że to wielki miecz albo mocny cios)
     strefa: 78,            // promień uderzenia w ziemię
@@ -110,7 +110,7 @@ export const WROGOWIE = {
   // Gdy bohater podejdzie, cofa się, ale wolno, więc warto do niej dobiec.
   wiedzma: {
     nazwa: 'wiedzma',
-    zycie: [6, 7],       // 27 XI: było 3–4
+    zycie: [8, 9],       // 27 XI 13:06: było 6–7, rano 3–4
     szybkosc: [88, 104],   // 25 XI 15:09, Patryk: „musi się żywiej ruszać jak te nasze ghule” (było 52–62)
     promien: 14,
     skala: 1.3,
@@ -118,7 +118,7 @@ export const WROGOWIE = {
     dystans: 220,          // bliżej tego cofa się; między rzutami krąży bokiem wokół bohatera
     zamach: 0.75,
     skok: 0.3,             // wyrzut kuli
-    obrazenia: 13,
+    obrazenia: 15,        // 27 XI 13:06: było 13
     odpoczynek: 1.2,
     ciezki: false,
     pocisk: { szybkosc: 250, promien: 11, zycie: 2.4 },
@@ -128,14 +128,14 @@ export const WROGOWIE = {
   // Po pudle długo się zbiera: wtedy jest okazja do cięcia.
   bestia: {
     nazwa: 'bestia',
-    zycie: [6, 7],       // 27 XI: było 3–4
+    zycie: [8, 9],       // 27 XI 13:06: było 6–7, rano 3–4
     szybkosc: [125, 145],
     promien: 16,
     skala: 1.3,
     zasiegAtaku: 230,      // z tej odległości przysiada do skoku
     zamach: 0.6,
     skok: 0.45,            // lot: przez tyle sekund leci do celu
-    obrazenia: 16,
+    obrazenia: 18,        // 27 XI 13:06: było 16
     odpoczynek: 1.6,
     ciezki: false,
     doskok: true,
@@ -146,13 +146,13 @@ export const WROGOWIE = {
   rycerz: {
     nazwa: 'rycerz',
     boss: true,
-    zycie: [36, 36],      // razy 1,5 z ostatniej nocy: 54, przemiana przy 27 (27 XI: było 26; 25 XI: 18)
+    zycie: [56, 56],      // razy 1,5 z ostatniej nocy: 84, przemiana w połowie (27 XI 13:06, Patryk: „o wiele mocniejszy”: było 36; rano 26; 25 XI: 18)
     szybkosc: [58, 64],
     promien: 26,
     skala: 2.0,
     zasiegAtaku: 110,
     zamach: 0.9, skok: 0.4,
-    obrazenia: 26,
+    obrazenia: 32,        // 27 XI 13:06: było 26
     odpoczynek: 1.1,
     ciezki: true,
     strefa: 80,
@@ -238,7 +238,8 @@ export const TOTEM = { zycie: 24, zaKlatwe: 6 };
 
 // Łup: z potwora czasem wypada mikstura (z kolosa zawsze). Mikstura leczy od razu; Q albo przycisk na telefonie.
 // Grosze z potworów (27 XI, Patryk: „przy pierwszej i drugiej fali nie masz kasy”): wpadają od razu do sakiewki.
-export const GROSZE = { ghul: 2, bestia: 3, wiedzma: 4, kolos: 8, rycerz: 0 };
+// 27 XI 13:06 (Patryk: „trochę mniej tego złota”): było ghul 2, bestia 3, wiedźma 4, kolos 8.
+export const GROSZE = { ghul: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0 };
 export const LUP = { szansaGhul: 0.12, szansaKolos: 1, leczy: 40, max: 3, start: 1, zasiegPodniesienia: 34, znika: 25 };
 
 // Ognisko gaśnie: pełne starcza na czas sekund, światło kurczy się do minimum. Drewno bierze się ze stosu pod ścianą
@@ -247,13 +248,13 @@ export const OGIEN = { czas: 140, minimum: 0.15, polano: 0.55, przygasa: 0.3 };
 
 // Ulepszenia: po każdej fali (poza ostatnią) wybór jednego z trzech. Działają do końca nocy.
 export const ULEPSZENIA = [
-  { id: 'zasieg', nazwa: 'Dłuższe ostrze', opis: 'Miecz sięga o jedną ósmą dalej.' },
-  { id: 'szybkosc', nazwa: 'Szybsza ręka', opis: 'Zamach i powrót miecza są o 15% krótsze.' },
-  { id: 'garda', nazwa: 'Twarda garda', opis: 'Blok zużywa o 30% mniej sił.' },
-  { id: 'oddech', nazwa: 'Drugi oddech', opis: 'Siły wracają o 35% szybciej.' },
-  { id: 'klatwa', nazwa: 'Głodna klątwa', opis: 'Pasek klątwy napełnia się o połowę szybciej.' },
-  { id: 'mikstura', nazwa: 'Zapas na noc', opis: 'Pełne życie teraz i jedna mikstura więcej.' },
-  { id: 'cialo', nazwa: 'Twarda skóra', opis: 'Rany od potworów są o 20% lżejsze.' },
+  { id: 'zasieg', nazwa: 'Dłuższe ostrze', opis: 'Miecz sięga o 7% dalej.' },
+  { id: 'szybkosc', nazwa: 'Szybsza ręka', opis: 'Zamach i powrót miecza są o 8% krótsze.' },
+  { id: 'garda', nazwa: 'Twarda garda', opis: 'Blok zużywa o 18% mniej sił.' },
+  { id: 'oddech', nazwa: 'Drugi oddech', opis: 'Siły wracają o 20% szybciej.' },
+  { id: 'klatwa', nazwa: 'Głodna klątwa', opis: 'Pasek klątwy napełnia się o 30% szybciej.' },
+  { id: 'mikstura', nazwa: 'Zapas na noc', opis: 'Jedna mikstura więcej i trochę życia teraz.' },
+  { id: 'cialo', nazwa: 'Twarda skóra', opis: 'Rany od potworów są o 12% lżejsze.' },
 ];
 
 // Kartki z dziennika rycerza (25 XI, historia Patryka): przeklęty najemnik szuka w przeklętym domku sposobu
@@ -303,8 +304,8 @@ export const WSTEP = {
 // później pójdą do kupca albo na ulepszenia. kolor: zastępcza ikona, dopóki nie ma grafik z Gemini (grafika/przedmioty/).
 export const PRZEDMIOTY = {
   pazur: { nazwa: 'Pazur ghula', opis: 'Czarny, zakrzywiony, wyrwany z korzeniem. Handlarz da za niego parę monet.', kolor: '#3a3430', z: 'ghul', szansa: 0.18, cena: 2 },
-  kiel: { nazwa: 'Kieł kolosa', opis: 'Pożółkły i pęknięty. Waży tyle, co sztylet.', kolor: '#c9b98a', z: 'kolos', szansa: 1, cena: 6 },
-  krew: { nazwa: 'Krew wiedźmy', opis: 'Mętna, fioletowa, ciepła mimo chłodu. Fiolka lekko świeci.', kolor: '#7a3cc0', z: 'wiedzma', szansa: 0.5, cena: 5 },
+  kiel: { nazwa: 'Kieł kolosa', opis: 'Pożółkły i pęknięty. Waży tyle, co sztylet.', kolor: '#c9b98a', z: 'kolos', szansa: 1, cena: 5 },
+  krew: { nazwa: 'Krew wiedźmy', opis: 'Mętna, fioletowa, ciepła mimo chłodu. Fiolka lekko świeci.', kolor: '#7a3cc0', z: 'wiedzma', szansa: 0.5, cena: 4 },
   helm: { nazwa: 'Przyłbica rycerza', opis: 'Okopcona, z dwoma rogami. W pęknięciach jeszcze tli się żar.', kolor: '#8a2a18', z: 'rycerz', szansa: 1, cena: 12 },
   amulet: { nazwa: 'Amulet rycerza', opis: 'Srebro na zerwanym łańcuszku. Wyryte trzciny i półksiężyc: znak bagien. Pierwszy ślad.', kolor: '#b8b8c8', z: 'rycerz', szansa: 1, wazny: true },
 };
@@ -326,12 +327,12 @@ export const STOL = [
 export const HANDLARZ = {
   zasieg: 62,          // jak blisko podejść, żeby handlować (E)
   pokaz: 170,          // z tej odległości wyjmuje fiolkę
-  mikstura: 8,         // cena mikstury w groszach
+  mikstura: 10,        // cena mikstury w monetach (27 XI 13:06: było 8)
   // Patryk, 27 XI 12:00: „nic oprócz potów na życie nie kupisz, a możesz mieć tylko 3”. Wywary działają do końca następnej fali.
   towary: [
-    { id: 'sila', nazwa: 'Wywar z wilczej jagody', cena: 12, opis: 'Do końca następnej fali cięcia ranią o 30% mocniej.', napoj: true },
-    { id: 'oddech', nazwa: 'Napar z kory dębu', cena: 10, opis: 'Do końca następnej fali siły wracają o połowę szybciej: więcej uników i bloków.', napoj: true },
-    { id: 'pas', nazwa: 'Pas na fiolki', cena: 20, opis: 'Uniesiesz o jedną miksturę więcej, do końca nocy.' },
+    { id: 'sila', nazwa: 'Wywar z wilczej jagody', cena: 16, opis: 'Do końca następnej fali cięcia ranią o ćwierć mocniej.', napoj: true },
+    { id: 'oddech', nazwa: 'Napar z kory dębu', cena: 14, opis: 'Do końca następnej fali siły wracają o 30% szybciej: więcej uników i bloków.', napoj: true },
+    { id: 'pas', nazwa: 'Pas na fiolki', cena: 26, opis: 'Uniesiesz o jedną miksturę więcej, do końca nocy.' },
   ],
   powitania: [
     'Nie bój się, synu. Mnie one nie ruszają. Za stary jestem, za gorzki.',

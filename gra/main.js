@@ -254,22 +254,22 @@ async function start() {
     const d = document.createElement('div'); d.className = 'przepis';
     const t = document.createElement('strong'); t.textContent = nazwa;
     const o = document.createElement('p'); o.className = 'opis'; o.textContent = opis;
-    const ko = document.createElement('div'); ko.className = 'koszt'; if (ikona) { const s = document.createElement('span'); s.append(ikona); ko.append(s); }
     const b = document.createElement('button'); b.type = 'button'; b.className = 'drugi'; b.textContent = przycisk; b.disabled = !mozna;
     b.addEventListener('click', () => { if (naKlik()) pokazHandel(); });
-    d.append(t, b, o, ko); return d;
+    if (ikona) { d.classList.add('towar'); ikona.className = 'obraz'; d.append(ikona); }   // duża ikona po lewej (arkusz Gemini, 27 XI)
+    d.append(t, b, o); return d;
   }
   function naglowek(tekst) { const h = document.createElement('p'); h.className = 'naglowek'; h.textContent = tekst; const d = document.createElement('div'); d.className = 'przepis'; d.style.background = 'none'; d.style.border = '0'; d.style.padding = '0'; d.append(h); return d; }
   function pokazHandel() {
     $('grosze').textContent = `W sakiewce: ${grosze(gra.grosze)}`;
     const lista = $('towary'); lista.textContent = '';
     lista.append(naglowek('Kupujesz'));
-    const mi = document.createElement('img'); mi.src = 'grafika/ikona-mikstura.webp'; mi.alt = '';
+    const mi = document.createElement('img'); mi.src = 'grafika/przedmioty/mikstura.webp'; mi.alt = '';
     const mx = maxMikstur(gra), pelno = gra.bohater.mikstury >= mx;
     lista.append(towar(mi, `Mikstura: ${grosze(HANDLARZ.mikstura)}`, pelno ? `Masz ${gra.bohater.mikstury}, więcej nie uniesiesz.` : `Leczy od razu (Q). Masz ${gra.bohater.mikstury} z ${mx}.`, 'Kup', mozeKupic(gra), () => kupMiksture(gra)));
     for (const t of HANDLARZ.towary) {
       const ma = t.napoj ? !!(gra.napoj && gra.napoj[t.id]) : !!gra[t.id];
-      const ik = document.createElement('img'); ik.src = 'grafika/ikona-mikstura.webp'; ik.alt = ''; if (!t.napoj) ik.style.filter = 'grayscale(1) brightness(0.8)'; else if (t.id === 'oddech') ik.style.filter = 'hue-rotate(80deg)'; else ik.style.filter = 'hue-rotate(250deg) saturate(1.4)';
+      const ik = document.createElement('img'); ik.src = `grafika/przedmioty/${t.id}.webp`; ik.alt = '';   // ikony z arkusza Gemini (27 XI)
       lista.append(towar(ik, `${t.nazwa}: ${grosze(t.cena)}`, ma ? (t.napoj ? 'Już wypite. Działa do końca następnej fali.' : 'Już masz.') : t.opis, 'Kup', mozeKupicTowar(gra, t.id), () => kupTowar(gra, t.id)));
     }
     lista.append(naglowek('Sprzedajesz'));

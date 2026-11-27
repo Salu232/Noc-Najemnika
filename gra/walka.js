@@ -142,13 +142,14 @@ function zastosujBron(gra) {
 export function wybierzUlepszenie(gra, id) {
   if (!gra.wybor || !gra.wybor.includes(id)) return;
   const m = gra.mod, b = gra.bohater;
-  if (id === 'zasieg') m.zasieg *= 1.125;
-  else if (id === 'szybkosc') m.szybkosc *= 0.85;
-  else if (id === 'garda') m.garda *= 0.7;
-  else if (id === 'oddech') m.oddech *= 1.35;
-  else if (id === 'klatwa') m.klatwa *= 1.5;
-  else if (id === 'cialo') m.cialo *= 0.8;
-  else if (id === 'mikstura') { b.zycie = BOHATER.zycie; b.smuga = 0; b.mikstury = Math.min(maxMikstur(gra), b.mikstury + 1); }
+  // 27 XI 13:06 (Patryk: „ograniczyć ten boost za każdą falę”): słabsze niż były (1,125 / 0,85 / 0,7 / 1,35 / 1,5 / 0,8, pełne życie)
+  if (id === 'zasieg') m.zasieg *= 1.07;
+  else if (id === 'szybkosc') m.szybkosc *= 0.92;
+  else if (id === 'garda') m.garda *= 0.82;
+  else if (id === 'oddech') m.oddech *= 1.2;
+  else if (id === 'klatwa') m.klatwa *= 1.3;
+  else if (id === 'cialo') m.cialo *= 0.88;
+  else if (id === 'mikstura') { b.zycie = Math.min(BOHATER.zycie, b.zycie + 30); b.smuga = 0; b.mikstury = Math.min(maxMikstur(gra), b.mikstury + 1); }
   zastosujBron(gra);
   gra.ulepszenia.push(id); gra.wybor = null;
   gra.zdarzenia.push({ typ: 'ulepszenie', id });
@@ -327,7 +328,7 @@ function aktualizujBohatera(gra, dt, w) {
 
   // wytrzymałość i „Krew za krew”
   if (b.odnowaZa > 0) b.odnowaZa -= dt;
-  else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * gra.mod.oddech * (gra.napoj && gra.napoj.oddech ? 1.5 : 1) * dt * (b.blok ? BOHATER.blok.odnowa : 1));
+  else b.sila = Math.min(BOHATER.sila, b.sila + BOHATER.odnowaSily * gra.mod.oddech * (gra.napoj && gra.napoj.oddech ? 1.3 : 1) * dt * (b.blok ? BOHATER.blok.odnowa : 1));
   if (b.smugaCzas > 0) b.smugaCzas -= dt; else b.smuga = Math.max(0, b.smuga - 60 * dt);
   if (b.seriaCzas > 0) { b.seriaCzas -= dt; if (b.seriaCzas <= 0) b.rozped = 0; }
 }
@@ -474,7 +475,7 @@ function tnij(gra, dt) {
   for (const { e: wrog, d } of cele) {
     c.trafieni.add(wrog);
     const obr = Math.round(bron.obrazenia * (c.mocny ? MOCNY.obrazenia : 1)) * (wrog.stan === 'ogluszony' ? 2 : 1);
-    const obrW = gra.napoj && gra.napoj.sila ? Math.ceil(obr * 1.3) : obr;   // wywar z wilczej jagody
+    const obrW = gra.napoj && gra.napoj.sila ? Math.floor(obr * 1.25 + Math.random()) : obr;   // wywar z wilczej jagody: średnio o ćwierć mocniej (ceil z 2 dawał 3, czyli +50%)
     const katOd = Math.atan2(wrog.y - b.y, wrog.x - b.x);
     gdzie.push({ x: wrog.x, y: wrog.y, wys: 20 * wrog.typ.skala, kat: katOd + kier * Math.PI / 2 });
     zranWroga(gra, wrog, obrW, katOd, bron.odrzut * (c.mocny ? MOCNY.odrzut : 1), bron.przerywa || c.mocny, c.mocny || bron.przecinaCiezkich);

@@ -1,10 +1,13 @@
 # Wycina ikony przedmiotów z arkusza Gemini 3x2 (grafika/zrodla/przedmioty-arkusz.png) do grafika/przedmioty/<id>.webp.
 # Białe tło zdejmujemy „odbielaniem”: kolor zmieszany z bielą rozdzielamy na kolor i przezroczystość,
 # więc poświata fiolki zostaje półprzezroczysta zamiast białej obwódki (jak drzewa, uwaga Przemka).
+# Drugi arkusz (27 XI, sklep handlarza): python3 narzedzia/wytnij-przedmioty.py grafika/zrodla/towary-arkusz.png mikstura sila oddech pas sakiewka moneta
+import sys
 import numpy as np
 from PIL import Image
-KOLEJNOSC = ['amulet', 'pazur', 'kiel', 'krew', 'plecak', 'helm']
-im = np.asarray(Image.open('grafika/zrodla/przedmioty-arkusz.png').convert('RGB')).astype(np.float32) / 255
+ARKUSZ = sys.argv[1] if len(sys.argv) > 1 else 'grafika/zrodla/przedmioty-arkusz.png'
+KOLEJNOSC = sys.argv[2:] or ['amulet', 'pazur', 'kiel', 'krew', 'plecak', 'helm']
+im = np.asarray(Image.open(ARKUSZ).convert('RGB')).astype(np.float32) / 255
 H, W, _ = im.shape
 for n, nazwa in enumerate(KOLEJNOSC):
     r, c = divmod(n, 3)
