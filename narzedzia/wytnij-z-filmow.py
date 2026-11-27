@@ -202,6 +202,22 @@ POSTACIE = {
             'pokazuje': ('handlarz-pokazuje', list(range(1, 97, 3))),     # wyjmuje świecącą fiolkę i chowa ją z powrotem
         },
     },
+    # Topielec z bagna (Patryk: obraz z Gemini i filmy z Veo, 27 XI 21:30). Wynurzenie z Veo nie wyszło (dwie postacie w kadrze),
+    # więc wynurzanie robi gra (wyłazi spod ziemi i jaśnieje). Chód: klatka 95 wygląda jak 9. Atak: 49–64 pomijamy (odpryski błota),
+    # trafienie od 25 (wcześniej w kadrze jest miecz), śmierć z rozbryzgiem wody, który klucz zdejmuje jako jasne tło.
+    'topielec': {
+        'obraz': 'grafika/topielec.webp',
+        'stopy': (300, 344), 'wys_film': 330, 'wys_swiat': 92, 'skala_obrazu': 0.4,
+        'animacje': {
+            'chod':       ('topielec-chod', list(range(9, 95, 3))),
+            'zamach':     ('topielec-atak', [1, 4, 7, 10, 13, 16]),            # pochyla się, ręce do przodu
+            'skok':       ('topielec-atak', [19, 22, 25, 28, 31, 34, 37, 40, 43]),   # chwyta oburącz i ciągnie
+            'odpoczynek': ('topielec-atak', [67, 70, 73, 76, 79, 82, 85, 88]),
+            'trafienie':  ('topielec-trafienie', list(range(25, 74, 3))),
+            'smierc':     ('topielec-smierc', list(range(7, 80, 3))),
+            'trup':       ('topielec-smierc', [92]),
+        },
+    },
     'bestia': {   # czworonożny skoczek (Patryk z Omni Flash, 26 XI): biegnie, przysiada i skacze na bohatera
         'obraz': 'grafika/bestia.webp',
         'stopy': (347, 348), 'wys_film': 335, 'wys_swiat': 78, 'skala_obrazu': 0.4,
@@ -397,6 +413,12 @@ for nazwa, plik in (('bohater', 'gra/klatki-bohatera.js'), ('bohater_wielki', 'g
         f.write('export const ANIMACJE = ' + json.dumps(b['ANIMACJE'], ensure_ascii=False) + ';\n')
         f.write('export const KLATKI = ' + json.dumps(b['KLATKI'], ensure_ascii=False) + ';\n')
 if wynik:
+  # Gdy robimy tylko część potworów (np. topielec), reszta zostaje taka, jaka była w pliku.
+  try:
+    stary = open('gra/klatki-wrogow.js', encoding='utf-8').read().split('export const WROGOWIE_FILM = ', 1)[1].rsplit(';', 1)[0]
+    wynik = {**json.loads(stary), **wynik}
+  except (OSError, IndexError, ValueError):
+    pass
   with open('gra/klatki-wrogow.js', 'w', encoding='utf-8') as f:
     f.write(OPIS)
     f.write('// Obraz każdego potwora: grafika/<nazwa>.webp.\n')

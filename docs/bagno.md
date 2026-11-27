@@ -26,7 +26,7 @@
    - Kiedy padnie, nie umiera. Klęczy na pomoście, a bohater z nią rozmawia (okno jak u handlarza, z portretem). Mówi, co wie o klątwie i o rycerzu, i co dalej.
    - Daje bohaterowi nowy specjalny atak. Propozycja Claude: **„Wir z bagna”**, czyli klątwa uderza nie w ziemię, tylko wciąga potwory do bohatera i zalewa je wodą. Do wyboru z Patrykiem.
    - Pierwsza propozycja (matka topielców) zostaje na później, na przykład na drugie spotkanie z bagnem.
-7. **Kładki do poprawy** (Patryk, 27 XI 17:37: *„trzeba te kładki poprawić, żeby wyglądały przyzwoicie”*). Dziś to deski rysowane kodem. Potrzebny obraz z Gemini: prosty odcinek kładki, powtarzalny w poziomie, kładziony wzdłuż kładki jak kafel drogi. Polecenie w tabeli obrazów, punkt 6.
+7. **Kładki do poprawy** (Patryk, 27 XI 17:37: *„trzeba te kładki poprawić, żeby wyglądały przyzwoicie”*). Dziś to deski rysowane kodem. Potrzebny obraz z Gemini: prosty odcinek kładki, powtarzalny w poziomie, kładziony wzdłuż kładki jak kafel drogi. Polecenie w tabeli obrazów, punkt 6. *(Zrobione 27 XI 21:40: obraz od Patryka (Gemini przez Antigravity), `grafika/kladka.webp`, powtarzany wzdłuż każdej z pięciu kładek; oryginał w `grafika/zrodla/kladka-gemini.png`.)*
 8. **Pomysły Claude na bagno** (27 XI 17:40, Patryk: *„sam też pomyśl, co można by fajnego dodać”*; nic jeszcze nie zatwierdzone):
    - **Zioła na wyspach.** *(W grze od 27 XI 21:20, Patryk: „robimy coś innego”: 4 wiązki przed każdą falą na zewnętrznych wyspach, najwyżej 7 naraz; 3 wiązki w kotle to mikstura, poza walką. Ikona `grafika/przedmioty/ziele.webp` z Gemini od Patryka (27 XI 21:10), oryginał w `grafika/zrodla/ziele-gemini.png`; kontury przy zmniejszaniu pocienione, żeby w 128 px nie zlewały się w czerń.)* W ciszy między falami zbiera się zioła i grzyby na dalszych wyspach. W kotle robi się z nich mikstury i ulepszenia razem z łupem z potworów. To daje powód, żeby chodzić po kładkach.
    - **Latarnie na palach zamiast jednego ogniska.** *(W grze od 27 XI 21:20 jako pochodnie z rysunku pochodni przy furtce: 5 na zewnętrznych wyspach, E zapala, w walce płoną 140 s, w ciszy 420 s, przy płonącej topielce nie wychodzą z wody w promieniu 340. Ognisko na środkowej wyspie zostaje.)* Na kilku wyspach stoją latarnie do zapalenia. Mgła z wody je gasi, a w ciemności topielce są śmielsze. Ogień robi się mapą, a nie jednym punktem.
@@ -57,7 +57,7 @@ Kolejność według tego, co odblokowuje najwięcej pracy. Każdy potwór robimy
 
 ### 2. Topielec (Gemini obraz + 4 filmy Veo, wzór: obraz bohatera na białym tle)
 
-*Obraz zrobiony (Patryk, 27 XI 21:15): `grafika/zrodla/topielec-obraz.jpg`. Czekamy na pięć filmów Veo: chód, atak, trafienie, śmierć, wynurzenie (polecenia wysłane Patrykowi; trafienie jak przy ghulu).*
+*Obraz zrobiony (Patryk, 27 XI 21:15): `grafika/zrodla/topielec-obraz.jpg`. Filmy (27 XI 21:30): chód, atak, trafienie i śmierć wycięte do `grafika/topielec.webp` (`narzedzia/wytnij-z-filmow.py topielec`). Wynurzenie nie wyszło (Patryk: „z wynurzeniem nie wyszło”), więc gra robi je sama: topielec wyłania się z wody przezroczysty i podnosi o 50 px.*
 
 | Co | Polecenie |
 | --- | --- |
@@ -108,14 +108,14 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
 - Gra zawsze zaczyna się na polanie (27 XI 16:51, Patryk: „wchodzę i mam bagno wiedźmy”). Mapa przechodzi tylko przez jedno przeładowanie; odświeżenie na bagnie wraca na polanę.
 - Przycisku mapy na ekranie startu już nie ma. Do prób w menu pauzy jest „Próba: przeskocz na bagno” (bez rzeczy z polany) i z powrotem.
 - W płytkiej wodzie bohater brnie wolniej (×0,62), potwory też (×0,72). Głęboka woda jest nie do przejścia.
-- Topielec ma na razie klatki ghula w kolorze mułu. Wynurza się z wody, chwyta na 1,1 s i puszcza po cięciu. Fale na bagnie mają dodatkowo 3, 5, 7 i 4 topielce.
+- Topielec ma własne klatki z filmów Patryka (od 27 XI 21:40). Wynurza się z wody, chwyta na 1,1 s i puszcza po cięciu. Fale na bagnie mają dodatkowo 3, 5, 7 i 4 topielce.
 - Fale, boss i kartki są jeszcze z polany. Miejsca do obejrzenia przed nocą są już bagienne: kocioł, chata, stos, kładka, wóz i kamień ze znakiem.
 
 ## Co Claude zrobi, zanim przyjdą obrazy
 
 - Przełączanie map w `swiat.js`, bo dziś polana jest jedyną mapą, ze stałymi `SZER`, `WYS` i drogą.
 - Teren bagna z kodu, z zastępczymi kolorami: płytka i głęboka woda, pomosty, zderzenia.
-- Topielec na zastępczej grafice (ghul w kolorze błota), żeby sprawdzić, czy wynurzanie i chwyt w ogóle bawią.
+- ~~Topielec na zastępczej grafice~~ ma własne klatki od 27 XI 21:40.
 - Okno kotła z przepisów `STOL`.
 
 Kiedy przyjdą obrazy, wchodzą na miejsce zastępczych tak samo jak przy handlarzu: `narzedzia/wytnij-z-filmow.py <postać>`.

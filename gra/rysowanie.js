@@ -17,17 +17,18 @@ const OB = 0x0b0a09;           // kolor obrysu
 const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
-const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32, bestia: 17 };   // na jakiej wysokości miecz przecina ciało wroga
+const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32, bestia: 17, topielec: 17 };   // na jakiej wysokości miecz przecina ciało wroga
 // Potwory z filmów Przemka (narzedzia/wytnij-z-filmow.py): ghul ma 72 jednostki wzrostu, kolos 165.
 const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
   wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },
+  topielec: { ciecie: 40, droga: 90, smierc: 1.6, trafienie: 0.3, oko: { x: 16, y: -82 }, cien: 3.4 },   // z filmów Patryka (27 XI 21:30); chód brodzący, dwa kroki na cykl
   bestia: { ciecie: 32, droga: 330, smierc: 1.4, trafienie: 0.3, oko: { x: 48, y: -66 }, cien: 3.0 },   // czworonożny skoczek z filmów Patryka (26 XI)
   rycerz: { ciecie: 75, droga: 420, drogaChod: 190, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null, obrazHandlarza = null, obrazChatyWiedzmy = null, obrazWnetrzaWiedzmy = null, obrazWody = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null, obrazHandlarza = null, obrazChatyWiedzmy = null, obrazWnetrzaWiedzmy = null, obrazWody = null, obrazKladki = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -241,7 +242,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const x = l() * SZER, y = l() * WYS, g = glebia(x, y); if (g < 0.6 || g > 1.8) continue;
       const r = 3 + l() * 8; dod.beginFill(l() < 0.3 ? 0x41562f : 0x2a3b22, 0.8); dod.drawEllipse(x, y, r, r * 0.55); dod.endFill(); n++;
     }
-    for (const k of KLADKI) {                                         // kładki: deski w poprzek, dwa pale na końcach
+    const texK = obrazKladki ? P.Texture.from(obrazKladki) : null;   // kładka z Gemini (Patryk, 27 XI): pas desek powtarzany wzdłuż każdej kładki
+    for (const k of KLADKI) if (texK) {
+      const dx = k.b.x - k.a.x, dy = k.b.y - k.a.y, L = Math.hypot(dx, dy), s = (k.szer * 0.9 * 2.2) / 177;   // deski zajmują 177 z 256 px wysokości obrazu
+      const t = new P.TilingSprite(texK, (L + 24) / s, 256); t.scale.set(s); t.anchor.set(0, 0.5); t.rotation = Math.atan2(dy, dx);
+      t.position.set(k.a.x - dx / L * 12, k.a.y - dy / L * 12); wodaG.addChild(t);
+    } else {                                                          // kładki: deski w poprzek, dwa pale na końcach
       const dx = k.b.x - k.a.x, dy = k.b.y - k.a.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux, sz = k.szer * 0.9;
       for (let t = 0; t < L; t += 13) {
         const x = k.a.x + ux * t, y = k.a.y + uy * t, c = (t * 7) % 3 === 0 ? 0x4a3a28 : 0x5a4630;
@@ -464,7 +470,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   function nowyPadajacy(s) {
     const typ = WROGOWIE[s.wrog], fw = filmW[s.wrog];
     if (fw) return { s, fw, ciezki: !!typ.ciezki, dir: -s.sx, t: 0, czas: s.przeciety ? (typ.ciezki ? 0.65 : 0.42) : fw.smierc, gasnie: -1, kon: null };
-    return { s, at: atlasy[s.wrog], sk: typ.skala, ciezki: !!typ.ciezki, dir: -s.sx, wiersz: s.sx < 0 ? 1 : 0, t: 0, czas: typ.ciezki ? 0.65 : 0.42, gasnie: -1, kon: null };
+    return { s, at: atlasy[s.wrog] || atlasy.ghul, sk: typ.skala, ciezki: !!typ.ciezki, dir: -s.sx, wiersz: s.sx < 0 ? 1 : 0, t: 0, czas: typ.ciezki ? 0.65 : 0.42, gasnie: -1, kon: null };
   }
   // Ciało leży jako zwykły obraz w pełnej ostrości (tekstura śladów ma połowę rozdzielczości).
   const trupy = [];
@@ -500,7 +506,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         const fw = filmW[s.wrog], k = fw.k[fw.anim.trup[0]], sp = new P.Sprite(k.t); sp.anchor.set(k.ax, k.ay);
         const sk = fw.skala * (fw.kaluza || 1); sp.position.set(s.x, s.y); sp.scale.set(sk * (s.sx === fw.patrzy ? 1 : -1), sk); c.addChild(sp);
       } else if (s.typ === 'cialo') {
-        const at = atlasy[s.wrog], w = at.wzor, sk = (s.wrog === 'kolos' ? 2.3 : 1.25) / O.PX;
+        const at = atlasy[s.wrog] || atlasy.ghul, w = at.wzor, sk = (s.wrog === 'kolos' ? 2.3 : 1.25) / O.PX;
         const sp = new P.Sprite(at.martwy); sp.anchor.set(w.ox / w.w, w.oy / w.h);
         sp.position.set(s.x, s.y); sp.rotation = s.obrot; sp.scale.set(sk * s.sx, sk); c.addChild(sp);
       } else if (R && (s.typ === 'kaluza' || (s.typ === 'kropla' && (s.r || 2) >= 1))) {
@@ -926,7 +932,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.scale.set(fw.skala * zn * skx, fw.skala * sky); sp.rotation = rot;
     if (e.zWody && e.stan === 'wynurza') wzlot = -50 * (1 - e.widac);       // topielec wyłazi z wody: zaczyna niżej, jakby po pas w mule
     sp.position.set(e.x + (e.drzy || 0), e.y - wzlot); sp.zIndex = e.y; sp.alpha = e.stan === 'wynurza' ? e.widac : 1;
-    sp.tint = typ.kolor || 0xffffff;                                       // topielec: klatki ghula w kolorze mułu, dopóki nie ma własnego filmu
+    sp.tint = 0xffffff;                                                   // z filmu każdy ma własne kolory (kolor topielca jest tylko dla zastępczego ghula)
     if (nast && przenik > 0.02) {
       const s2 = pulaWrogow.wez(); s2.tint = sp.tint; s2.texture = nast.t; s2.anchor.set(nast.ax, nast.ay); s2.scale.copyFrom(sp.scale); s2.rotation = rot;
       s2.position.copyFrom(sp.position); s2.zIndex = e.y + 0.005; s2.alpha = przenik; sp.alpha = 1 - 0.6 * przenik;
@@ -1364,7 +1370,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     for (const e of gra.wrogowie) {
       if (e.x < L - 100 || e.x > Pr + 100 || e.y < G || e.y > D) continue;
       if (filmW[e.typ.nazwa]) { rysujWrogaZFilmu(e, filmW[e.typ.nazwa], b, gra); continue; }
-      const at = atlasy[e.typ.nazwa], w = at.wzor, sk = e.typ.skala;
+      const at = atlasy[e.typ.nazwa] || atlasy.ghul, w = at.wzor, sk = e.typ.skala;   // topielec bez obrazu: jak ghul w kolorze mułu
       const sx = Math.cos(e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'odpoczynek' ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;
       const zam = e.stan === 'zamach' || e.stan === 'skok';
       const faza = (((e.anim * (e.typ.ciezki ? 3 : 9)) % TAU) + TAU) % TAU;

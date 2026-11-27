@@ -98,10 +98,10 @@ export const WROGOWIE = {
     ciezki: false,
   },
   // Topielec (bagno, 27 XI, docs/bagno.md): wynurza się z głębokiej wody, chwyta i trzyma. Trzeba go ciąć, unik nie pomaga.
-  // Na razie bez własnego filmu: rysuje się jak ghul w kolorze mułu (nazwa 'ghul', żeby rysowanie wzięło jego klatki).
-  // W płytkiej wodzie jest szybszy, na suchym wolniejszy. Kiedy przyjdą obrazy z Gemini, dostanie własną nazwę i film.
+  // Własne klatki z filmów Patryka (27 XI 21:30, grafika/topielec.webp). Gdy obraz się nie wczyta, rysuje się jak ghul w kolorze mułu (kolor).
+  // W płytkiej wodzie jest szybszy, na suchym wolniejszy.
   topielec: {
-    nazwa: 'ghul', id: 'topielec', wodny: true, kolor: 0x8fae9c,
+    nazwa: 'topielec', id: 'topielec', wodny: true, kolor: 0x8fae9c,
     zycie: [5, 6],
     szybkosc: [62, 78],
     promien: 14,
@@ -265,7 +265,7 @@ export const TOTEM = { zycie: 24, zaKlatwe: 6 };
 // 27 XI 13:06 (Patryk: „trochę mniej tego złota”): było ghul 2, bestia 3, wiedźma 4, kolos 8.
 // zaFale: monety za odpartą falę (27 XI 17:28, Patryk: „przy polanie zwiększyć te monety, bo ciężko przy 3 fali”).
 // Tylko po pierwszej i drugiej fali, żeby przed rycerzem nie było znów stać na wszystko (Patryk, 27 XI rano).
-export const GROSZE = { ghul: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, zaFale: [8, 12, 0, 0] };
+export const GROSZE = { ghul: 1, topielec: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, zaFale: [8, 12, 0, 0] };
 // Bagno (27 XI 20:54): zioła na wyspach i pochodnie na palach (docs/bagno.md, punkt 8).
 // ZIOLA: ile wyrasta przed każdą falą, najwięcej naraz na ziemi, ile wiązek na miksturę w kotle.
 // LATARNIA: zasięg światła, ile sekund płonie w walce i w ciszy, w jakiej odległości od płonącej topielce nie wychodzą z wody.
@@ -347,7 +347,7 @@ export const PRZEDMIOTY = {
   kiel: { nazwa: 'Kieł kolosa', opis: 'Pożółkły i pęknięty. Waży tyle, co sztylet.', kolor: '#c9b98a', z: 'kolos', szansa: 1, cena: 5 },
   krew: { nazwa: 'Krew wiedźmy', opis: 'Mętna, fioletowa, ciepła mimo chłodu. Fiolka lekko świeci.', kolor: '#7a3cc0', z: 'wiedzma', szansa: 0.5, cena: 4 },
   helm: { nazwa: 'Przyłbica rycerza', opis: 'Okopcona, z dwoma rogami. W pęknięciach jeszcze tli się żar.', kolor: '#8a2a18', z: 'rycerz', szansa: 1, cena: 12 },
-  ziele: { nazwa: 'Ziele z bagna', opis: 'Gorzkie, pachnie mułem i miodem. Trzy wiązki w kotle wiedźmy dają miksturę.', kolor: '#6a8a3a', cena: 1 },   // 27 XI: rośnie na wyspach bagna, nie wypada z potworów
+  ziele: { nazwa: 'Ziele z bagna', opis: 'Gorzkie, pachnie mułem i miodem. Trzy wiązki w kotle wiedźmy dają miksturę.', kolor: '#6a8a3a', z: 'topielec', szansa: 0.3, cena: 1 },   // rośnie też w włosach topielców   // 27 XI: rośnie na wyspach bagna, nie wypada z potworów
   amulet: { nazwa: 'Amulet rycerza', opis: 'Srebro na zerwanym łańcuszku. Wyryte trzciny i półksiężyc: znak bagien. Pierwszy ślad.', kolor: '#b8b8c8', z: 'rycerz', szansa: 1, wazny: true },
 };
 
