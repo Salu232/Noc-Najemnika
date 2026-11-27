@@ -20,9 +20,13 @@
    Ostatni jest **kocioł**: kiedy go dotkniesz, woda się burzy.
 3. **Teren.** Płytka woda spowalnia bohatera i potwory, z wyjątkiem topielców. Głęboka woda jest nie do przejścia. Pomosty to wąskie przejścia, dobre do walki z hordą jak w drzwiach.
 4. **Noc na bagnie** to cztery fale, jak na polanie, ale z nowymi potworami. Zamiast portali potwory wychodzą z wody. Portale zostają na fale z ghulami, bo to klątwa bohatera je przyciąga.
-5. **Zagadka wiedźmy.** Wiedźma (żywa, nie potwór) pojawia się w przerwie, tak jak handlarz. Mówi zagadką, a odpowiedzią jest rzecz, którą trzeba przynieść albo zrobić w kotle. Za dobrą odpowiedź zdradza, co się stało z rycerzem i co dalej z klątwą.
-6. **Boss bagna** do wyboru później. Pomysł na start: matka topielców, wielka postać z wody, która wciąga w głąb.
-
+5. ~~**Zagadka wiedźmy.** Wiedźma (żywa, nie potwór) pojawia się w przerwie, tak jak handlarz.~~ Zastąpione 27 XI 17:37 punktem 6: Patryk chce, żeby wiedźma była bossem bagna, a rozmowa przyszła po walce.
+6. **Wiedźma to boss bagna** (Patryk, 27 XI 17:37, propozycja do potwierdzenia: *„chyba że to będzie boss tej lokalizacji i jak się ją pokona, wtedy będzie można z nią porozmawiać, coś o klątwie zdradzi, (…) o jakimś specjalnym ataku będzie można pomyśleć, że się zdobędzie”*).
+   - Ostatnia noc na bagnie: wiedźma wychodzi z chaty na pomost i walczy. Nie jest jak zwykłe wiedźmy z polany. Ma swoje ataki: rzuca kulami z kotła, przywołuje topielców z wody i chowa się we mgle.
+   - Kiedy padnie, nie umiera. Klęczy na pomoście, a bohater z nią rozmawia (okno jak u handlarza, z portretem). Mówi, co wie o klątwie i o rycerzu, i co dalej.
+   - Daje bohaterowi nowy specjalny atak. Propozycja Claude: **„Wir z bagna”**, czyli klątwa uderza nie w ziemię, tylko wciąga potwory do bohatera i zalewa je wodą. Do wyboru z Patrykiem.
+   - Pierwsza propozycja (matka topielców) zostaje na później, na przykład na drugie spotkanie z bagnem.
+7. **Kładki do poprawy** (Patryk, 27 XI 17:37: *„trzeba te kładki poprawić, żeby wyglądały przyzwoicie”*). Dziś to deski rysowane kodem. Potrzebny obraz z Gemini: prosty odcinek kładki, powtarzalny w poziomie, kładziony wzdłuż kładki jak kafel drogi. Polecenie w tabeli obrazów, punkt 6.
 ## Nowe potwory (propozycja)
 
 | Potwór | Jak walczy | Czego uczy gracza |
@@ -71,6 +75,12 @@ Kolejność według tego, co odblokowuje najwięcej pracy. Każdy potwór robimy
 | Postać | Using the attached image of the mercenary as the style reference, draw an old swamp witch in exactly the same drawing style. A small, bent old woman, not a monster: grey hair in thin braids woven with bones and reeds, a long dark green patched dress hem soaked in mud, a necklace of small bird skulls, a crooked staff topped with a crescent moon of bone, sharp clever eyes. Full body, side view from slightly above, facing left. Pure white background, no floor, no shadow, no text. |
 | Portret do rozmowy | The same old swamp witch, head and shoulders portrait, looking at the viewer with a sly half-smile, lit from below by the warm glow of a fire, dark background, in exactly the same drawing style. No text. |
 | Film: czeka | The old witch stands on the spot leaning on her staff, slowly stirring the air with her free hand, head tilting, in a loop. The last frame matches the first. |
+
+### 6. Kładka (Gemini, wzór: obraz chaty wiedźmy z dachem)
+
+| Co | Polecenie |
+| --- | --- |
+| Kładka (pas) | Using the attached image of the witch's hut as the style reference, draw a straight section of a rickety wooden plank walkway in exactly the same drawing style and wood colours as the walkway in that image, seen straight from above. The walkway runs horizontally across the whole image from the left edge to the right edge: planks laid across it, a few missing or broken, rope bindings, two rows of thin wooden posts along both sides. It must tile seamlessly left to right. Transparent background, no water, no shadows, no text. Wide image, about 4 times wider than tall. |
 
 ### 5. Kocioł (Gemini, ikony do okna kotła)
 
