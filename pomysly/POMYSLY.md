@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Claude | Handlarz przy drodze: po pierwszej fali staje z latarnią, w ciszy między falami kupuje pazury, kły i krew za grosze i sprzedaje mikstury (8 groszy); kiedy podchodzisz, pokazuje świecącą fiolkę; odchodzi we mgłę, gdy wracają potwory | zrobione (v85) | filmy i portret od Patryka; sprzedany łup nie pójdzie na stół, więc trzeba wybierać |
 | 2026-11-27 | Claude | Nowe filmy bohatera: chód przodem z mieczem w pochwie (gdy nie walczy), picie mikstury, podnoszenie drewna i kartek | zrobione (v84) | filmy od Patryka; animacje jednorazowe przerywa ruch, blok albo walka |
 | 2026-11-26 | Claude (z nagrania Patryka 20:43) | Kartki z walki nie otwierają się po fali jedna za drugą: czekają w plecaku ze znakiem „nowa kartka”. Przed bossem chwila na miksturę (bohater wchodzi z małym życiem po hordzie). | zrobione (kartki w plecaku ze znakiem, przerwa przed bossem 30 s) | v82 |
 | 2026-11-26 | Patryk | Tempo fal: więcej czasu między falami (nie zdąży wejść do chaty); przed falą dźwięk ostrzegawczy; dynamiczna muzyka w walce; fala 1: bohater myśli, co się dzieje (nikt go tu nie chciał prowadzić); fala 2 zmusza do przygotowania; fala 3 podkreślona, że to nie koniec; fala 4 z bossem nie sam. | zrobione | v82 |

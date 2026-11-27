@@ -300,10 +300,10 @@ export const WSTEP = {
 // Plecak (26 XI): rzeczy z potworów i łup z rycerza. Rzeczy zostają między grami (w tej przeglądarce),
 // później pójdą do kupca albo na ulepszenia. kolor: zastępcza ikona, dopóki nie ma grafik z Gemini (grafika/przedmioty/).
 export const PRZEDMIOTY = {
-  pazur: { nazwa: 'Pazur ghula', opis: 'Czarny, zakrzywiony, wyrwany z korzeniem. Ktoś we wsi da za niego parę groszy.', kolor: '#3a3430', z: 'ghul', szansa: 0.18 },
-  kiel: { nazwa: 'Kieł kolosa', opis: 'Pożółkły i pęknięty. Waży tyle, co sztylet.', kolor: '#c9b98a', z: 'kolos', szansa: 1 },
-  krew: { nazwa: 'Krew wiedźmy', opis: 'Mętna, fioletowa, ciepła mimo chłodu. Fiolka lekko świeci.', kolor: '#7a3cc0', z: 'wiedzma', szansa: 0.5 },
-  helm: { nazwa: 'Przyłbica rycerza', opis: 'Okopcona, z dwoma rogami. W pęknięciach jeszcze tli się żar.', kolor: '#8a2a18', z: 'rycerz', szansa: 1 },
+  pazur: { nazwa: 'Pazur ghula', opis: 'Czarny, zakrzywiony, wyrwany z korzeniem. Ktoś we wsi da za niego parę groszy.', kolor: '#3a3430', z: 'ghul', szansa: 0.18, cena: 2 },
+  kiel: { nazwa: 'Kieł kolosa', opis: 'Pożółkły i pęknięty. Waży tyle, co sztylet.', kolor: '#c9b98a', z: 'kolos', szansa: 1, cena: 6 },
+  krew: { nazwa: 'Krew wiedźmy', opis: 'Mętna, fioletowa, ciepła mimo chłodu. Fiolka lekko świeci.', kolor: '#7a3cc0', z: 'wiedzma', szansa: 0.5, cena: 5 },
+  helm: { nazwa: 'Przyłbica rycerza', opis: 'Okopcona, z dwoma rogami. W pęknięciach jeszcze tli się żar.', kolor: '#8a2a18', z: 'rycerz', szansa: 1, cena: 12 },
   amulet: { nazwa: 'Amulet rycerza', opis: 'Srebro na zerwanym łańcuszku. Wyryte trzciny i półksiężyc: znak bagien. Pierwszy ślad.', kolor: '#b8b8c8', z: 'rycerz', szansa: 1, wazny: true },
 };
 
@@ -315,3 +315,19 @@ export const STOL = [
   { id: 'wywar', nazwa: 'Wywar z krwi wiedźmy', opis: 'Pasek klątwy napełnia się o 25% szybciej.', koszt: { krew: 1 }, max: 3 },
   { id: 'helm', nazwa: 'Wyściółka z przyłbicy', opis: 'Zaczynasz noc z jedną miksturą więcej.', koszt: { helm: 1, kiel: 1 }, max: 2 },
 ];
+
+// Handlarz (Patryk, 26 XI: „kupić mikstury, sprzedać łup”): stary wędrowiec staje przy drodze po pierwszej fali
+// i odchodzi we mgłę, kiedy wracają potwory. Kupuje rzeczy z potworów (cena w groszach w PRZEDMIOTY), sprzedaje mikstury.
+// Sprzedany łup nie pójdzie już na stół: albo mikstura teraz, albo ulepszenie na zawsze.
+export const HANDLARZ = {
+  zasieg: 62,          // jak blisko podejść, żeby handlować (E)
+  pokaz: 170,          // z tej odległości wyjmuje fiolkę
+  mikstura: 8,         // cena mikstury w groszach
+  powitania: [
+    'Nie bój się, synu. Mnie one nie ruszają. Za stary jestem, za gorzki.',
+    'Znowu żyjesz? To dobrze. Martwi nie płacą.',
+    'Pazury, kły, krew. Wszystko się komuś przyda. Pokaż, co masz.',
+    'Rycerz też tu u mnie kupował. Dużo kupował. Pod koniec już tylko krew.',
+  ],
+  zobaczyl: 'Starzec z latarnią. Przy drodze, w środku nocy. Jak on tu przeszedł przez mgłę?',
+};

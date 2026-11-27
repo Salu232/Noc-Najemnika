@@ -1,12 +1,13 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA } from './swiat.js';
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
 import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import { KLATKI as KW, ANIMACJE as AW } from './klatki-bohatera-wielki.js';
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
+import * as KH from './klatki-handlarza.js';
 import * as O from './obrazki.js';
 
 const TAU = Math.PI * 2;
@@ -25,7 +26,7 @@ const FILM_WROGA = {
   rycerz: { ciecie: 75, droga: 420, drogaChod: 190, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null, obrazHandlarza = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -496,6 +497,18 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const ikonaRzeczy = id => ikonyRzeczy[id] || (ikonyRzeczy[id] = P.Texture.from(new URL(`../grafika/przedmioty/${id}.webp`, import.meta.url).href));
   // kartka z dziennika rycerza leży na ziemi i ciepło się żarzy, żeby było ją widać w ciemności (25 XI)
   const kartkaS = new P.Sprite(obrazKartki ? P.Texture.from(obrazKartki) : P.Texture.WHITE); kartkaS.anchor.set(0.5, 0.7); kartkaS.visible = false; aktorzy.addChild(kartkaS);
+  // Handlarz (27 XI): stoi przy drodze między falami, z latarnią, która wycina światło w mroku. Patrzy na bohatera.
+  const handlK = (() => {
+    if (!obrazHandlarza) return null;
+    const baza = new P.BaseTexture(obrazHandlarza); baza.mipmap = P.MIPMAP_MODES.ON; const k = {};
+    for (const n in KH.KLATKI) { const f = KH.KLATKI[n]; k[n] = { ...f, t: new P.Texture(baza, new P.Rectangle(f.x, f.y, f.w, f.h)) }; }
+    return k;
+  })();
+  const handlS = new P.Sprite(); handlS.visible = false; aktorzy.addChild(handlS);
+  const handlCien = new P.Sprite(T.cien); handlCien.anchor.set(0.5); handlCien.visible = false; cienie.addChild(handlCien);
+  const blaskLatarni = new P.Sprite(T.cieplo); blaskLatarni.anchor.set(0.5); blaskLatarni.blendMode = P.BLEND_MODES.ADD; blaskLatarni.tint = 0xffc070; blaskLatarni.visible = false; blaski.addChild(blaskLatarni);
+  const blaskFiolki = new P.Sprite(T.cieplo); blaskFiolki.anchor.set(0.5); blaskFiolki.blendMode = P.BLEND_MODES.ADD; blaskFiolki.tint = 0xfff0b0; blaskFiolki.visible = false; blaski.addChild(blaskFiolki);
+  const swiatloLatarni = stempel();
   if (!obrazKartki) { kartkaS.tint = 0xd8c8a0; kartkaS.width = 26; kartkaS.height = 18; } else kartkaS.scale.set(0.42);
   const blaskKartki = new P.Sprite(T.cieplo); blaskKartki.anchor.set(0.5); blaskKartki.blendMode = P.BLEND_MODES.ADD; blaskKartki.tint = 0xff9a50; blaskKartki.visible = false; blaski.addChild(blaskKartki);
   const pulaKrwi = pula(powietrze, () => { const s = new P.Sprite(T.krew[0]); s.anchor.set(0.5); return s; });
@@ -1535,6 +1548,25 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       kartkaS.position.set(kk.x, kk.y - 2 - Math.abs(Math.sin(czas * 2)) * 3); kartkaS.zIndex = kk.y;
       const pl = 0.75 + 0.25 * Math.sin(czas * 3.1);
       blaskKartki.position.set(kk.x, kk.y - 6); blaskKartki.width = blaskKartki.height = 90 * pl; blaskKartki.alpha = 0.55 * pl;
+    }
+    {                                                                     // handlarz przy drodze
+      const hs = gra.handlarz, m = MIEJSCE_HANDLARZA, a = hs && handlK ? hs.widac : 0;
+      handlS.visible = handlCien.visible = blaskLatarni.visible = a > 0.01; blaskFiolki.visible = false;
+      if (a > 0.01) {
+        const pok = hs.pokazuje > 0, l = KH.ANIMACJE[pok ? 'pokazuje' : 'czeka'];
+        const q = pok ? 1 - hs.pokazuje / 4 : (czas / 3) % 1, f = handlK[l[Math.min(l.length - 1, Math.floor(q * l.length))]];
+        const strona = gra.bohater.x < m.x ? -1 : 1;
+        handlS.texture = f.t; handlS.anchor.set(f.ax, f.ay); handlS.scale.set(KH.SKALA * strona * KH.PATRZY, KH.SKALA);
+        handlS.position.set(m.x, m.y); handlS.zIndex = m.y; handlS.alpha = a;
+        handlCien.position.set(m.x, m.y + 1); handlCien.width = 58; handlCien.height = 16; handlCien.alpha = a;
+        const lx = m.x - 23 * strona, ly = m.y - 33;
+        blaskLatarni.position.set(lx, ly); blaskLatarni.width = blaskLatarni.height = 80 * migot; blaskLatarni.alpha = 0.7 * a;
+        stawStempel(swiatloLatarni, lx, ly + 14, 150 * migot, 0.65 * a);
+        if (pok && q > 0.3 && q < 0.75) {                                 // świecąca fiolka w wyciągniętej dłoni
+          const s = Math.sin((q - 0.3) / 0.45 * Math.PI); blaskFiolki.visible = true;
+          blaskFiolki.position.set(m.x + 43 * strona, m.y - 35); blaskFiolki.width = blaskFiolki.height = 60 * s; blaskFiolki.alpha = 0.8 * s * a;
+        }
+      } else swiatloLatarni.alpha = 0;
     }
     stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7 * (1 - stanRys.bezDachu));
     stawStempel(swiatloIzby, CHATA.palenisko.x, CHATA.palenisko.y + 60, 240 * migot, 0.95 * stanRys.bezDachu);   // ogień z paleniska oświetla izbę

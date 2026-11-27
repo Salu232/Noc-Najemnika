@@ -194,6 +194,14 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 .przepis .koszt img { width: 22px; height: 22px; }
 .przepis button { grid-column: 2; grid-row: 1 / span 3; }
 .przepis button:disabled { opacity: 0.35; cursor: default; }
+/* handlarz (27 XI): portret, sakiewka, kupno mikstury i sprzedaż łupu */
+.handlarz-glowa { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+.handlarz-glowa img { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--linia); flex: none; object-fit: cover; }
+.handlarz-glowa h2 { margin: 0 0 4px; }
+.handlarz-glowa .wstep { margin: 0; font-style: italic; }
+.grosze { margin: 4px 0 10px; font-size: 15px; color: #d8b45a; }
+.przepis .naglowek { grid-column: 1 / -1; margin: 6px 0 0; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--przygaszony); }
+.przepisy .pusto { margin: 0; font-size: 13px; color: var(--przygaszony); }
 /* ekrany: start, pauza, koniec */
 #dalej-konca { color: #e8b070; font-style: italic; }
 .ekran {
@@ -349,6 +357,18 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
     <p class="wstep">Nóż, szydło i trochę drutu. Z tego, co zostało po potworach, da się coś zrobić. Ulepszenia zostają na następne noce.</p>
     <div class="przepisy" id="przepisy"></div>
     <div class="akcje"><button type="button" class="glowny" id="odejdz-od-stolu">Odejdź od stołu</button></div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-handlarza" hidden>
+  <div class="karta">
+    <div class="handlarz-glowa">
+      <img src="grafika/handlarz-portret.webp" alt="" width="96" height="96">
+      <div><h2>Handlarz</h2><p class="wstep" id="slowa-handlarza"></p></div>
+    </div>
+    <p class="grosze" id="grosze"></p>
+    <div class="przepisy" id="towary"></div>
+    <div class="akcje"><button type="button" class="glowny" id="odejdz-od-handlarza">Odejdź</button></div>
   </div>
 </div>
 

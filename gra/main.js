@@ -1,6 +1,6 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole } from './walka.js';
-import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL } from './dane.js';
+import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole, sprzedaj, kupMiksture, mozeKupic, odejdzOdHandlarza } from './walka.js';
+import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ, LUP } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
@@ -29,9 +29,9 @@ function pokaz(id, widac) { $(id).hidden = !widac; }
 
 async function start() {
   const cv = $('gra');
-  let obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazRycerza, obrazBestii, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki;
+  let obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazRycerza, obrazBestii, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki, obrazHandlarza;
   try {
-    [, obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazRycerza, obrazBestii, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki] = await Promise.all([
+    [, obraz, obrazBohatera, obrazBohateraWielki, obrazGhula, obrazKolosa, obrazWiedzmy, obrazRycerza, obrazBestii, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki, obrazHandlarza] = await Promise.all([
       zaladujPixi(), zaladujObraz(new URL('../grafika/chata.webp', import.meta.url).href, 'chata'),
       zaladujObraz(new URL('../grafika/bohater.webp', import.meta.url).href, 'bohater').catch(() => null),   // bez niego gra rysuje bohatera kodem
       zaladujObraz(new URL('../grafika/bohater-wielki.webp', import.meta.url).href, 'bohater z dwuręcznym').catch(() => null),   // cięcie, garda, bieg i blok z mieczem dwuręcznym
@@ -47,6 +47,7 @@ async function start() {
       /droga=(farba|kafel)/.test(location.search) ? null : zaladujObraz(new URL('../grafika/droga.webp', import.meta.url).href, 'droga').catch(() => null),   // łata drogi z rysunku ziemi Przemka (v39; ?droga=laty); ?droga=farba pokazuje drogę z v38
       /droga=(farba|laty)/.test(location.search) ? null : zaladujObraz(new URL('../grafika/droga-kafel.webp', import.meta.url).href, 'droga-kafel').catch(() => null),   // kafel drogi z Gemini (Patryk, 25 XI)
       zaladujObraz(new URL('../grafika/kartka-lezy.webp', import.meta.url).href, 'kartka').catch(() => null),   // kartka z dziennika rycerza na ziemi (Gemini, 25 XI)
+      zaladujObraz(new URL('../grafika/handlarz.webp', import.meta.url).href, 'handlarz').catch(() => null),   // handlarz przy drodze (filmy Patryka, 27 XI)
     ]);
   } catch (e) {
     $('ladowanie').textContent = 'Nie udało się wczytać gry: ' + e.message + '. Odśwież stronę.';
@@ -58,7 +59,7 @@ async function start() {
   let wyglad = 'gemini';
   try { if (localStorage.getItem('noc-bohater') === 'rysowany') wyglad = 'rysowany'; } catch (e) { /* bez pamięci */ }
   if (/bohater=rysowany/.test(location.search)) wyglad = 'rysowany';
-  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, obrazBohateraWielki, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa, wiedzma: obrazWiedzmy, rycerz: obrazRycerza, bestia: obrazBestii }, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki }); }
+  try { rys = przygotujRysowanie(cv, obraz, { wymusProcesor: /procesor/.test(location.search), obrazBohatera, obrazBohateraWielki, bohater: wyglad, obrazyWrogow: { ghul: obrazGhula, kolos: obrazKolosa, wiedzma: obrazWiedzmy, rycerz: obrazRycerza, bestia: obrazBestii }, obrazBezDachu, obrazDrzwi, obrazRekwizytow, obrazZiemi, obrazDrogi, obrazKaflaDrogi, obrazKartki, obrazHandlarza }); }
   catch (e) { $('ladowanie').textContent = 'Ta przeglądarka nie umie narysować gry: ' + (e && e.message || e); return; }
 
   const wejscie = przygotujWejscie(cv, {
@@ -176,6 +177,7 @@ async function start() {
     pokazWybor();
     pokazKartke();
     $('przycisk-plecak').classList.toggle('nowa', !!(gra.nowe && gra.nowe.length));
+    if (!!gra.handel !== handelPokazany) { handelPokazany = !!gra.handel; pokaz('ekran-handlarza', handelPokazany); if (handelPokazany) { $('slowa-handlarza').textContent = HANDLARZ.powitania[(gra.handlarz.wizyty - 1) % HANDLARZ.powitania.length]; pokazHandel(); } }
     if (!!gra.stol !== stolPokazany) { stolPokazany = !!gra.stol; pokaz('ekran-stolu', stolPokazany); if (stolPokazany) pokazStol(); }
   }
   // Plecak (26 XI): I albo przycisk; gra stoi. Pola: mikstury, rzeczy z potworów i łup z rycerza, przeczytane kartki.
@@ -241,6 +243,38 @@ async function start() {
     }
   }
   $('odejdz-od-stolu').addEventListener('click', () => { gra.stol = false; });
+
+  // Handlarz (27 XI): przy drodze między falami. Gra stoi, dopóki nie odejdziesz.
+  let handelPokazany = false;
+  const grosze = n => `${n} ${n === 1 ? 'grosz' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'grosze' : 'groszy'}`;
+  function towar(ikona, nazwa, opis, przycisk, mozna, naKlik) {
+    const d = document.createElement('div'); d.className = 'przepis';
+    const t = document.createElement('strong'); t.textContent = nazwa;
+    const o = document.createElement('p'); o.className = 'opis'; o.textContent = opis;
+    const ko = document.createElement('div'); ko.className = 'koszt'; if (ikona) { const s = document.createElement('span'); s.append(ikona); ko.append(s); }
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'drugi'; b.textContent = przycisk; b.disabled = !mozna;
+    b.addEventListener('click', () => { if (naKlik()) pokazHandel(); });
+    d.append(t, b, o, ko); return d;
+  }
+  function naglowek(tekst) { const h = document.createElement('p'); h.className = 'naglowek'; h.textContent = tekst; const d = document.createElement('div'); d.className = 'przepis'; d.style.background = 'none'; d.style.border = '0'; d.style.padding = '0'; d.append(h); return d; }
+  function pokazHandel() {
+    $('grosze').textContent = `W sakiewce: ${grosze(gra.grosze)}`;
+    const lista = $('towary'); lista.textContent = '';
+    lista.append(naglowek('Kupujesz'));
+    const mi = document.createElement('img'); mi.src = 'grafika/ikona-mikstura.webp'; mi.alt = '';
+    const pelno = gra.bohater.mikstury >= LUP.max;
+    lista.append(towar(mi, `Mikstura: ${grosze(HANDLARZ.mikstura)}`, pelno ? `Masz ${gra.bohater.mikstury}, więcej nie uniesiesz.` : `Leczy od razu (Q). Masz ${gra.bohater.mikstury} z ${LUP.max}.`, 'Kup', mozeKupic(gra), () => kupMiksture(gra)));
+    lista.append(naglowek('Sprzedajesz'));
+    let cos = false;
+    for (const id of ['pazur', 'kiel', 'krew', 'helm']) {
+      const ile = gra.plecak[id] || 0; if (!ile) continue; cos = true;
+      const pr = PRZEDMIOTY[id], im = document.createElement('img'); im.src = `grafika/przedmioty/${id}.webp`; im.alt = '';
+      lista.append(towar(im, `${pr.nazwa} ×${ile}: ${grosze(pr.cena)}`, 'Sprzedane nie pójdzie już na stół w izbie.', 'Sprzedaj', true, () => sprzedaj(gra, id)));
+    }
+    if (!cos) { const p = document.createElement('p'); p.className = 'pusto'; p.textContent = 'Nie masz nic, co by go zainteresowało. Pazury, kły i krew z potworów kupi chętnie.'; lista.append(p); }
+  }
+  $('odejdz-od-handlarza').addEventListener('click', () => odejdzOdHandlarza(gra));
+  addEventListener('keydown', e => { if (gra.handel && e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); odejdzOdHandlarza(gra); } }, true);
 
   // rzeczy zostają między grami: zapis, gdy coś przybędzie
 

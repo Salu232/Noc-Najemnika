@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL } from './dane.js';
-import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ } from './dane.js';
+import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
 const rozn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -22,6 +22,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
     totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
     lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [], portale: [],
+    handlarz: { widac: 0, pokazuje: 0, blisko: false, zobaczyl: false, wizyty: 0 }, grosze: 0, handel: false,
     plecak: {},                                                               // nowa gra: pusty plecak (Patryk, 26 XI: bez zapisów, dopóki gra nie urośnie)
     kartka: null, czytana: null, kartki: 0, przemiana: 0,   // dziennik rycerza i cena klątwy (25 XI)
     mod: { zasieg: 1, szybkosc: 1, garda: 1, oddech: 1, klatwa: 1, cialo: 1 },
@@ -81,6 +82,35 @@ export function zrobNaStole(gra, id) {
   gra.zdarzenia.push({ typ: 'ulepszenie', id }); return true;
 }
 
+// Handel (27 XI): sprzedaż jednej rzeczy z plecaka i kupno mikstury.
+export function sprzedaj(gra, id) {
+  const pr = PRZEDMIOTY[id]; if (!pr || !pr.cena || pr.wazny || !(gra.plecak[id] > 0)) return false;
+  gra.plecak[id]--; gra.grosze += pr.cena; gra.zdarzenia.push({ typ: 'grosze' }); return true;
+}
+export function mozeKupic(gra) { return gra.grosze >= HANDLARZ.mikstura && gra.bohater.mikstury < LUP.max; }
+export function kupMiksture(gra) {
+  if (!mozeKupic(gra)) return false;
+  gra.grosze -= HANDLARZ.mikstura; gra.bohater.mikstury++; gra.handlarz.pokazuje = 4;
+  gra.zdarzenia.push({ typ: 'grosze' }); return true;
+}
+export function odejdzOdHandlarza(gra) { gra.handel = false; }
+
+function handlarz(gra, dt, w) {
+  const h = gra.handlarz, b = gra.bohater, m = MIEJSCE_HANDLARZA;
+  const jest = gra.faza === 'przerwa' && gra.etap >= 1;              // po pierwszej fali, w ciszy między falami
+  h.widac = jest ? Math.min(1, h.widac + dt / 1.6) : Math.max(0, h.widac - dt / 1.2);
+  h.pokazuje = Math.max(0, h.pokazuje - dt);
+  if (h.widac <= 0) { h.blisko = false; return; }
+  const d = Math.hypot(b.x - m.x, b.y - m.y);
+  if (jest && !h.zobaczyl && d < 420 && !b.wChacie) { h.zobaczyl = true; powiedz(gra, HANDLARZ.zobaczyl, 4); }
+  if (d < HANDLARZ.pokaz && !h.blisko) { h.blisko = true; if (h.widac > 0.9) h.pokazuje = 4; }
+  else if (d > HANDLARZ.pokaz + 60) h.blisko = false;
+  if (!gra.akcja && jest && h.widac > 0.9 && b.stan === 'wolny' && !b.spi && !b.wChacie && d < HANDLARZ.zasieg + b.promien) {
+    gra.akcja = 'handlarz';
+    if (w.akcja) { w.akcja = false; gra.handel = true; h.wizyty++; gra.zdarzenia.push({ typ: 'handel' }); }
+  }
+}
+
 export function powiedz(gra, tekst, czas = 3.5) { gra.mysl.tekst = tekst; gra.mysl.czas = czas; }
 
 // Zmiana miecza w trakcie gry (z menu pauzy): działa od następnego ciosu.
@@ -117,7 +147,7 @@ export function zamknijKartke(gra) { gra.czytana = null; }
 
 export function aktualizuj(gra, dt, w) {
   // kartka podniesiona w walce czeka na ciszę po fali (Patryk, 26 XI 13:27: trzy kartki w minutę przerywały walkę)
-  if (gra.wybor || gra.czytana !== null || gra.stol) return;      // wybór ulepszenia, kartka albo stół: noc czeka
+  if (gra.wybor || gra.czytana !== null || gra.stol || gra.handel) return;      // wybór ulepszenia, kartka, stół albo handel: noc czeka
   if (gra.zatrzymanie > 0) { gra.zatrzymanie -= dt; return; }   // krótkie zatrzymanie po trafieniu: czuć ciężar ciosu
   gra.czas += dt;
   if (gra.faza !== 'koniec') gra.statystyki.czas += dt;
@@ -133,6 +163,7 @@ export function aktualizuj(gra, dt, w) {
       gra.akcja = 'stol'; if (w.akcja) { w.akcja = false; gra.stol = true; }
     }
   }
+  handlarz(gra, dt, w);
   aktualizujCele(gra, dt, w);
   aktualizujWrogow(gra, dt);
   aktualizujPociski(gra, dt);

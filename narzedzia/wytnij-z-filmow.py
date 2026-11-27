@@ -193,6 +193,15 @@ POSTACIE = {
             'trup':       ('wiedzma-smierc', [189]),
         },
     },
+    # Handlarz (Patryk, 26 XI): stary wędrowiec z plecakiem i latarnią. Czeka między falami; kiedy podchodzisz, pokazuje miksturę.
+    'handlarz': {
+        'obraz': 'grafika/handlarz.webp',
+        'stopy': (312, 343), 'wys_film': 329, 'wys_swiat': 104, 'skala_obrazu': 0.5,
+        'animacje': {
+            'czeka':    ('handlarz-czeka', list(range(1, 72, 3))),        # klatka 72 wygląda jak 1
+            'pokazuje': ('handlarz-pokazuje', list(range(1, 97, 3))),     # wyjmuje świecącą fiolkę i chowa ją z powrotem
+        },
+    },
     'bestia': {   # czworonożny skoczek (Patryk z Omni Flash, 26 XI): biegnie, przysiada i skacze na bohatera
         'obraz': 'grafika/bestia.webp',
         'stopy': (347, 348), 'wys_film': 335, 'wys_swiat': 78, 'skala_obrazu': 0.4,
@@ -216,10 +225,10 @@ ZIEMIA = {('film-magia', k) for k in [64, 67, 70, 73, 76, 79, 82, 85, 88, 91]}
 PATRZY = 1                # w filmach postacie patrzą w prawo
 # Film chodu przodem (Patryk z Flow, 24 XI) ma bohatera w innym miejscu kadru: środek ciała około 324 piksela, a nie 295.
 # Stopy dla klatek tego filmu: środek kołysania ciała w cyklu i wiersz, w którym stopy mijają się na ziemi.
-STOPY_FILMU = {'film-chod-przod-schowany': (325, 348), 'bestia-bieg': (348, 337), 'boss/rycerz-f2-wbicie-3': (332, 333), 'boss/rycerz-f2-doskok': (332, 333), 'boss/rycerz-f2-wbicie-lapa': (332, 333), 'boss/arkusz-wbicie': (337, 445), 'boss/arkusz-doskok': (337, 445), **{f'boss/rycerz-f2-{n}': (337, 325) for n in ('chod', 'pazur-pchniecie', 'pazur-i-ciecie-blyskawica', 'smierc-na-ziemi')}, 'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
+STOPY_FILMU = {'handlarz-pokazuje': (312, 350), 'film-chod-przod-schowany': (325, 348), 'bestia-bieg': (348, 337), 'boss/rycerz-f2-wbicie-3': (332, 333), 'boss/rycerz-f2-doskok': (332, 333), 'boss/rycerz-f2-wbicie-lapa': (332, 333), 'boss/arkusz-wbicie': (337, 445), 'boss/arkusz-doskok': (337, 445), **{f'boss/rycerz-f2-{n}': (337, 325) for n in ('chod', 'pazur-pchniecie', 'pazur-i-ciecie-blyskawica', 'smierc-na-ziemi')}, 'film-miecz-cofa-oburacz': (336, 346), 'wiedzma-atak': (340, 352), 'wiedzma-trafienie': (340, 352), 'wiedzma-smierc': (340, 352), 'film-chod-przod': (324, 346), 'film-miecz-wyciaga': (331, 340), 'film-przewrot-przod': (318, 327), 'film-przewrot-tyl': (321, 342), 'film-bieg-miecz': (292, 340), 'film-wielki-bieg': (285, 340), 'film-wielki-cofa': (283, 347)}
 # W filmie wyciągania miecza (Patryk z Flow, 24 XI) bohater jest o 5% niższy w kadrze (321 zamiast 337 pikseli): klatki powiększamy.
 # Przewroty w górę i w dół: stojący bohater ma tam 298 i 331 pikseli, a w chodzie przodem i plecami 327 i 340.
-SKALA_FILMU = {'boss/rycerz-f2-wbicie-3': 1.34, 'boss/rycerz-f2-doskok': 1.34, 'boss/rycerz-f2-wbicie-lapa': 1.34, 'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}
+SKALA_FILMU = {'handlarz-pokazuje': 0.98, 'boss/rycerz-f2-wbicie-3': 1.34, 'boss/rycerz-f2-doskok': 1.34, 'boss/rycerz-f2-wbicie-lapa': 1.34, 'film-miecz-wyciaga': 1.05, 'film-przewrot-przod': 1.10, 'film-przewrot-tyl': 1.03, 'film-bieg-miecz': 1.04, 'film-wielki-cofa': 1.03}
 
 
 def kluczuj(obraz, dol=0.80):
@@ -379,7 +388,7 @@ OPIS = ('// Plik zrobiony przez narzedzia/wytnij-z-filmow.py z filmów Przemka. 
 import sys
 wybrane = sys.argv[1:] or list(POSTACIE)
 wynik = {nazwa: zrob(nazwa, cfg) for nazwa, cfg in POSTACIE.items() if nazwa in wybrane}
-for nazwa, plik in (('bohater', 'gra/klatki-bohatera.js'), ('bohater_wielki', 'gra/klatki-bohatera-wielki.js')):
+for nazwa, plik in (('bohater', 'gra/klatki-bohatera.js'), ('bohater_wielki', 'gra/klatki-bohatera-wielki.js'), ('handlarz', 'gra/klatki-handlarza.js')):
     if nazwa not in wynik: continue
     b = wynik.pop(nazwa)
     with open(plik, 'w', encoding='utf-8') as f:

@@ -70,6 +70,8 @@ export function zagraj(z) {
       break;
     }
     case 'portal': ton(t, 1.4, 'sawtooth', 40, 95, 0.18); szum(t, 1.3, 'bandpass', 200, 2400, 0.3, 5); ton(t + 0.3, 1.1, 'sine', 300, 120, 0.12); break;   // klątwa rozdziera powietrze (27 XI)
+    case 'grosze': ton(t, 0.09, 'triangle', 2400, 2300, 0.12); ton(t + 0.06, 0.12, 'triangle', 3100, 2900, 0.1); ton(t + 0.13, 0.1, 'triangle', 2700, 2600, 0.07); break;   // brzęk monet u handlarza (27 XI)
+    case 'handel': szum(t, 0.25, 'bandpass', 700, 400, 0.15, 2); break;   // szelest plecaka starca
     case 'klatwa': ton(t, 0.8, 'sine', 62, 24, 1); szum(t, 0.5, 'lowpass', 1400, 90, 0.7); szum(t, 0.25, 'highpass', 5000, 2500, 0.18); break;
   }
 }

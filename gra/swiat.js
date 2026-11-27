@@ -128,6 +128,11 @@ for (let i = DRZEWA.length - 1; i >= 0; i--) if (odDrogi(DRZEWA[i].x, DRZEWA[i].
 // i pochodnia przy furtce. Stawiane względem drogi: f to miejsce na drodze (0 skraj lasu, 1 furtka),
 // bok to strona (-1 lewa, 1 prawa, patrząc ku chacie), od to odległość od środka drogi. szer: szerokość w świecie,
 // promien: zderzenie (0 = przechodzi się przez nie).
+// Handlarz stoi przy drodze, po lewej idąc ku chacie, kawałek przed ogniskiem.
+export const MIEJSCE_HANDLARZA = (() => {
+  const i = Math.round(0.7 * (DROGA.length - 1)), p = DROGA[i], q = DROGA[i + 1], dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1;
+  return { x: p.x + dy / d * 78, y: p.y - dx / d * 78 };
+})();
 export const RZECZY = [
   { rys: 'drewno', f: 0.52, bok: 1, od: 82, szer: 78, promien: 22 },
   { rys: 'beczka', f: 0.86, bok: -1, od: 82, szer: 40, promien: 17 },

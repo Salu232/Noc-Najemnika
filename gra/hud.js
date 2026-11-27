@@ -50,7 +50,7 @@ export function przygotujHud() {
     // czynność w chacie (posłanie) albo zamknięte drzwi w walce; ekran snu
     const dotyk = matchMedia && matchMedia('(pointer: coarse)').matches;
     const otwarte = gra.faza === 'przerwa' || gra.faza === 'swit' || gra.faza === 'wstep';
-    const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : ({ otworz: 'Otwórz drzwi', zamknij: 'Zamknij drzwi', odpocznij: 'Odpocznij na posłaniu', wstan: 'Wstań', drewno: 'Weź polano', dorzuc: 'Dorzuć do ognia', obejrzyj: 'Obejrzyj ' + (gra.odkryj ? gra.odkryj.nazwa : ''), stol: 'Stół: przerób łupy' }[gra.akcja] || '');
+    const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : ({ otworz: 'Otwórz drzwi', zamknij: 'Zamknij drzwi', odpocznij: 'Odpocznij na posłaniu', wstan: 'Wstań', drewno: 'Weź polano', dorzuc: 'Dorzuć do ognia', obejrzyj: 'Obejrzyj ' + (gra.odkryj ? gra.odkryj.nazwa : ''), stol: 'Stół: przerób łupy', handlarz: 'Pohandluj ze starcem' }[gra.akcja] || '');
     ustaw('akcja', napisAkcji, v => {                                  // „!” na początku: czynność teraz niedostępna
       const zamkniete = v.startsWith('!'), t = zamkniete ? v.slice(1) : v;
       el.akcja.hidden = !v; el.akcja.classList.toggle('zamkniete', zamkniete);
