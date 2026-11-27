@@ -45,8 +45,17 @@ export function przygotujHud() {
       if (el.przyciskMikstury) el.przyciskMikstury.classList.toggle('pusta', !v);
     });
     ustaw('grosze', gra.grosze || 0, v => { const e = document.getElementById('zapas-groszy'); if (e) e.textContent = `${v} ${v === 1 ? 'moneta' : (v % 10 >= 2 && v % 10 <= 4 && (v % 100 < 10 || v % 100 >= 20)) ? 'monety' : 'monet'}`; });
-    const np = gra.napoj ? [gra.napoj.sila && 'siła', gra.napoj.oddech && 'oddech'].filter(Boolean).join(', ') : '';
-    ustaw('napoj', np, v => { const e = document.getElementById('zapas-napoju'); if (e) { e.hidden = !v; e.textContent = v ? `Wywar: ${v}` : ''; } });
+    // wypite wywary i pas: ikony z arkusza Gemini (27 XI) zamiast napisu „Wywar: siła”
+    const np = [gra.napoj && gra.napoj.sila && 'sila', gra.napoj && gra.napoj.oddech && 'oddech', gra.pas && 'pas'].filter(Boolean).join(',');
+    ustaw('napoj', np, v => {
+      const e = document.getElementById('zapas-napoju'); if (!e) return;
+      e.hidden = !v; e.textContent = '';
+      const OPIS = { sila: ['siła', 'Wywar z wilczej jagody: cięcia mocniejsze do końca fali'], oddech: ['oddech', 'Napar z kory dębu: siły wracają szybciej do końca fali'], pas: ['pas', 'Pas na fiolki: jedna mikstura więcej'] };
+      for (const id of v ? v.split(',') : []) {
+        const s = document.createElement('span'), im = document.createElement('img'); s.title = OPIS[id][1];
+        im.src = `grafika/przedmioty/${id}.webp`; im.alt = ''; s.append(im, OPIS[id][0]); e.append(s);
+      }
+    });
     ustaw('drewno', !!b.drewno, v => { if (el.drewno) el.drewno.hidden = !v; });
     ustaw('rana', b.flash > 0.15, v => { el.pasekZycia.classList.toggle('rana', v); if (el.portret) el.portret.classList.toggle('rana', v); });
 

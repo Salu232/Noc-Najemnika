@@ -138,6 +138,11 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 #przycisk-mikstura.pusta { opacity: 0.35; }
 #przycisk-mikstura b { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; border-radius: 9px; background: #8e1418; font-size: 11px; line-height: 18px; }
 #zapas-groszy { color: #e8c060; }
+#zapasy > span { white-space: nowrap; }
+#zapas-napoju { display: inline-flex; gap: 8px; }
+#zapas-napoju[hidden] { display: none; }
+#zapas-napoju span { display: inline-flex; align-items: center; gap: 2px; }
+#zapas-napoju img { width: 16px; height: 16px; object-fit: contain; filter: drop-shadow(0 1px 2px #000); }
 #zapas-groszy::before { content: ""; display: inline-block; width: 15px; height: 15px; margin-right: 4px; vertical-align: -3px; background: url(grafika/przedmioty/moneta.webp) center / contain no-repeat; }
 #zapasy { display: flex; gap: 10px; font-size: 12px; color: var(--tekst, #e9e1d2); text-shadow: 0 1px 3px #000; padding-left: 6px; }
 #zapas-mikstur::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: -3px; border-radius: 50%; background: url(grafika/ikona-mikstura.webp) center / cover; }

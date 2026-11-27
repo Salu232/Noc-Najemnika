@@ -8,6 +8,9 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Claude | Plan bagna z gotowymi poleceniami do Gemini i Veo: teren, chata wiedźmy na palach, rekwizyty, topielec, upiór, żywa wiedźma od zagadki, ikona kotła | do przejrzenia z Patrykiem | docs/bagno.md; pełzacz nie wraca (odrzucony 25 XI) |
+| 2026-11-27 | Claude | Na pasku ikony wypitych wywarów i pasa zamiast napisu „Wywar: siła”; napisy na pasku już się nie łamią | zrobione | |
+| 2026-11-27 | Claude | Bot nocy w obecnym kształcie gry (pomija zmierzch, zbiera łup, handluje): testy/bot-noc2.mjs | zrobione | gra bota dużo słabsza od człowieka (padał dziesiątki razy), więc mierzy głównie monety, nie trudność |
 | 2026-11-27 | Patryk | Krew za krew rzadziej: mocny cios w hordę nie odnawia już całego paska życia | zrobione | Odzysk raz na cios zamiast za każdego trafionego potwora, 5 życia zamiast 7 |
 | 2026-11-27 | Patryk | Ikony z arkusza Gemini w sklepie handlarza i na pasku (mikstura, wywar, napar, pas, sakiewka, moneta) | zrobione | Wycięte `narzedzia/wytnij-przedmioty.py grafika/zrodla/towary-arkusz.png …` do grafika/przedmioty/ |
 | 2026-11-27 | Patryk | Noc trudniejsza: mocniejsze potwory i boss, mniej monet, słabsze ulepszenia po falach, droższe towary | zrobione | ghul 4–5 HP, wiedźma/bestia 8–9, kolos 22, rycerz 56 (×1,5 = 84); rany +2–6; monety ghul 1 / bestia 2 / wiedźma 3 / kolos 5; mikstura 10, wywar 16, napar 14, pas 26; ulepszenia mniej więcej o połowę słabsze; wywar siły średnio +25% zamiast +50% |
