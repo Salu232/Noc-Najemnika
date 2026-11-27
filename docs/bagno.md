@@ -44,7 +44,7 @@
 
 ## Lista obrazów i filmów do zrobienia
 
-**Limit Veo (Patryk, 27 XI 22:28–22:29):** zostało 6 animacji, limit odnawia się dopiero 22 grudnia. Najpierw poprawki po opiniach graczy; nowe potwory (upiór) najpierw w kodzie na zastępczej grafice, filmy dopiero, gdy się sprawdzą. Obrazy z Gemini limitu Veo nie zjadają. Patryk, 22:32: *„przemek ma dużo do wykorzystania, więc go będziemy męczyć”*, czyli filmy może robić też Przemek (polecenia te same, przez Patryka).
+**Limit Veo (Patryk, 27 XI 22:28–22:29):** zostało 6 animacji, limit odnawia się dopiero 22 grudnia. Najpierw poprawki po opiniach graczy; nowe potwory (upiór) najpierw w kodzie na zastępczej grafice, filmy dopiero, gdy się sprawdzą. Obrazy z Gemini limitu Veo nie zjadają. Patryk, 22:32: *„przemek ma dużo do wykorzystania, więc go będziemy męczyć”*, czyli filmy robi Patryk u Przemka (22:32: „ja będę musiał tam wbić, żeby to zrobić, bo wiem, jak to animować”).
 
 Kolejność według tego, co odblokowuje najwięcej pracy. Każdy potwór robimy tak jak ghula i kolosa ([grafika.md](grafika.md), punkt 10): najpierw jeden obraz z bohaterem jako wzorem stylu, potem z tego obrazu cztery filmy w Veo.
 
