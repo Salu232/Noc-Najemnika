@@ -85,7 +85,7 @@ export const TOTEMY = BAGNO ? [
 // Woda jest wszędzie, ląd to wyspy (elipsy), grobla od południa (DROGA) i kładki między wyspami. Na środkowej wyspie
 // chata wiedźmy na palach (na razie zastępcza) i kocioł. glebia(): mniej niż 0 to ląd, 0–1 płytka woda (brnie się), ponad 1 głęboka (nie do przejścia).
 export const WYSPY = BAGNO ? [
-  { x: 1600, y: 1050, rx: 430, ry: 290 },      // środkowa: chata wiedźmy i kocioł
+  { x: 1600, y: 1150, rx: 430, ry: 260 },      // środkowa: ognisko; chata wiedźmy stoi nad wodą przy jej północnym brzegu
   { x: 720, y: 980, rx: 300, ry: 190 },        // zachodnia: wóz rycerza
   { x: 2520, y: 1080, rx: 300, ry: 190 },      // wschodnia: kamień ze znakiem
   { x: 760, y: 1790, rx: 260, ry: 160 },       // południowo-zachodnia
@@ -96,39 +96,36 @@ export const WYSPY = BAGNO ? [
   { x: 2050, y: 2200, rx: 170, ry: 90 },
 ] : [];
 export const KLADKI = BAGNO ? [
-  { a: { x: 1185, y: 1060 }, b: { x: 1005, y: 1000 }, szer: 24 },   // środek – zachód
-  { a: { x: 2025, y: 1080 }, b: { x: 2235, y: 1080 }, szer: 24 },   // środek – wschód
-  { a: { x: 1940, y: 900 }, b: { x: 1880, y: 470 }, szer: 22 },     // środek – północ, obok chaty
+  { a: { x: 1185, y: 1120 }, b: { x: 1005, y: 1010 }, szer: 24 },   // środek – zachód
+  { a: { x: 2020, y: 1130 }, b: { x: 2235, y: 1090 }, szer: 24 },   // środek – wschód
+  { a: { x: 1965, y: 1020 }, b: { x: 1900, y: 470 }, szer: 22 },    // środek – północ, obok chaty
   { a: { x: 720, y: 1165 }, b: { x: 760, y: 1635 }, szer: 22 },     // zachód – południowy zachód
   { a: { x: 2500, y: 1265 }, b: { x: 2420, y: 1655 }, szer: 22 },   // wschód – południowy wschód
 ] : [];
 // Chata wiedźmy na palach z Gemini (Patryk, 27 XI 16:55): dwa obrazy w tym samym kadrze, z dachem i bez dachu (wnętrze).
 // Obraz 2048 px, w świecie 0,4 jednostki na piksel: piksel (ix, iy) leży w (X0 + 0,4·ix, Y0 + 0,4·iy).
-// Chata stoi na północnym brzegu środkowej wyspy, nad płycizną; pomost z kotłem przed drzwiami, kładka schodzi na wyspę.
-// Prostokąty to przybliżenie rzutu z góry: izba, ściany z przerwą na drzwi, kocioł na pomoście.
+// Chata stoi nad wodą przy północnym brzegu środkowej wyspy (Patryk, 27 XI 17:18: „stoję jakby na grafice” między palami).
+// Chodzi się tylko po podłodze izby, po pomoście i po kładce; reszta pod chatą to głęboka woda.
+// Wielokąty obrysowane na obrazie, w jednostkach świata. Ściana frontowa oddziela izbę od pomostu, z przerwą na drzwi.
 export const CHATA_WIEDZMY = BAGNO ? (() => {
   const X0 = 1208, Y0 = 288, s = 0.4, w = (ix, iy) => ({ x: X0 + s * ix, y: Y0 + s * iy });
-  const izba = { x0: 1398, y0: 622, x1: 1790, y1: 776 };
+  const pomost = [w(405, 1172), w(986, 1425), w(1700, 1252), w(1695, 1165), w(1450, 1148), w(1330, 1212), w(1014, 1252), w(443, 1158)];
+  const izba = [{ x: 1400, y: 625 }, { x: 1790, y: 625 }, { x: 1790, y: 748 }, { x: 1740, y: 772 }, { x: 1614, y: 790 }, { x: 1560, y: 782 }, { x: 1400, y: 745 }];
   return {
     X0, Y0, s, w, x: 1630, y: 790,
-    izba,                                                              // podłoga izby: tu widać wnętrze zamiast dachu
-    drzwi: { x0: 1602, x1: 1658 },
-    grunt: { x0: 1368, y0: 596, x1: 1890, y1: 840 },                   // pod chatą i pomostem da się stać (nie woda)
-    pomost: { a: { x: 1656, y: 830 }, b: { x: 1784, y: 1046 }, szer: 30 },   // kładka z pomostu na wyspę (jest na obrazie)
-    sciany: [
-      { x0: 1376, y0: 596, x1: 1812, y1: 622 },                        // tylna
-      { x0: 1376, y0: 596, x1: 1398, y1: 790 },                        // lewa
-      { x0: 1790, y0: 596, x1: 1812, y1: 760 },                        // prawa
-      { x0: 1376, y0: 776, x1: 1602, y1: 792 },                        // przednia, lewa od drzwi
-      { x0: 1376, y0: 735, x1: 1545, y1: 792 },                        // przednia lewa ściana idzie ukosem w głąb: tu nie ma podłogi
-      { x0: 1658, y0: 750, x1: 1762, y1: 770 },                        // przednia, prawa od drzwi (wyżej: rzut ukośny)
-    ],
+    izba, pomost,
+    drzwi: { x0: 1594, x1: 1662, y: 788 },
+    kladka: { a: w(1110, 1400), b: w(1440, 1880), szer: 34 },           // kładka z pomostu na wyspę (jest na obrazie)
+    sciany: [[w(443, 1158), w(1000, 1250)], [w(1135, 1245), w(1330, 1212), w(1450, 1148)]],   // frontowa: lewa i prawa od drzwi
     kociol: { ...w(1425, 1192), promien: 20 },
-    podstawa: 782,                                                     // zIndex chaty z dachem: co dalej na południe, jest przed nią
-    bryla: { x0: 1368, y0: 560, x1: 1890, y1: 840 },                   // tu nie rosną drzewa ani trzciny
+    podstawa: 750,                                                     // zIndex chaty z dachem: kto stoi na pomoście, jest przed nią
+    strefa: { x0: 1270, y0: 330, x1: 1990, y1: 935 },                  // pod chatą i za nią woda; tu nie rosną drzewa ani trzciny
+    bryla: { x0: 1330, y0: 380, x1: 1935, y1: 885 },
   };
 })() : null;
-export const wIzbieWiedzmy = (p) => !!CHATA_WIEDZMY && p.x > CHATA_WIEDZMY.izba.x0 && p.x < CHATA_WIEDZMY.izba.x1 && p.y > CHATA_WIEDZMY.izba.y0 && p.y < CHATA_WIEDZMY.izba.y1;
+const wWielokacie = (x, y, w) => { let c = false; for (let i = 0, j = w.length - 1; i < w.length; j = i++) { const a = w[i], b = w[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; };
+const odWielokata = (x, y, w) => { if (wWielokacie(x, y, w)) return 0; let m = Infinity; for (let i = 0, j = w.length - 1; i < w.length; j = i++) m = Math.min(m, odOdcinka(x, y, w[j], w[i])); return m; };
+export const wIzbieWiedzmy = (p) => !!CHATA_WIEDZMY && wWielokacie(p.x, p.y, CHATA_WIEDZMY.izba);
 const szumBrzegu = (x, y) => 0.5 * Math.sin(x * 0.013 + y * 0.007) + 0.3 * Math.sin(x * 0.031 - y * 0.023) + 0.2 * Math.sin(-x * 0.05 + y * 0.061);
 const odOdcinka = (x, y, a, b) => { const dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy; let t = ((x - a.x) * dx + (y - a.y) * dy) / L; t = Math.max(0, Math.min(1, t)); return Math.hypot(x - a.x - t * dx, y - a.y - t * dy); };
 const PAS_PLYTKI = 0.35;                        // szerokość płytkiej wody za brzegiem, jako część promienia wyspy
@@ -136,12 +133,15 @@ function naWyspie(x, y) { let q = 99; for (const w of WYSPY) { const dx = (x - w
 export function glebia(x, y) {
   if (!BAGNO) return -1;
   let d = naWyspie(x, y);
-  if (x > 1338 && x < 1920 && y > 400 && y < 596) d = Math.max(d, 1.6);   // za chatą wiedźmy głęboko: nikt się za nią nie chowa
+  const cw = CHATA_WIEDZMY, st = cw.strefa;
+  if (x > st.x0 && x < st.x1 && y > st.y0 && y < st.y1) {             // chata nad wodą: ląd tylko na podłodze i pomoście
+    const e = Math.min(x - st.x0, st.x1 - x, y - st.y0, st.y1 - y), f = Math.min(1, e / 90);   // miękko od brzegów strefy
+    if (d < 1.6) d += (1.6 - d) * f * f * (3 - 2 * f);
+    d = Math.min(d, 0.5 + Math.min(odWielokata(x, y, cw.izba), odWielokata(x, y, cw.pomost)) / 16);
+  }
   if (DROGA_GOTOWA) d = Math.min(d, odDrogi(x, y) / (DROGA_SZER * 0.75));
   for (const k of KLADKI) d = Math.min(d, odOdcinka(x, y, k.a, k.b) / k.szer);
-  const cw = CHATA_WIEDZMY;
-  if (x > cw.grunt.x0 && x < cw.grunt.x1 && y > cw.grunt.y0 && y < cw.grunt.y1) d = Math.min(d, 0.5);
-  d = Math.min(d, odOdcinka(x, y, cw.pomost.a, cw.pomost.b) / cw.pomost.szer);
+  d = Math.min(d, odOdcinka(x, y, cw.kladka.a, cw.kladka.b) / cw.kladka.szer);
   d *= 1 + 0.07 * szumBrzegu(x, y);
   return (d - 1) / PAS_PLYTKI;
 }
@@ -172,7 +172,7 @@ export const DRZEWA = [];
       const x = 40 + los() * (SZER - 80), y = 90 + los() * (WYS - 110), q = naWyspie(x, y);
       if (q > 1.25 || (q > 1 && los() < 0.6)) continue;
       { const B = CHATA_WIEDZMY.bryla; if (x > B.x0 - 40 && x < B.x1 + 40 && y > B.y0 - 60 && y < B.y1 + 260) continue; }   // chata i jej kładka
-      const cx = (x - 1600) / 430, cy = (y - 1050) / 290; if (cx * cx + cy * cy < 0.85 * 0.85) continue;   // środkowa wyspa wolna: tu się walczy
+      const cx = (x - 1600) / 430, cy = (y - 1150) / 260; if (cx * cx + cy * cy < 0.85 * 0.85) continue;   // środkowa wyspa wolna: tu się walczy
       if (DRZEWA.some(d => Math.hypot(d.x - x, d.y - y) < 105)) continue;
       DRZEWA.push({ x, y, h: 210 + los() * 120, wariant: (los() * 3) | 0, promien: 15 });
     }
@@ -214,13 +214,9 @@ for (let i = 0; i < DRZEWA.length; i++) {
 // Droga do chaty (Patryk, 25 XI 13:12: „żeby jakaś droga prowadziła do tej chatki”): z lasu na południowym zachodzie,
 // między totemem z czaszką a totemami na południu, łukiem obok ogniska pod samą furtkę. Punkty to oś drogi, gęsto co ~12 jednostek.
 export const DROGA_SZER = 74;
-export const DROGA = (() => {
-  const furtka = { x: CHATA.x + 455 * CHATA.skala, y: CHATA.y + 860 * CHATA.skala };
-  // na bagnie to grobla: od południowego brzegu mapy na środkową wyspę, do kotła
-  const P = BAGNO ? [{ x: 1500, y: WYS + 60 }, { x: 1450, y: 2150 }, { x: 1540, y: 1850 }, { x: 1500, y: 1600 }, { x: 1560, y: 1420 }, { x: 1600, y: 1250 }]
-    : [{ x: 820, y: WYS + 60 }, { x: 980, y: 2080 }, { x: 1180, y: 1760 }, { x: 1330, y: 1480 }, { x: 1470, y: 1290 }, { x: furtka.x - 40, y: furtka.y + 40 }, { x: furtka.x, y: furtka.y - 10 }];
+function gladka(P) {                                                         // Catmull-Rom przez punkty, gęsto co ~12 jednostek
   const wyn = [];
-  for (let i = 0; i < P.length - 1; i++) {                                   // Catmull-Rom przez punkty
+  for (let i = 0; i < P.length - 1; i++) {
     const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
     const n = Math.max(2, Math.ceil(Math.hypot(p2.x - p1.x, p2.y - p1.y) / 12));
     for (let k = 0; k < n; k++) {
@@ -231,8 +227,19 @@ export const DROGA = (() => {
   }
   wyn.push(P[P.length - 1]);
   return wyn;
+}
+export const DROGA = (() => {
+  const furtka = { x: CHATA.x + 455 * CHATA.skala, y: CHATA.y + 860 * CHATA.skala };
+  // na bagnie to grobla: od południowego brzegu mapy na środkową wyspę, do kotła
+  const P = BAGNO ? [{ x: 1500, y: WYS + 60 }, { x: 1450, y: 2150 }, { x: 1540, y: 1850 }, { x: 1500, y: 1600 }, { x: 1560, y: 1420 }, { x: 1600, y: 1250 }]
+    : [{ x: 820, y: WYS + 60 }, { x: 980, y: 2080 }, { x: 1180, y: 1760 }, { x: 1330, y: 1480 }, { x: 1470, y: 1290 }, { x: furtka.x - 40, y: furtka.y + 40 }, { x: furtka.x, y: furtka.y - 10 }];
+  return gladka(P);
 })();
-export function odDrogi(x, y) { let m = Infinity; for (const p of DROGA) m = Math.min(m, Math.hypot(p.x - x, p.y - y)); return m; }
+// Droga na bagno (Patryk, 27 XI 17:19: „zrobić drogę na polanie do góry i do góry idziemy do chatki”): z polany obok chaty,
+// przez las na północ, do górnego brzegu mapy. Po świcie bohater idzie nią, a na jej końcu wczytuje się bagno.
+export const DROGA_POLNOC = BAGNO ? [] : gladka([{ x: 1900, y: 1215 }, { x: 2010, y: 1080 }, { x: 2090, y: 860 }, { x: 2130, y: 620 }, { x: 2090, y: 380 }, { x: 2150, y: 160 }, { x: 2170, y: -60 }]);
+export function odDrogi(x, y) { let m = Infinity; for (const p of DROGA) m = Math.min(m, Math.hypot(p.x - x, p.y - y)); for (const p of DROGA_POLNOC) m = Math.min(m, Math.hypot(p.x - x, p.y - y)); return m; }
+export function odDrogiPolnoc(x, y) { let m = Infinity; for (const p of DROGA_POLNOC) m = Math.min(m, Math.hypot(p.x - x, p.y - y)); return m; }
 // Na drodze nie rosną drzewa (las był posadzony wcześniej, więc zdejmujemy te, które na nią wpadły).
 for (let i = DRZEWA.length - 1; i >= 0; i--) if (odDrogi(DRZEWA[i].x, DRZEWA[i].y) < DROGA_SZER * 0.75) DRZEWA.splice(i, 1);
 DROGA_GOTOWA = true;
@@ -349,7 +356,11 @@ export function zderzenia(p, r) {
   }
   if (BAGNO) {
     const cw = CHATA_WIEDZMY;
-    for (let k = 0; k < 2; k++) for (const q of cw.sciany) odepchnijOdProstokata(p, q, r);
+    for (let k = 0; k < 2; k++) for (const lam of cw.sciany) for (let i = 0; i + 1 < lam.length; i++) {   // ściana frontowa: odcinki, przerwa na drzwi
+      const a = lam[i], b2 = lam[i + 1], dx = b2.x - a.x, dy = b2.y - a.y, L = dx * dx + dy * dy;
+      const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L)), qx = a.x + t * dx, qy = a.y + t * dy, e = Math.hypot(p.x - qx, p.y - qy), m = r * 0.8;
+      if (e < m && e > 0.001) { p.x = qx + (p.x - qx) / e * m; p.y = qy + (p.y - qy) / e * m; }
+    }
     { const dx = p.x - cw.kociol.x, dy = p.y - cw.kociol.y, q = Math.hypot(dx, dy), m = r + cw.kociol.promien; if (q < m && q > 0.001) { p.x = cw.kociol.x + dx / q * m; p.y = cw.kociol.y + dy / q * m; } }
     // głęboka woda: krok po kroku pod spadek głębokości, aż do płycizny
     for (let k = 0; k < 20 && glebia(p.x, p.y) > 1; k++) {
@@ -379,7 +390,7 @@ export const MIEJSCA = BAGNO ? [
   { id: 'kociol', nazwa: 'kocioł', x: CHATA_WIEDZMY.kociol.x - 10, y: CHATA_WIEDZMY.kociol.y + 30, mysl: 'Kocioł nad żarem. W środku coś gęstego, jeszcze ciepłe. Pachnie ziołami i krwią.', wsk: 'Na pomoście przed chatą coś bulgocze. Ktoś tu gotował.' },
   { id: 'chata', nazwa: 'izbę wiedźmy', x: 1560, y: 690, mysl: 'Słoje, zioła, czaszki na półkach. Na stole otwarta księga. Świeca jeszcze się pali, a wiedźmy nie ma.', wsk: 'Drzwi chaty na palach są uchylone. Ktoś w niej mieszka?' },
   { id: 'stos', nazwa: 'drewno', x: STOS_DREWNA.x, y: STOS_DREWNA.y, mysl: 'Suche drewno pod daszkiem z trzciny. Tutaj suche jest cenniejsze od złota.', wsk: 'Ogień pod kotłem trzeba czymś karmić.' },
-  { id: 'kladka', nazwa: 'kładkę', x: 1100, y: 1030, mysl: 'Deski śliskie, jedna złamana. Coś pod nimi przepłynęło. Duże.', wsk: 'Na zachód prowadzą deski nad wodą.' },
+  { id: 'kladka', nazwa: 'kładkę', x: 1100, y: 1068, mysl: 'Deski śliskie, jedna złamana. Coś pod nimi przepłynęło. Duże.', wsk: 'Na zachód prowadzą deski nad wodą.' },
   { id: 'woz', nazwa: 'wóz', x: 720, y: 1010, mysl: 'Wóz w błocie po osie. Na burcie herb: ten sam, co na pancerzu rycerza. Był tu przede mną.', wsk: 'Na zachodniej wyspie coś stoi w błocie. Wóz?' },
   { id: 'totem', nazwa: 'kamień ze znakiem', x: 2580 - 30, y: 1050 + 25, mysl: 'Półksiężyc i trzcina wyryte w kamieniu. Znak z amuletu. Ręka płonie, woda wokół się burzy.', wsk: 'Na wschodniej wyspie stoi kamień. Amulet ciąży w dłoni.' },
 ] : [

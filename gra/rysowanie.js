@@ -1,7 +1,7 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, glebia, KLADKI, CHATA_WIEDZMY, wIzbieWiedzmy } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, glebia, KLADKI, CHATA_WIEDZMY, wIzbieWiedzmy, DROGA_POLNOC } from './swiat.js';
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
 import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
@@ -87,7 +87,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const k = szer / f.w; sp.scale.set(lustro ? -k : k, k); return sp;
   };
   const T = {
-    ziemia: tx(O.kafelZiemi()), plamy: tx(O.plamyZiemi()), droga: tx(O.obrazDrogi(obrazDrogi, obrazKaflaDrogi)),
+    ziemia: tx(O.kafelZiemi()), plamy: tx(O.plamyZiemi()), droga: tx(O.obrazDrogi(obrazDrogi, obrazKaflaDrogi)), drogaPolnoc: DROGA_POLNOC.length ? tx(O.obrazDrogi(obrazDrogi, obrazKaflaDrogi, DROGA_POLNOC, 11)) : null,
     drzewa: [0, 1, 2, 3].map(w => { const d = O.obrazDrzewa(w); return { t: tx(d.canvas), ax: d.ox / d.w, ay: d.oy / d.h }; }),
     chata: tx(plotnoChaty), podworko: tx(plotnoPodworka),
     cien: tx(O.cien()), kreski: tx(O.kreskowanie()), mgla: [0, 1, 2].map(w => tx(O.mgielka(w))),
@@ -170,6 +170,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   if (obrazZiemi) ziemia.tileScale.set(0.45);
   const plamy = new P.Sprite(T.plamy); plamy.scale.set(O.SKALA_PLAM);
   const droga = new P.Sprite(T.droga); droga.scale.set(O.SKALA_DROGI); droga.position.set(O.RAMKA_DROGI.x, O.RAMKA_DROGI.y);
+  const drogaPolnoc = new P.Container();                 // droga na bagno, na północ od chaty (tylko polana)
+  if (T.drogaPolnoc) { const r2 = O.ramkaDrogi(DROGA_POLNOC), sp = new P.Sprite(T.drogaPolnoc); sp.scale.set(O.SKALA_DROGI); sp.position.set(r2.x, r2.y); drogaPolnoc.addChild(sp); }
   const podworko = new P.Sprite(T.podworko); podworko.position.set(CHATA.x, CHATA.y); podworko.scale.set(CHATA.skala);
   const izbaSpod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, false])) : P.Texture.EMPTY);
   const izbaPrzod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, true])) : P.Texture.EMPTY);
@@ -247,7 +249,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       for (const q of [k.a, k.b]) for (const sgn of [-1, 1]) { dod.beginFill(0x2a2018); dod.drawCircle(q.x + nx * sz * sgn, q.y + ny * sz * sgn, 4); dod.endFill(); }
     }
   }
-  swiat.addChild(ziemia, plamy, droga, wodaG, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para, dymK);
+  swiat.addChild(ziemia, plamy, droga, drogaPolnoc, wodaG, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para, dymK);
 
   // drzewa
   const drzewa = DRZEWA.map((d, i) => {
@@ -279,7 +281,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       }
     } else {
       const g = new P.Graphics(); g.zIndex = cw.podstawa;
-      for (const q of cw.sciany) { g.beginFill(0x3b3026); g.drawRect(q.x0, q.y0 - 120, q.x1 - q.x0, q.y1 - q.y0 + 120); g.endFill(); }
+      g.beginFill(0x3b3026); g.drawPolygon(cw.izba.flatMap(q => [q.x, q.y])); g.endFill(); g.beginFill(0x5a4630); g.drawPolygon(cw.pomost.flatMap(q => [q.x, q.y])); g.endFill();
       g.beginFill(0x1c1c22); g.drawCircle(cw.kociol.x, cw.kociol.y - 20, 20); g.endFill();
       aktorzy.addChild(g);
     }
@@ -983,7 +985,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
     const b = gra.bohater;
     if (chataW) {                                                      // izba wiedźmy: dach gaśnie w ćwierć sekundy
-      const wI = wIzbieWiedzmy(b) || (b.y < CHATA_WIEDZMY.izba.y1 + 14 && b.y > CHATA_WIEDZMY.izba.y0 && b.x > CHATA_WIEDZMY.drzwi.x0 && b.x < CHATA_WIEDZMY.drzwi.x1);
+      const wI = wIzbieWiedzmy(b) || (Math.abs(b.y - CHATA_WIEDZMY.drzwi.y) < 14 && b.x > CHATA_WIEDZMY.drzwi.x0 && b.x < CHATA_WIEDZMY.drzwi.x1);
       stanRys.izbaW = ogr((stanRys.izbaW || 0) + (wI ? 1 : -1) * dt * 4, 0, 1);
       chataW.alpha = 1 - stanRys.izbaW; chataW.visible = stanRys.izbaW < 1;
       if (wnetrzeW) { wnetrzeW.alpha = stanRys.izbaW; wnetrzeW.visible = stanRys.izbaW > 0; }

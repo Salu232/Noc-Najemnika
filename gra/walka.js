@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL } from './dane.js';
-import { START, CHATA, WYS, odDrogi, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START } from './swiat.js';
+import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START } from './swiat.js';
 // Topielce na bagnie: ile w każdej fali (wychodzą z wody, oprócz potworów z portali)
 const TOPIELCE = [{ ile: 3, co: 3, od: 2 }, { ile: 5, co: 2.5, od: 4 }, { ile: 7, co: 1.6, od: 3 }, { ile: 4, co: 4, od: 12 }];
 // Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
@@ -66,7 +66,7 @@ function postawBohatera(gra) {
 // Do 26 XI plecak i ulepszenia ze stołu zostawały między grami. Teraz trwają jedną grę; zapis postaci przyjdzie, gdy gra urośnie.
 export function ruszajNaBagno(gra) {
   gra.faza = 'wedrowka'; gra.wedrowkaT = 0;
-  powiedz(gra, 'Bagna wiedźmy. Najpierw z powrotem drogą przez las, potem dalej.', 5);
+  powiedz(gra, 'Bagna wiedźmy są na północy. Za chatą zaczyna się droga przez las.', 5);
 }
 // Przejście na bagno (27 XI, Patryk: „to musi być połączone ze sobą”): po świcie nad polaną bohater bierze ze sobą
 // monety, mikstury, plecak (z amuletem), pas i to, co zrobił na stole. Ulepszenia z fal były „na resztę nocy”, więc zostają.
@@ -959,10 +959,10 @@ function aktualizujEtapy(gra, dt) {
     }
   } else if (gra.faza === 'wedrowka') {
     // Droga na bagno (Patryk, 27 XI: „będzie się szło drogą i później, jak w typowych grach, zmienia się mapa”):
-    // rano bohater wraca drogą przez las; na skraju mapy zmienia się mapa.
+    // rano bohater idzie drogą na północ (za chatą, przez las); na górnym skraju mapy zmienia się mapa (17:19).
     const b = gra.bohater; gra.wedrowkaT = (gra.wedrowkaT || 0) + dt;
-    if (b.y > WYS - 130 && odDrogi(b.x, b.y) < DROGA_SZER * 1.2) { gra.faza = 'odchodzi'; gra.zdarzenia.push({ typ: 'na-bagno' }); }
-    else if (gra.wedrowkaT > 22 && gra.mysl.czas <= 0) { gra.wedrowkaT = 0; powiedz(gra, 'Droga prowadzi z powrotem przez las, na południe. Stamtąd na bagna.', 4); }
+    if (b.y < 150 && odDrogiPolnoc(b.x, b.y) < DROGA_SZER * 1.3) { gra.faza = 'odchodzi'; gra.zdarzenia.push({ typ: 'na-bagno' }); }
+    else if (gra.wedrowkaT > 22 && gra.mysl.czas <= 0) { gra.wedrowkaT = 0; powiedz(gra, 'Za chatą, po prawej, droga idzie na północ przez las. Tamtędy na bagna.', 4); }
   } else if (gra.faza === 'swit') {
     // Świt po rycerzu (Patryk, 26 XI 0:56): słońce nad pokonanym, klątwa schodzi z polany, ale to dopiero pierwszy etap.
     gra.fazaCzas -= dt; gra.switT += dt;

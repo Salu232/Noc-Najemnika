@@ -1,7 +1,7 @@
 // Obrazki rysowane kodem, dopóki nie ma grafik z Gemini: ziemia, sosny, ghule, kolos, światło, mgła.
 // Wszystko jest w kolorach dnia. Noc dokłada silnik (ciemność z wyciętym światłem), tak jak ustaliliśmy w Próbie chaty.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DROGA, DROGA_SZER } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DROGA as DROGA_GLOWNA, DROGA_SZER } from './swiat.js';
 
 const TAU = Math.PI * 2;
 export const PX = 2;                       // ile pikseli obrazka na jednostkę świata
@@ -74,15 +74,17 @@ export function plamyZiemi() {
 // Droga do chaty w połowie rozdzielczości świata: wydeptana ziemia z miękkimi brzegami, dwie koleiny, kamyki
 // i kreski tuszem wzdłuż brzegów, jak w rysunkach z arkuszy (Patryk, 25 XI 13:12).
 export const SKALA_DROGI = 1;   // 25 XI: płótno tylko wokół drogi (RAMKA_DROGI), więc stać nas na pełną rozdzielczość kafla
-export const RAMKA_DROGI = (() => {
-  const x0 = Math.max(0, Math.min(...DROGA.map(p => p.x)) - 120), y0 = Math.max(0, Math.min(...DROGA.map(p => p.y)) - 120);
-  const x1 = Math.min(SZER, Math.max(...DROGA.map(p => p.x)) + 120), y1 = Math.min(WYS, Math.max(...DROGA.map(p => p.y)) + 120);
+export function ramkaDrogi(D) {
+  const x0 = Math.max(0, Math.min(...D.map(p => p.x)) - 120), y0 = Math.max(0, Math.min(...D.map(p => p.y)) - 120);
+  const x1 = Math.min(SZER, Math.max(...D.map(p => p.x)) + 120), y1 = Math.min(WYS, Math.max(...D.map(p => p.y)) + 120);
   return { x: x0, y: y0, w: Math.ceil(x1 - x0), h: Math.ceil(y1 - y0) };
-})();
+}
+export const RAMKA_DROGI = ramkaDrogi(DROGA_GLOWNA);
 // lata: łata nawierzchni z rysunku ziemi Przemka (grafika/droga.webp, narzedzia/kafel-drogi.py). Kładziona wzdłuż drogi
 // pod losowymi kątami, żeby się nie powtarzała jak kafel, i przycinana miękko do kształtu drogi. Bez niej: sama farba.
-export function obrazDrogi(lata = null, kafel = null) {
-  const s = SKALA_DROGI, c = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s), r = losowe(7);
+export function obrazDrogi(lata = null, kafel = null, DROGA = DROGA_GLOWNA, ziarno = 7) {
+  const RAMKA_DROGI = ramkaDrogi(DROGA);
+  const s = SKALA_DROGI, c = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s), r = losowe(ziarno);
   let g = c.getContext('2d');
   g.scale(1 / s, 1 / s); g.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y);  g.lineCap = 'round'; g.lineJoin = 'round';
   const linia = (przes, szer, kolor) => {
