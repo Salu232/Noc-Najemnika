@@ -283,7 +283,12 @@ function aktualizujBohatera(gra, dt, w) {
   }
 
   if (w.atakStart) b.kolejkaAtaku = true;
-  const mozeUnik = w.unik && b.sila >= kosztUniku(gra, b) && !(b.chwyt > 0);   // z chwytu topielca nie da się przeturlać
+  // unik zapamiętany na 0,3 s (27 XI 19:04, Przemek: „po raz 10 przyciskam unik”, a postać kończy animację):
+  // wciśnięty w trakcie cięcia, zachwiania albo innego uniku wykona się, gdy tylko będzie mógł
+  if (w.unik) b.unikChce = gra.czas;
+  const chceUnik = w.unik || (b.unikChce != null && gra.czas - b.unikChce < 0.3);
+  const mozeUnik = chceUnik && b.sila >= kosztUniku(gra, b) && !(b.chwyt > 0);   // z chwytu topielca nie da się przeturlać
+  if (mozeUnik) b.kolejkaAtaku = false;                                       // unik ma pierwszeństwo przed kolejnym ciosem
   if (w.unik && !mozeUnik && gra.czas - (b.zadyszkaOd ?? -9) > 2.5 && gra.mysl.czas < 0.5) { b.zadyszkaOd = gra.czas; powiedz(gra, 'Brak tchu. Nie przeturlam się.', 1.2); }
 
   // klątwa: z wolnego stanu albo w trakcie brania zamachu, gdy pasek jest pełny
@@ -315,7 +320,7 @@ function aktualizujBohatera(gra, dt, w) {
       }
     } else if (c.faza === 'powrot') {
       const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0);
-      if (mozeUnik && !c.utknal) zacznijUnik(gra, rx, ry, rl);           // unik przerywa powrót miecza
+      if (mozeUnik) zacznijUnik(gra, rx, ry, rl);                       // unik przerywa powrót miecza, także gdy ostrze utknęło w ciężkim
       else if (c.t >= koniec) {
         b.stan = 'wolny'; b.cios = null; b.seriaCzas = BOHATER.oknoSerii;
         if (b.kolejkaAtaku && !w.blok) zacznijCios(gra, w, true);
@@ -331,6 +336,7 @@ function aktualizujBohatera(gra, dt, w) {
     if (b.t >= cfg.czas) { b.stan = 'wolny'; if (b.kolejkaAtaku) zacznijCios(gra, w); }
   } else if (b.stan === 'zachwiany') {
     b.t += dt; if (b.t >= b.trwanie) b.stan = 'wolny';
+    else if (mozeUnik && b.t >= b.trwanie * 0.5) { b.stan = 'wolny'; zacznijUnik(gra, rx, ry, rl); }   // z drugiej połowy zachwiania da się wyturlać
   } else if (b.stan === 'klatwa') {
     b.t += dt;
     if (!b.klatwaUderzyla && b.t >= KLATWA.ladowanie) uderzKlatwa(gra);
@@ -439,7 +445,7 @@ function zuzyjSile(b, ile) { b.sila = Math.max(0, b.sila - ile); b.odnowaZa = BO
 
 function zacznijUnik(gra, rx, ry, rl) {
   const b = gra.bohater;
-  b.stan = 'unik'; b.t = 0; b.cios = null; b.blok = false;
+  b.stan = 'unik'; b.t = 0; b.cios = null; b.blok = false; b.unikChce = null;
   b.unikKat = rl > 0.2 ? Math.atan2(ry, rx) : b.kat + Math.PI;     // bez kierunku: odskok do tyłu
   const u = BOHATER.unik, pion = Math.abs(Math.sin(b.unikKat)) > 0.7;   // w górę i w dół pełny przewrót przez głowę: wolniej i krócej
   b.unikCzas = pion ? u.czasPion : u.czas; b.unikDystans = pion ? u.dystansPion : u.dystans;
