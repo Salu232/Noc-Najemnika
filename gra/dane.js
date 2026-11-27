@@ -6,12 +6,14 @@ export const BOHATER = {
   sila: 100,               // wytrzymałość: ciosy, bloki i uniki ją zużywają
   szybkosc: 165,
   promien: 14,
-  odnowaSily: 34,          // ile wytrzymałości wraca na sekundę
-  opoznienieOdnowy: 0.6,   // po ilu sekundach od wysiłku zaczyna wracać
+  // 27 XI 19:33 (Przemek: „kondycja bardzo sprawnie to zabija”, Patryk: „lżej dla wszystkich, ciężar zostaje”): było 34 na sekundę i 0,6 s przerwy
+  odnowaSily: 44,          // ile wytrzymałości wraca na sekundę
+  opoznienieOdnowy: 0.35,  // po ilu sekundach od wysiłku zaczyna wracać
 
   // 27 XI (Patryk): uniki pod rząd męczą coraz bardziej. Każdy kolejny w ciągu `seriaCzas` s kosztuje o `seria` więcej (24, 35, 46…),
   // więc z pełnej wytrzymałości wychodzą dwa, trzeci już nie: zostaje blok.
-  unik: { koszt: 24, seria: 0.45, seriaCzas: 1.6, czas: 0.4, dystans: 150, nietykalny: 0.36, czasPion: 0.6, dystansPion: 135, nietykalnyPion: 0.44 },   // 25 XI 20:54 Patryk: przewroty w górę i w dół „strasznie szybkie” (23 klatki w 0,4 s), więc w pionie 0,6 s
+  // 27 XI 19:33: było koszt 24, seria 0.45 (24, 35, 46…); teraz 20, 26, 32…, z pełnej trzy pod rząd
+  unik: { koszt: 20, seria: 0.3, seriaCzas: 1.6, czas: 0.4, dystans: 150, nietykalny: 0.36, czasPion: 0.6, dystansPion: 135, nietykalnyPion: 0.44 },   // 25 XI 20:54 Patryk: przewroty w górę i w dół „strasznie szybkie” (23 klatki w 0,4 s), więc w pionie 0,6 s
   // 25 XI: 0,36, bo przewrót rusza wolniej z przysiadu; 24 XI: przewrót z filmu, więc trochę dłuższy niż dawny odskok (0,32 s)
   // 24 XI 15:17, Patryk: blok „bardziej efektywniejszy”. Było: koszt 14 (ciężki ×3), parowanie 0,18 s, spowolnienie 0,45, kąt 1,35 rad,
   // odrzut 160, ciężki cios przez blok 50% ran, odnowa siły w bloku 30%. Teraz blok obraca się sam do atakującego (bez myszki),
@@ -46,15 +48,15 @@ export const BRONIE = {
   poltorareczny: {
     nazwa: 'Miecz', opis: 'Szybki i pewny. Ghul pada od jednego albo dwóch cięć, a w kolosie miecz grzęźnie.',
     dlugosc: 72, szerokosc: 3.8,
-    zamach: 0.17, ciecie: 0.13, powrot: 0.26, zasieg: 110, luk: 1.05,
-    obrazenia: 2, odrzut: 260, koszt: 13, krok: 50, ruch: 0.35,
+    zamach: 0.17, ciecie: 0.13, powrot: 0.2, zasieg: 110, luk: 1.05,   // 27 XI 19:33: powrót 0,26 → 0,2, koszt 13 → 10
+    obrazenia: 2, odrzut: 260, koszt: 10, krok: 50, ruch: 0.35,
     przerywa: false, przecinaCiezkich: false, ladowanie: 0.6,
   },
   wielki: {
     nazwa: 'Dwuręczny', opis: 'Ciężki i wolny. Ghula zabija jedno cięcie, a miecz przechodzi nawet przez kolosa.',
     dlugosc: 92, szerokosc: 5.6,
-    zamach: 0.3, ciecie: 0.17, powrot: 0.42, zasieg: 128, luk: 1.2,
-    obrazenia: 3, odrzut: 420, koszt: 20, krok: 70, ruch: 0.2,
+    zamach: 0.3, ciecie: 0.17, powrot: 0.34, zasieg: 128, luk: 1.2,    // 27 XI 19:33: powrót 0,42 → 0,34, koszt 20 → 16
+    obrazenia: 3, odrzut: 420, koszt: 16, krok: 70, ruch: 0.2,
     przerywa: false, przecinaCiezkich: true, ladowanie: 0.8,
   },
 };
@@ -204,8 +206,9 @@ export const ETAPY = [
   {
     nazwa: 'Coś przy totemach',
     mysl: 'Ręka pali. Powietrze pęka jak lód.',
-    zlosc: { szybkosc: 1.05, odpoczynek: 0.95, zycie: 1, obrazenia: 1 },
-    grupy: [{ typ: 'ghul', ile: 5, z: ['zachod', 'wschod'], co: 1.6 }],
+    // pierwsza fala uczy (27 XI 19:33, Przemek: godzina bez przejścia pierwszej rundy): było szybkosc 1.05, odpoczynek 0.95, zycie 1, co 1.6 s
+    zlosc: { szybkosc: 0.95, odpoczynek: 1.2, zycie: 0.75, obrazenia: 0.85 },
+    grupy: [{ typ: 'ghul', ile: 5, z: ['zachod', 'wschod'], co: 2.4 }],
   },
   {
     nazwa: 'Kilku',
@@ -248,7 +251,7 @@ export const NOC = {
   mroczek: 0.8,            // jak ciemna jest noc (0 to dzień)
   swit: 5,                 // jak długo wstaje świt po ostatnim etapie
   switBoss: 23,            // świt po rycerzu: wschód słońca, klątwa schodzi z polany, trzy myśli bohatera
-  powrot: 2.6,             // ile trwa powrót przy ognisku po upadku
+  powrot: 1.8,             // ile trwa powrót przy ognisku po upadku (27 XI 19:33: było 2,6; Przemek: „patrzenie się, jak twoja postać umiera”)
 };
 
 // ---------- Cele nocy (propozycje Claude'a, Patryk 24 XI 18:41: „każdy pomysł … można je spróbować dodać”) ----------

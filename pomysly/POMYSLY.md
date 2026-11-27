@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 27 XI 2026 | Przemek, decyzja Patryka („lżej dla wszystkich, ciężar zostaje”) | Za dużo czekania, kondycja zabija, godzina bez przejścia 1. fali | Zrobione | Kondycja wraca 44/s po 0,35 s (było 34/s po 0,6 s); unik 20, 26, 32 (było 24, 35, 46); cios 10/16 (było 13/20); powrót miecza 0,2/0,34 s (było 0,26/0,42); wstawanie z przewrotu przerywa cios albo unik; po upadku 1,8 s (było 2,6); 1. fala: ghule słabsze i co 2,4 s |
 | 27 XI 2026 | Przemek (przez Patryka) | Za długo trzeba czekać na obronę po ataku | Zrobione | Blok przerywa powrót miecza: było 0,3–0,6 s, teraz 0,03 s po cięciu, najwyżej 0,17 s w trakcie samego cięcia. Cios kliknięty przed blokiem nie wyskakuje sam po jego puszczeniu |
 | 27 XI 2026 | Przemek (przez Patryka) | Sprint, bo jedyną drogą od wroga jest unik, a na unik brak kondycji | Zrobione | Unik trzymany dłużej: po przewrocie bohater biegnie ×1,5, 20 kondycji na sekundę (ok. 4 s z pełnej). Po zadyszce trzeba puścić i wcisnąć znowu |
 | 27 XI 2026 | Przemek (przez Patryka) | Kółko kondycji tym wyraźniejsze, im mniej jej zostało | Zrobione | Przezroczystość: prawie pełne ledwo widać, puste mocno |

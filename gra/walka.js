@@ -338,6 +338,10 @@ function aktualizujBohatera(gra, dt, w) {
     const v = cfg.dystans / cfg.czas / 0.7036 * (0.3 * (1 - p) + Math.sin(Math.PI * Math.min(1, p * 1.15)));
     b.x += Math.cos(b.unikKat) * v * dt; b.y += Math.sin(b.unikKat) * v * dt;
     if (b.t >= cfg.czas) { b.stan = 'wolny'; if (b.kolejkaAtaku) zacznijCios(gra, w); }
+    else if (b.t >= cfg.czas * 0.75 && b.nietykalny <= 0) {               // wstawanie z przewrotu przerywa cios albo następny unik (27 XI 19:33, Przemek: „czekać, aż animacja wykona się do końca”)
+      if (mozeUnik) { b.stan = 'wolny'; zacznijUnik(gra, rx, ry, rl); }
+      else if (b.kolejkaAtaku) { b.stan = 'wolny'; zacznijCios(gra, w); }
+    }
   } else if (b.stan === 'zachwiany') {
     b.t += dt; if (b.t >= b.trwanie) b.stan = 'wolny';
     else if (mozeUnik && b.t >= b.trwanie * 0.5) { b.stan = 'wolny'; zacznijUnik(gra, rx, ry, rl); }   // z drugiej połowy zachwiania da się wyturlać
