@@ -266,8 +266,9 @@ function aktualizujBohatera(gra, dt, w) {
     else if (rl > 0.2) b.kat = Math.atan2(ry, rx);
   }
 
-  // blok przerywa branie zamachu i ładowanie, ale nie samo cięcie ani powrót miecza
-  if (w.blok && b.stan === 'cios' && (b.cios.faza === 'zamach' || b.cios.faza === 'laduje')) { b.stan = 'wolny'; b.cios = null; b.kolejkaAtaku = false; }
+  // blok przerywa branie zamachu, ładowanie i powrót miecza; samego cięcia nie (27 XI 19:20, Przemek: „sprawdź, jak szybko możesz użyć obrony po ataku”:
+  // było 0,3–0,6 s czekania na powrót miecza, teraz najwyżej tyle, ile trwa cięcie, 0,13–0,17 s)
+  if (w.blok && b.stan === 'cios' && b.cios.faza !== 'ciecie') { b.stan = 'wolny'; b.cios = null; b.kolejkaAtaku = false; }
   const chceBlok = w.blok && b.stan === 'wolny';
   if (chceBlok && !b.blok) b.blokOd = gra.czas;
   b.blok = chceBlok;
@@ -282,7 +283,8 @@ function aktualizujBohatera(gra, dt, w) {
     if (cel) { const r = rozn(Math.atan2(cel.y - b.y, cel.x - b.x), b.kat), k = Math.min(Math.abs(r), BOHATER.blok.obrot * dt); b.kat += Math.sign(r) * k; }
   }
 
-  if (w.atakStart) b.kolejkaAtaku = true;
+  if (w.blok) b.kolejkaAtaku = false;                                      // cios kliknięty przed blokiem nie wyskakuje sam po jego puszczeniu
+  else if (w.atakStart) b.kolejkaAtaku = true;
   // unik zapamiętany na 0,3 s (27 XI 19:04, Przemek: „po raz 10 przyciskam unik”, a postać kończy animację):
   // wciśnięty w trakcie cięcia, zachwiania albo innego uniku wykona się, gdy tylko będzie mógł
   if (w.unik) b.unikChce = gra.czas;
@@ -347,7 +349,14 @@ function aktualizujBohatera(gra, dt, w) {
 
   // ruch: z ciężkim mieczem w ręku idzie się wolniej
   let v = 0;
-  if (b.stan === 'wolny') v = BOHATER.szybkosc * (b.blok ? BOHATER.blok.spowolnienie : 1);
+  // bieg (27 XI 19:20, Przemek: „nie myślałeś dodać mu sprintu?”): unik trzymany dłużej. Przewrót rusza od razu jak dotąd,
+  // a kto dalej trzyma spację albo przycisk Unik, po przewrocie biegnie i traci kondycję. Bez kondycji wraca do chodu.
+  const sp = BOHATER.bieg;
+  if (!w.unikTrzyma) b.bezTchuBieg = false;                                  // po zadyszce trzeba puścić i wcisnąć jeszcze raz
+  if (!w.unikTrzyma || b.stan !== 'wolny' || b.blok || rl < 0.3 || b.chwyt > 0 || b.bezTchuBieg) b.biegnie = false;
+  else if (!b.biegnie && b.sila >= sp.min) b.biegnie = true;
+  if (b.biegnie) { zuzyjSile(b, sp.koszt * dt); if (b.sila <= 0) { b.biegnie = false; b.bezTchuBieg = true; gra.zdarzenia.push({ typ: 'brak_tchu' }); } }
+  if (b.stan === 'wolny') v = BOHATER.szybkosc * (b.blok ? BOHATER.blok.spowolnienie : b.biegnie ? sp.szybciej : 1);
   // W bloku nie sunie po mapie (Patryk, 24 XI 19:09: „jak blokuje to jeździ po mapie”), tylko drobi krótkie kroki w gardzie:
   // prędkość idzie falą, krok i chwila postoju. Rysowanie dokłada do tego lekkie ugięcie kolan.
   if (b.stan === 'wolny' && b.blok && rl > 0.05) { b.krokGardy = (b.krokGardy || 0) + dt * TAU * BOHATER.blok.krokiNaSekunde; v *= 1 - (gra.bronKlucz === 'wielki' ? 1 : 0.6) * Math.cos(b.krokGardy); }   // krok i postój pod filmy cofania; zwykły miecz łagodniej (Patryk, 25 XI 15:34: „przeskakuje”)

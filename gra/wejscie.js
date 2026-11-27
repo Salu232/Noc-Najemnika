@@ -1,6 +1,6 @@
 // Sterowanie.
 // Komputer: WASD albo strzałki, mysz celuje. Lewy przycisk tnie; przytrzymany ładuje mocny cios, który wychodzi po puszczeniu.
-//   Prawy przycisk albo Shift blokuje, spacja to unik, R to klątwa (gdy jej pasek jest pełny), E to czynność (np. sen na posłaniu w chacie).
+//   Prawy przycisk albo Shift blokuje, spacja to unik (trzymana: bieg po przewrocie), R to klątwa (gdy jej pasek jest pełny), E to czynność (np. sen na posłaniu w chacie).
 // Telefon: lewy kciuk chodzi. Prawy kciuk tnie: przycisk Tnij (albo dowolne miejsce po prawej) działa jak drążek.
 //   Stuknięcie tnie najbliższego wroga, przeciągnięcie celuje, a przytrzymanie ładuje mocny cios.
 //   Przyciski Blok, Unik i Klątwa są obok.
@@ -9,12 +9,12 @@ const CELOWANIE = 16;    // od ilu pikseli przeciągnięcia palec celuje, a nie 
 
 export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
   const klawisze = new Set();
-  const w = { ruchX: 0, ruchY: 0, kat: null, atakStart: false, atakTrzyma: false, atakKat: null, blok: false, unik: false, klatwa: false, akcja: false, mikstura: false };
+  const w = { ruchX: 0, ruchY: 0, kat: null, atakStart: false, atakTrzyma: false, atakKat: null, blok: false, unik: false, unikTrzyma: false, klatwa: false, akcja: false, mikstura: false };
   const jednorazowe = { atak: false, unik: false, klatwa: false, akcja: false, mikstura: false };
   const mysz = { x: 0, y: 0, jest: false, blok: false, atak: false };
   const drazek = { id: null, ox: 0, oy: 0, x: 0, y: 0 };
   const atak = { id: null, ox: 0, oy: 0, x: 0, y: 0, celuje: false };
-  let blokPrzyciskiem = false, dotyk = false;
+  let blokPrzyciskiem = false, unikPrzyciskiem = false, dotyk = false;
 
   function pokazDotyk() { if (!dotyk) { dotyk = true; elementy.przyciski.hidden = false; } }
   try { if (matchMedia('(pointer: coarse)').matches) pokazDotyk(); } catch (e) { /* stara przeglądarka */ }
@@ -33,7 +33,7 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
     if (k === 'q') jednorazowe.mikstura = true;                // mikstura z łupu
   });
   addEventListener('keyup', e => klawisze.delete(e.key.toLowerCase()));
-  addEventListener('blur', () => { klawisze.clear(); mysz.blok = mysz.atak = false; blokPrzyciskiem = false; drazek.id = null; atak.id = null; pokazDrazki(); });
+  addEventListener('blur', () => { klawisze.clear(); mysz.blok = mysz.atak = false; blokPrzyciskiem = false; unikPrzyciskiem = false; drazek.id = null; atak.id = null; pokazDrazki(); });
 
   // ---------- atak palcem: wspólne dla przycisku Tnij i prawej strony ekranu ----------
   function atakDol(id, x, y) {
@@ -103,7 +103,9 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
   blok.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); blokPrzyciskiem = true; blok.classList.add('wcisniety'); try { blok.setPointerCapture(e.pointerId); } catch (_) { /* */ } });
   const puscBlok = () => { blokPrzyciskiem = false; blok.classList.remove('wcisniety'); };
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) blok.addEventListener(ev, puscBlok);
-  unik.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.unik = true; unik.classList.add('wcisniety'); setTimeout(() => unik.classList.remove('wcisniety'), 120); });
+  unik.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.unik = true; unikPrzyciskiem = true; unik.classList.add('wcisniety'); try { unik.setPointerCapture(e.pointerId); } catch (_) { /* */ } });
+  const puscUnik = () => { unikPrzyciskiem = false; unik.classList.remove('wcisniety'); };   // trzymany dalej: bieg
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) unik.addEventListener(ev, puscUnik);
   klatwa.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.klatwa = true; klatwa.classList.add('wcisniety'); setTimeout(() => klatwa.classList.remove('wcisniety'), 120); });
   if (elementy.mikstura) elementy.mikstura.addEventListener('pointerdown', e => { e.preventDefault(); pokazDotyk(); jednorazowe.mikstura = true; });
   for (const el of [tnij, blok, unik, klatwa]) el.addEventListener('contextmenu', e => e.preventDefault());
@@ -142,6 +144,7 @@ export function przygotujWejscie(cv, { ekranNaSwiat, elementy }) {
     w.atakKat = atak.id !== null && atak.celuje ? Math.atan2(atak.y - atak.oy, atak.x - atak.ox) : null;
     w.atakTrzyma = mysz.atak || atak.id !== null || klawisze.has('j');
     w.blok = mysz.blok || blokPrzyciskiem || klawisze.has('shift') || klawisze.has('k');
+    w.unikTrzyma = unikPrzyciskiem || klawisze.has(' ');
     w.atakStart = jednorazowe.atak; w.unik = jednorazowe.unik; w.klatwa = jednorazowe.klatwa; w.akcja = jednorazowe.akcja; w.mikstura = jednorazowe.mikstura;
     jednorazowe.atak = false; jednorazowe.unik = false; jednorazowe.klatwa = false; jednorazowe.akcja = false; jednorazowe.mikstura = false;
     return w;

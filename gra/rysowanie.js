@@ -1269,7 +1269,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       stanRys.tchuPelny = f >= 0.995 && !malo ? (stanRys.tchuPelny || 0) + dt : 0;
       stanRys.tchuAlfa = ogr((stanRys.tchuAlfa || 0) + (stanRys.tchuPelny > 0.7 || b.stan === 'upadl' || b.spi || b.wChacie ? -dt * 3 : dt * 6), 0, 1);
       stanRys.brakTchu = Math.max(0, (stanRys.brakTchu || 0) - dt * 2.5);
-      const a = stanRys.tchuAlfa, puls = stanRys.brakTchu;
+      const puls = stanRys.brakTchu, a = stanRys.tchuAlfa * Math.max(malo ? 1 : 0.2 + 0.8 * (1 - f), puls);   // im mniej kondycji, tym wyraźniejsze (Przemek, 19:20)
       if (a > 0.01) {
         const x = b.x + 30, y = b.y - 92, r = 10 + 4 * puls;
         znaki.lineStyle(5, 0x000000, 0.5 * a); znaki.drawCircle(x, y, r);

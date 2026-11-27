@@ -8,6 +8,9 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 27 XI 2026 | Przemek (przez Patryka) | Za długo trzeba czekać na obronę po ataku | Zrobione | Blok przerywa powrót miecza: było 0,3–0,6 s, teraz 0,03 s po cięciu, najwyżej 0,17 s w trakcie samego cięcia. Cios kliknięty przed blokiem nie wyskakuje sam po jego puszczeniu |
+| 27 XI 2026 | Przemek (przez Patryka) | Sprint, bo jedyną drogą od wroga jest unik, a na unik brak kondycji | Zrobione | Unik trzymany dłużej: po przewrocie bohater biegnie ×1,5, 20 kondycji na sekundę (ok. 4 s z pełnej). Po zadyszce trzeba puścić i wcisnąć znowu |
+| 27 XI 2026 | Przemek (przez Patryka) | Kółko kondycji tym wyraźniejsze, im mniej jej zostało | Zrobione | Przezroczystość: prawie pełne ledwo widać, puste mocno |
 | 27 XI 2026 | Przemek (przez Patryka) | Gracz musi wiedzieć, że nie ma kondycji na unik: osobny dźwięk, czytelniejsza kondycja | Zrobione | Kółko kondycji nad głową (chowa się przy pełnej), czerwone i pulsuje przy próbie uniku bez tchu; dźwięk „zadyszki”; przycisk Unik szarzeje |
 | 2026-11-27 | Przemek (przez Patryka) | Unik nie reaguje: „po raz 10 przyciskam unik”, a postać kończy animację | zrobione | Unik zapamiętany 0,3 s (wciśnięty w trakcie cięcia wykona się zaraz po nim), przerywa też powrót miecza, który utknął w ciężkim, i drugą połowę zachwiania; ma pierwszeństwo przed kolejnym ciosem. |
 | 2026-11-27 | Patryk i Przemek | Psy (bestie): skok zmienia kierunek w locie i prawie nie da się go ominąć | zrobione | Celuje tylko przez pierwsze 40% przysiadu, potem kierunek zamrożony; na ziemi czerwona smuga i krąg lądowania; trafia tylko w pierwszych 85% lotu i z mniejszego zasięgu. W symulacji: krok w bok przy wybiciu wystarcza, stanie w miejscu zawsze obrywa. |

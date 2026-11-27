@@ -18,6 +18,8 @@ export const BOHATER = {
   // a zablokowany ghul odskakuje i musi się zebrać (odpoczynek), więc blok daje okazję do cięcia.
   // 24 XI 19:09, Patryk: w bloku „jeździ po mapie”. Było spowolnienie 0,55 płynnie; teraz 0,3 krótkimi krokami (2,2 na sekundę; 25 XI 1,4, żeby film cofania dwuręcznym nie biegł za szybko),
   // a zablokowany cios cofa go o pół kroku (cofniecie: prędkość odrzutu, ciężki ×2).
+  // bieg: unik trzymany po przewrocie (27 XI, Przemek). szybciej: razy zwykła szybkość, koszt: kondycji na sekundę, min: ile trzeba mieć, żeby ruszyć
+  bieg: { szybciej: 1.5, koszt: 20, min: 10 },
   blok: { kosztNaCios: 9, mnoznikCiezki: 2.2, oknoParowania: 0.25, spowolnienie: 0.3, krokiNaSekunde: 1.4, cofniecie: 70, kat: 1.75, odrzut: 240, ranaCiezka: 0.3, odnowa: 0.5, obrot: 9, zasiegObrotu: 260 },
 
   // Ciosy idą na zmianę: w prawo, w lewo, w prawo… Każdy następny zadany od razu po poprzednim
