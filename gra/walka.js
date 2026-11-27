@@ -1,5 +1,5 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, PORTAL } from './dane.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL } from './dane.js';
 import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
 
 const TAU = Math.PI * 2;
@@ -612,6 +612,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
       powiedz(gra, 'Upadł. Klątwa schodzi z niego jak dym.', 4.5);
       gra.zdarzenia.push({ typ: 'bossPadl', x: e.x, y: e.y });
     }
+    const gr = GROSZE[e.typ.nazwa] || 0; if (gr) { gra.grosze += gr; gra.zdarzenia.push({ typ: 'grosze_z', ile: gr, x: e.x, y: e.y }); }
     if (!zKlatwy) gra.bohater.klatwa = Math.min(1, gra.bohater.klatwa + KLATWA.zaZabicie * gra.mod.klatwa);
     if (Math.random() < (e.typ.ciezki ? LUP.szansaKolos : LUP.szansaGhul)) gra.lup.push({ typ: 'mikstura', x: e.x + losuj(-10, 10), y: e.y + losuj(-6, 6), t: 0 });
     // rzeczy do plecaka (26 XI): pazur z ghula, kieł z kolosa, krew z wiedźmy, z rycerza przyłbica i amulet (te nie znikają)

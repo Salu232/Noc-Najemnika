@@ -65,7 +65,7 @@ export const MOCNY = { luk: 0.7, zasieg: 1.15, obrazenia: 2.5, odrzut: 1.8, kosz
 // Pasek klątwy napełnia się od trafień i zabitych; na początku nocy jest pełny, żeby dało się ją od razu wypróbować.
 export const KLATWA = {
   ladowanie: 0.45, uderzenie: 0.25, wstawanie: 0.5,   // sekundy: unosi rękę, uderza, wstaje
-  zasieg: 190, obrazenia: 3, odrzut: 620,
+  zasieg: 190, obrazenia: 5, odrzut: 620,   // 27 XI: było 3; po podniesieniu życia klątwa dalej rozbija ghule
   zaTrafienie: 0.04, zaZabicie: 0.1, start: 1,
 };
 
@@ -80,7 +80,7 @@ export const CHATA_ODPOCZYNEK = { zasiegDrzwi: 70, leczenie: 2, leczenieSen: 9, 
 export const WROGOWIE = {
   ghul: {
     nazwa: 'ghul',
-    zycie: [2, 3],         // losowo od-do
+    zycie: [3, 4],       // 27 XI (Patryk: „żeby ich na hita nie ubijać”): było 2–3         // losowo od-do
     szybkosc: [80, 105],
     promien: 13,
     skala: 1.25,
@@ -93,7 +93,7 @@ export const WROGOWIE = {
   },
   kolos: {
     nazwa: 'kolos',
-    zycie: [8, 8],
+    zycie: [16, 16],     // 27 XI: elita, było 8
     szybkosc: [42, 48],
     promien: 30,
     skala: 2.3,
@@ -110,7 +110,7 @@ export const WROGOWIE = {
   // Gdy bohater podejdzie, cofa się, ale wolno, więc warto do niej dobiec.
   wiedzma: {
     nazwa: 'wiedzma',
-    zycie: [3, 4],
+    zycie: [6, 7],       // 27 XI: było 3–4
     szybkosc: [88, 104],   // 25 XI 15:09, Patryk: „musi się żywiej ruszać jak te nasze ghule” (było 52–62)
     promien: 14,
     skala: 1.3,
@@ -128,7 +128,7 @@ export const WROGOWIE = {
   // Po pudle długo się zbiera: wtedy jest okazja do cięcia.
   bestia: {
     nazwa: 'bestia',
-    zycie: [3, 4],
+    zycie: [6, 7],       // 27 XI: było 3–4
     szybkosc: [125, 145],
     promien: 16,
     skala: 1.3,
@@ -146,7 +146,7 @@ export const WROGOWIE = {
   rycerz: {
     nazwa: 'rycerz',
     boss: true,
-    zycie: [26, 26],      // razy 1,5 z ostatniej nocy: 39, przemiana przy 20 (25 XI 21:46, Patryk: „za prosty”; było 18)
+    zycie: [36, 36],      // razy 1,5 z ostatniej nocy: 54, przemiana przy 27 (27 XI: było 26; 25 XI: 18)
     szybkosc: [58, 64],
     promien: 26,
     skala: 2.0,
@@ -237,6 +237,8 @@ export const NOC = {
 export const TOTEM = { zycie: 24, zaKlatwe: 6 };
 
 // Łup: z potwora czasem wypada mikstura (z kolosa zawsze). Mikstura leczy od razu; Q albo przycisk na telefonie.
+// Grosze z potworów (27 XI, Patryk: „przy pierwszej i drugiej fali nie masz kasy”): wpadają od razu do sakiewki.
+export const GROSZE = { ghul: 2, bestia: 3, wiedzma: 4, kolos: 8, rycerz: 0 };
 export const LUP = { szansaGhul: 0.12, szansaKolos: 1, leczy: 40, max: 3, start: 1, zasiegPodniesienia: 34, znika: 25 };
 
 // Ognisko gaśnie: pełne starcza na czas sekund, światło kurczy się do minimum. Drewno bierze się ze stosu pod ścianą
