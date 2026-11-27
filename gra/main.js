@@ -1,5 +1,5 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole, sprzedaj, kupMiksture, mozeKupic, odejdzOdHandlarza, kupTowar, mozeKupicTowar, maxMikstur } from './walka.js';
+import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole, sprzedaj, kupMiksture, mozeKupic, odejdzOdHandlarza, kupTowar, mozeKupicTowar, maxMikstur, stanDoPrzeniesienia, przeniesStan } from './walka.js';
 import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ, LUP } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
@@ -102,15 +102,16 @@ async function start() {
     prolog(wznow);
   });
   // Prolog (26 XI): zdania na czarnym tle, każde po kilku sekundach albo po dotknięciu; potem bohater przychodzi na polanę.
+  const PROLOG = BAGNO ? WSTEP.prologBagno : WSTEP.prolog;
   function prolog(potem) {
     const el = $('prolog'), tekst = $('prolog-tekst'); tekst.textContent = ''; pokaz('prolog', true);
     let i = 0, czekaj = null, koniec = false;
     const zakoncz = () => { if (koniec) return; koniec = true; clearTimeout(czekaj); removeEventListener('keydown', klawisz, true); pokaz('prolog', false); potem(); };
     const nastepne = () => {
       clearTimeout(czekaj);
-      if (i >= WSTEP.prolog.length) { zakoncz(); return; }
+      if (i >= PROLOG.length) { zakoncz(); return; }
       for (const p of tekst.children) p.classList.add('minione');
-      const p = document.createElement('p'); p.textContent = WSTEP.prolog[i++]; tekst.append(p);
+      const p = document.createElement('p'); p.textContent = PROLOG[i++]; tekst.append(p);
       requestAnimationFrame(() => requestAnimationFrame(() => p.classList.add('widac')));
       if (i === 1) setTimeout(() => $('prolog-dalej').classList.add('widac'), 2500);
       czekaj = setTimeout(nastepne, 1800 + p.textContent.length * 55);
@@ -127,20 +128,32 @@ async function start() {
   document.addEventListener('visibilitychange', () => { if (document.hidden) zatrzymaj(); });
   const napisBohatera = () => { for (const x of document.querySelectorAll('.przycisk-bohater')) { x.hidden = !rys.maBohateraZGemini; x.textContent = rys.bohater === 'gemini' ? 'Bohater: z Gemini' : 'Bohater: rysowany kodem'; } };
   napisBohatera();
-  // Mapa (27 XI): polana albo bagno w próbie. Wybór zostaje w przeglądarce, gra przeładowuje się z nową mapą.
-  if ($('przycisk-mapa')) {
-    $('przycisk-mapa').textContent = BAGNO ? 'Mapa: bagno (próba)' : 'Mapa: polana';
-    if (BAGNO) {                                                       // od razu widać, na której mapie jesteś
-      const h = document.querySelector('#ekran-startu h1') || document.querySelector('h1'); if (h) h.textContent = 'Bagno wiedźmy (próba)';
-      const w = h && h.nextElementSibling; if (w) w.textContent = 'Próba drugiego rozdziału. Woda, martwy las i topielce, które chwytają. Tnij, żeby puściły. Reszta jeszcze z polany.';
-    }
-    $('przycisk-mapa').addEventListener('click', () => {
-      const nowa = BAGNO ? 'polana' : 'bagno';
-      try { window.name = 'noc-mapa=' + nowa; } catch (e) { /* */ }
-      try { localStorage.setItem('noc-mapa', nowa); } catch (e) { /* bez pamięci */ }
-      location.reload();
-    });
+  // Bagno to drugi rozdział (27 XI, Patryk: „musi być połączone ze sobą”): wchodzi się tam tylko po świcie nad polaną,
+  // przyciskiem „Idź na bagno”. Bohater zabiera monety, mikstury, plecak, pas i ulepszenia ze stołu.
+  // Przeładowanie strony niesie mapę i stan w window.name (działa też tam, gdzie przeglądarka nie daje pamięci).
+  function przejdz(mapa, stan) {
+    let n = 'noc-mapa=' + mapa;
+    if (stan) n += ';noc-stan=' + encodeURIComponent(JSON.stringify(stan));
+    try { window.name = n; } catch (e) { /* */ }
+    try { localStorage.setItem('noc-mapa', mapa); if (stan) localStorage.setItem('noc-stan', JSON.stringify(stan)); else localStorage.removeItem('noc-stan'); } catch (e) { /* bez pamięci */ }
+    location.reload();
   }
+  let stanZPolany = null;
+  if (BAGNO) {
+    try { const m = /noc-stan=([^;]*)/.exec(window.name || ''); if (m) stanZPolany = JSON.parse(decodeURIComponent(m[1])); } catch (e) { /* */ }
+    if (!stanZPolany) try { const z = localStorage.getItem('noc-stan'); if (z) stanZPolany = JSON.parse(z); } catch (e) { /* bez pamięci */ }
+    przeniesStan(gra, stanZPolany);
+    document.title = 'Noc najemnika: bagno wiedźmy';
+    const h = document.querySelector('#ekran-startu h1') || document.querySelector('h1'); if (h) h.textContent = 'Bagno wiedźmy';
+    const w = h && h.nextElementSibling;
+    if (w) w.textContent = stanZPolany
+      ? 'Rozdział drugi. Przyszedłeś z polany z tym, co zostało w plecaku. Woda, martwy las i topielce, które chwytają: tnij, żeby puściły.'
+      : 'Rozdział drugi, wersja próbna (bez rzeczy z polany). Woda, martwy las i topielce, które chwytają: tnij, żeby puściły.';
+  }
+  $('na-bagno').addEventListener('click', () => przejdz('bagno', stanDoPrzeniesienia(gra)));
+  // skrót do prób, póki bagno się buduje: w pauzie, nie na ekranie startu
+  $('przeskocz-mapa').textContent = BAGNO ? 'Próba: wróć na polanę' : 'Próba: przeskocz na bagno';
+  $('przeskocz-mapa').addEventListener('click', () => przejdz(BAGNO ? 'polana' : 'bagno', null));
   for (const b of document.querySelectorAll('.przycisk-bohater')) b.addEventListener('click', () => {
     const t = rys.ustawBohatera(rys.bohater === 'gemini' ? 'rysowany' : 'gemini');
     try { localStorage.setItem('noc-bohater', t); } catch (e) { /* */ }
@@ -150,7 +163,7 @@ async function start() {
     const wl = przelaczDzwiek(); for (const x of document.querySelectorAll('.przycisk-dzwiek')) x.textContent = wl ? 'Dźwięk: włączony' : 'Dźwięk: wyłączony';
   });
   $('jeszcze-raz').addEventListener('click', () => {
-    gra = nowaGra(bron); rys.wyczysc(); pokaz('ekran-konca', false); pauza = false;
+    gra = nowaGra(bron); if (BAGNO) przeniesStan(gra, stanZPolany); rys.wyczysc(); pokaz('ekran-konca', false); pauza = false;
   });
 
   function pokazKoniec() {
@@ -160,15 +173,19 @@ async function start() {
     const zar = gra.przemiana >= PRZEMIANA.prog;
     // po rycerzu (26 XI, Patryk): słońce nad pokonanym, klątwa zeszła z polany, ale to pierwszy etap jej zdejmowania
     const boss = !!gra.bossPadl;
-    $('tytul-konca').textContent = boss ? 'Świt nad polaną' : 'Świt';
-    $('tekst-konca').textContent = boss
+    $('tytul-konca').textContent = BAGNO ? 'Świt na bagnie' : boss ? 'Świt nad polaną' : 'Świt';
+    $('tekst-konca').textContent = BAGNO
+      ? 'Woda się uspokaja, mgła siada na trzcinach. Przetrwałeś noc na bagnie. Wiedźma jeszcze nie wróciła.'
+      : boss
       ? (zar
         ? 'Rycerz leży w trawie, a słońce pierwszy raz od dawna dotyka polany. Klątwa zeszła z tego miejsca, ale żar pod Twoją skórą już nie gaśnie. Ręka pali, kiedy nie tniesz.'
         : 'Rycerz leży w trawie, a słońce pierwszy raz od dawna dotyka polany. Klątwa zeszła z tego miejsca, a żar pod Twoją skórą przygasa. Nie sięgałeś po nią bez potrzeby.')
       : zar
         ? 'Mgła cofa się do lasu, ale żar pod skórą już nie gaśnie. Ręka pali, kiedy nie tniesz. Rycerz pisał, że domek szuka następcy.'
         : 'Mgła cofa się do lasu, a żar pod skórą przygasa. Nie sięgałeś po klątwę bez potrzeby. Może jednak da się ją zdjąć.';
-    $('dalej-konca').hidden = !boss;
+    $('dalej-konca').hidden = !boss || BAGNO;
+    $('na-bagno').hidden = !boss || BAGNO;
+    $('jeszcze-raz').className = $('na-bagno').hidden ? 'glowny' : 'drugi';
     $('dalej-konca').textContent = 'To dopiero pierwszy etap. Rycerz pisał o bagnach wiedźmy: tam jest następny ślad.';
     for (const [co, ile] of [['Zabite potwory', s.zabici], ['Sparowane ciosy', s.parowania], ['Zebrane monety', s.monety || 0], ['Upadki', s.upadki], ['Kartki dziennika', `${gra.kartki} z ${KARTKI.length}`], ['Żar klątwy', `${Math.round(gra.przemiana * 100)}%`], ['Czas', `${min}:${String(sek).padStart(2, '0')}`]]) {
       const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = co; dd.textContent = ile; $('wynik').append(dt, dd);

@@ -76,11 +76,15 @@ Kolejność według tego, co odblokowuje najwięcej pracy. Każdy potwór robimy
 
 Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkusza mikstur. Brakuje jednej ikony kotła: *a black iron cauldron on three legs with green bubbling liquid and steam, in exactly the same drawing style as the attached icons, single object centred on a pure white background, no text.*
 
-## Co już jest w grze (27 XI, adres `?mapa=bagno`)
+## Co już jest w grze (27 XI wieczorem)
 
-- Druga mapa: martwy las, zielonkawa ziemia, sześć oczek wody rysowanych kodem. Głęboka woda jest nie do przejścia, a w płytkiej bohater brnie wolniej (×0,62), potwory też (×0,72). Polana bez zmian.
-- Topielec na klatkach ghula w kolorze mułu: wynurza się z oczka, chwyta na 1,1 s, puszcza po cięciu. Fale na bagnie mają dodatkowo 3 / 5 / 7 / 4 topielców.
-- Jeszcze z polany: chata, ognisko, droga, teksty wstępu i nazwy fal.
+- **Bagno to osobna mapa**, nie polana z kałużami (Patryk, 27 XI: *„wgl inna mapa ma być”*). Prawie wszystko to woda. Jest dziewięć wysp, grobla od południa i kładki między wyspami. Na środkowej wyspie stoi chata wiedźmy na palach z kotłem. Martwe drzewa rosną tylko na wyspach, a trzciny w płytkiej wodzie. Chata i kocioł są na razie rysowane kodem.
+- **Wchodzi się tam tylko z historii** (Patryk, 27 XI: *„musi być połączone ze sobą”*). Po świcie nad polaną, kiedy padnie rycerz, na ekranie końca jest „Idź na bagno”. Bohater zabiera monety, mikstury, plecak z amuletem, pas i ulepszenia ze stołu. Ulepszenia z fal zostają na polanie, bo były „na resztę nocy”. „Jeszcze raz” na bagnie zaczyna bagno od nowa z tymi samymi rzeczami.
+- Na bagnie jest własny prolog, własne zdanie przy przyjściu i przy zapadnięciu nocy.
+- Przycisku mapy na ekranie startu już nie ma. Do prób w menu pauzy jest „Próba: przeskocz na bagno” (bez rzeczy z polany) i z powrotem.
+- W płytkiej wodzie bohater brnie wolniej (×0,62), potwory też (×0,72). Głęboka woda jest nie do przejścia.
+- Topielec ma na razie klatki ghula w kolorze mułu. Wynurza się z wody, chwyta na 1,1 s i puszcza po cięciu. Fale na bagnie mają dodatkowo 3, 5, 7 i 4 topielce.
+- Fale, boss i kartki są jeszcze z polany. Miejsca do obejrzenia przed nocą są już bagienne: kocioł, chata, stos, kładka, wóz i kamień ze znakiem.
 
 ## Co Claude zrobi, zanim przyjdą obrazy
 

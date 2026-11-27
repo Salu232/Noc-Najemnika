@@ -17,6 +17,8 @@ export const BAGNO = MAPA === 'bagno';
 export const CHATA = { obrazSzer: 951, obrazWys: 951, skala: 0.62 };
 CHATA.x = 1600 - (CHATA.obrazSzer * CHATA.skala) / 2;
 CHATA.y = 1020 - 690 * CHATA.skala;               // podstawa ścian (690 w obrazie) leży na y = 1020
+// Na bagnie chaty z polany nie ma: odsuwamy ją daleko poza mapę, więc jej obraz, ściany, drzwi i izba nikomu nie przeszkadzają.
+if (BAGNO) { CHATA.x = -6000; CHATA.y = -6000; }
 const zObrazu = (sx, sy) => ({ x: CHATA.x + sx * CHATA.skala, y: CHATA.y + sy * CHATA.skala });
 CHATA.podstawa = zObrazu(0, 690).y;
 CHATA.okno = zObrazu(597, 567);
@@ -53,10 +55,11 @@ CHATA.ploty = [
   [[30, 805], [395, 900]], [[515, 815], [700, 872]],
 ].map(([p, q]) => [zObrazu(p[0], p[1]), zObrazu(q[0], q[1])]);
 
-export const OGNISKO = { ...zObrazu(455, 1030), promien: 28 };
+// Na bagnie „ognisko” to żar pod kotłem wiedźmy przed jej chatą: ten sam ogień do pilnowania, inne miejsce.
+export const OGNISKO = BAGNO ? { x: 1600, y: 1120, promien: 30 } : { ...zObrazu(455, 1030), promien: 28 };
 export const START = { x: OGNISKO.x + 90, y: OGNISKO.y + 40 };
 // Stos drewna pod ścianą chaty, na lewo od drzwi (w obrazie chaty x 200–340, y 580–690): tu bierze się polano do ogniska.
-export const STOS_DREWNA = zObrazu(270, 725);
+export const STOS_DREWNA = BAGNO ? { x: 1395, y: 1085 } : zObrazu(270, 725);
 
 // Mgły na skraju lasu. Z nich wychodzą potwory (pomysł Patryka, 23 XI).
 export const MGLY = {
@@ -69,9 +72,62 @@ export const MGLY = {
 // Rysunki i pętla fioletowego dymu z filmu Przemka (narzedzia/wytnij-z-arkuszy.py). wys: wysokość w jednostkach świata.
 // 27 XI (Patryk: „nie wiem, czy te totemy w ogóle są potrzebne”): potwory przychodzą z portali, więc zostaje jeden totem z czaszką,
 // jako znak dawnego mieszkańca (wstęp: „Kość i pióra na palu”). Rogi, obelisk i kamień zdjęte.
-export const TOTEMY = [
+export const TOTEMY = BAGNO ? [
+  { mgla: 'wschod', rys: 'totem_czaszka', x: 2580, y: 1050, wys: 175, promien: 22 },   // bagno: kamień ze znakiem (na razie rysunek totemu)
+] : [
   { mgla: 'zachod', rys: 'totem_czaszka', x: MGLY.zachod.x, y: MGLY.zachod.y, wys: 175, promien: 22 },
 ];
+
+// ---------- Bagno (27 XI, Patryk: „inna mapa ma być”) ----------
+// Woda jest wszędzie, ląd to wyspy (elipsy), grobla od południa (DROGA) i kładki między wyspami. Na środkowej wyspie
+// chata wiedźmy na palach (na razie zastępcza) i kocioł. glebia(): mniej niż 0 to ląd, 0–1 płytka woda (brnie się), ponad 1 głęboka (nie do przejścia).
+export const WYSPY = BAGNO ? [
+  { x: 1600, y: 1050, rx: 430, ry: 290 },      // środkowa: chata wiedźmy i kocioł
+  { x: 720, y: 980, rx: 300, ry: 190 },        // zachodnia: wóz rycerza
+  { x: 2520, y: 1080, rx: 300, ry: 190 },      // wschodnia: kamień ze znakiem
+  { x: 760, y: 1790, rx: 260, ry: 160 },       // południowo-zachodnia
+  { x: 2400, y: 1820, rx: 280, ry: 170 },      // południowo-wschodnia
+  { x: 1650, y: 380, rx: 340, ry: 150 },       // północna
+  { x: 380, y: 420, rx: 200, ry: 130 },
+  { x: 2880, y: 430, rx: 210, ry: 130 },
+  { x: 2050, y: 2200, rx: 170, ry: 90 },
+] : [];
+export const KLADKI = BAGNO ? [
+  { a: { x: 1185, y: 1060 }, b: { x: 1005, y: 1000 }, szer: 24 },   // środek – zachód
+  { a: { x: 2025, y: 1080 }, b: { x: 2235, y: 1080 }, szer: 24 },   // środek – wschód
+  { a: { x: 1640, y: 770 }, b: { x: 1650, y: 520 }, szer: 22 },     // środek – północ
+  { a: { x: 720, y: 1165 }, b: { x: 760, y: 1635 }, szer: 22 },     // zachód – południowy zachód
+  { a: { x: 2500, y: 1265 }, b: { x: 2420, y: 1655 }, szer: 22 },   // wschód – południowy wschód
+] : [];
+// chata wiedźmy (zastępcza, rysowana kodem, dopóki nie ma obrazu z Gemini): bryła na palach, w którą się nie wchodzi
+export const CHATA_WIEDZMY = { x: 1600, y: 985, szer: 250, wys: 210, bryla: { x0: 1478, y0: 870, x1: 1722, y1: 990 } };
+const szumBrzegu = (x, y) => 0.5 * Math.sin(x * 0.013 + y * 0.007) + 0.3 * Math.sin(x * 0.031 - y * 0.023) + 0.2 * Math.sin(-x * 0.05 + y * 0.061);
+const odOdcinka = (x, y, a, b) => { const dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy; let t = ((x - a.x) * dx + (y - a.y) * dy) / L; t = Math.max(0, Math.min(1, t)); return Math.hypot(x - a.x - t * dx, y - a.y - t * dy); };
+const PAS_PLYTKI = 0.35;                        // szerokość płytkiej wody za brzegiem, jako część promienia wyspy
+function naWyspie(x, y) { let q = 99; for (const w of WYSPY) { const dx = (x - w.x) / w.rx, dy = (y - w.y) / w.ry; q = Math.min(q, Math.sqrt(dx * dx + dy * dy)); } return q; }
+export function glebia(x, y) {
+  if (!BAGNO) return -1;
+  let d = naWyspie(x, y);
+  if (DROGA_GOTOWA) d = Math.min(d, odDrogi(x, y) / (DROGA_SZER * 0.75));
+  for (const k of KLADKI) d = Math.min(d, odOdcinka(x, y, k.a, k.b) / k.szer);
+  d *= 1 + 0.07 * szumBrzegu(x, y);
+  return (d - 1) / PAS_PLYTKI;
+}
+let DROGA_GOTOWA = false;
+export const wPlytkiej = (p) => { const g = glebia(p.x, p.y); return g > 0 && g <= 1; };
+export const wGlebokiej = (p) => glebia(p.x, p.y) > 1;
+// Punkt w głębokiej wodzie tuż za płycizną, 180–420 od celu: stąd wynurza się topielec.
+export function punktZWody(cel) {
+  let naj = null;
+  for (let i = 0; i < 60; i++) {
+    const a = Math.random() * Math.PI * 2, r = 180 + Math.random() * 240, p = { x: cel.x + Math.cos(a) * r, y: cel.y + Math.sin(a) * r * 0.8 };
+    if (p.x < 40 || p.y < 70 || p.x > SZER - 40 || p.y > WYS - 40) continue;
+    const g = glebia(p.x, p.y);
+    if (g > 1.02 && g < 1.6) return p;
+    if (g > 1 && (!naj || g < naj.g)) naj = { ...p, g };
+  }
+  return naj;
+}
 
 // Drzewa: gęsty las dookoła, pusta polana w środku, prześwity przy mgłach.
 let ziarno = 11;
@@ -79,6 +135,16 @@ const los = () => { ziarno = (ziarno + 0x6D2B79F5) | 0; let t = Math.imul(ziarno
 
 export const DRZEWA = [];
 (function posadzLas() {
+  if (BAGNO) {                                                   // martwe drzewa na wyspach i trochę w płytkiej wodzie; nie przy chacie i kotle
+    for (let i = 0; i < 8000 && DRZEWA.length < 150; i++) {
+      const x = 40 + los() * (SZER - 80), y = 90 + los() * (WYS - 110), q = naWyspie(x, y);
+      if (q > 1.25 || (q > 1 && los() < 0.6)) continue;
+      const cx = (x - 1600) / 430, cy = (y - 1050) / 290; if (cx * cx + cy * cy < 0.85 * 0.85) continue;   // środkowa wyspa wolna: tu się walczy
+      if (DRZEWA.some(d => Math.hypot(d.x - x, d.y - y) < 105)) continue;
+      DRZEWA.push({ x, y, h: 210 + los() * 120, wariant: (los() * 3) | 0, promien: 15 });
+    }
+    return;
+  }
   for (let i = 0; i < 6000 && DRZEWA.length < 230; i++) {
     const x = 40 + los() * (SZER - 80), y = 90 + los() * (WYS - 110);
     const nx = (x - 1600) / 980, ny = (y - 1260) / 700;
@@ -104,7 +170,7 @@ const LAS = BAGNO
 const WYS_RYSUNKU = { pien: 0.3, kloda: 0.34, sosna: 0.8, mszyste: 0.8, zlamane: 0.85, martwe_a: 0.9, martwe_b: 0.85 };
 for (let i = 0; i < DRZEWA.length; i++) {
   const d = DRZEWA[i];
-  if (i >= DRZEWA.length - 5) { d.rys = ['swierk_a', 'mszyste', 'martwe_a', 'sosna', 'swierk_b'][i - DRZEWA.length + 5]; }  // samotne na skraju
+  if (!BAGNO && i >= DRZEWA.length - 5) { d.rys = ['swierk_a', 'mszyste', 'martwe_a', 'sosna', 'swierk_b'][i - DRZEWA.length + 5]; }  // samotne na skraju
   else { let r = los2() * 100; for (const [n, w] of LAS) { if ((r -= w) < 0) { d.rys = n; break; } } }
   d.lustro = los2() < 0.5;
   d.h *= WYS_RYSUNKU[d.rys] || 1;
@@ -117,7 +183,9 @@ for (let i = 0; i < DRZEWA.length; i++) {
 export const DROGA_SZER = 74;
 export const DROGA = (() => {
   const furtka = { x: CHATA.x + 455 * CHATA.skala, y: CHATA.y + 860 * CHATA.skala };
-  const P = [{ x: 820, y: WYS + 60 }, { x: 980, y: 2080 }, { x: 1180, y: 1760 }, { x: 1330, y: 1480 }, { x: 1470, y: 1290 }, { x: furtka.x - 40, y: furtka.y + 40 }, { x: furtka.x, y: furtka.y - 10 }];
+  // na bagnie to grobla: od południowego brzegu mapy na środkową wyspę, do kotła
+  const P = BAGNO ? [{ x: 1500, y: WYS + 60 }, { x: 1450, y: 2150 }, { x: 1540, y: 1850 }, { x: 1500, y: 1600 }, { x: 1560, y: 1420 }, { x: 1600, y: 1250 }]
+    : [{ x: 820, y: WYS + 60 }, { x: 980, y: 2080 }, { x: 1180, y: 1760 }, { x: 1330, y: 1480 }, { x: 1470, y: 1290 }, { x: furtka.x - 40, y: furtka.y + 40 }, { x: furtka.x, y: furtka.y - 10 }];
   const wyn = [];
   for (let i = 0; i < P.length - 1; i++) {                                   // Catmull-Rom przez punkty
     const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
@@ -134,35 +202,20 @@ export const DROGA = (() => {
 export function odDrogi(x, y) { let m = Infinity; for (const p of DROGA) m = Math.min(m, Math.hypot(p.x - x, p.y - y)); return m; }
 // Na drodze nie rosną drzewa (las był posadzony wcześniej, więc zdejmujemy te, które na nią wpadły).
 for (let i = DRZEWA.length - 1; i >= 0; i--) if (odDrogi(DRZEWA[i].x, DRZEWA[i].y) < DROGA_SZER * 0.75) DRZEWA.splice(i, 1);
+DROGA_GOTOWA = true;
+if (BAGNO) for (let i = DRZEWA.length - 1; i >= 0; i--) { const d = DRZEWA[i]; if (KLADKI.some(k => odOdcinka(d.x, d.y, k.a, k.b) < 60)) DRZEWA.splice(i, 1); }
 
-// Woda na bagnie: elipsy. Głęboka (rx, ry) jest nie do przejścia, płytka to pas wokół niej (PLYTKA razy większy),
-// w którym bohater i potwory brną wolniej. Droga (tu grobla) i obejście chaty zostają suche. Na polanie wody nie ma.
-export const PLYTKA = 1.45;
-export const WODA = BAGNO ? [
-  { x: 820, y: 1060, rx: 210, ry: 120 },       // na zachód od chaty, między lasem a polaną
-  { x: 2420, y: 1500, rx: 250, ry: 140 },      // na wschodzie, za ogniskiem
-  { x: 1980, y: 1960, rx: 170, ry: 100 },      // na południu, przy grobli
-  { x: 2500, y: 820, rx: 150, ry: 90 },        // w lesie na północnym wschodzie
-  { x: 520, y: 1820, rx: 190, ry: 110 },       // w lesie na południowym zachodzie
-  { x: 1450, y: 1720, rx: 110, ry: 62 },       // oczko na polanie, blisko drogi
-] : [];
-const wElipsie = (p, w, k) => { const dx = (p.x - w.x) / (w.rx * k), dy = (p.y - w.y) / (w.ry * k); return dx * dx + dy * dy; };
-export const wGlebokiej = (p) => WODA.some(w => wElipsie(p, w, 1) < 1);
-export const wPlytkiej = (p) => WODA.some(w => { const q = wElipsie(p, w, PLYTKA); return q < 1 && wElipsie(p, w, 1) >= 1; });
-// Brzeg głębokiej wody najbliżej punktu (tu wynurzają się topielce).
-export function brzegWody(w, kat) { return { x: w.x + Math.cos(kat) * w.rx * 1.08, y: w.y + Math.sin(kat) * w.ry * 1.08 }; }
-if (BAGNO) for (let i = DRZEWA.length - 1; i >= 0; i--) if (WODA.some(w => wElipsie(DRZEWA[i], w, PLYTKA * 0.9) < 1)) DRZEWA.splice(i, 1);
 
 // Rzeczy przy drodze z arkusza obozu Przemka (rekwizyty-oboz.jpg): stos drewna, beczki
 // i pochodnia przy furtce. Stawiane względem drogi: f to miejsce na drodze (0 skraj lasu, 1 furtka),
 // bok to strona (-1 lewa, 1 prawa, patrząc ku chacie), od to odległość od środka drogi. szer: szerokość w świecie,
 // promien: zderzenie (0 = przechodzi się przez nie).
 // Handlarz stoi przy drodze, po lewej idąc ku chacie, kawałek przed ogniskiem.
-export const MIEJSCE_HANDLARZA = (() => {
+export const MIEJSCE_HANDLARZA = BAGNO ? { x: 1380, y: 1250 } : (() => {
   const i = Math.round(0.7 * (DROGA.length - 1)), p = DROGA[i], q = DROGA[i + 1], dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1;
   return { x: p.x + dy / d * 78, y: p.y - dx / d * 78 };
 })();
-export const RZECZY = [
+export const RZECZY = BAGNO ? [] : [
   { rys: 'drewno', f: 0.52, bok: 1, od: 82, szer: 78, promien: 22 },
   { rys: 'beczka', f: 0.86, bok: -1, od: 82, szer: 40, promien: 17 },
   { rys: 'beczka', f: 0.835, bok: -1, od: 112, szer: 38, promien: 16, lustro: true },
@@ -189,7 +242,8 @@ export const OZDOBY = [];
     if (Math.hypot(x - OGNISKO.x, (y - OGNISKO.y) * 1.4) < 120) continue;
     if (odDrogi(x, y) < DROGA_SZER * 0.9) continue;
     if (RZECZY.some(r => Math.hypot(r.x - x, r.y - y) < r.szer * 0.6)) continue;
-    if (BAGNO && WODA.some(w => wElipsie({ x, y }, w, 1.05) < 1)) continue;                                 // w głębokiej wodzie nic nie rośnie                                     // na drodze nic nie rośnie
+    if (BAGNO && glebia(x, y) > 0.2) continue;                                                       // w wodzie nic nie leży
+    if (BAGNO && x > CHATA_WIEDZMY.bryla.x0 - 20 && x < CHATA_WIEDZMY.bryla.x1 + 20 && y > CHATA_WIEDZMY.bryla.y0 - 40 && y < CHATA_WIEDZMY.bryla.y1 + 20) continue;                                     // na drodze nic nie rośnie
     const lista = naPolanie ? POLANA : LASU, rys = lista[(los2() * lista.length) | 0];
     const odst = PLASKIE.test(rys) ? 110 : 60;
     if (OZDOBY.some(o => Math.hypot(o.x - x, o.y - y) < Math.max(odst, o.odst))) continue;
@@ -199,9 +253,14 @@ export const OZDOBY = [];
 })();
 
 // Trzciny i błoto na brzegach wody (bagno): kępy wysokiej trawy w pasie płytkiej wody.
-if (BAGNO) for (const w of WODA) for (let i = 0; i < Math.round(w.rx / 16); i++) {
-  const a = los2() * Math.PI * 2, q = 1.0 + los2() * (PLYTKA - 0.95), rys = ['trawa_c', 'trawa_d', 'trawa_f', 'trawa_c', 'bloto'][(los2() * 5) | 0];
-  OZDOBY.push({ x: w.x + Math.cos(a) * w.rx * q, y: w.y + Math.sin(a) * w.ry * q, rys, odst: 40, lustro: los2() < 0.5, skala: 0.9 + los2() * 0.5, plaskie: rys === 'bloto', stoi: false });
+
+// Trzciny w płytkiej wodzie przy brzegach wysp (bagno).
+if (BAGNO) for (let i = 0, n = 0; i < 20000 && n < 260; i++) {
+  const x = 40 + los2() * (SZER - 80), y = 80 + los2() * (WYS - 110), g = glebia(x, y);
+  if (g < 0.05 || g > 0.85) continue;
+  if (OZDOBY.some(o => Math.hypot(o.x - x, o.y - y) < 46)) continue;
+  const rys = ['trawa_c', 'trawa_d', 'trawa_f', 'trawa_c', 'trawa_d'][(los2() * 5) | 0];
+  OZDOBY.push({ x, y, rys, odst: 46, lustro: los2() < 0.5, skala: 0.9 + los2() * 0.5, plaskie: false, stoi: false }); n++;
 }
 
 // Siatka drzew, żeby szybko sprawdzać zderzenia.
@@ -254,9 +313,13 @@ export function zderzenia(p, r) {
     const dx = p.x - t.x, dy = p.y - t.y, q = Math.hypot(dx, dy), m = r + t.promien;
     if (q < m && q > 0.001) { p.x = t.x + dx / q * m; p.y = t.y + dy / q * m; }
   }
-  for (const w of WODA) {                                             // głęboka woda: wypycha na brzeg (elipsa jak rozciągnięte koło)
-    const ex = w.rx + r, ey = w.ry + r * 0.7, dx = (p.x - w.x) / ex, dy = (p.y - w.y) / ey, q = Math.hypot(dx, dy);
-    if (q < 1 && q > 0.0001) { p.x = w.x + dx / q * ex; p.y = w.y + dy / q * ey; }
+  if (BAGNO) {
+    odepchnijOdProstokata(p, CHATA_WIEDZMY.bryla, r);
+    // głęboka woda: krok po kroku pod spadek głębokości, aż do płycizny
+    for (let k = 0; k < 20 && glebia(p.x, p.y) > 1; k++) {
+      const h = 6, gx = glebia(p.x + h, p.y) - glebia(p.x - h, p.y), gy = glebia(p.x, p.y + h) - glebia(p.x, p.y - h), gl = Math.hypot(gx, gy) || 1;
+      p.x -= gx / gl * 5; p.y -= gy / gl * 5;
+    }
   }
   const o = Math.hypot(p.x - OGNISKO.x, p.y - OGNISKO.y), mo = r + OGNISKO.promien;
   if (o < mo && o > 0.001) { p.x = OGNISKO.x + (p.x - OGNISKO.x) / o * mo; p.y = OGNISKO.y + (p.y - OGNISKO.y) / o * mo; }
@@ -274,7 +337,15 @@ export function punktWMgle(nazwa, stan = null) {
 
 
 // Miejsca do obejrzenia we wstępie (dane.js, WSTEP). Ognisko i totem na polanie, reszta w chacie.
-export const MIEJSCA = [
+export const KARTKA_START = BAGNO ? { x: 1720, y: 1060 } : null;   // pierwsza kartka na bagnie: przy progu chaty wiedźmy
+export const MIEJSCA = BAGNO ? [
+  { id: 'ognisko', nazwa: 'kocioł', x: OGNISKO.x, y: OGNISKO.y + 20, mysl: 'Kocioł nad żarem. W środku coś gęstego, jeszcze ciepłe. Pachnie ziołami i krwią.', wsk: 'Przed chatą coś bulgocze. Ktoś tu gotował.' },
+  { id: 'chata', nazwa: 'chatę na palach', x: CHATA_WIEDZMY.x, y: CHATA_WIEDZMY.bryla.y1 + 25, mysl: 'Drzwi zamknięte od środka. Na progu wianek z ptasich kości. Ktoś tu jest i nie chce gości.', wsk: 'Chata na palach. Ktoś w niej mieszka?' },
+  { id: 'stos', nazwa: 'drewno', x: STOS_DREWNA.x, y: STOS_DREWNA.y, mysl: 'Suche drewno pod daszkiem z trzciny. Tutaj suche jest cenniejsze od złota.', wsk: 'Ogień pod kotłem trzeba czymś karmić.' },
+  { id: 'kladka', nazwa: 'kładkę', x: 1100, y: 1030, mysl: 'Deski śliskie, jedna złamana. Coś pod nimi przepłynęło. Duże.', wsk: 'Na zachód prowadzą deski nad wodą.' },
+  { id: 'woz', nazwa: 'wóz', x: 720, y: 1010, mysl: 'Wóz w błocie po osie. Na burcie herb: ten sam, co na pancerzu rycerza. Był tu przede mną.', wsk: 'Na zachodniej wyspie coś stoi w błocie. Wóz?' },
+  { id: 'totem', nazwa: 'kamień ze znakiem', x: 2580 - 30, y: 1050 + 25, mysl: 'Półksiężyc i trzcina wyryte w kamieniu. Znak z amuletu. Ręka płonie, woda wokół się burzy.', wsk: 'Na wschodniej wyspie stoi kamień. Amulet ciąży w dłoni.' },
+] : [
   { id: 'ognisko', nazwa: 'ognisko', x: OGNISKO.x, y: OGNISKO.y + 20, mysl: 'Kamienie ułożone równo, jeden przy drugim. Ktoś dbał, żeby ten ogień nie zgasł.' },
   { id: 'totem', nazwa: 'totem', x: TOTEMY[0].x + 30, y: TOTEMY[0].y + 20, mysl: 'Kość i pióra na palu. Dotykam go i ręka zapłonęła. Z lasu coś odpowiada.' },
   { id: 'stos', nazwa: 'stos drewna', x: STOS_DREWNA.x, y: STOS_DREWNA.y, mysl: 'Drewna na całą zimę. Nie planował odchodzić.' },

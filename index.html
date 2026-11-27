@@ -335,7 +335,6 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
     <div class="akcje">
       <button type="button" class="glowny" id="zacznij" hidden>Zacznij</button>
       <button type="button" class="drugi przycisk-bohater" hidden>Bohater: z Gemini</button>
-      <button type="button" class="drugi" id="przycisk-mapa">Mapa: polana</button>
       <span id="ladowanie">Wczytuję grę…</span>
     </div>
     <p class="zrodlo">Próbna wersja walki. Bohater, jego twarz i las w tle: obrazy i filmy z Gemini od Przemka. Chata: obraz z Gemini. Potwory, las na mapie i światło rysuje kod. Bohatera rysowanego kodem włączysz przyciskiem obok.</p>
@@ -361,6 +360,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
       <button type="button" class="glowny" id="wroc">Wróć do gry</button>
       <button type="button" class="drugi przycisk-dzwiek">Dźwięk: włączony</button>
       <button type="button" class="drugi przycisk-bohater" hidden>Bohater: z Gemini</button>
+      <button type="button" class="drugi" id="przeskocz-mapa">Próba: przeskocz na bagno</button>
     </div>
   </div>
 </div>
@@ -411,7 +411,8 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
     <p class="wstep dalej" id="dalej-konca" hidden></p>
     <dl id="wynik"></dl>
     <div class="akcje">
-      <button type="button" class="glowny" id="jeszcze-raz">Jeszcze raz</button>
+      <button type="button" class="glowny" id="na-bagno" hidden>Idź na bagno</button>
+      <button type="button" class="drugi" id="jeszcze-raz">Jeszcze raz</button>
     </div>
   </div>
 </div>

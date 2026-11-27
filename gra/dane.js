@@ -305,6 +305,15 @@ export const WSTEP = {
   zasieg: 70,             // jak blisko podejść, żeby obejrzeć
   przyjscie: 'Polana. Chata, ognisko i nikogo. Rozejrzę się, zanim zajdzie słońce.',
   noc: 'Słońce zaszło. Z lasu coś patrzy. Trzymaj się ognia.',
+  // bagno (27 XI): drugi rozdział, ten sam bohater dzień po polanie
+  prologBagno: [
+    'Rycerz leżał w trawie, a ja trzymałem jego amulet. Trzciny i półksiężyc.',
+    'Ręka przestała palić na jeden dzień. Potem znowu zaczęła.',
+    'Szedłem na północ, aż las zrobił się martwy, a droga zamieniła się w groblę.',
+    'Wiedźma z bagien. Rycerz pisał, że ona wie, co dalej.',
+  ],
+  przyjscieBagno: 'Bagno. Chata na palach, kocioł jeszcze ciepły. Wiedźmy nie ma. Rozejrzę się, zanim zrobi się ciemno.',
+  nocBagno: 'Ciemno. Woda się rusza, choć nie ma wiatru. Nie schodź z wysp.',
   // Patryk, 26 XI 12:28: „nie takie zbyt proste … jak cię samo prowadzi, to żadna frajda”: rzadko i zagadką, bez wskazywania palcem.
   pierwszaPodpowiedz: 35, kolejnaPodpowiedz: 45,   // sekundy bez odkrycia
   wskazowki: {

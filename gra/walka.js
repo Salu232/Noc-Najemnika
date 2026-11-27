@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL } from './dane.js';
-import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, WODA } from './swiat.js';
+import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START } from './swiat.js';
 // Topielce na bagnie: ile w każdej fali (wychodzą z wody, oprócz potworów z portali)
 const TOPIELCE = [{ ile: 3, co: 3, od: 2 }, { ile: 5, co: 2.5, od: 4 }, { ile: 7, co: 1.6, od: 3 }, { ile: 4, co: 4, od: 12 }];
 // Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
@@ -37,13 +37,14 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
   zastosujBron(gra);
   postawBohatera(gra);
   // chata wygląda na zamieszkałą, ale nikogo w niej nie ma; pierwsza kartka leży w izbie (Patryk, 25 XI 20:35)
-  const k0 = KARTKI[0].gdzie, p0 = { x: k0.x, y: k0.y }; zderzenia(p0, 18); gra.kartka = { nr: 0, x: p0.x, y: p0.y };
+  // pierwsza kartka: w izbie chaty na polanie, przy progu chaty wiedźmy na bagnie
+  const k0 = KARTKA_START || KARTKI[0].gdzie, p0 = { x: k0.x, y: k0.y }; zderzenia(p0, 18); gra.kartka = { nr: 0, x: p0.x, y: p0.y };
   // wstęp: bohater przychodzi drogą z południa o zmierzchu
   // (Patryk, 26 XI 12:27: „jeszcze dalej od chaty”): na drodze przy skraju lasu, chata daleko przed nim
   const p = DROGA[Math.round(DROGA.length * 0.2)], q = DROGA[Math.round(DROGA.length * 0.2) + 3];
   gra.bohater.x = p.x; gra.bohater.y = p.y; gra.bohater.kat = Math.atan2(q.y - p.y, q.x - p.x);
   gra.podpowiedzZa = WSTEP.pierwszaPodpowiedz;
-  powiedz(gra, WSTEP.przyjscie, 5);
+  powiedz(gra, BAGNO ? WSTEP.przyjscieBagno : WSTEP.przyjscie, 5);
   return gra;
 }
 
@@ -63,6 +64,22 @@ function postawBohatera(gra) {
 }
 
 // Do 26 XI plecak i ulepszenia ze stołu zostawały między grami. Teraz trwają jedną grę; zapis postaci przyjdzie, gdy gra urośnie.
+// Przejście na bagno (27 XI, Patryk: „to musi być połączone ze sobą”): po świcie nad polaną bohater bierze ze sobą
+// monety, mikstury, plecak (z amuletem), pas i to, co zrobił na stole. Ulepszenia z fal były „na resztę nocy”, więc zostają.
+export function stanDoPrzeniesienia(gra) {
+  return { grosze: gra.grosze || 0, mikstury: gra.bohater ? gra.bohater.mikstury : 0, plecak: { ...gra.plecak }, trwale: { ...gra.trwale }, pas: !!gra.pas };
+}
+export function przeniesStan(gra, s) {
+  if (!s || typeof s !== 'object') return;
+  const liczba = v => (Number.isFinite(+v) && +v > 0 ? Math.floor(+v) : 0);
+  gra.grosze = liczba(s.grosze);
+  gra.pas = !!s.pas;
+  if (s.plecak && typeof s.plecak === 'object') for (const id in s.plecak) if (PRZEDMIOTY[id] && liczba(s.plecak[id])) gra.plecak[id] = liczba(s.plecak[id]);
+  if (s.trwale && typeof s.trwale === 'object') for (const r of STOL) { const n = Math.min(r.max, liczba(s.trwale[r.id])); if (n) gra.trwale[r.id] = n; }
+  zastosujTrwale(gra); zastosujBron(gra);
+  if (s.mikstury != null) gra.bohater.mikstury = Math.min(maxMikstur(gra), liczba(s.mikstury));
+}
+
 export function zapiszPlecak() { try { localStorage.removeItem('noc-plecak'); localStorage.removeItem('noc-trwale'); } catch (e) { /* bez pamięci */ } }
 
 // Stół w izbie: trwałe ulepszenia z łupów (dane.js, STOL)
@@ -833,9 +850,9 @@ function odkrywanie(gra, w, dt) {
     if (gra.odkryte.length === 0 && !zostalo.some(m => Math.hypot(m.x - b.x, m.y - b.y) < 500)) powiedz(gra, 'Droga prowadzi do chaty. Tam, gdzie coś błyszczy, warto się zatrzymać (E).', 5);
     else if (zostalo.length) {
       const m = zostalo.reduce((a, c) => Math.hypot(c.x - b.x, c.y - b.y) < Math.hypot(a.x - b.x, a.y - b.y) ? c : a);
-      gra.wskazane = m.id; powiedz(gra, WSTEP.wskazowki[m.id], 4.5);
-    } else if (gra.kartki < 1) powiedz(gra, 'W izbie coś leży na podłodze. Kartka?', 4.5);
-    else powiedz(gra, WSTEP.wskazowki.totem, 4.5);
+      gra.wskazane = m.id; powiedz(gra, m.wsk || WSTEP.wskazowki[m.id], 4.5);
+    } else if (gra.kartki < 1) powiedz(gra, BAGNO ? 'Przy progu chaty coś leży. Kartka?' : 'W izbie coś leży na podłodze. Kartka?', 4.5);
+    else powiedz(gra, (MIEJSCA.find(m => m.id === 'totem') || {}).wsk || WSTEP.wskazowki.totem, 4.5);
   }
 }
 export const ileOdkryc = () => MIEJSCA.length + 1;   // miejsca i pierwsza kartka
@@ -844,7 +861,7 @@ export const ileOdkryc = () => MIEJSCA.length + 1;   // miejsca i pierwsza kartk
 function aktualizujEtapy(gra, dt) {
   if (gra.faza === 'wstep') {
     if (gra.odkryte.length >= MIEJSCA.length && gra.kartki >= 1 && gra.mysl.czas < 1) {
-      gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa + 3; powiedz(gra, WSTEP.noc, NOC.przerwa);
+      gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa + 3; powiedz(gra, BAGNO ? WSTEP.nocBagno : WSTEP.noc, NOC.przerwa);
     }
     return;
   }
@@ -899,9 +916,8 @@ function aktualizujEtapy(gra, dt) {
         continue;
       }
       if (q.z === 'woda') {                                                            // topielec: z głębokiej wody najbliżej bohatera
-        const b = gra.bohater, w = WODA.slice().sort((p, r) => Math.hypot(p.x - b.x, p.y - b.y) - Math.hypot(r.x - b.x, r.y - b.y))[(Math.random() * Math.min(2, WODA.length)) | 0];
-        const kat = Math.atan2((b.y - w.y) / w.ry, (b.x - w.x) / w.rx) + (Math.random() - 0.5) * 1.2;
-        const e = nowyWrog(q.typ, { x: w.x + Math.cos(kat) * w.rx * 0.8, y: w.y + Math.sin(kat) * w.ry * 0.8 }, ETAPY[gra.etap].zlosc);
+        const b = gra.bohater, pw = punktZWody(b.wChacie ? OGNISKO : b) || { x: b.x + 300, y: b.y };
+        const e = nowyWrog(q.typ, pw, ETAPY[gra.etap].zlosc);
         e.zWody = true; gra.wrogowie.push(e); gra.zdarzenia.push({ typ: 'wynurza', x: e.x, y: e.y });
         continue;
       }

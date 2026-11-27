@@ -1,7 +1,7 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, WODA, PLYTKA } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, glebia, KLADKI, CHATA_WIEDZMY } from './swiat.js';
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
 import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
@@ -191,28 +191,39 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   let dymNa = 0, iskraNa = 0;
   const trupyC = new P.Container();              // ciała leżą jako ostre obrazy, aż wsiąkną
   const ozdoby = new P.Container();                // kępy trawy, mchu i liści z arkuszy Przemka: leżą pod krwią
-  // Bagno (27 XI, ?mapa=bagno): ziemia zielonkawa i ciemniejsza, woda rysowana kodem, dopóki nie ma kafla z Gemini.
-  // Płytka woda to miękkie przejście warstwami, głęboka to ciemne lustro z jaśniejszym brzegiem, rzęsą i liśćmi grzybieni.
-  const wodaG = new P.Graphics();
+  // Bagno (27 XI): woda wszędzie, ląd to wyspy, grobla i kładki (swiat.js, glebia()). Woda to obraz liczony raz z mapy głębokości
+  // w 1/8 rozdzielczości i wygładzony przy powiększaniu, więc brzegi są miękkie i zgadzają się z tym, gdzie da się chodzić.
+  // Zastępcze, dopóki nie przyjdą kafle ziemi i wody z Gemini (docs/bagno.md).
+  const wodaG = new P.Container();
   if (BAGNO) {
-    ziemia.tint = 0x93a184; plamy.tint = 0x8a9a7c; droga.tint = 0xa49c86;
-    for (const w of WODA) {
-      let z = (w.x * 7 + w.y) | 0; const l = () => { z = (z * 1103515245 + 12345) & 0x7fffffff; return z / 0x7fffffff; };
-      const f1 = l() * 6.28, f2 = l() * 6.28, f3 = l() * 6.28;
-      // brzeg nierówny: promień faluje między 0,9 a 1 elipsy zderzeń (nie wychodzi poza nią, więc nie ma niewidzialnej ściany na wodzie)
-      const brzeg = (k, d = 1) => { const pk = []; for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2;
-        const r = k * (1 - d * 0.1 * (0.5 + 0.3 * Math.sin(3 * a + f1) + 0.15 * Math.sin(5 * a + f2) + 0.05 * Math.sin(9 * a + f3)));
-        pk.push(w.x + Math.cos(a) * w.rx * r, w.y + Math.sin(a) * w.ry * r); } return pk; };
-      for (let k = 8; k >= 0; k--) {                                    // płytka: błoto i woda, od brzegu w stronę głębi coraz ciemniej
-        wodaG.beginFill(k > 5 ? 0x2a2a1c : 0x1e2a1e, 0.1); wodaG.drawPolygon(brzeg(1 + (PLYTKA - 1) * k / 8, 1.6)); wodaG.endFill();
+    ziemia.tint = 0x93a184; plamy.tint = 0x8a9a7c; droga.tint = 0x9c9480;
+    const K = 8, w = Math.ceil(SZER / K), h = Math.ceil(WYS / K), cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const cx = cv.getContext('2d'), im = cx.createImageData(w, h), d = im.data;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const g = glebia(x * K + K / 2, y * K + K / 2), i4 = (y * w + x) * 4;
+      if (g <= -0.15) continue;
+      const sz = 0.5 + 0.5 * Math.sin(x * 0.37 + y * 0.21) * Math.sin(x * 0.11 - y * 0.29);
+      let r, gg, bb, a;
+      if (g <= 0) { r = 52; gg = 48; bb = 32; a = (g + 0.15) / 0.15 * 0.35; }                      // mokry brzeg
+      else if (g <= 1) { const t = g; r = 52 - 30 * t; gg = 50 - 22 * t; bb = 32 - 12 * t; a = 0.35 + 0.5 * t; }   // płycizna: muł i woda
+      else { const t = Math.min(1, (g - 1) / 2); r = 18 - 8 * t + sz * 6; gg = 26 - 10 * t + sz * 6; bb = 22 - 8 * t + sz * 5; a = 0.9 + 0.06 * t; }   // głębia
+      d[i4] = r; d[i4 + 1] = gg; d[i4 + 2] = bb; d[i4 + 3] = Math.round(Math.min(1, a) * 255);
+    }
+    cx.putImageData(im, 0, 0);
+    const wodaS = new P.Sprite(P.Texture.from(cv)); wodaS.scale.set(K); wodaG.addChild(wodaS);
+    const dod = new P.Graphics(); wodaG.addChild(dod);
+    let z = 7; const l = () => { z = (z * 1103515245 + 12345) & 0x7fffffff; return z / 0x7fffffff; };
+    for (let i = 0, n = 0; i < 6000 && n < 420; i++) {                // rzęsa i liście grzybieni na wodzie przy brzegach
+      const x = l() * SZER, y = l() * WYS, g = glebia(x, y); if (g < 0.6 || g > 1.8) continue;
+      const r = 3 + l() * 8; dod.beginFill(l() < 0.3 ? 0x41562f : 0x2a3b22, 0.8); dod.drawEllipse(x, y, r, r * 0.55); dod.endFill(); n++;
+    }
+    for (const k of KLADKI) {                                         // kładki: deski w poprzek, dwa pale na końcach
+      const dx = k.b.x - k.a.x, dy = k.b.y - k.a.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux, sz = k.szer * 0.9;
+      for (let t = 0; t < L; t += 13) {
+        const x = k.a.x + ux * t, y = k.a.y + uy * t, c = (t * 7) % 3 === 0 ? 0x4a3a28 : 0x5a4630;
+        dod.beginFill(c, 0.97); dod.drawPolygon([x + nx * sz, y + ny * sz, x + nx * sz + ux * 10, y + ny * sz + uy * 10, x - nx * sz + ux * 10, y - ny * sz + uy * 10, x - nx * sz, y - ny * sz]); dod.endFill();
       }
-      wodaG.beginFill(0x0d130f, 0.94); wodaG.drawPolygon(brzeg(1)); wodaG.endFill();
-      wodaG.beginFill(0x1b241d, 0.55); wodaG.drawPolygon(brzeg(0.62, 2).map((v, i) => i % 2 ? v - w.ry * 0.16 : v - w.rx * 0.1)); wodaG.endFill();   // odblask nieba
-      wodaG.lineStyle(2.5, 0x4a5640, 0.4); wodaG.drawPolygon(brzeg(1)); wodaG.lineStyle(0);
-      for (let i = 0; i < Math.round(w.rx / 14); i++) {                 // rzęsa i liście grzybieni przy brzegu
-        const a = l() * Math.PI * 2, q = 0.55 + l() * 0.33, x = w.x + Math.cos(a) * w.rx * q, y = w.y + Math.sin(a) * w.ry * q;
-        const r = 3 + l() * 8; wodaG.beginFill(l() < 0.3 ? 0x41562f : 0x2a3b22, 0.8); wodaG.drawEllipse(x, y, r, r * 0.55); wodaG.endFill();
-      }
+      for (const q of [k.a, k.b]) for (const sgn of [-1, 1]) { dod.beginFill(0x2a2018); dod.drawCircle(q.x + nx * sz * sgn, q.y + ny * sz * sgn, 4); dod.endFill(); }
     }
   }
   swiat.addChild(ziemia, plamy, droga, wodaG, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para, dymK);
@@ -232,6 +243,30 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // chata
   const chata = new P.Sprite(T.chata); chata.position.set(CHATA.x, CHATA.y); chata.scale.set(CHATA.skala); chata.zIndex = CHATA.podstawa;
   aktorzy.addChild(chata, izbaPrzod);
+  // Chata wiedźmy na palach i kocioł (bagno): rysowane kodem, dopóki nie przyjdzie obraz z Gemini (docs/bagno.md, punkt 1).
+  if (BAGNO) {
+    const cw = CHATA_WIEDZMY, B = cw.bryla, g = new P.Graphics(); g.zIndex = B.y1;
+    g.beginFill(0x000000, 0.35); g.drawEllipse(cw.x, B.y1 + 6, (B.x1 - B.x0) * 0.6, 26); g.endFill();
+    for (let x = B.x0 + 8; x <= B.x1 - 8; x += 38) { g.beginFill(0x231a12); g.drawRect(x - 4, B.y1 - 30, 8, 40); g.endFill(); }   // pale
+    g.beginFill(0x4a3a28); g.drawRect(B.x0 - 12, B.y1 - 42, B.x1 - B.x0 + 24, 16); g.endFill();                                  // pomost
+    for (let x = B.x0 - 12; x < B.x1 + 12; x += 14) { g.lineStyle(1, 0x2a2018, 0.8); g.moveTo(x, B.y1 - 42); g.lineTo(x, B.y1 - 26); } g.lineStyle(0);
+    const wx0 = B.x0 + 22, wx1 = B.x1 - 22, wy1 = B.y1 - 42, wy0 = wy1 - 118;
+    g.beginFill(0x3b3026); g.drawRect(wx0, wy0, wx1 - wx0, wy1 - wy0); g.endFill();                                                // ściany z desek
+    for (let x = wx0 + 12; x < wx1; x += 16) { g.lineStyle(2, 0x261e17, 0.9); g.moveTo(x, wy0 + 4); g.lineTo(x + (x % 3) - 1, wy1); } g.lineStyle(0);
+    g.beginFill(0x120d0a); g.drawRect(cw.x - 18, wy1 - 70, 36, 70); g.endFill();                                                 // drzwi
+    g.beginFill(0xd08a3a, 0.85); g.drawRect(wx1 - 46, wy0 + 36, 22, 18); g.endFill();                                            // okno z blaskiem
+    g.beginFill(0x4e4630); g.drawPolygon([wx0 - 34, wy0 + 14, cw.x - 20, wy0 - 92, cw.x + 30, wy0 - 96, wx1 + 34, wy0 + 14]); g.endFill();   // dach z trzciny
+    g.beginFill(0x3a3424); g.drawPolygon([wx0 - 34, wy0 + 14, wx1 + 34, wy0 + 14, wx1 + 26, wy0 + 2, wx0 - 26, wy0 + 2]); g.endFill();
+    for (let i = 0; i < 26; i++) { const x = wx0 - 30 + i * ((wx1 - wx0 + 60) / 26); g.lineStyle(1.5, 0x6a6040, 0.6); g.moveTo(x, wy0 + 14); g.lineTo(x + 4, wy0 - 40 + Math.abs(i - 13) * 3); } g.lineStyle(0);
+    for (const x of [wx0 + 10, wx0 + 40, wx1 - 14]) { g.lineStyle(1, 0x2a2418); g.moveTo(x, wy0 + 14); g.lineTo(x, wy0 + 36); g.lineStyle(0); g.beginFill(x % 2 ? 0xd8d0c0 : 0x5a6a3a); g.drawCircle(x, wy0 + 40, 5); g.endFill(); }   // czaszki i zioła
+    aktorzy.addChild(g);
+    const k = new P.Graphics(); k.zIndex = OGNISKO.y + 0.6;                                     // kocioł nad żarem
+    k.beginFill(0x0e0e12); k.drawEllipse(OGNISKO.x, OGNISKO.y - 30, 34, 28); k.endFill();
+    k.beginFill(0x1c1c22); k.drawEllipse(OGNISKO.x, OGNISKO.y - 52, 32, 9); k.endFill();
+    k.beginFill(0x4f8a34, 0.95); k.drawEllipse(OGNISKO.x, OGNISKO.y - 52, 26, 6); k.endFill();
+    k.lineStyle(3, 0x0e0e12); for (const s2 of [-1, 1]) { k.moveTo(OGNISKO.x + s2 * 22, OGNISKO.y - 10); k.lineTo(OGNISKO.x + s2 * 28, OGNISKO.y + 6); } k.lineStyle(0);
+    aktorzy.addChild(k);
+  }
   // Drzwi chaty (Patryk, 24 XI 13:51): skrzydło wycięte z obrazu obraca się do środka na zawiasach po lewej,
   // za nim ciemna sień z blaskiem ognia. Zamknięte drzwi są po prostu częścią obrazu chaty.
   const SK = CHATA.skrzydlo, skW = Math.round((SK.x1 - SK.x0) / CHATA.skala), skH = Math.round((SK.y1 - SK.y0) / CHATA.skala);
@@ -925,9 +960,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   function rysuj(gra, dt, zdarzenia) {
     czas += dt;
     // bagno: deszcz i bąble robią kręgi na głębokiej wodzie
-    if (BAGNO && pierscienie.length < 40) for (const w of WODA) if (Math.random() < dt * w.rx / 60) {
-      const a = Math.random() * Math.PI * 2, q = Math.sqrt(Math.random()) * 0.85;
-      pierscienie.push({ x: w.x + Math.cos(a) * w.rx * q, y: w.y + Math.sin(a) * w.ry * q, r0: 2, r1: 10 + Math.random() * 16, t: 0, czas: 0.9 + Math.random() * 0.8, kolor: 0x7c8c74, ziemia: true, gr: 1.5, alfa: 0.45 });
+    if (BAGNO && pierscienie.length < 40) for (let i = 0; i < 3; i++) if (Math.random() < dt * 4) {
+      const x = gra.bohater.x + (Math.random() - 0.5) * 1400, y = gra.bohater.y + (Math.random() - 0.5) * 900; if (glebia(x, y) < 1.05) continue;
+      pierscienie.push({ x, y, r0: 2, r1: 10 + Math.random() * 16, t: 0, czas: 0.9 + Math.random() * 0.8, kolor: 0x7c8c74, ziemia: true, gr: 1.5, alfa: 0.45 });
     }
     const b = gra.bohater;
     // kałuża po wiedźmie wsiąka w ziemię: po 20 s blednie przez 4 s i znika (Patryk, 25 XI 16:57)
