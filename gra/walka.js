@@ -678,6 +678,7 @@ function nowyWrog(typNazwa, punkt, zlosc = { szybkosc: 1, odpoczynek: 1 }) {
 function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy = false) {
   if (e.stan === 'przemiana' || e.stan === 'martwy') return;                 // w czasie przemiany klątwa go chroni
   e.zycie -= ile; e.flash = 0.12;
+  if (e.typ.czary) gra.zdarzenia.push({ typ: 'jek', wiedzma: true });   // wiedźma jęczy (dźwięk z jej filmu, najwyżej co 1,6 s)
   if (gra.bohater.chwytWrog === e) { gra.bohater.chwyt = 0; gra.bohater.chwytWrog = null; gra.bohater.chwytKoniec = gra.czas; }   // cięcie uwalnia z chwytu topielca
   const pm = e.typ.przemiana;
   if (pm && e.faza === 1 && e.zycie <= e.zycieMax * pm.prog) {             // boss: klątwa go bierze, druga faza
@@ -707,7 +708,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
     gra.portale = [];                                                     // rany w powietrzu zrastają się od razu
     gra.wstrzas = Math.max(gra.wstrzas, 14); gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.25);
     powiedz(gra, 'Pada na kolana. Reszta wraca w muł.', 4.5);
-    gra.zdarzenia.push({ typ: 'bossPadl', x: e.x, y: e.y });
+    gra.zdarzenia.push({ typ: 'bossPadl', x: e.x, y: e.y, wiedzma: true });
     return;
   }
   if (e.zycie <= 0) {
@@ -739,7 +740,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
 function rzucKule(gra, e, kat) {
   const pc = e.typ.pocisk, sx = Math.cos(kat) >= 0 ? 1 : -1;
   gra.pociski.push({ x: e.x + sx * 14, y: e.y, z: 95, vx: Math.cos(kat) * pc.szybkosc, vy: Math.sin(kat) * pc.szybkosc, t: 0, zycie: pc.zycie, promien: pc.promien, obrazenia: e.obrazenia });
-  gra.zdarzenia.push({ typ: 'rzut', x: e.x, y: e.y });
+  gra.zdarzenia.push({ typ: 'rzut', x: e.x, y: e.y, wiedzma: !!e.typ.czary });
 }
 // Topielce z głębokiej wody najbliżej bohatera, z dala od płonących pochodni (te same zasady co w falach).
 function przywolajTopielce(gra, ile, odWiedzmy = false) {

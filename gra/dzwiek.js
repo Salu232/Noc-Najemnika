@@ -8,7 +8,7 @@ export function obudzDzwiek() {
       ac = new AC(); glosnosc = ac.createGain(); glosnosc.gain.value = 0.55; glosnosc.connect(ac.destination);
       szumBufor = ac.createBuffer(1, ac.sampleRate * 0.6, ac.sampleRate);
       const d = szumBufor.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      wczytajUtwor();
+      wczytajUtwor(); wczytajProbki();
     }
     if (ac.state === 'suspended') ac.resume();
   } catch (e) { ac = null; }
@@ -35,6 +35,11 @@ function ton(t, czas, typ, od, doHz, szczyt) {
 export function zagraj(z) {
   if (!ac || !wlaczony || ac.state !== 'running') return;
   const t = ac.currentTime;
+  if (z.wiedzma) {                                                      // wiedźma bagna: głos z jej filmów
+    if (z.typ === 'rzut' && probka('wiedzma-rzut', 0.75, 0.6)) return;
+    if (z.typ === 'jek' && probka('wiedzma-jek', 0.8, 1.6)) return;
+    if (z.typ === 'bossPadl') probka('wiedzma-upadek', 0.9, 2);
+  }
   switch (z.typ) {
     case 'zamach':
       if (z.mocny) { szum(t, 0.32, 'bandpass', 250, 1100, 0.5, 1); ton(t, 0.25, 'sawtooth', 110, 60, 0.08); }
@@ -117,6 +122,21 @@ let muz = null;
 // Utwór Patryka do walki (Suno, „Blood on the Frozen River”, 27 XI). Gdy się wczyta, gra go zamiast muzyki składanej w kodzie.
 // Fala zaczyna go od początku (cichy wstęp narasta z falą). Przerwa między potworami do 6 s go nie urywa, tylko ścisza.
 let utwor = null, granie = null;
+// Głosy z filmów Patryka (27 XI 22:00, Patryk: „trzeba dźwięk dodawać, fajny jest”): wiedźma bagna rzuca, jęczy i pada.
+// Wycięte z dźwięku filmów Veo do dzwiek/wiedzma-*.mp3. Jeśli się nie wczytają, zostają dźwięki z kodu.
+const probki = {}, ostatnio = {};
+function wczytajProbki() {
+  for (const n of ['wiedzma-rzut', 'wiedzma-jek', 'wiedzma-upadek'])
+    fetch(new URL(`../dzwiek/${n}.mp3`, import.meta.url).href).then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))
+      .then(b => new Promise((ok, zle) => ac.decodeAudioData(b, ok, zle))).then(b => { probki[n] = b; }).catch(() => { /* bez próbki */ });
+}
+// Zwraca true, gdy próbka zagrała. odstep: najkrótszy czas między dwoma odtworzeniami tej samej próbki.
+function probka(n, glos = 0.8, odstep = 0.3) {
+  const b = probki[n], t = ac.currentTime; if (!b || t - (ostatnio[n] ?? -9) < odstep) return !!b;
+  ostatnio[n] = t;
+  const zr = ac.createBufferSource(), g = ac.createGain(); zr.buffer = b; g.gain.value = glos; zr.connect(g); g.connect(glosnosc); zr.start(t);
+  return true;
+}
 function wczytajUtwor() {
   fetch(new URL('../dzwiek/walka.mp3', import.meta.url).href).then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))
     .then(b => new Promise((ok, zle) => ac.decodeAudioData(b, ok, zle))).then(b => { utwor = b; }).catch(() => { /* zostaje muzyka z kodu */ });

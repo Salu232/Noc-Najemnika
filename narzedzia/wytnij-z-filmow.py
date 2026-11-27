@@ -218,6 +218,19 @@ POSTACIE = {
             'trup':       ('topielec-smierc', [92]),
         },
     },
+    # Wiedźma, boss bagna (Patryk, 27 XI 21:47 obraz, 21:58 cztery filmy). Nie umiera: upadek kończy się na kolanach.
+    'czarownica': {
+        'obraz': 'grafika/czarownica.webp',
+        'stopy': (280, 347), 'wys_film': 338, 'wys_swiat': 135, 'skala_obrazu': 0.4,
+        'animacje': {
+            'chod':       ('czarownica-chod', list(range(1, 95, 3))),
+            'zamach':     ('czarownica-rzut', [7, 13, 19, 25, 31, 37, 43, 47]),      # unosi rękę, w dłoni zbiera się zielone światło
+            'skok':       ('czarownica-rzut', [49, 52, 55, 58, 61, 64]),             # rzut ze smugą
+            'odpoczynek': ('czarownica-rzut', [67, 71, 75, 79, 83, 87, 91]),
+            'trafienie':  ('czarownica-trafienie', list(range(28, 73, 3))),        # wcześniej w kadr wlatuje zielona kula: pomijamy
+            'upadek':     ('czarownica-upadek', list(range(31, 96, 3))),           # upuszcza kostur i klęka; ostatnia klatka to klęczenie
+        },
+    },
     'bestia': {   # czworonożny skoczek (Patryk z Omni Flash, 26 XI): biegnie, przysiada i skacze na bohatera
         'obraz': 'grafika/bestia.webp',
         'stopy': (347, 348), 'wys_film': 335, 'wys_swiat': 78, 'skala_obrazu': 0.4,

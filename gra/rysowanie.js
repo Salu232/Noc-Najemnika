@@ -17,13 +17,14 @@ const OB = 0x0b0a09;           // kolor obrysu
 const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
-const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32, bestia: 17, topielec: 17 };   // na jakiej wysokości miecz przecina ciało wroga
+const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32, bestia: 17, topielec: 17, czarownica: 55 };   // na jakiej wysokości miecz przecina ciało wroga
 // Potwory z filmów Przemka (narzedzia/wytnij-z-filmow.py): ghul ma 72 jednostki wzrostu, kolos 165.
 const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
   wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },
   topielec: { ciecie: 40, droga: 90, smierc: 1.6, trafienie: 0.3, oko: { x: 16, y: -82 }, cien: 3.4 },   // z filmów Patryka (27 XI 21:30); chód brodzący, dwa kroki na cykl
+  czarownica: { ciecie: 55, droga: 80, smierc: 2, trafienie: 0.4, oko: { x: 8, y: -108 }, cien: 3.0 },   // wiedźma, boss bagna, z filmów Patryka (27 XI 21:58); nie umiera, klęka
   bestia: { ciecie: 32, droga: 330, smierc: 1.4, trafienie: 0.3, oko: { x: 48, y: -66 }, cien: 3.0 },   // czworonożny skoczek z filmów Patryka (26 XI)
   rycerz: { ciecie: 75, droga: 420, drogaChod: 190, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
@@ -1423,11 +1424,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (e.stan !== 'skok') e._uderzyl = false;
     }
     if (gra.kleczy && filmW.czarownica) {                                 // pokonana wiedźma klęczy (do filmu Patryka: zgięta klatka z filmu trafienia)
-      const fw = filmW.czarownica, kl = gra.kleczy, k = fw.anim.upadek ? klatkaW(fw, 'upadek', 1) : klatkaW(fw, 'trafienie', 0.45);
+      const fw = filmW.czarownica, kl = gra.kleczy; if (kl.od === undefined) kl.od = czas;
+      const k = fw.anim.upadek ? klatkaW(fw, 'upadek', (czas - kl.od) / 2.4) : klatkaW(fw, 'trafienie', 0.45);   // upuszcza kostur i klęka, potem klęczy
       const sp = pulaWrogow.wez(), zn = kl.sx === fw.patrzy ? 1 : -1;
       sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.scale.set(fw.skala * zn, fw.skala * (fw.anim.upadek ? 1 : 0.86)); sp.rotation = 0;
       sp.position.set(kl.x, kl.y); sp.zIndex = kl.y; sp.alpha = 1; sp.tint = fw.zastepczy || 0xffffff;
-      const cs = pulaCieni.wez(); cs.position.set(kl.x, kl.y + 1); cs.width = 18 * fw.cien; cs.height = 18 * 1.3; cs.alpha = 1;
+      const cs = pulaCieni.wez(); cs.position.set(kl.x, kl.y + 1); cs.width = 18 * fw.cien; cs.height = 18 * 1.3; cs.alpha = 0.55;
     }
     pulaWrogow.koniec(); pulaCieni.koniec(); pulaOczu.koniec(); pulaBlyskow.koniec();
 
