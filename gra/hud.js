@@ -34,7 +34,7 @@ export function przygotujHud() {
     ustaw('boss', !!boss, v => { if (el.boss) el.boss.hidden = !v; });
     if (boss && el.boss) {
       ustaw('bossZycie', (Math.max(0, boss.zycie) / boss.zycieMax * 100).toFixed(1), v => { el.bossZycie.style.width = v + '%'; });
-      ustaw('bossNazwa', boss.faza === 2 ? 'To, co zostało z rycerza' : 'Rycerz, który czekał przy ogniu', v => { el.bossNazwa.textContent = v; });
+      ustaw('bossNazwa', boss.typ.czary ? (boss.faza === 2 ? 'Wiedźma, wściekła' : 'Wiedźma z bagna') : boss.faza === 2 ? 'To, co zostało z rycerza' : 'Rycerz, który czekał przy ogniu', v => { el.bossNazwa.textContent = v; });
       ustaw('bossFaza', boss.faza, v => el.boss.classList.toggle('druga', v === 2));
     }
     const pokazMysl = gra.mysl.czas > 0 ? gra.mysl.tekst : '';
@@ -63,7 +63,7 @@ export function przygotujHud() {
     // czynność w chacie (posłanie) albo zamknięte drzwi w walce; ekran snu
     const dotyk = matchMedia && matchMedia('(pointer: coarse)').matches;
     const otwarte = gra.faza === 'przerwa' || gra.faza === 'swit' || gra.faza === 'wstep';
-    const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : ({ otworz: 'Otwórz drzwi', zamknij: 'Zamknij drzwi', odpocznij: 'Odpocznij na posłaniu', wstan: 'Wstań', drewno: 'Weź polano', dorzuc: 'Dorzuć do ognia', obejrzyj: 'Obejrzyj ' + (gra.odkryj ? gra.odkryj.nazwa : ''), stol: 'Stół: przerób łupy', handlarz: 'Pohandluj ze starcem', latarnia: 'Zapal pochodnię', kociol: 'Kocioł: uwarz miksturę (3 ziela)', kociolMalo: '!Kocioł: potrzeba 3 wiązek ziela', kociolPelne: '!Kocioł: fiolki pełne', kociolWalka: '!Nie teraz, potwory blisko' }[gra.akcja] || '');
+    const napisAkcji = gra.akcja === 'wejdz' ? (otwarte ? 'Wejdź do chaty' : '!Nie teraz, potwory blisko') : ({ otworz: 'Otwórz drzwi', zamknij: 'Zamknij drzwi', odpocznij: 'Odpocznij na posłaniu', wstan: 'Wstań', drewno: 'Weź polano', dorzuc: 'Dorzuć do ognia', obejrzyj: 'Obejrzyj ' + (gra.odkryj ? gra.odkryj.nazwa : ''), stol: 'Stół: przerób łupy', handlarz: 'Pohandluj ze starcem', latarnia: 'Zapal pochodnię', kociol: 'Kocioł: uwarz miksturę (3 ziela)', kociolMalo: '!Kocioł: potrzeba 3 wiązek ziela', kociolPelne: '!Kocioł: fiolki pełne', kociolWalka: '!Nie teraz, potwory blisko', rozmowa: 'Porozmawiaj z wiedźmą' }[gra.akcja] || '');
     ustaw('akcja', napisAkcji, v => {                                  // „!” na początku: czynność teraz niedostępna
       const zamkniete = v.startsWith('!'), t = zamkniete ? v.slice(1) : v;
       el.akcja.hidden = !v; el.akcja.classList.toggle('zamkniete', zamkniete);

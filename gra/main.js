@@ -1,6 +1,6 @@
 // Wejście do gry: ładuje PixiJS i obraz chaty, składa logikę, rysowanie, sterowanie i pasek.
-import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole, sprzedaj, kupMiksture, mozeKupic, odejdzOdHandlarza, kupTowar, mozeKupicTowar, maxMikstur, stanDoPrzeniesienia, przeniesStan, ruszajNaBagno } from './walka.js';
-import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ, LUP } from './dane.js';
+import { nowaGra, aktualizuj, ustawBron, wybierzUlepszenie, zamknijKartke, zapiszPlecak, kosztStolu, mozeZrobic, zrobNaStole, sprzedaj, kupMiksture, mozeKupic, odejdzOdHandlarza, kupTowar, mozeKupicTowar, maxMikstur, stanDoPrzeniesienia, przeniesStan, ruszajNaBagno, dalejRozmowa } from './walka.js';
+import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, HANDLARZ, LUP, ROZMOWA_WIEDZMY, DARY } from './dane.js';
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
@@ -173,7 +173,8 @@ async function start() {
     const wl = przelaczDzwiek(); for (const x of document.querySelectorAll('.przycisk-dzwiek')) x.textContent = wl ? 'Dźwięk: włączony' : 'Dźwięk: wyłączony';
   });
   $('jeszcze-raz').addEventListener('click', () => {
-    gra = nowaGra(bron); if (BAGNO) przeniesStan(gra, stanZPolany); rys.wyczysc(); pokaz('ekran-konca', false); pauza = false;
+    const dary = { ...gra.dary };                                       // dar wiedźmy zostaje na kolejne podejście do bagna
+    gra = nowaGra(bron); if (BAGNO) przeniesStan(gra, stanZPolany); Object.assign(gra.dary, dary); rys.wyczysc(); pokaz('ekran-konca', false); pauza = false;
   });
 
   function pokazKoniec() {
@@ -185,7 +186,9 @@ async function start() {
     const boss = !!gra.bossPadl;
     $('tytul-konca').textContent = BAGNO ? 'Świt na bagnie' : boss ? 'Świt nad polaną' : 'Świt';
     $('tekst-konca').textContent = BAGNO
-      ? 'Woda się uspokaja, mgła siada na trzcinach. Przetrwałeś noc na bagnie. Wiedźma jeszcze nie wróciła.'
+      ? (gra.porozmawiano
+        ? 'Woda się uspokaja, mgła siada na trzcinach. Wiedźma wróciła do chaty, a Ty wiesz, dokąd iść: na północ, do kurhanu, gdzie zaczęła się klątwa.'
+        : 'Woda się uspokaja, mgła siada na trzcinach. Przetrwałeś noc na bagnie. Wiedźma jeszcze nie wróciła.')
       : boss
       ? (zar
         ? 'Rycerz leży w trawie, a słońce pierwszy raz od dawna dotyka polany. Klątwa zeszła z tego miejsca, ale żar pod Twoją skórą już nie gaśnie. Ręka pali, kiedy nie tniesz.'
@@ -222,6 +225,7 @@ async function start() {
     pokazKartke();
     $('przycisk-plecak').classList.toggle('nowa', !!(gra.nowe && gra.nowe.length));
     if (!!gra.handel !== handelPokazany) { handelPokazany = !!gra.handel; pokaz('ekran-handlarza', handelPokazany); if (handelPokazany) { $('slowa-handlarza').textContent = HANDLARZ.powitania[(gra.handlarz.wizyty - 1) % HANDLARZ.powitania.length]; pokazHandel(); } }
+    if (!!gra.rozmowa !== rozmowaPokazana) { rozmowaPokazana = !!gra.rozmowa; pokaz('ekran-rozmowy', rozmowaPokazana); if (rozmowaPokazana) pokazRozmowe(); }
     if (!!gra.stol !== stolPokazany) { stolPokazany = !!gra.stol; pokaz('ekran-stolu', stolPokazany); if (stolPokazany) pokazStol(); }
   }
   // Plecak (26 XI): I albo przycisk; gra stoi. Pola: mikstury, rzeczy z potworów i łup z rycerza, przeczytane kartki.
@@ -269,6 +273,19 @@ async function start() {
   });
   const ikonaPlecaka = new Image(); ikonaPlecaka.onload = () => { $('przycisk-plecak').style.backgroundImage = 'url(grafika/przedmioty/plecak.webp)'; $('przycisk-plecak').classList.add('ma-ikone'); }; ikonaPlecaka.src = 'grafika/przedmioty/plecak.webp';
   // Stół w izbie (26 XI): przerabianie łupów na trwałe ulepszenia; gra stoi, dopóki nie odejdziesz.
+  // Rozmowa z pokonaną wiedźmą (bagno, 27 XI): kwestie po kolei, na końcu dar.
+  let rozmowaPokazana = false;
+  function pokazRozmowe() {
+    if (!gra.rozmowa) return;
+    const k = gra.rozmowa.krok, ostatnia = k >= ROZMOWA_WIEDZMY.length - 1;
+    $('slowa-wiedzmy').textContent = '„' + ROZMOWA_WIEDZMY[k] + '”';
+    $('dar-wiedzmy').hidden = !ostatnia;
+    if (ostatnia) $('dar-wiedzmy').innerHTML = `<strong>${DARY.wir.nazwa}.</strong> ${DARY.wir.opis}`;
+    $('dalej-rozmowy').textContent = ostatnia ? 'Weź dar' : 'Dalej';
+    $('dalej-rozmowy').focus();
+  }
+  $('dalej-rozmowy').addEventListener('click', () => { if (dalejRozmowa(gra)) { rozmowaPokazana = false; pokaz('ekran-rozmowy', false); } else pokazRozmowe(); });
+  { const im = $('portret-wiedzmy'), brak = () => { im.hidden = true; }; im.addEventListener('error', brak); if (im.complete && !im.naturalWidth) brak(); }   // portret przyjdzie od Patryka
   let stolPokazany = false;
   function pokazStol() {
     const lista = $('przepisy'); lista.textContent = '';

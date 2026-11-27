@@ -1,5 +1,6 @@
 // Dane gry. Tu zmieniamy liczby bez dotykania silnika (decyzja 002, punkt 5).
 // Czas jest w sekundach, odległości w jednostkach świata (bohater ma około 80 jednostek wzrostu).
+import { BAGNO } from './swiat.js';
 
 export const BOHATER = {
   zycie: 100,
@@ -163,6 +164,40 @@ export const WROGOWIE = {
     ciezki: false,
     doskok: true,
   },
+  // Wiedźma, boss bagna (Patryk, 27 XI 17:37: „boss tej lokalizacji i jak się ją pokona, wtedy będzie można z nią porozmawiać”).
+  // Walczy z daleka jak wiedźmy z polany, ale ma czary: kula, wachlarz kul, topielce z wody i mgła (znika i staje gdzie indziej).
+  // W połowie życia wrzeszczy (przemiana): woda wrze, wychodzą topielce, czary szybsze. Nie umiera: pada na kolana (poddaje).
+  // Do filmów Patryka rysuje się z filmu wiedźmy z polany, większa i w kolorze mułu (zastępczo).
+  czarownica: {
+    nazwa: 'czarownica',
+    boss: true, poddaje: true,
+    zycie: [48, 48],      // razy 1,5 z ostatniej nocy: 72
+    szybkosc: [70, 78],   // cofa się wolniej, niż bohater biegnie: da się ją dogonić
+    promien: 18,
+    skala: 1.6,
+    zasiegAtaku: 400,
+    dystans: 230,
+    zamach: 0.8,
+    skok: 0.3,
+    obrazenia: 16,
+    odpoczynek: 1.1,
+    ciezki: false,
+    pocisk: { szybkosc: 255, promien: 13, zycie: 2.6 },
+    przemiana: { prog: 0.5, czas: 2.6, szybkosc: 1.2, odpoczynek: 0.7, topielce: 2, tekst: 'Wrzeszczy. Woda wokół wyspy zaczyna wrzeć.' },
+    czary: {
+      1: [
+        { nazwa: 'kula', zamach: 0.8, ile: 1, rozrzut: 0 },
+        { nazwa: 'wachlarz', zamach: 1.0, ile: 3, rozrzut: 0.3 },
+        { nazwa: 'topielce', zamach: 1.2, ile: 2, max: 4 },
+      ],
+      2: [
+        { nazwa: 'wachlarz', zamach: 0.85, ile: 5, rozrzut: 0.24 },
+        { nazwa: 'seria', zamach: 0.7, ile: 3, co: 0.28 },               // trzy kule jedna po drugiej, każda tam, gdzie bohater stoi teraz
+        { nazwa: 'topielce', zamach: 1.0, ile: 3, max: 5 },
+        { nazwa: 'mgla', zamach: 0.5, ile: 0 },
+      ],
+    },
+  },
   // Boss ostatniej nocy (Patryk, 25 XI: dwie fazy, „widzimy, kim możemy się stać”). Rycerz z kartek dziennika: czekał przy ogniu.
   // W połowie życia klątwa go bierze (przemiana, wtedy nietykalny), w drugiej fazie jest szybszy i bije pazurem.
   // Każdy atak ostrzega czerwonym kręgiem na ziemi, jak kolos: cel to punkt przed nim, strefa to promień trafienia.
@@ -245,6 +280,31 @@ export const ETAPY = [
     ],
   },
 ];
+// Ostatnia noc na bagnie (27 XI 21:45): zamiast rycerza wychodzi wiedźma z chaty na palach.
+if (BAGNO) ETAPY[3] = {
+  nazwa: 'Wiedźma',
+  mysl: 'Drzwi chaty skrzypią. Ktoś wychodzi na pomost.',
+  przerwa: 30,
+  przed: ['Cicho. Nawet żaby przestały.', 'W chacie pali się światło. Wcześniej go nie było.', 'Ona tam jest. Czeka, aż przyjdą wszystkie.'],
+  zlosc: { szybkosc: 1.28, odpoczynek: 0.55, zycie: 1.5, obrazenia: 1.45 },
+  grupy: [
+    { typ: 'czarownica', ile: 1, z: ['boss'], co: 0, od: 3 },
+    { typ: 'ghul', ile: 8, z: ['zachod', 'wschod'], co: 1.8, od: 6 },
+    { typ: 'bestia', ile: 1, z: ['poludnie'], co: 0, od: 30 },
+  ],
+};
+// Rozmowa z pokonaną wiedźmą (Patryk, 27 XI 17:37: „coś o klątwie zdradzi, (…) o jakimś specjalnym ataku”).
+// Treść to propozycja Claude'a, do zmiany. Ostatnia kwestia daje dar.
+export const ROZMOWA_WIEDZMY = [
+  'Dość. Dość, najemniku. Nie wyszłam cię zabić. Chciałam zobaczyć, ile w tobie jeszcze człowieka.',
+  'Ten znak na ręce to nie moja robota. Ja go tylko czuję, jak burzę w kościach. Rycerz też go nosił. Przyszedł do mnie jak ty, po radę.',
+  'Powiem ci to, co jemu. Klątwa nie siedzi w tobie. Siedzi w tym, kto ją rzucił, a ty jesteś tylko jej drogą. Każdy potwór, którego zabijesz, trochę ją karmi.',
+  'Za bagnem, na północy, stoi stary kurhan. Tam to się zaczęło. Rycerz tam nie doszedł. Ty może dojdziesz.',
+  'Weź to, zanim zmienię zdanie. Bagno słucha tych, którzy je przeżyli.',
+];
+export const DARY = {
+  wir: { nazwa: 'Wir z bagna', opis: 'Klątwa najpierw wciąga do ciebie potwory z daleka, dopiero potem uderza.', zasieg: 1.9 },   // zasięg wciągania razy zasięg klątwy
+};
 
 export const NOC = {
   ostrzezenie: 5,          // tyle sekund przed falą słychać róg i bohater mówi, co idzie (27 XI)
@@ -265,7 +325,7 @@ export const TOTEM = { zycie: 24, zaKlatwe: 6 };
 // 27 XI 13:06 (Patryk: „trochę mniej tego złota”): było ghul 2, bestia 3, wiedźma 4, kolos 8.
 // zaFale: monety za odpartą falę (27 XI 17:28, Patryk: „przy polanie zwiększyć te monety, bo ciężko przy 3 fali”).
 // Tylko po pierwszej i drugiej fali, żeby przed rycerzem nie było znów stać na wszystko (Patryk, 27 XI rano).
-export const GROSZE = { ghul: 1, topielec: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, zaFale: [8, 12, 0, 0] };
+export const GROSZE = { ghul: 1, topielec: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, czarownica: 0, zaFale: [8, 12, 0, 0] };
 // Bagno (27 XI 20:54): zioła na wyspach i pochodnie na palach (docs/bagno.md, punkt 8).
 // ZIOLA: ile wyrasta przed każdą falą, najwięcej naraz na ziemi, ile wiązek na miksturę w kotle.
 // LATARNIA: zasięg światła, ile sekund płonie w walce i w ciszy, w jakiej odległości od płonącej topielce nie wychodzą z wody.

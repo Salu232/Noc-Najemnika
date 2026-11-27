@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
-import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL, ZIOLA, LATARNIA } from './dane.js';
-import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY } from './swiat.js';
+import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL, ZIOLA, LATARNIA, DARY, ROZMOWA_WIEDZMY } from './dane.js';
+import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY, wGlebokiej, wIzbieWiedzmy } from './swiat.js';
 // Topielce na bagnie: ile w każdej fali (wychodzą z wody, oprócz potworów z portali)
 const TOPIELCE = [{ ile: 3, co: 3, od: 2 }, { ile: 5, co: 2.5, od: 4 }, { ile: 7, co: 1.6, od: 3 }, { ile: 4, co: 4, od: 12 }];
 // Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
@@ -29,6 +29,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [], portale: [],
     handlarz: { widac: 0, pokazuje: 0, liczy: 0, blisko: false, zobaczyl: false, wizyty: 0 }, grosze: 0, handel: false,
     plecak: {},                                                               // nowa gra: pusty plecak (Patryk, 26 XI: bez zapisów, dopóki gra nie urośnie)
+    dary: {}, kleczy: null, rozmowa: null, porozmawiano: false,          // bagno: dar od wiedźmy, pokonana wiedźma na kolanach, rozmowa z nią
     kartka: null, czytana: null, kartki: 0, przemiana: 0,   // dziennik rycerza i cena klątwy (25 XI)
     mod: { zasieg: 1, szybkosc: 1, garda: 1, oddech: 1, klatwa: 1, cialo: 1 },
   };
@@ -72,13 +73,14 @@ export function ruszajNaBagno(gra) {
 // Przejście na bagno (27 XI, Patryk: „to musi być połączone ze sobą”): po świcie nad polaną bohater bierze ze sobą
 // monety, mikstury, plecak (z amuletem), pas i to, co zrobił na stole. Ulepszenia z fal były „na resztę nocy”, więc zostają.
 export function stanDoPrzeniesienia(gra) {
-  return { grosze: gra.grosze || 0, mikstury: gra.bohater ? gra.bohater.mikstury : 0, plecak: { ...gra.plecak }, trwale: { ...gra.trwale }, pas: !!gra.pas };
+  return { grosze: gra.grosze || 0, mikstury: gra.bohater ? gra.bohater.mikstury : 0, plecak: { ...gra.plecak }, trwale: { ...gra.trwale }, pas: !!gra.pas, dary: { ...gra.dary } };
 }
 export function przeniesStan(gra, s) {
   if (!s || typeof s !== 'object') return;
   const liczba = v => (Number.isFinite(+v) && +v > 0 ? Math.floor(+v) : 0);
   gra.grosze = liczba(s.grosze);
   gra.pas = !!s.pas;
+  if (s.dary && typeof s.dary === 'object') for (const id in s.dary) if (DARY[id] && s.dary[id]) gra.dary[id] = true;
   if (s.plecak && typeof s.plecak === 'object') for (const id in s.plecak) if (PRZEDMIOTY[id] && liczba(s.plecak[id])) gra.plecak[id] = liczba(s.plecak[id]);
   if (s.trwale && typeof s.trwale === 'object') for (const r of STOL) { const n = Math.min(r.max, liczba(s.trwale[r.id])); if (n) gra.trwale[r.id] = n; }
   zastosujTrwale(gra); zastosujBron(gra);
@@ -198,10 +200,21 @@ function otworzPortal(gra, p) {
 
 // ---------- jedna klatka ----------
 export function zamknijKartke(gra) { gra.czytana = null; }
+// Rozmowa z wiedźmą: kolejne kwestie, ostatnia daje dar (Wir z bagna). Zwraca true, gdy rozmowa się skończyła.
+export function dalejRozmowa(gra) {
+  if (!gra.rozmowa) return true;
+  gra.rozmowa.krok++;
+  if (gra.rozmowa.krok < ROZMOWA_WIEDZMY.length) return false;
+  gra.rozmowa = null; gra.porozmawiano = true; gra.dary.wir = true;
+  powiedz(gra, 'Ręka pali inaczej. Jakby woda szła za nią.', 4.5);
+  gra.zdarzenia.push({ typ: 'dar', id: 'wir' });
+  if (gra.faza === 'swit') gra.fazaCzas = Math.max(gra.fazaCzas, 5.5);
+  return true;
+}
 
 export function aktualizuj(gra, dt, w) {
   // kartka podniesiona w walce czeka na ciszę po fali (Patryk, 26 XI 13:27: trzy kartki w minutę przerywały walkę)
-  if (gra.wybor || gra.czytana !== null || gra.stol || gra.handel) return;      // wybór ulepszenia, kartka, stół albo handel: noc czeka
+  if (gra.wybor || gra.czytana !== null || gra.stol || gra.handel || gra.rozmowa) return;      // wybór ulepszenia, kartka, stół, handel albo rozmowa z wiedźmą: noc czeka
   if (gra.zatrzymanie > 0) { gra.zatrzymanie -= dt; return; }   // krótkie zatrzymanie po trafieniu: czuć ciężar ciosu
   gra.czas += dt;
   if (gra.faza !== 'koniec') gra.statystyki.czas += dt;
@@ -218,6 +231,10 @@ export function aktualizuj(gra, dt, w) {
     }
   }
   handlarz(gra, dt, w);
+  if (gra.kleczy && gra.faza !== 'walka' && !gra.porozmawiano && !gra.akcja) {   // pokonana wiedźma czeka na rozmowę
+    const b = gra.bohater;
+    if (b.stan === 'wolny' && Math.hypot(b.x - gra.kleczy.x, b.y - gra.kleczy.y) < 120) { gra.akcja = 'rozmowa'; if (w.akcja) { w.akcja = false; gra.rozmowa = { krok: 0 }; gra.zdarzenia.push({ typ: 'rozmowa' }); } }
+  }
   aktualizujCele(gra, dt, w);
   aktualizujWrogow(gra, dt);
   aktualizujPociski(gra, dt);
@@ -228,7 +245,7 @@ export function aktualizuj(gra, dt, w) {
 // ---------- bohater ----------
 // Wynurzający się z portalu albo ziemi: do 27 XI miecz przez nich przechodził (Przemek, 20:02, film: „mój cios nic nie robi, wchodzę w tłum”).
 // Teraz da się ich ciąć, gdy widać ich choć w jednej trzeciej; cięty kończy wynurzanie i musi się zebrać.
-const nieDoTrafienia = e => e.stan === 'martwy' || (e.stan === 'wynurza' && e.widac < 0.3);
+const nieDoTrafienia = e => e.stan === 'martwy' || ((e.stan === 'wynurza' || e.stan === 'mgla') && e.widac < 0.3);
 function najblizszyWrog(gra, zasieg) {
   const b = gra.bohater; let naj = null, nd = zasieg;
   for (const e of gra.wrogowie) {
@@ -400,7 +417,12 @@ function zacznijKlatwe(gra) {
   b.klatwa = 0; b.klatwaUderzyla = false;
   gra.przemiana = Math.min(1, gra.przemiana + PRZEMIANA.zaKlatwe);   // cena klątwy
   b.nietykalny = KLATWA.ladowanie + KLATWA.uderzenie + KLATWA.wstawanie;
-  gra.zdarzenia.push({ typ: 'klatwa_laduje' });
+  if (gra.dary.wir) for (const e of gra.wrogowie) {                    // Wir z bagna (dar wiedźmy): zanim ręka uderzy, wciąga potwory z daleka
+    if (e.typ.boss || nieDoTrafienia(e)) continue;
+    const d = Math.hypot(e.x - b.x, e.y - b.y);
+    if (d > KLATWA.zasieg * 0.55 && d < KLATWA.zasieg * DARY.wir.zasieg) { e.wciaga = KLATWA.ladowanie; if (e.stan === 'zamach' || e.stan === 'skok') { e.stan = 'odpoczynek'; e.t = 0; } }
+  }
+  gra.zdarzenia.push({ typ: 'klatwa_laduje', wir: !!gra.dary.wir });
 }
 
 function uderzKlatwa(gra) {
@@ -419,7 +441,7 @@ function uderzKlatwa(gra) {
   }
   for (const t of gra.totemy) if (!t.zniszczony && Math.hypot(t.x - b.x, t.y - b.y) - t.promien < KLATWA.zasieg) zranTotem(gra, t, TOTEM.zaKlatwe);
   gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.12); gra.wstrzas = Math.max(gra.wstrzas, 16);
-  gra.zdarzenia.push({ typ: 'klatwa', x: b.x, y: b.y, zasieg: KLATWA.zasieg, ile });
+  gra.zdarzenia.push({ typ: 'klatwa', x: b.x, y: b.y, zasieg: KLATWA.zasieg, ile, wir: !!gra.dary.wir });
 }
 
 // Chata jak w Tibii (Patryk, 24 XI; docs/chata.md): wchodzi się drzwiami na tej samej mapie, dach znika (rysowanie.js).
@@ -661,9 +683,10 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
   if (pm && e.faza === 1 && e.zycie <= e.zycieMax * pm.prog) {             // boss: klątwa go bierze, druga faza
     e.zycie = Math.max(e.zycie, Math.ceil(e.zycieMax * pm.prog)); e.faza = 2;
     e.stan = 'przemiana'; e.t = 0; e.at = null; e.cel = null; e.vx = e.vy = 0;
-    e.szybkosc *= pm.szybkosc; e.mOdp *= pm.odpoczynek;
+    e.szybkosc *= pm.szybkosc; e.mOdp *= pm.odpoczynek; if (e.typ.czary) e.odpoczynek *= pm.odpoczynek;
     gra.wstrzas = Math.max(gra.wstrzas, 14); gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.15);
-    powiedz(gra, 'Klątwa go bierze. Tak będę wyglądał, jeśli jej nie zatrzymam.', 5);
+    powiedz(gra, pm.tekst || 'Klątwa go bierze. Tak będę wyglądał, jeśli jej nie zatrzymam.', 5);
+    if (pm.topielce) przywolajTopielce(gra, pm.topielce, true);
     gra.zdarzenia.push({ typ: 'przemiana', x: e.x, y: e.y });
     return;
   }
@@ -674,6 +697,19 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
   if (przerywa && !e.typ.ciezki && e.stan === 'zamach') { e.stan = 'odpoczynek'; e.t = e.odpoczynek - 0.35; }
   const n = e.typ.ciezki ? 6 : 9;
   for (let i = 0; i < n; i++) gra.krew.push({ x: e.x, y: e.y, z: 22 * e.typ.skala, vx: Math.cos(kat) * losuj(40, 170) + losuj(-50, 50), vy: Math.sin(kat) * losuj(40, 170) + losuj(-50, 50), vz: losuj(40, 170), r: losuj(1.3, 2.8) });
+  if (e.zycie <= 0 && e.typ.poddaje) {                                    // wiedźma nie umiera: pada na kolana, reszta wraca w muł
+    e.stan = 'martwy'; gra.statystyki.zabici++;
+    gra.bossPadl = { x: e.x, y: e.y };
+    gra.kleczy = { x: e.x, y: e.y, sx: gra.bohater.x >= e.x ? 1 : -1, t: 0 };
+    gra.kolejka = []; gra.pociski = [];
+    for (const o of gra.wrogowie) if (o !== e && o.stan !== 'martwy') { o.stan = 'martwy'; gra.slady.push({ typ: 'kaluza', x: o.x, y: o.y }); gra.zdarzenia.push({ typ: 'wynurza', x: o.x, y: o.y }); }
+    for (const p of gra.portale || []) if (p.otwarty) gra.zdarzenia.push({ typ: 'portal_zamkniety', x: p.x, y: p.y });
+    gra.portale = [];                                                     // rany w powietrzu zrastają się od razu
+    gra.wstrzas = Math.max(gra.wstrzas, 14); gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.25);
+    powiedz(gra, 'Pada na kolana. Reszta wraca w muł.', 4.5);
+    gra.zdarzenia.push({ typ: 'bossPadl', x: e.x, y: e.y });
+    return;
+  }
   if (e.zycie <= 0) {
     e.stan = 'martwy';
     gra.statystyki.zabici++;
@@ -699,6 +735,46 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
   }
 }
 
+// ---------- wiedźma bagna: czary ----------
+function rzucKule(gra, e, kat) {
+  const pc = e.typ.pocisk, sx = Math.cos(kat) >= 0 ? 1 : -1;
+  gra.pociski.push({ x: e.x + sx * 14, y: e.y, z: 95, vx: Math.cos(kat) * pc.szybkosc, vy: Math.sin(kat) * pc.szybkosc, t: 0, zycie: pc.zycie, promien: pc.promien, obrazenia: e.obrazenia });
+  gra.zdarzenia.push({ typ: 'rzut', x: e.x, y: e.y });
+}
+// Topielce z głębokiej wody najbliżej bohatera, z dala od płonących pochodni (te same zasady co w falach).
+function przywolajTopielce(gra, ile, odWiedzmy = false) {
+  const b = gra.bohater, plona = LATARNIE.filter((l, i) => gra.latarnie[i].ogien > 0.05).map(l => ({ ...l, r: LATARNIA.bezTopielcow }));
+  for (let i = 0; i < ile; i++) {
+    const pw = punktZWody(b.wChacie ? OGNISKO : b, plona) || punktZWody(b.wChacie ? OGNISKO : b) || { x: b.x + 300, y: b.y };
+    const e = nowyWrog('topielec', pw, ETAPY[Math.min(gra.etap, ETAPY.length - 1)].zlosc);
+    e.zWody = true; e.odWiedzmy = odWiedzmy; gra.wrogowie.push(e); gra.zdarzenia.push({ typ: 'wynurza', x: e.x, y: e.y });
+  }
+}
+function wybierzCzar(gra, e) {
+  const d = Math.hypot(gra.bohater.x - e.x, gra.bohater.y - e.y), topielcow = gra.wrogowie.filter(o => o.odWiedzmy && o.stan !== 'martwy').length;   // liczą się tylko jej topielce, nie te z fali
+  const l = e.typ.czary[e.faza].filter(c => c !== e.ostatni && (!c.max || topielcow + c.ile <= c.max));
+  const mgla = l.find(c => c.nazwa === 'mgla');
+  e.czar = e.ostatni = mgla && d < e.typ.dystans && Math.random() < 0.6 ? mgla : l[(Math.random() * l.length) | 0] || e.typ.czary[e.faza][0];
+}
+function rzucCzar(gra, e, kat) {
+  const c = e.czar; e.czar = null;
+  if (c.nazwa === 'topielce') { przywolajTopielce(gra, c.ile, true); powiedz(gra, 'Woda się rusza. Woła je.', 2.2); return; }
+  if (c.nazwa === 'mgla') { e.stan = 'mgla'; e.t = 0; e.widac = 1; return; }
+  if (c.nazwa === 'seria') { rzucKule(gra, e, kat); e.seria = { ile: c.ile - 1, za: c.co, co: c.co }; return; }
+  for (let i = 0; i < c.ile; i++) rzucKule(gra, e, kat + (i - (c.ile - 1) / 2) * c.rozrzut);
+}
+// Gdzie staje po mgle: na suchym, 240–330 od bohatera.
+function miejsceWiedzmy(gra, e) {
+  const b = gra.bohater;
+  for (let i = 0; i < 30; i++) {
+    const a = Math.random() * Math.PI * 2, r = losuj(240, 330), p = { x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r * 0.8 };
+    if (wGlebokiej(p) || wPlytkiej(p) || wIzbieWiedzmy(p)) continue;
+    zderzenia(p, e.promien);
+    if (!wGlebokiej(p) && !wPlytkiej(p) && !wIzbieWiedzmy(p) && Math.hypot(p.x - b.x, p.y - b.y) > 180) return p;
+  }
+  return { x: e.x, y: e.y };
+}
+
 const KOM = 48, siatka = new Map();
 function aktualizujWrogow(gra, dt) {
   const b = gra.bohater, zywi = gra.wrogowie;
@@ -715,6 +791,26 @@ function aktualizujWrogow(gra, dt) {
     if (BAGNO && wPlytkiej(e)) szyb *= typ.wodny ? 1.25 : BRODZI_WROG;
     e.t += dt;
 
+    if (e.wciaga > 0) {                                                   // Wir z bagna: sunie do bohatera, zanim klątwa uderzy
+      const k = Math.min(1, dt / Math.max(dt, e.wciaga)), cel = Math.max(0, d - (e.promien + b.promien + 40));
+      e.x += dx / d * cel * k; e.y += dy / d * cel * k; e.vx = e.vy = 0; e.wciaga -= dt; e.drzy = (Math.random() - 0.5) * 3;
+      zderzenia(e, e.promien); continue;
+    }
+    if (e.stan === 'mgla') {                                              // wiedźma znika we mgle i staje gdzie indziej, z dala od bohatera
+      const T = 0.55;
+      if (e.t < T) e.widac = 1 - e.t / T;
+      else {
+        if (!e.przeszla) { e.przeszla = true; const p = miejsceWiedzmy(gra, e); e.x = p.x; e.y = p.y; e.vx = e.vy = 0; gra.zdarzenia.push({ typ: 'mgla', x: e.x, y: e.y }); }
+        e.widac = Math.min(1, (e.t - T) / T);
+        if (e.t >= 2 * T) { e.stan = 'odpoczynek'; e.t = e.odpoczynek * 0.5; e.widac = 1; e.przeszla = false; }
+      }
+      continue;
+    }
+    if (e.seria && e.seria.ile > 0 && e.stan !== 'ogluszony') {            // seria kul: kolejne lecą co chwilę, tam gdzie bohater stoi teraz
+      e.seria.za -= dt;
+      if (e.seria.za <= 0) { e.seria.ile--; e.seria.za = e.seria.co; rzucKule(gra, e, doBoh); }
+    }
+
     if (e.stan === 'wynurza') {
       e.widac = Math.min(1, e.t / 1.2);
       ax = dx / d * szyb * 0.3; ay = dy / d * szyb * 0.3;
@@ -728,7 +824,7 @@ function aktualizujWrogow(gra, dt) {
           ax = -dy / d * szyb * 0.8 * e.strona; ay = dx / d * szyb * 0.8 * e.strona;
           if (d < typ.dystans) { ax -= dx / d * szyb * 0.7; ay -= dy / d * szyb * 0.7; }
         }
-        if (d <= typ.zasiegAtaku && e.t > 0.7) { e.stan = 'zamach'; e.t = 0; e.kat = doBoh; e.strona = -e.strona; }
+        if (d <= typ.zasiegAtaku && e.t > 0.7) { e.stan = 'zamach'; e.t = 0; e.kat = doBoh; e.strona = -e.strona; if (typ.czary) wybierzCzar(gra, e); }
       }
     } else if (e.stan === 'idzie') {
       if (bohaterZywy) {
@@ -762,18 +858,15 @@ function aktualizujWrogow(gra, dt) {
       else if (!typ.ciezki) { e.kat = doBoh; ax = -dx / d * 25; ay = -dy / d * 25; }
       e.drzy = (Math.random() - 0.5) * 2.4;
       if (typ.pocisk) { ax = 0; ay = 0; e.drzy *= 0.4; }
-      if (e.t >= (e.at || typ).zamach) {
+      if (e.t >= (e.at || e.czar || typ).zamach) {
         e.stan = 'skok'; e.t = 0; e.drzy = 0; e.trafil = false;
         if (e.at && e.at.leci) e.skokOd = { x: e.x, y: e.y };
         if (typ.doskok) {                                                    // bestia: skacze prosto w zamrożone miejsce (celSkoku)
           const dl = e.celSkoku ? e.celSkoku.dl : Math.min(d + 35, typ.zasiegAtaku + 60);
           e.lot = { vx: Math.cos(e.kat) * dl / typ.skok, vy: Math.sin(e.kat) * dl / typ.skok / PION };
         }
-        if (typ.pocisk) {                                                   // rzuca kulę tam, gdzie bohater stoi teraz
-          const pc = typ.pocisk, sx = Math.cos(doBoh) >= 0 ? 1 : -1;
-          gra.pociski.push({ x: e.x + sx * 14, y: e.y, z: 95, vx: Math.cos(doBoh) * pc.szybkosc, vy: Math.sin(doBoh) * pc.szybkosc, t: 0, zycie: pc.zycie, promien: pc.promien, obrazenia: e.obrazenia });
-          gra.zdarzenia.push({ typ: 'rzut', x: e.x, y: e.y });
-        }
+        if (typ.pocisk && e.czar) rzucCzar(gra, e, doBoh);                 // wiedźma bagna: kula, wachlarz, seria, topielce albo mgła
+        else if (typ.pocisk) rzucKule(gra, e, doBoh);                      // rzuca kulę tam, gdzie bohater stoi teraz
         else if (typ.doskok) { e.vx = e.lot.vx; e.vy = e.lot.vy; }
         else if (!typ.ciezki) { e.vx = Math.cos(e.kat) * 400; e.vy = Math.sin(e.kat) * 400; }
         else { gra.wstrzas = Math.max(gra.wstrzas, 10); gra.zdarzenia.push({ typ: 'tapniecie' }); }
@@ -817,11 +910,13 @@ function aktualizujWrogow(gra, dt) {
     const k = Math.min(1, dt * (e.stan === 'skok' ? 1 : 6));
     if (e.stan !== 'skok') { e.vx += (ax - e.vx) * k; e.vy += (ay - e.vy) * k; }
     else { e.vx *= Math.max(0, 1 - dt * 5); e.vy *= Math.max(0, 1 - dt * 5); }
+    const px = e.x, py = e.y;
     e.x += e.vx * dt; e.y += e.vy * dt * PION;
     // nie wchodzi w bohatera
     const bx = e.x - b.x, by = e.y - b.y, bd = Math.hypot(bx, by), bm = e.promien + b.promien;
     if (bohaterZywy && bd < bm && bd > 0.01) { e.x = b.x + bx / bd * bm; e.y = b.y + by / bd * bm; }
     zderzenia(e, e.promien);
+    if (typ.czary && wIzbieWiedzmy(e) && !wIzbieWiedzmy({ x: px, y: py })) { e.x = px; e.y = py; }   // wiedźma walczy na zewnątrz, nie chowa się w izbie
     e.anim += dt * Math.hypot(e.vx, e.vy) / 70;
   }
   gra.wrogowie = zywi.filter(e => e.stan !== 'martwy');
@@ -950,6 +1045,13 @@ function aktualizujEtapy(gra, dt) {
     }
     while (gra.kolejka.length && gra.kolejka[0].t <= gra.walkaCzas) {
       const q = gra.kolejka.shift();
+      if (q.z === 'boss' && BAGNO) {                                                  // wiedźma wychodzi z chaty na pomost, przy kotle
+        const k = CHATA_WIEDZMY.kociol, p = { x: k.x + 50, y: k.y + 40 }; zderzenia(p, 18);
+        gra.wrogowie.push(nowyWrog(q.typ, p, ETAPY[gra.etap].zlosc));
+        powiedz(gra, 'To ona. Gospodyni tego bagna.', 4);
+        gra.zdarzenia.push({ typ: 'boss' });
+        continue;
+      }
       if (q.z === 'boss') {                                                            // rycerz wychodzi z drogi na południe od ogniska
         const p = { x: OGNISKO.x + 30, y: OGNISKO.y + 360 }; zderzenia(p, 30);
         gra.wrogowie.push(nowyWrog(q.typ, p, ETAPY[gra.etap].zlosc));
@@ -957,13 +1059,7 @@ function aktualizujEtapy(gra, dt) {
         gra.zdarzenia.push({ typ: 'boss' });
         continue;
       }
-      if (q.z === 'woda') {                                                            // topielec: z głębokiej wody najbliżej bohatera
-        const b = gra.bohater, plona = LATARNIE.filter((l, i) => gra.latarnie[i].ogien > 0.05).map(l => ({ ...l, r: LATARNIA.bezTopielcow }));
-        const pw = punktZWody(b.wChacie ? OGNISKO : b, plona) || punktZWody(b.wChacie ? OGNISKO : b) || { x: b.x + 300, y: b.y };
-        const e = nowyWrog(q.typ, pw, ETAPY[gra.etap].zlosc);
-        e.zWody = true; gra.wrogowie.push(e); gra.zdarzenia.push({ typ: 'wynurza', x: e.x, y: e.y });
-        continue;
-      }
+      if (q.z === 'woda') { przywolajTopielce(gra, 1); continue; }                  // topielec: z głębokiej wody najbliżej bohatera
       const pt = gra.portale[q.z], ka = Math.random() * Math.PI * 2, kd = Math.random() * 18;
       const pw = { x: pt.x + Math.cos(ka) * kd, y: pt.y + Math.sin(ka) * kd * 0.7 }; zderzenia(pw, 14);
       gra.wrogowie.push(nowyWrog(q.typ, pw, ETAPY[gra.etap].zlosc));
@@ -1013,7 +1109,12 @@ function aktualizujEtapy(gra, dt) {
     gra.mroczek = Math.max(dlugi ? 0 : 0.12, NOC.mroczek * (1 - gra.slonce));
     if (dlugi) {
       const zar = gra.przemiana >= PRZEMIANA.prog;
-      const kwestie = [
+      const kwestie = BAGNO ? (gra.porozmawiano ? [] : [
+        [4.5, 'Świt. Mgła schodzi z wody.'],
+        [9, 'Wiedźma klęczy w błocie. Nie ucieka.'],
+        [13.5, zar ? 'Ręka dalej pali. Ona coś o tym wie.' : 'Żar w ręce przygasa. Ona coś o tym wie.'],
+        [18, 'Podejdę do niej.'],
+      ]) : [
         [4.5, 'Świt. Mgła cofa się do lasu.'],
         [9, 'Klątwa zeszła z tej polany. Czuję to w ziemi.'],
         [13.5, zar ? 'Ze mnie nie zeszła. Ręka dalej pali.' : 'Ze mnie jeszcze nie. Ale żar przygasa.'],
@@ -1021,7 +1122,10 @@ function aktualizujEtapy(gra, dt) {
       ];
       for (const [t, tekst] of kwestie) if (gra.switT >= t && gra.switT - dt < t) powiedz(gra, tekst, 4.6);
     }
-    if (gra.fazaCzas <= 0) { gra.faza = 'koniec'; gra.zdarzenia.push({ typ: 'koniec' }); }
+    if (gra.fazaCzas <= 0 && BAGNO && gra.kleczy && !gra.porozmawiano) {   // koniec bagna dopiero po rozmowie z wiedźmą
+      gra.fazaCzas = 0; gra.czekaT = (gra.czekaT || 0) + dt;
+      if (gra.czekaT > 9 && gra.mysl.czas <= 0) { gra.czekaT = 0; powiedz(gra, 'Wiedźma czeka. Podejdź do niej.', 4); }
+    } else if (gra.fazaCzas <= 0) { gra.faza = 'koniec'; gra.zdarzenia.push({ typ: 'koniec' }); }
   }
 }
 
