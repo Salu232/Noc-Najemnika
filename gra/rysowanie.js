@@ -1,7 +1,7 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, WODA, PLYTKA } from './swiat.js';
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
 import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
@@ -191,7 +191,31 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   let dymNa = 0, iskraNa = 0;
   const trupyC = new P.Container();              // ciała leżą jako ostre obrazy, aż wsiąkną
   const ozdoby = new P.Container();                // kępy trawy, mchu i liści z arkuszy Przemka: leżą pod krwią
-  swiat.addChild(ziemia, plamy, droga, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para, dymK);
+  // Bagno (27 XI, ?mapa=bagno): ziemia zielonkawa i ciemniejsza, woda rysowana kodem, dopóki nie ma kafla z Gemini.
+  // Płytka woda to miękkie przejście warstwami, głęboka to ciemne lustro z jaśniejszym brzegiem, rzęsą i liśćmi grzybieni.
+  const wodaG = new P.Graphics();
+  if (BAGNO) {
+    ziemia.tint = 0x93a184; plamy.tint = 0x8a9a7c; droga.tint = 0xa49c86;
+    for (const w of WODA) {
+      let z = (w.x * 7 + w.y) | 0; const l = () => { z = (z * 1103515245 + 12345) & 0x7fffffff; return z / 0x7fffffff; };
+      const f1 = l() * 6.28, f2 = l() * 6.28, f3 = l() * 6.28;
+      // brzeg nierówny: promień faluje między 0,9 a 1 elipsy zderzeń (nie wychodzi poza nią, więc nie ma niewidzialnej ściany na wodzie)
+      const brzeg = (k, d = 1) => { const pk = []; for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2;
+        const r = k * (1 - d * 0.1 * (0.5 + 0.3 * Math.sin(3 * a + f1) + 0.15 * Math.sin(5 * a + f2) + 0.05 * Math.sin(9 * a + f3)));
+        pk.push(w.x + Math.cos(a) * w.rx * r, w.y + Math.sin(a) * w.ry * r); } return pk; };
+      for (let k = 8; k >= 0; k--) {                                    // płytka: błoto i woda, od brzegu w stronę głębi coraz ciemniej
+        wodaG.beginFill(k > 5 ? 0x2a2a1c : 0x1e2a1e, 0.1); wodaG.drawPolygon(brzeg(1 + (PLYTKA - 1) * k / 8, 1.6)); wodaG.endFill();
+      }
+      wodaG.beginFill(0x0d130f, 0.94); wodaG.drawPolygon(brzeg(1)); wodaG.endFill();
+      wodaG.beginFill(0x1b241d, 0.55); wodaG.drawPolygon(brzeg(0.62, 2).map((v, i) => i % 2 ? v - w.ry * 0.16 : v - w.rx * 0.1)); wodaG.endFill();   // odblask nieba
+      wodaG.lineStyle(2.5, 0x4a5640, 0.4); wodaG.drawPolygon(brzeg(1)); wodaG.lineStyle(0);
+      for (let i = 0; i < Math.round(w.rx / 14); i++) {                 // rzęsa i liście grzybieni przy brzegu
+        const a = l() * Math.PI * 2, q = 0.55 + l() * 0.33, x = w.x + Math.cos(a) * w.rx * q, y = w.y + Math.sin(a) * w.ry * q;
+        const r = 3 + l() * 8; wodaG.beginFill(l() < 0.3 ? 0x41562f : 0x2a3b22, 0.8); wodaG.drawEllipse(x, y, r, r * 0.55); wodaG.endFill();
+      }
+    }
+  }
+  swiat.addChild(ziemia, plamy, droga, wodaG, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para, dymK);
 
   // drzewa
   const drzewa = DRZEWA.map((d, i) => {
@@ -898,6 +922,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
   function rysuj(gra, dt, zdarzenia) {
     czas += dt;
+    // bagno: deszcz i bąble robią kręgi na głębokiej wodzie
+    if (BAGNO && pierscienie.length < 40) for (const w of WODA) if (Math.random() < dt * w.rx / 60) {
+      const a = Math.random() * Math.PI * 2, q = Math.sqrt(Math.random()) * 0.85;
+      pierscienie.push({ x: w.x + Math.cos(a) * w.rx * q, y: w.y + Math.sin(a) * w.ry * q, r0: 2, r1: 10 + Math.random() * 16, t: 0, czas: 0.9 + Math.random() * 0.8, kolor: 0x7c8c74, ziemia: true, gr: 1.5, alfa: 0.45 });
+    }
     const b = gra.bohater;
     // kałuża po wiedźmie wsiąka w ziemię: po 20 s blednie przez 4 s i znika (Patryk, 25 XI 16:57)
     // każde inne ciało po WSIAKA s ciemnieje, spłaszcza się i znika; krew pod nim zostaje
@@ -1413,7 +1442,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (q >= 1) { pierscienie.splice(i, 1); continue; }
       const rr = r.r0 + (r.r1 - r.r0) * (1 - (1 - q) * (1 - q));
       const gz = r.ziemia ? znakiZiemia : znaki;
-      gz.lineStyle(r.ziemia ? 6 : 3, r.kolor, 0.8 * (1 - q)); gz.beginFill(0, 0); gz.drawEllipse(r.x, r.y, rr, rr * (r.ziemia ? PERSP : 0.8)); gz.endFill();
+      gz.lineStyle(r.gr || (r.ziemia ? 6 : 3), r.kolor, (r.alfa || 0.8) * (1 - q)); gz.beginFill(0, 0); gz.drawEllipse(r.x, r.y, rr, rr * (r.ziemia ? PERSP : 0.8)); gz.endFill();
     }
 
     // napisy unoszą się i gasną

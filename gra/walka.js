@@ -1,6 +1,8 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL } from './dane.js';
-import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle } from './swiat.js';
+import { START, CHATA, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej } from './swiat.js';
+// Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
+const BRODZI = 0.62, BRODZI_WROG = 0.72;
 
 const TAU = Math.PI * 2;
 const rozn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -320,6 +322,7 @@ function aktualizujBohatera(gra, dt, w) {
   else if (b.stan === 'cios') v = BOHATER.szybkosc * (b.cios.faza === 'laduje' ? MOCNY.ruchLadowania : bron.ruch);
   // schyla się po rzecz z ziemi (27 XI, Patryk: „nie widzę, jak zbiera”): chwila postoju; cios, blok albo unik ją przerywa
   if (b.schyla > 0) { b.schyla -= dt; if (b.stan === 'wolny' && !b.blok) v = 0; else b.schyla = 0; }
+  if (BAGNO) { b.brodzi = wPlytkiej(b); if (b.brodzi) v *= BRODZI; }
   if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt * PION; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl) * (v / BOHATER.szybkosc + 0.3); }
   else b.idzie = false;
   b.x += b.odrzutX * dt; b.y += b.odrzutY * dt;
@@ -643,6 +646,7 @@ function aktualizujWrogow(gra, dt) {
     const doBoh = Math.atan2(dy, dx);
     const bohaterZywy = b.stan !== 'upadl';
     let ax = 0, ay = 0, szyb = e.szybkosc;
+    if (BAGNO && !typ.wodny && wPlytkiej(e)) szyb *= BRODZI_WROG;
     e.t += dt;
 
     if (e.stan === 'wynurza') {

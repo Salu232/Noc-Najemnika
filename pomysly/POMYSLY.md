@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Claude (Patryk: „działaj powoli z bagnem”) | Bagno, krok 1: druga mapa pod adresem ?mapa=bagno. Martwy las, zielonkawa ziemia, sześć oczek wody z nierównym brzegiem, rzęsą i trzcinami; głęboka woda nie do przejścia, w płytkiej bohater brnie (×0,62), potwory też (×0,72); kręgi deszczu na wodzie | zrobione, zastępcze | polana bez zmian (drzewa i ozdoby porównane z poprzednią wersją 1:1); chata i ognisko jak na polanie, dopóki nie ma chaty wiedźmy |
 | 2026-11-27 | Claude (Patryk: „ty jakbyś zrobił”) | Po upadku przepada połowa monet zebranych w przegranej fali, druga zostaje na mikstury; bohater mówi, o ile lżejsza sakiewka | zrobione | sprawdzone w node: 10 przed falą, 21 przy upadku → 15 |
 | 2026-11-27 | Claude | Napis „+N” nad zabitym potworem z ikoną monety; ekran końca liczy zebrane monety; sklep handlarza mieści się na telefonie trzymanym poziomo (mniejszy portret i ikony) | zrobione | sprawdzone zrzutami 1280×720 i 844×390 |
 | 2026-11-27 | Claude | Plan bagna z gotowymi poleceniami do Gemini i Veo: teren, chata wiedźmy na palach, rekwizyty, topielec, upiór, żywa wiedźma od zagadki, ikona kotła | do przejrzenia z Patrykiem | docs/bagno.md; pełzacz nie wraca (odrzucony 25 XI) |

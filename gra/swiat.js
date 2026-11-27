@@ -3,6 +3,11 @@
 
 export const SZER = 3200, WYS = 2400;
 
+// Która mapa (27 XI, początek bagna): ?mapa=bagno w adresie. Bez tego zawsze polana, tak jak dotąd.
+// Bagno to na razie polana przerobiona kodem (martwy las, woda płytka i głęboka); obrazy z Gemini przyjdą później (docs/bagno.md).
+export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || 'polana') === 'bagno' ? 'bagno' : 'polana';
+export const BAGNO = MAPA === 'bagno';
+
 // Chata z Gemini (grafika/chata.webp, 951×951) w skali świata.
 export const CHATA = { obrazSzer: 951, obrazWys: 951, skala: 0.62 };
 CHATA.x = 1600 - (CHATA.obrazSzer * CHATA.skala) / 2;
@@ -88,7 +93,9 @@ export const DRZEWA = [];
 // Bez obrazu rekwizytów gra rysuje drzewa kodem według wariantu, jak dotąd.
 let ziarno2 = 29;
 const los2 = () => { ziarno2 = (ziarno2 + 0x6D2B79F5) | 0; let t = Math.imul(ziarno2 ^ (ziarno2 >>> 15), 1 | ziarno2); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-const LAS = [['swierk_a', 30], ['swierk_b', 30], ['martwe_a', 7], ['martwe_b', 7], ['zlamane', 6], ['sosna', 6], ['mszyste', 6], ['pien', 4], ['kloda', 4]];
+const LAS = BAGNO
+  ? [['swierk_b', 8], ['martwe_a', 24], ['martwe_b', 24], ['zlamane', 16], ['mszyste', 12], ['pien', 8], ['kloda', 8]]   // bagno: martwy las
+  : [['swierk_a', 30], ['swierk_b', 30], ['martwe_a', 7], ['martwe_b', 7], ['zlamane', 6], ['sosna', 6], ['mszyste', 6], ['pien', 4], ['kloda', 4]];
 const WYS_RYSUNKU = { pien: 0.3, kloda: 0.34, sosna: 0.8, mszyste: 0.8, zlamane: 0.85, martwe_a: 0.9, martwe_b: 0.85 };
 for (let i = 0; i < DRZEWA.length; i++) {
   const d = DRZEWA[i];
@@ -123,6 +130,24 @@ export function odDrogi(x, y) { let m = Infinity; for (const p of DROGA) m = Mat
 // Na drodze nie rosną drzewa (las był posadzony wcześniej, więc zdejmujemy te, które na nią wpadły).
 for (let i = DRZEWA.length - 1; i >= 0; i--) if (odDrogi(DRZEWA[i].x, DRZEWA[i].y) < DROGA_SZER * 0.75) DRZEWA.splice(i, 1);
 
+// Woda na bagnie: elipsy. Głęboka (rx, ry) jest nie do przejścia, płytka to pas wokół niej (PLYTKA razy większy),
+// w którym bohater i potwory brną wolniej. Droga (tu grobla) i obejście chaty zostają suche. Na polanie wody nie ma.
+export const PLYTKA = 1.45;
+export const WODA = BAGNO ? [
+  { x: 820, y: 1060, rx: 210, ry: 120 },       // na zachód od chaty, między lasem a polaną
+  { x: 2420, y: 1500, rx: 250, ry: 140 },      // na wschodzie, za ogniskiem
+  { x: 1980, y: 1960, rx: 170, ry: 100 },      // na południu, przy grobli
+  { x: 2500, y: 820, rx: 150, ry: 90 },        // w lesie na północnym wschodzie
+  { x: 520, y: 1820, rx: 190, ry: 110 },       // w lesie na południowym zachodzie
+  { x: 1450, y: 1720, rx: 110, ry: 62 },       // oczko na polanie, blisko drogi
+] : [];
+const wElipsie = (p, w, k) => { const dx = (p.x - w.x) / (w.rx * k), dy = (p.y - w.y) / (w.ry * k); return dx * dx + dy * dy; };
+export const wGlebokiej = (p) => WODA.some(w => wElipsie(p, w, 1) < 1);
+export const wPlytkiej = (p) => WODA.some(w => { const q = wElipsie(p, w, PLYTKA); return q < 1 && wElipsie(p, w, 1) >= 1; });
+// Brzeg głębokiej wody najbliżej punktu (tu wynurzają się topielce).
+export function brzegWody(w, kat) { return { x: w.x + Math.cos(kat) * w.rx * 1.08, y: w.y + Math.sin(kat) * w.ry * 1.08 }; }
+if (BAGNO) for (let i = DRZEWA.length - 1; i >= 0; i--) if (WODA.some(w => wElipsie(DRZEWA[i], w, PLYTKA * 0.9) < 1)) DRZEWA.splice(i, 1);
+
 // Rzeczy przy drodze z arkusza obozu Przemka (rekwizyty-oboz.jpg): stos drewna, beczki
 // i pochodnia przy furtce. Stawiane względem drogi: f to miejsce na drodze (0 skraj lasu, 1 furtka),
 // bok to strona (-1 lewa, 1 prawa, patrząc ku chacie), od to odległość od środka drogi. szer: szerokość w świecie,
@@ -145,8 +170,10 @@ export const RZECZY = [
 
 export const OZDOBY = [];
 (function rozsyp() {
-  const POLANA = ['trawa_a', 'trawa_b', 'trawa_c', 'trawa_d', 'trawa_e', 'trawa_f', 'trawa_g', 'trawa_a', 'trawa_b', 'trawa_e', 'ziemia_b', 'mech_c', 'bloto'];
-  const LASU = ['mech_a', 'mech_b', 'mech_c', 'mech_d', 'mech_e', 'liscie', 'liscie', 'trawa_c', 'trawa_d', 'trawa_f', 'ziemia_d', 'krzak_a', 'krzak_b', 'krzak_b'];
+  const POLANA = BAGNO ? ['bloto', 'bloto', 'mech_a', 'mech_c', 'mech_d', 'trawa_c', 'trawa_d', 'trawa_f', 'trawa_g', 'ziemia_d']
+    : ['trawa_a', 'trawa_b', 'trawa_c', 'trawa_d', 'trawa_e', 'trawa_f', 'trawa_g', 'trawa_a', 'trawa_b', 'trawa_e', 'ziemia_b', 'mech_c', 'bloto'];
+  const LASU = BAGNO ? ['mech_a', 'mech_b', 'mech_c', 'mech_d', 'mech_e', 'bloto', 'bloto', 'trawa_c', 'trawa_d', 'trawa_f', 'krzak_a']
+    : ['mech_a', 'mech_b', 'mech_c', 'mech_d', 'mech_e', 'liscie', 'liscie', 'trawa_c', 'trawa_d', 'trawa_f', 'ziemia_d', 'krzak_a', 'krzak_b', 'krzak_b'];
   const PLASKIE = /^(ziemia|mech|bloto|liscie)/;
   const chata = { x0: CHATA.x + 10, x1: CHATA.x + 951 * CHATA.skala, y0: CHATA.y + 330 * CHATA.skala, y1: CHATA.podstawa + 70 };
   for (let i = 0; i < 9000 && OZDOBY.length < 420; i++) {
@@ -156,7 +183,8 @@ export const OZDOBY = [];
     if (x > chata.x0 - 40 && x < chata.x1 + 30 && y > chata.y0 && y < chata.y1) continue;
     if (Math.hypot(x - OGNISKO.x, (y - OGNISKO.y) * 1.4) < 120) continue;
     if (odDrogi(x, y) < DROGA_SZER * 0.9) continue;
-    if (RZECZY.some(r => Math.hypot(r.x - x, r.y - y) < r.szer * 0.6)) continue;                                     // na drodze nic nie rośnie
+    if (RZECZY.some(r => Math.hypot(r.x - x, r.y - y) < r.szer * 0.6)) continue;
+    if (BAGNO && WODA.some(w => wElipsie({ x, y }, w, 1.05) < 1)) continue;                                 // w głębokiej wodzie nic nie rośnie                                     // na drodze nic nie rośnie
     const lista = naPolanie ? POLANA : LASU, rys = lista[(los2() * lista.length) | 0];
     const odst = PLASKIE.test(rys) ? 110 : 60;
     if (OZDOBY.some(o => Math.hypot(o.x - x, o.y - y) < Math.max(odst, o.odst))) continue;
@@ -164,6 +192,12 @@ export const OZDOBY = [];
     OZDOBY.push({ x, y, rys, odst, lustro: los2() < 0.5, skala: 0.8 + los2() * 0.45, plaskie: PLASKIE.test(rys), stoi: /^krzak/.test(rys) });
   }
 })();
+
+// Trzciny i błoto na brzegach wody (bagno): kępy wysokiej trawy w pasie płytkiej wody.
+if (BAGNO) for (const w of WODA) for (let i = 0; i < Math.round(w.rx / 16); i++) {
+  const a = los2() * Math.PI * 2, q = 1.0 + los2() * (PLYTKA - 0.95), rys = ['trawa_c', 'trawa_d', 'trawa_f', 'trawa_c', 'bloto'][(los2() * 5) | 0];
+  OZDOBY.push({ x: w.x + Math.cos(a) * w.rx * q, y: w.y + Math.sin(a) * w.ry * q, rys, odst: 40, lustro: los2() < 0.5, skala: 0.9 + los2() * 0.5, plaskie: rys === 'bloto', stoi: false });
+}
 
 // Siatka drzew, żeby szybko sprawdzać zderzenia.
 const KOM = 128, siatka = new Map();
@@ -214,6 +248,10 @@ export function zderzenia(p, r) {
   for (const t of TOTEMY) {
     const dx = p.x - t.x, dy = p.y - t.y, q = Math.hypot(dx, dy), m = r + t.promien;
     if (q < m && q > 0.001) { p.x = t.x + dx / q * m; p.y = t.y + dy / q * m; }
+  }
+  for (const w of WODA) {                                             // głęboka woda: wypycha na brzeg (elipsa jak rozciągnięte koło)
+    const ex = w.rx + r, ey = w.ry + r * 0.7, dx = (p.x - w.x) / ex, dy = (p.y - w.y) / ey, q = Math.hypot(dx, dy);
+    if (q < 1 && q > 0.0001) { p.x = w.x + dx / q * ex; p.y = w.y + dy / q * ey; }
   }
   const o = Math.hypot(p.x - OGNISKO.x, p.y - OGNISKO.y), mo = r + OGNISKO.promien;
   if (o < mo && o > 0.001) { p.x = OGNISKO.x + (p.x - OGNISKO.x) / o * mo; p.y = OGNISKO.y + (p.y - OGNISKO.y) / o * mo; }
