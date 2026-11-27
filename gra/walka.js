@@ -843,6 +843,7 @@ function aktualizujEtapy(gra, dt) {
     gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza stoi
     if (gra.fazaCzas <= 0) {
       gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = []; gra.ostrzezono = false;
+      gra.groszePrzedFala = gra.grosze;                                   // do upadku: połowa monet z przegranej fali przepada
       // Portale (27 XI, Patryk): potwory nie wychodzą już z totemów, tylko z ran w powietrzu, które otwiera klątwa bohatera.
       // Przeklęty przyciąga przeklęte. Druga wersja po teście Patryka (27 XI 10:35: „muszą znikać, jak już wyrzucą potwory”):
       // każdy portal otwiera się tuż przed swoją grupką (najwyżej 4 potwory w krótkim odstępie), tam gdzie bohater stoi w tej chwili,
@@ -902,8 +903,12 @@ function aktualizujEtapy(gra, dt) {
     if (gra.fazaCzas <= 0) {
       postawBohatera(gra);
       gra.wrogowie = []; gra.kolejka = []; gra.pociski = [];
+      // Upadek (Patryk, 27 XI 14:17: „ty jakbyś zrobił”): połowa monet zebranych w przegranej fali przepada.
+      // Druga połowa zostaje, żeby słabszy gracz miał za co kupić mikstury przed kolejną próbą.
+      const strata = gra.groszePrzedFala != null ? Math.max(0, Math.ceil((gra.grosze - gra.groszePrzedFala) / 2)) : 0;
+      gra.grosze -= strata;
       gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa; gra.kwestie = []; gra.portale = [];
-      powiedz(gra, 'Znowu ten ogień. Znowu ta noc.', NOC.przerwa);
+      powiedz(gra, strata ? `Znowu ten ogień. Znowu ta noc. Sakiewka lżejsza o ${strata}.` : 'Znowu ten ogień. Znowu ta noc.', NOC.przerwa);
     }
   } else if (gra.faza === 'swit') {
     // Świt po rycerzu (Patryk, 26 XI 0:56): słońce nad pokonanym, klątwa schodzi z polany, ale to dopiero pierwszy etap.

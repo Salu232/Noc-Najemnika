@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Claude (Patryk: „ty jakbyś zrobił”) | Po upadku przepada połowa monet zebranych w przegranej fali, druga zostaje na mikstury; bohater mówi, o ile lżejsza sakiewka | zrobione | sprawdzone w node: 10 przed falą, 21 przy upadku → 15 |
 | 2026-11-27 | Claude | Napis „+N” nad zabitym potworem z ikoną monety; ekran końca liczy zebrane monety; sklep handlarza mieści się na telefonie trzymanym poziomo (mniejszy portret i ikony) | zrobione | sprawdzone zrzutami 1280×720 i 844×390 |
 | 2026-11-27 | Claude | Plan bagna z gotowymi poleceniami do Gemini i Veo: teren, chata wiedźmy na palach, rekwizyty, topielec, upiór, żywa wiedźma od zagadki, ikona kotła | do przejrzenia z Patrykiem | docs/bagno.md; pełzacz nie wraca (odrzucony 25 XI) |
 | 2026-11-27 | Claude | Na pasku ikony wypitych wywarów i pasa zamiast napisu „Wywar: siła”; napisy na pasku już się nie łamią | zrobione | |
