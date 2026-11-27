@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Claude | Nowe filmy bohatera: chód przodem z mieczem w pochwie (gdy nie walczy), picie mikstury, podnoszenie drewna i kartek | zrobione (v84) | filmy od Patryka; animacje jednorazowe przerywa ruch, blok albo walka |
 | 2026-11-26 | Claude (z nagrania Patryka 20:43) | Kartki z walki nie otwierają się po fali jedna za drugą: czekają w plecaku ze znakiem „nowa kartka”. Przed bossem chwila na miksturę (bohater wchodzi z małym życiem po hordzie). | zrobione (kartki w plecaku ze znakiem, przerwa przed bossem 30 s) | v82 |
 | 2026-11-26 | Patryk | Tempo fal: więcej czasu między falami (nie zdąży wejść do chaty); przed falą dźwięk ostrzegawczy; dynamiczna muzyka w walce; fala 1: bohater myśli, co się dzieje (nikt go tu nie chciał prowadzić); fala 2 zmusza do przygotowania; fala 3 podkreślona, że to nie koniec; fala 4 z bossem nie sam. | zrobione | v82 |
 | 2026-11-26 | Patryk | Zamiast totemów: portale przyzwane przez klątwę. Przeklęty bohater przyciąga przeklęte stwory (jak w Berserku). Przemek rozbił totemy, bo nie podszedł ich obejrzeć; Patryk na totemy nie zwracał uwagi, wciągała go walka. | zrobione: 2–4 portale otwierają się wokół bohatera (albo ogniska, gdy jest w chacie) na początku fali i zamykają po ostatnim potworze; totemy zostały jako znak kultu, nie da się ich rozbić | v83 |

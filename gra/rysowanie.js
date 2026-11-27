@@ -155,7 +155,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // bohater pokazuje plecy (film chodu tyłem). mijanie: chwile cyklu, w których nogi się mijają, od nich rusza i na nich staje.
   // chod_przod (w dół ekranu, przodem do nas) czeka na film; dopóki go nie ma w klatkach, w dół idzie bieg bokiem
   // bieg_miecz: ten sam bieg z mieczem w dłoni (film Patryka z Flow, 24 XI); nogi mijają się w klatkach 12 i 24–25 filmu
-  const RUCH = { bieg: { droga: 90, mijanie: [0.42, 0.94] }, bieg_miecz: { droga: 87, mijanie: [0.125, 0.65] }, chod_tyl: { droga: 110, mijanie: [0, 0.5] }, chod_przod: { droga: 110, mijanie: [0, 0.5] } };
+  const RUCH = { bieg: { droga: 90, mijanie: [0.42, 0.94] }, bieg_miecz: { droga: 87, mijanie: [0.125, 0.65] }, chod_tyl: { droga: 110, mijanie: [0, 0.5] }, chod_przod: { droga: 110, mijanie: [0, 0.5] }, chod_przod_s: { droga: 110, mijanie: [0, 0.5] } };
 
   // ---------- warstwy ----------
   const scena = new P.Container();
@@ -630,6 +630,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     // Wyciąga miecz, gdy zaczyna się walka, i chowa go po niej (film Patryka z Flow, 24 XI; chowanie to ten sam film wstecz).
     // Ma pierwszeństwo przed chodem, żeby było go widać także w ruchu.
     if (stanRys.miecz === 'wyciaga' || stanRys.miecz === 'chowa') return klatkaZ('wyciaga', stanRys.mieczP);
+    // picie mikstury i podnoszenie z ziemi (filmy Patryka, 27 XI): tylko gdy stoi; ruch albo walka przerywa
+    if (stanRys.jedno) {
+      const j = stanRys.jedno, q = (czas - j.od) / j.dl;
+      if (q >= 1 || b.idzie || b.stan !== 'wolny' || b.blok || !A[j.n]) stanRys.jedno = null; else return klatkaZ(j.n, q);
+    }
     if (b.idzie || stanRys.dochodzi > 0) return klatkaPetli(stanRys.ruchR || stanRys.ruch, stanRys.krok);
     // W walce stoi w gardzie z mieczem uniesionym przed sobą; gdy wokół pusto, opuszcza miecz i oddycha (Patryk, 24 XI).
     // Klatki gardy idą tam i z powrotem, powoli, jak ważenie miecza w dłoniach.
@@ -896,6 +901,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
     // zdarzenia, które widać na obrazie
     for (const z of zdarzenia) {
+      if (z.typ === 'mikstura') stanRys.jedno = { n: 'pije', od: czas, dl: 1.5 };
+      else if (z.typ === 'drewno' || z.typ === 'kartka') stanRys.jedno = { n: 'podnosi', od: czas, dl: 1.3 };
       if (z.typ === 'parowanie') { napis('Sparowane!', b.x, b.y - 96, 0xffe2a0); pierscienie.push({ x: b.x, y: b.y - 40, r0: 20, r1: 90, t: 0, czas: 0.3, kolor: 0xfff0c0 }); }
       else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
@@ -1014,13 +1021,14 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const chodzi = b.idzie && b.stan === 'wolny' && !b.blok;
     if (chodzi && dd > 0 && dd < 40) {                                      // w górę ekranu plecami, z zapasem, żeby nie migało
       if (stanRys.ruch === 'bieg' && ddy < -0.8 * dd) { stanRys.ruch = 'chod_tyl'; }
-      else if (stanRys.ruch === 'bieg' && ddy > 0.8 * dd && AB.chod_przod && stanRys.miecz === 'w_dloni') { stanRys.ruch = 'chod_przod'; }   // w dół przodem, gdy jest film; film ma miecz w dłoni, więc z mieczem w pochwie idzie bokiem (Patryk, 26 XI)
+      else if (stanRys.ruch === 'bieg' && ddy > 0.8 * dd && AB.chod_przod) { stanRys.ruch = 'chod_przod'; }   // w dół przodem, gdy jest film; z mieczem w pochwie osobny film (27 XI, niżej ruchR)
       else if (stanRys.ruch === 'chod_tyl' && ddy > -0.5 * dd) { stanRys.ruch = 'bieg'; }
-      else if (stanRys.ruch === 'chod_przod' && (ddy < 0.5 * dd || stanRys.miecz !== 'w_dloni')) { stanRys.ruch = 'bieg'; }
+      else if (stanRys.ruch === 'chod_przod' && ddy < 0.5 * dd) { stanRys.ruch = 'bieg'; }
     }
     // W walce, z mieczem w dłoni, biegnie z mieczem przed sobą (Patryk, 24 XI: „jak szarżuje … to z bronią w reku”).
     // Przy zmianie biegu na bieg z mieczem faza kroku przesuwa się tak, żeby nogi były w tym samym miejscu cyklu.
-    const ruchR = stanRys.ruch === 'bieg' && stanRys.miecz === 'w_dloni' && A.bieg_miecz ? 'bieg_miecz' : stanRys.ruch;
+    const ruchR = stanRys.ruch === 'bieg' && stanRys.miecz === 'w_dloni' && A.bieg_miecz ? 'bieg_miecz'
+      : stanRys.ruch === 'chod_przod' && stanRys.miecz !== 'w_dloni' && A.chod_przod_s ? 'chod_przod_s' : stanRys.ruch;
     if (stanRys.ruchR && ruchR !== stanRys.ruchR && RUCH[ruchR] && RUCH[stanRys.ruchR]) stanRys.krok += RUCH[ruchR].mijanie[0] - RUCH[stanRys.ruchR].mijanie[0];
     stanRys.ruchR = ruchR;
     const RU = RUCH[ruchR];
