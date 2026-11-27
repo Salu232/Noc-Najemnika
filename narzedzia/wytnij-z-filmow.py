@@ -218,6 +218,21 @@ POSTACIE = {
             'trup':       ('topielec-smierc', [92]),
         },
     },
+    # Utopiec, elita bagna: stary topielec z 26 XI (materialy/topielec-*.mp4), większy i twardszy. Filmu trafienia nie ma:
+    # trafienie to pierwsze klatki śmierci (zatacza się), a śmierć kończy się kałużą błota.
+    'utopiec': {
+        'obraz': 'grafika/utopiec.webp',
+        'stopy': (250, 350), 'wys_film': 323, 'wys_swiat': 118, 'skala_obrazu': 0.4,
+        'animacje': {
+            'chod':       ('utopiec-chod', list(range(1, 72, 3))),
+            'zamach':     ('utopiec-atak', [13, 17, 21, 25, 29]),                   # pochyla się, ręce do przodu
+            'skok':       ('utopiec-atak', [33, 37, 41, 45, 49, 53, 57]),           # rzuca się z łapami
+            'odpoczynek': ('utopiec-atak', [61, 66, 71, 76, 81, 86, 91]),
+            'trafienie':  ('utopiec-smierc', [7, 10, 13, 16, 19, 22, 25]),
+            'smierc':     ('utopiec-smierc', list(range(28, 92, 3))),               # klęka i rozlewa się w błoto
+            'trup':       ('utopiec-smierc', [96]),
+        },
+    },
     # Wiedźma, boss bagna (Patryk, 27 XI 21:47 obraz, 21:58 cztery filmy). Nie umiera: upadek kończy się na kolanach.
     'czarownica': {
         'obraz': 'grafika/czarownica.webp',
@@ -229,6 +244,20 @@ POSTACIE = {
             'odpoczynek': ('czarownica-rzut', [67, 71, 75, 79, 83, 87, 91]),
             'trafienie':  ('czarownica-trafienie', list(range(28, 73, 3))),        # wcześniej w kadr wlatuje zielona kula: pomijamy
             'upadek':     ('czarownica-upadek', list(range(31, 96, 3))),           # upuszcza kostur i klęka; ostatnia klatka to klęczenie
+        },
+    },
+    # Pełzacz (obraz Przemka 25 XI, filmy 26 XI; na bagno od 27 XI 22:37, Patryk: „on miał być na bagna”). Niski, z pancerzem na grzbiecie.
+    'pelzacz': {
+        'obraz': 'grafika/pelzacz.webp',
+        'stopy': (275, 336), 'wys_film': 311, 'wys_swiat': 66, 'skala_obrazu': 0.4,
+        'animacje': {
+            'chod':       ('pelzacz-chod', list(range(11, 97, 3))),
+            'zamach':     ('pelzacz-atak', [11, 15, 19, 23, 27]),                 # przysiada
+            'skok':       ('pelzacz-atak', [31, 35, 39, 43, 47, 51]),             # rzuca się z otwartą paszczą
+            'odpoczynek': ('pelzacz-atak', [55, 59, 63, 67, 71]),
+            'trafienie':  ('pelzacz-trafienie', list(range(11, 72, 4))),
+            'smierc':     ('pelzacz-smierc', list(range(16, 62, 3))),             # przewraca się na grzbiet i opada na bok
+            'trup':       ('pelzacz-smierc', [72]),
         },
     },
     'bestia': {   # czworonożny skoczek (Patryk z Omni Flash, 26 XI): biegnie, przysiada i skacze na bohatera

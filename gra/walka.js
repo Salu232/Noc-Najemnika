@@ -1,8 +1,7 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL, ZIOLA, LATARNIA, DARY, ROZMOWA_WIEDZMY } from './dane.js';
-import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY, wGlebokiej, wIzbieWiedzmy, SZER, WYS } from './swiat.js';
+import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY, wGlebokiej, dlaBohatera, wIzbieWiedzmy, SZER, WYS } from './swiat.js';
 // Topielce na bagnie: ile w każdej fali (wychodzą z wody, oprócz potworów z portali)
-const TOPIELCE = [{ ile: 3, co: 3, od: 2 }, { ile: 5, co: 2.5, od: 4 }, { ile: 7, co: 1.6, od: 3 }, { ile: 4, co: 4, od: 12 }];
 // Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
 const BRODZI = 0.62, BRODZI_WROG = 0.72;
 
@@ -14,6 +13,7 @@ const losuj = (a, b) => a + Math.random() * (b - a);
 const PION = 0.8;
 
 export function nowaGra(bron = DOMYSLNA_BRON) {
+  if (BAGNO) dlaBohatera(START);                                          // siatka lądu bohatera liczy się tu, a nie w środku walki
   const gra = {
     bronKlucz: BRONIE[bron] ? bron : DOMYSLNA_BRON, bron: BRONIE[BRONIE[bron] ? bron : DOMYSLNA_BRON],
     czas: 0, zatrzymanie: 0, wstrzas: 0, mroczek: WSTEP.zmierzch,
@@ -247,6 +247,9 @@ export function aktualizuj(gra, dt, w) {
 // Teraz da się ich ciąć, gdy widać ich choć w jednej trzeciej; cięty kończy wynurzanie i musi się zebrać.
 // Upiór (bagno): miecz przez niego przechodzi, chyba że gęstnieje do ataku albo zaraz po nim. Klątwa rani go zawsze.
 export const gesty = e => !e.typ.duch || (e.stan === 'zamach' && e.t > (e.typ.zamach * 0.35)) || e.stan === 'skok' || (e.stan === 'odpoczynek' && e.t < e.typ.okno) || e.stan === 'ogluszony';
+const roznicaKata = (a, b) => ((a - b) % TAU + TAU * 1.5) % TAU - Math.PI;
+// Pełzacz (bagno): pancerz na grzbiecie i łbie odbija cięcie od przodu. Ogłuszony (klątwa, mocny cios) jest odsłonięty.
+const wPancerz = (e, b) => e.typ.pancerz && e.stan !== 'ogluszony' && Math.abs(roznicaKata(Math.atan2(b.y - e.y, b.x - e.x), e.kier ?? 0)) < e.typ.pancerz.kat;
 const nieDoTrafienia = e => e.stan === 'martwy' || ((e.stan === 'wynurza' || e.stan === 'mgla') && e.widac < 0.3);
 function najblizszyWrog(gra, zasieg) {
   const b = gra.bohater; let naj = null, nd = zasieg;
@@ -560,6 +563,13 @@ function tnij(gra, dt) {
       if (!gra.upiorRada) { gra.upiorRada = true; powiedz(gra, 'Miecz przechodzi przez niego jak przez mgłę. Tnij, kiedy gęstnieje do ciosu.', 4); }
       continue;
     }
+    if (wPancerz(e2, b)) {                                               // pełzacz od przodu: miecz odbija się od pancerza
+      c.trafieni.add(e2); gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.05);
+      gra.zdarzenia.push({ typ: 'blok', x: e2.x, y: e2.y - 20, kat: Math.atan2(e2.y - b.y, e2.x - b.x) });
+      if (c.mocny) { e2.stan = 'ogluszony'; e2.t = 0; e2.ogluszCzas = e2.typ.pancerz.ogluszenie; e2.vx += Math.cos(Math.atan2(e2.y - b.y, e2.x - b.x)) * 260; e2.vy += Math.sin(Math.atan2(e2.y - b.y, e2.x - b.x)) * 260; }   // mocny cios przewraca go: chwila na cięcie
+      if (!gra.pancerzRada) { gra.pancerzRada = true; powiedz(gra, 'Pancerz odbija ostrze. Z boku albo od tyłu. Albo przewrócić go mocnym ciosem.', 4.5); }
+      continue;
+    }
     cele.push({ e: e2, r, d });
   }
   cele.sort((p, q2) => p.r - q2.r);
@@ -754,11 +764,11 @@ function rzucKule(gra, e, kat) {
   gra.zdarzenia.push({ typ: 'rzut', x: e.x, y: e.y, wiedzma: !!e.typ.czary });
 }
 // Topielce z głębokiej wody najbliżej bohatera, z dala od płonących pochodni (te same zasady co w falach).
-function przywolajTopielce(gra, ile, odWiedzmy = false) {
+function przywolajTopielce(gra, ile, odWiedzmy = false, typ = 'topielec') {
   const b = gra.bohater, plona = LATARNIE.filter((l, i) => gra.latarnie[i].ogien > 0.05).map(l => ({ ...l, r: LATARNIA.bezTopielcow }));
   for (let i = 0; i < ile; i++) {
     const pw = punktZWody(b.wChacie ? OGNISKO : b, plona) || punktZWody(b.wChacie ? OGNISKO : b) || { x: b.x + 300, y: b.y };
-    const e = nowyWrog('topielec', pw, ETAPY[Math.min(gra.etap, ETAPY.length - 1)].zlosc);
+    const e = nowyWrog(typ, pw, ETAPY[Math.min(gra.etap, ETAPY.length - 1)].zlosc);
     e.zWody = true; e.odWiedzmy = odWiedzmy; gra.wrogowie.push(e); gra.zdarzenia.push({ typ: 'wynurza', x: e.x, y: e.y });
   }
 }
@@ -801,8 +811,14 @@ function aktualizujWrogow(gra, dt) {
     const bohaterZywy = b.stan !== 'upadl';
     let ax = 0, ay = 0, szyb = e.szybkosc;
     if (BAGNO && wPlytkiej(e)) szyb *= typ.wodny ? 1.25 : BRODZI_WROG;
+    else if (BAGNO && wGlebokiej(e)) szyb *= typ.wodny ? 1.1 : 0.45;
     e.t += dt;
 
+    if (typ.pancerz) {                                                    // pełzacz obraca się wolno, a w ataku wcale: da się go obejść
+      if (e.kier === undefined) e.kier = doBoh;
+      const v = e.stan === 'idzie' || e.stan === 'wynurza' ? typ.pancerz.obrot : e.stan === 'odpoczynek' ? typ.pancerz.obrot * 0.3 : e.stan === 'zamach' ? typ.pancerz.obrot * 0.5 : 0;
+      e.kier += Math.max(-v * dt, Math.min(v * dt, roznicaKata(doBoh, e.kier)));
+    }
     if (e.wciaga > 0) {                                                   // Wir z bagna: sunie do bohatera, zanim klątwa uderzy
       const k = Math.min(1, dt / Math.max(dt, e.wciaga)), cel = Math.max(0, d - (e.promien + b.promien + 40));
       e.x += dx / d * cel * k; e.y += dy / d * cel * k; e.vx = e.vy = 0; e.wciaga -= dt; e.drzy = (Math.random() - 0.5) * 3;
@@ -867,6 +883,7 @@ function aktualizujWrogow(gra, dt) {
         if (e.t < typ.zamach * 0.4 || !e.celSkoku) { e.kat = doBoh; const dl = Math.min(d + 35, typ.zasiegAtaku + 60); e.celSkoku = { x: e.x + Math.cos(doBoh) * dl, y: e.y + Math.sin(doBoh) * dl, dl }; }
         ax = -Math.cos(e.kat) * 25; ay = -Math.sin(e.kat) * 25;
       }
+      else if (typ.pancerz) { e.kat = e.kier; ax = -Math.cos(e.kat) * 25; ay = -Math.sin(e.kat) * 25; }   // pełzacz rzuca się tam, gdzie patrzy
       else if (!typ.ciezki) { e.kat = doBoh; ax = -dx / d * 25; ay = -dy / d * 25; }
       e.drzy = (Math.random() - 0.5) * 2.4;
       if (typ.pocisk) { ax = 0; ay = 0; e.drzy *= 0.4; }
@@ -880,7 +897,7 @@ function aktualizujWrogow(gra, dt) {
         if (typ.pocisk && e.czar) rzucCzar(gra, e, doBoh);                 // wiedźma bagna: kula, wachlarz, seria, topielce albo mgła
         else if (typ.pocisk) rzucKule(gra, e, doBoh);                      // rzuca kulę tam, gdzie bohater stoi teraz
         else if (typ.doskok) { e.vx = e.lot.vx; e.vy = e.lot.vy; }
-        else if (!typ.ciezki) { e.vx = Math.cos(e.kat) * 400; e.vy = Math.sin(e.kat) * 400; }
+        else if (!typ.ciezki) { const v = typ.pancerz ? typ.pancerz.rzut : 400; e.vx = Math.cos(e.kat) * v; e.vy = Math.sin(e.kat) * v; }
         else { gra.wstrzas = Math.max(gra.wstrzas, 10); gra.zdarzenia.push({ typ: 'tapniecie' }); }
       }
     } else if (e.stan === 'skok') {
@@ -908,6 +925,9 @@ function aktualizujWrogow(gra, dt) {
       if (e.t >= (e.ogluszCzas || 1.2)) { e.stan = 'idzie'; e.t = 0; e.drzy = 0; e.ogluszCzas = 0; }
     }
 
+    // wiedźma z kulami poza lądem bohatera (w głębokiej wodzie albo na płyciźnie odciętej głębią) brnie prosto do niego (27 XI: stała tam, gdzie miecz nie sięga)
+    e.brnie = BAGNO && typ.pocisk && (e.stan === 'idzie' || e.stan === 'odpoczynek') && !dlaBohatera(e);
+    if (e.brnie) { ax = dx / d * szyb; ay = dy / d * szyb; }
     // rozpychanie się w tłumie
     const cx = (e.x / KOM) | 0, cy = (e.y / KOM) | 0;
     for (let ix = cx - 1; ix <= cx + 1; ix++) for (let iy = cy - 1; iy <= cy + 1; iy++) {
@@ -924,11 +944,11 @@ function aktualizujWrogow(gra, dt) {
     else { e.vx *= Math.max(0, 1 - dt * 5); e.vy *= Math.max(0, 1 - dt * 5); }
     const px = e.x, py = e.y;
     e.x += e.vx * dt; e.y += e.vy * dt * PION;
-    // nie wchodzi w bohatera
+    // nie wchodzi w bohatera (pełzacz w skoku przelatuje obok i odsłania grzbiet)
     const bx = e.x - b.x, by = e.y - b.y, bd = Math.hypot(bx, by), bm = e.promien + b.promien;
-    if (bohaterZywy && bd < bm && bd > 0.01) { e.x = b.x + bx / bd * bm; e.y = b.y + by / bd * bm; }
+    if (bohaterZywy && bd < bm && bd > 0.01 && !(typ.pancerz && e.stan === 'skok')) { e.x = b.x + bx / bd * bm; e.y = b.y + by / bd * bm; }
     if (typ.duch) { e.x = Math.max(40, Math.min(SZER - 40, e.x)); e.y = Math.max(40, Math.min(WYS - 40, e.y)); }   // upiór przenika ściany i unosi się nad wodą
-    else zderzenia(e, e.promien);
+    else zderzenia(e, e.promien, BAGNO && (!typ.pocisk || e.brnie));   // na bagnie potwory przechodzą przez głęboką wodę (27 XI 22:40: bez tego stały po drugiej stronie rozlewiska); wiedźmy nie, bo uciekałyby tam, gdzie miecz nie sięga
     if (typ.czary && wIzbieWiedzmy(e) && !wIzbieWiedzmy({ x: px, y: py })) { e.x = px; e.y = py; }   // wiedźma walczy na zewnątrz, nie chowa się w izbie
     e.anim += dt * Math.hypot(e.vx, e.vy) / 70;
   }
@@ -1036,7 +1056,6 @@ function aktualizujEtapy(gra, dt) {
       const kt = gra.etap > 0 && KARTKI[gra.etap];
       if (kt && !gra.kartka) { const p = { x: OGNISKO.x + kt.gdzie.dx, y: OGNISKO.y + kt.gdzie.dy }; zderzenia(p, 22); gra.kartka = { nr: gra.etap, x: p.x, y: p.y }; }
       const grupy = ETAPY[gra.etap].grupy.slice();
-      if (BAGNO && TOPIELCE[gra.etap]) grupy.push({ typ: 'topielec', z: ['woda'], ...TOPIELCE[gra.etap] });
       for (const g of grupy) for (let i = 0; i < g.ile; i++) {
         gra.kolejka.push({ typ: g.typ, z: g.z[i % g.z.length] === 'boss' || g.z[i % g.z.length] === 'woda' ? g.z[i % g.z.length] : null, t: PORTAL.otwarcie + (g.od || 0) + i * g.co });
       }
@@ -1072,7 +1091,7 @@ function aktualizujEtapy(gra, dt) {
         gra.zdarzenia.push({ typ: 'boss' });
         continue;
       }
-      if (q.z === 'woda') { przywolajTopielce(gra, 1); continue; }                  // topielec: z głębokiej wody najbliżej bohatera
+      if (q.z === 'woda') { przywolajTopielce(gra, 1, false, q.typ); continue; }                  // topielec: z głębokiej wody najbliżej bohatera
       const pt = gra.portale[q.z], ka = Math.random() * Math.PI * 2, kd = Math.random() * 18;
       const pw = { x: pt.x + Math.cos(ka) * kd, y: pt.y + Math.sin(ka) * kd * 0.7 }; zderzenia(pw, 14);
       gra.wrogowie.push(nowyWrog(q.typ, pw, ETAPY[gra.etap].zlosc));

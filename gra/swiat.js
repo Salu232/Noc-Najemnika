@@ -342,7 +342,7 @@ function odepchnijOdOdcinka(p, a, b, r) {
 }
 
 // Wypycha postać (x, y, promien) z drzew, ścian chaty, płotów i ogniska.
-export function zderzenia(p, r) {
+export function zderzenia(p, r, plywa = false) {   // plywa: potwory na bagnie brną też przez głęboką wodę (wolno), tylko bohater nie
   const cx = (p.x / KOM) | 0, cy = (p.y / KOM) | 0;
   for (let ix = cx - 1; ix <= cx + 1; ix++) for (let iy = cy - 1; iy <= cy + 1; iy++) {
     const lista = siatka.get(ix * 1000 + iy); if (!lista) continue;
@@ -378,7 +378,7 @@ export function zderzenia(p, r) {
     { const dx = p.x - cw.kociol.x, dy = p.y - cw.kociol.y, q = Math.hypot(dx, dy), m = r + cw.kociol.promien; if (q < m && q > 0.001) { p.x = cw.kociol.x + dx / q * m; p.y = cw.kociol.y + dy / q * m; } }
     for (const l of LATARNIE) { const dx = p.x - l.x, dy = p.y - l.y, q = Math.hypot(dx, dy), m = r + 8; if (q < m && q > 0.001) { p.x = l.x + dx / q * m; p.y = l.y + dy / q * m; } }   // pal pochodni
     // głęboka woda: krok po kroku pod spadek głębokości, aż do płycizny
-    for (let k = 0; k < 20 && glebia(p.x, p.y) > 1; k++) {
+    for (let k = 0; !plywa && k < 20 && glebia(p.x, p.y) > 1; k++) {
       const h = 6, gx = glebia(p.x + h, p.y) - glebia(p.x - h, p.y), gy = glebia(p.x, p.y + h) - glebia(p.x, p.y - h), gl = Math.hypot(gx, gy) || 1;
       p.x -= gx / gl * 5; p.y -= gy / gl * 5;
     }
@@ -389,6 +389,21 @@ export function zderzenia(p, r) {
 }
 
 // Potwór wychodzi spod totemu tej strony (przed nim, w stronę polany).
+// Ląd i płycizna, na które bohater może dojść od ogniska (siatka co 20 px, liczona raz, przy pierwszym pytaniu). Na bagnie wiedźma,
+// która znalazła się poza nim (głęboka woda albo płycizna odcięta głębią), brnie do bohatera, zamiast stać tam, gdzie miecz nie sięga.
+let dojscie = null;
+const DK = 20, DW = Math.ceil(SZER / DK) + 1, DH = Math.ceil(WYS / DK) + 1;
+export function dlaBohatera(p) {
+  if (!dojscie) {
+    const wolne = new Uint8Array(DW * DH);
+    for (let j = 0; j < DH; j++) for (let i = 0; i < DW; i++) wolne[j * DW + i] = glebia(i * DK, j * DK) < 0.97 && i * DK > 30 && j * DK > 60 && i * DK < SZER - 30 && j * DK < WYS - 30 ? 1 : 0;   // tylko głęboka woda i brzeg mapy: drzewa i kładki obejdzie
+    dojscie = new Uint8Array(DW * DH); const s = Math.round(START.x / DK) + Math.round(START.y / DK) * DW, kol = [s]; dojscie[s] = 1;
+    for (let h = 0; h < kol.length; h++) { const c = kol[h], x = c % DW; for (const n of [x > 0 ? c - 1 : -1, x < DW - 1 ? c + 1 : -1, c - DW, c + DW]) if (n >= 0 && n < DW * DH && !dojscie[n] && wolne[n]) { dojscie[n] = 1; kol.push(n); } }
+  }
+  const i = Math.round(p.x / DK), j = Math.round(p.y / DK);
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const x = i + a, y = j + b; if (x >= 0 && y >= 0 && x < DW && y < DH && dojscie[y * DW + x]) return true; }   // obok drzewa też się liczy
+  return false;
+}
 export function punktWMgle(nazwa, stan = null) {
   let lista = TOTEMY.filter((t, i) => t.mgla === nazwa && !(stan && stan[i].zniszczony));
   if (!lista.length) lista = TOTEMY.filter(t => t.mgla === nazwa);

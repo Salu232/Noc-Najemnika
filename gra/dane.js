@@ -115,6 +115,22 @@ export const WROGOWIE = {
     ciezki: false,
     chwyt: 1.1,          // ile sekund trzyma bohatera (albo do pierwszego cięcia w niego)
   },
+  // Utopiec, elita bagna (27 XI): stary topielec z filmów 26 XI (materialy/), większy, wolniejszy, twardszy, dłużej trzyma.
+  // Wychodzi z wody jak topielec, rzadko i dopiero później w nocy. Śmierć kończy się kałużą błota.
+  utopiec: {
+    nazwa: 'utopiec', id: 'utopiec', wodny: true, kolor: 0x6f8f7c,
+    zycie: [13, 15],
+    szybkosc: [50, 60],
+    promien: 19,
+    skala: 1.6,
+    zasiegAtaku: 88,
+    zamach: 0.7,
+    skok: 0.3,
+    obrazenia: 16,
+    odpoczynek: 1.6,
+    ciezki: false,
+    chwyt: 1.5,
+  },
   kolos: {
     nazwa: 'kolos',
     zycie: [22, 22],     // 27 XI 13:06: było 16, rano 8
@@ -163,6 +179,23 @@ export const WROGOWIE = {
     odpoczynek: 1.6,
     ciezki: false,
     doskok: true,
+  },
+  // Pełzacz (obraz i filmy Przemka 25–26 XI; na bagno 27 XI 22:37, Patryk: „on miał być na bagna”). Niski i szybki,
+  // pancerz na grzbiecie odbija cięcie od przodu (kąt w radianach od kierunku, w który patrzy). Obraca się wolno, w ataku wcale,
+  // a rzut niesie go za bohatera: po rzucie albo unikiem w bok widać jego boki. Klątwa i ogłuszenie omijają pancerz.
+  pelzacz: {
+    nazwa: 'pelzacz',
+    zycie: [6, 7],
+    szybkosc: [112, 128],
+    promien: 18,
+    skala: 1.2,
+    zasiegAtaku: 110,
+    zamach: 0.55,
+    skok: 0.42,
+    obrazenia: 15,
+    odpoczynek: 1.3,
+    ciezki: false,
+    pancerz: { kat: 1.05, obrot: 2.4, rzut: 520, ogluszenie: 1.3 },
   },
   // Upiór (bagno, z listy Patryka 25 XI; docs/bagno.md „Nowe potwory”). Półprzezroczysty, przenika przez potwory, ściany i wodę.
   // Miecz go nie rani, póki nie zgęstnieje: od 35% zamachu, w czasie ciosu i przez okno (s) po nim. Klątwa rani zawsze.
@@ -297,22 +330,34 @@ export const ETAPY = [
     ],
   },
 ];
-// Upiory na bagnie (27 XI 22:35): dwa w drugiej fali, trzy w trzeciej. Wyłączone, dopóki Patryk nie zdecyduje (22:30: „ale mieliśmy już potwory na bagno”).
-const UPIORY = false;
-if (BAGNO && UPIORY) { ETAPY[1].grupy.push({ typ: 'upior', ile: 2, z: ['wschod', 'zachod'], co: 7, od: 10 }); ETAPY[2].grupy.push({ typ: 'upior', ile: 3, z: ['zachod', 'wschod', 'poludnie'], co: 6, od: 6 }); }
-// Ostatnia noc na bagnie (27 XI 21:45): zamiast rycerza wychodzi wiedźma z chaty na palach.
-if (BAGNO) ETAPY[3] = {
-  nazwa: 'Wiedźma',
-  mysl: 'Drzwi chaty skrzypią. Ktoś wychodzi na pomost.',
-  przerwa: 30,
-  przed: ['Cicho. Nawet żaby przestały.', 'W chacie pali się światło. Wcześniej go nie było.', 'Ona tam jest. Czeka, aż przyjdą wszystkie.'],
-  zlosc: { szybkosc: 1.28, odpoczynek: 0.55, zycie: 1.5, obrazenia: 1.45 },
-  grupy: [
-    { typ: 'czarownica', ile: 1, z: ['boss'], co: 0, od: 3 },
-    { typ: 'ghul', ile: 8, z: ['zachod', 'wschod'], co: 1.8, od: 6 },
-    { typ: 'bestia', ile: 1, z: ['poludnie'], co: 0, od: 30 },
-  ],
-};
+// Fale bagna (27 XI 22:35, Patryk: „nie dodawaj potworów z polany, co najwyżej wiedźmy, to nowy rozdział”).
+// 22:35, Patryk: „robiliśmy już potwory na bagna”: topielce (z wody), pełzacze i wiedźmy (z portali), na końcu wiedźma bagna.
+// Upiór (WROGOWIE.upior) jest w kodzie, ale w żadnej fali. Złość jak na polanie.
+// Do 22:35 było tu: fale z polany (ghule, bestie, kolos, rycerz) i doklejone topielce 3, 5, 7, 4.
+if (BAGNO) {
+  const W = ['zachod', 'wschod', 'poludnie'];
+  ETAPY[0] = { ...ETAPY[0], nazwa: 'Coś w wodzie', mysl: 'Woda bulgocze. Coś pod nią idzie.',
+    grupy: [{ typ: 'topielec', ile: 5, z: ['woda'], co: 3.2, od: 2 }] };   // 27 XI: sam topielec, żeby gracz nauczył się chwytu
+  ETAPY[1] = { ...ETAPY[1], nazwa: 'Wiedźmy', mysl: 'We mgle ktoś śpiewa. Kilka głosów naraz.',
+    przed: ['Bagno oddycha. Słyszę je pod deskami.', 'Topielce wracają do wody, ale nie odpływają.', 'Pochodnie. Póki płoną, woda jest spokojniejsza.'],
+    grupy: [{ typ: 'topielec', ile: 7, z: ['woda'], co: 2.6, od: 3 }, { typ: 'pelzacz', ile: 2, z: W, co: 9, od: 8 }, { typ: 'wiedzma', ile: 1, z: W, co: 0, od: 16 }] };
+  ETAPY[2] = { ...ETAPY[2], nazwa: 'Bagno wstaje', mysl: 'Wszystko, co tu utonęło, idzie po mnie.',
+    przed: ['Cisza. Za cicha.', 'Ręka pali. Czuję je w wodzie, zanim wyjdą.', 'Z chaty patrzy światło. Ona na to czeka.'],
+    grupy: [{ typ: 'topielec', ile: 10, z: ['woda'], co: 1.8, od: 2 }, { typ: 'pelzacz', ile: 3, z: W, co: 7, od: 5 }, { typ: 'wiedzma', ile: 2, z: W, co: 8, od: 12 }, { typ: 'utopiec', ile: 1, z: ['woda'], co: 0, od: 20 }] };
+  ETAPY[3] = {
+    nazwa: 'Wiedźma',
+    mysl: 'Drzwi chaty skrzypią. Ktoś wychodzi na pomost.',
+    przerwa: 30,
+    przed: ['Cicho. Nawet żaby przestały.', 'W chacie pali się światło. Wcześniej go nie było.', 'Ona tam jest. Czeka, aż przyjdą wszystkie.'],
+    zlosc: { szybkosc: 1.28, odpoczynek: 0.55, zycie: 1.5, obrazenia: 1.45 },
+    grupy: [
+      { typ: 'czarownica', ile: 1, z: ['boss'], co: 0, od: 3 },
+      { typ: 'topielec', ile: 6, z: ['woda'], co: 3.2, od: 8 },
+      { typ: 'pelzacz', ile: 2, z: W, co: 10, od: 12 },
+      { typ: 'utopiec', ile: 1, z: ['woda'], co: 0, od: 25 },
+    ],
+  };
+}
 // Rozmowa z pokonaną wiedźmą (Patryk, 27 XI 17:37: „coś o klątwie zdradzi, (…) o jakimś specjalnym ataku”).
 // Treść to propozycja Claude'a, do zmiany. Ostatnia kwestia daje dar.
 export const ROZMOWA_WIEDZMY = [
@@ -345,7 +390,7 @@ export const TOTEM = { zycie: 24, zaKlatwe: 6 };
 // 27 XI 13:06 (Patryk: „trochę mniej tego złota”): było ghul 2, bestia 3, wiedźma 4, kolos 8.
 // zaFale: monety za odpartą falę (27 XI 17:28, Patryk: „przy polanie zwiększyć te monety, bo ciężko przy 3 fali”).
 // Tylko po pierwszej i drugiej fali, żeby przed rycerzem nie było znów stać na wszystko (Patryk, 27 XI rano).
-export const GROSZE = { ghul: 1, topielec: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, czarownica: 0, upior: 2, zaFale: [8, 12, 0, 0] };
+export const GROSZE = { ghul: 1, topielec: 1, bestia: 2, wiedzma: 3, kolos: 5, rycerz: 0, czarownica: 0, upior: 2, pelzacz: 2, utopiec: 4, zaFale: [8, 12, 0, 0] };
 // Bagno (27 XI 20:54): zioła na wyspach i pochodnie na palach (docs/bagno.md, punkt 8).
 // ZIOLA: ile wyrasta przed każdą falą, najwięcej naraz na ziemi, ile wiązek na miksturę w kotle.
 // LATARNIA: zasięg światła, ile sekund płonie w walce i w ciszy, w jakiej odległości od płonącej topielce nie wychodzą z wody.

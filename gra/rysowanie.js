@@ -17,13 +17,15 @@ const OB = 0x0b0a09;           // kolor obrysu
 const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
 const losuj = (a, b) => a + Math.random() * (b - a);
 
-const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32, bestia: 17, topielec: 17, czarownica: 55 };   // na jakiej wysokości miecz przecina ciało wroga
+const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32, bestia: 17, topielec: 17, czarownica: 55, pelzacz: 20, utopiec: 22 };   // na jakiej wysokości miecz przecina ciało wroga
 // Potwory z filmów Przemka (narzedzia/wytnij-z-filmow.py): ghul ma 72 jednostki wzrostu, kolos 165.
 const FILM_WROGA = {
   ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
   kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
   wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },
   topielec: { ciecie: 40, droga: 90, smierc: 1.6, trafienie: 0.3, oko: { x: 16, y: -82 }, cien: 3.4 },   // z filmów Patryka (27 XI 21:30); chód brodzący, dwa kroki na cykl
+  utopiec: { ciecie: 50, droga: 80, smierc: 2.2, trafienie: 0.35, oko: { x: 20, y: -100 }, cien: 4.4 },   // stary topielec z 26 XI jako elita (27 XI)
+  pelzacz: { ciecie: 22, droga: 120, smierc: 1.4, trafienie: 0.35, oko: { x: 50, y: -46 }, cien: 4.2 },   // z filmów Przemka (26 XI), na bagnie od 27 XI 22:40
   czarownica: { ciecie: 55, droga: 80, smierc: 2, trafienie: 0.4, oko: { x: 8, y: -108 }, cien: 3.0 },   // wiedźma, boss bagna, z filmów Patryka (27 XI 21:58); nie umiera, klęka
   bestia: { ciecie: 32, droga: 330, smierc: 1.4, trafienie: 0.3, oko: { x: 48, y: -66 }, cien: 3.0 },   // czworonożny skoczek z filmów Patryka (26 XI)
   rycerz: { ciecie: 75, droga: 420, drogaChod: 190, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
@@ -908,7 +910,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // trafienie (rozpoznane po błysku) przerywa chód krótkim wstrząsem, ogłuszenie pokazuje cały film trafienia.
   function rysujWrogaZFilmu(e, fw, b, gra) {
     const typ = e.typ;
-    const sx = Math.cos(e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'przemiana' || (e.stan === 'odpoczynek' && !typ.boss) ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;
+    const sx = Math.cos(typ.pancerz && e.kier !== undefined ? e.kier : e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'przemiana' || (e.stan === 'odpoczynek' && !typ.boss) ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;   // pełzacz patrzy tam, gdzie się obrócił
     if (e.flash > (e._fl || 0) + 0.001) e._trafOd = czas;                 // nowy cios: błysk urósł
     e._fl = e.flash;
     const odTraf = czas - (e._trafOd === undefined ? -9 : e._trafOd);

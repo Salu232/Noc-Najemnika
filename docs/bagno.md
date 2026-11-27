@@ -40,7 +40,9 @@
 | Potwór | Jak walczy | Czego uczy gracza |
 | --- | --- | --- |
 | **Topielec** | Czeka pod wodą (widać tylko bąble), wyskakuje, kiedy podejdziesz, chwyta i ciągnie. Trzeba szybko ciąć albo zrobić unik. Na suchym lądzie jest wolny i słaby. | Patrzeć pod nogi i trzymać się pomostów. |
-| **Upiór** (z listy Patryka, 25 XI) | Półprzezroczysty, przenika przez inne potwory i ściany. Miecz go nie rani, póki nie zgęstnieje do ataku. Rani go klątwa albo cięcie tuż po jego zamachu. | Wyczucie chwili, a nie samo machanie. |
+| **Pełzacz** (filmy Patryka z 27 XI, były w `materialy/`, zapomniane do 22:50) | Od przodu ma pancerz: cięcie odbija się iskrą. Obraca się wolno, więc trzeba go obejść i ciąć w bok albo w grzbiet. Mocny cios w pancerz przewraca go na 1,3 s. W skoku przelatuje obok bohatera i odsłania grzbiet. Klątwa działa na niego zawsze. | Obchodzić, nie stać w miejscu. |
+| **Utopiec** (stary topielec z 26 XI, `materialy/topielec-*.mp4`) | Elita. Większy, wolniejszy i twardszy od topielca (13–15 życia, rani za 16), dłużej trzyma w chwycie. Wychodzi z wody pojedynczo, dopiero w trzeciej fali i przy wiedźmie. Ginie, rozlewając się w kałużę błota. Filmu trafienia nie ma: drga na pierwszych klatkach śmierci. | Nie dać się złapać, gdy obok są inne potwory. |
+| **Upiór** (z listy Patryka, 25 XI; w kodzie, wyłączony) | Półprzezroczysty, przenika przez inne potwory i ściany. Miecz go nie rani, póki nie zgęstnieje do ataku. Rani go klątwa albo cięcie tuż po jego zamachu. | Wyczucie chwili, a nie samo machanie. |
 
 ## Lista obrazów i filmów do zrobienia
 
@@ -111,9 +113,10 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
 - Na bagnie jest własny prolog, własne zdanie przy przyjściu i przy zapadnięciu nocy.
 - Gra zawsze zaczyna się na polanie (27 XI 16:51, Patryk: „wchodzę i mam bagno wiedźmy”). Mapa przechodzi tylko przez jedno przeładowanie; odświeżenie na bagnie wraca na polanę.
 - Przycisku mapy na ekranie startu już nie ma. Do prób w menu pauzy jest „Próba: przeskocz na bagno” (bez rzeczy z polany) i z powrotem.
-- W płytkiej wodzie bohater brnie wolniej (×0,62), potwory też (×0,72). Głęboka woda jest nie do przejścia.
-- Topielec ma własne klatki z filmów Patryka (od 27 XI 21:40). Wynurza się z wody, chwyta na 1,1 s i puszcza po cięciu. Fale na bagnie mają dodatkowo 3, 5, 7 i 4 topielce.
-- Fale i kartki są jeszcze z polany, ale ostatnia noc ma już wiedźmę zamiast rycerza. Miejsca do obejrzenia przed nocą są już bagienne: kocioł, chata, stos, kładka, wóz i kamień ze znakiem.
+- W płytkiej wodzie bohater brnie wolniej (×0,62), potwory też (×0,72). Dla bohatera głęboka woda jest nie do przejścia. Potwory przez nią brną bardzo wolno (×0,45; topielec i utopiec ×1,1), bo od 27 XI 22:40 stały po drugiej stronie rozlewiska. Wiedźmy z kulami do głębokiej wody nie wchodzą, żeby nie uciekały tam, gdzie miecz nie sięga.
+- Topielec ma własne klatki z filmów Patryka (od 27 XI 21:40). Wynurza się z wody, chwyta na 1,1 s i puszcza po cięciu.
+- **Fale bagna nie mają potworów z polany** (Patryk, 27 XI: *„nie dodawaj potwórw z polany co najwyżej wiedzmy, to nowy rozdział”*). Fala 1: 5 topielców. Fala 2: 7 topielców, 2 pełzacze, wiedźma. Fala 3: 10 topielców, 3 pełzacze, 2 wiedźmy, utopiec. Noc 4: wiedźma bagna, 6 topielców, 2 pełzacze, utopiec. Bot (`node testy/bot-noc2.mjs 2 dobry bagno 900`, 27 XI 23:10, 10 prób po 15 minut gry): na bagnie 0–20 upadków, dwa razy doszedł do świtu, raz utknął w drugiej fali. Na polanie (4 próby) 22–32 upadki i żadnego świtu. Bagno nie jest więc trudniejsze od polany. Bot na bagnie obchodzi głęboką wodę po siatce, a gdy utknie na brzegu, robi krok w bok.
+- Kartki są jeszcze z polany, a ostatnia noc ma wiedźmę zamiast rycerza. Miejsca do obejrzenia przed nocą są już bagienne: kocioł, chata, stos, kładka, wóz i kamień ze znakiem.
 
 ## Co Claude zrobi, zanim przyjdą obrazy
 
