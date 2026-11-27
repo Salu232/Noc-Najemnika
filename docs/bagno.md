@@ -27,6 +27,12 @@
    - Daje bohaterowi nowy specjalny atak. Propozycja Claude: **„Wir z bagna”**, czyli klątwa uderza nie w ziemię, tylko wciąga potwory do bohatera i zalewa je wodą. Do wyboru z Patrykiem.
    - Pierwsza propozycja (matka topielców) zostaje na później, na przykład na drugie spotkanie z bagnem.
 7. **Kładki do poprawy** (Patryk, 27 XI 17:37: *„trzeba te kładki poprawić, żeby wyglądały przyzwoicie”*). Dziś to deski rysowane kodem. Potrzebny obraz z Gemini: prosty odcinek kładki, powtarzalny w poziomie, kładziony wzdłuż kładki jak kafel drogi. Polecenie w tabeli obrazów, punkt 6.
+8. **Pomysły Claude na bagno** (27 XI 17:40, Patryk: *„sam też pomyśl, co można by fajnego dodać”*; nic jeszcze nie zatwierdzone):
+   - **Zioła na wyspach.** W ciszy między falami zbiera się zioła i grzyby na dalszych wyspach. W kotle robi się z nich mikstury i ulepszenia razem z łupem z potworów. To daje powód, żeby chodzić po kładkach.
+   - **Latarnie na palach zamiast jednego ogniska.** Na kilku wyspach stoją latarnie do zapalenia. Mgła z wody je gasi, a w ciemności topielce są śmielsze. Ogień robi się mapą, a nie jednym punktem.
+   - **Kładki pękają.** Pod kolosem albo po mocnym ciosie deska się łamie i potwór wpada do wody. Kładkę da się przeciąć specjalnie, ale wtedy sam tamtędy nie przejdziesz.
+   - **Skrzynia w wozie rycerza.** Za klucz z kartki otwiera się skrzynię, a w niej jest tarcza albo nowy miecz rycerza. To pierwsza zdobyta broń w grze.
+
 ## Nowe potwory (propozycja)
 
 | Potwór | Jak walczy | Czego uczy gracza |
