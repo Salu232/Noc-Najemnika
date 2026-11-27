@@ -6,8 +6,11 @@ export const SZER = 3200, WYS = 2400;
 // Która mapa (27 XI, początek bagna): ?mapa=bagno w adresie. Bez tego zawsze polana, tak jak dotąd.
 // Bagno to na razie polana przerobiona kodem (martwy las, woda płytka i głęboka); obrazy z Gemini przyjdą później (docs/bagno.md).
 // W artefakcie adresu nie da się zmienić, więc przycisk na ekranie startu zapisuje wybór w przeglądarce (noc-mapa) i przeładowuje grę.
+// Patryk, 27 XI 14:57: na telefonie w artefakcie przycisk nie działał (pamięć przeglądarki albo zmiana adresu tam nie przechodzi).
+// Dlatego najpierw window.name: zostaje w tej samej ramce po przeładowaniu, także w zamkniętej ramce artefaktu.
 const zPamieci = () => { try { return localStorage.getItem('noc-mapa'); } catch (e) { return null; } };
-export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || (typeof localStorage !== 'undefined' && zPamieci()) || 'polana') === 'bagno' ? 'bagno' : 'polana';
+const zNazwy = () => { try { const m = /noc-mapa=(\w+)/.exec(window.name || ''); return m && m[1]; } catch (e) { return null; } };
+export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || (typeof window !== 'undefined' && zNazwy()) || zPamieci() || 'polana') === 'bagno' ? 'bagno' : 'polana';
 export const BAGNO = MAPA === 'bagno';
 
 // Chata z Gemini (grafika/chata.webp, 951×951) w skali świata.

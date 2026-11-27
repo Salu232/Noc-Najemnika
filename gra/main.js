@@ -130,9 +130,15 @@ async function start() {
   // Mapa (27 XI): polana albo bagno w próbie. Wybór zostaje w przeglądarce, gra przeładowuje się z nową mapą.
   if ($('przycisk-mapa')) {
     $('przycisk-mapa').textContent = BAGNO ? 'Mapa: bagno (próba)' : 'Mapa: polana';
+    if (BAGNO) {                                                       // od razu widać, na której mapie jesteś
+      const h = document.querySelector('#ekran-startu h1') || document.querySelector('h1'); if (h) h.textContent = 'Bagno wiedźmy (próba)';
+      const w = h && h.nextElementSibling; if (w) w.textContent = 'Próba drugiego rozdziału. Woda, martwy las i topielce, które chwytają. Tnij, żeby puściły. Reszta jeszcze z polany.';
+    }
     $('przycisk-mapa').addEventListener('click', () => {
-      try { localStorage.setItem('noc-mapa', BAGNO ? 'polana' : 'bagno'); } catch (e) { /* bez pamięci */ }
-      const u = new URL(location.href); u.searchParams.set('mapa', BAGNO ? 'polana' : 'bagno'); location.replace(u.href);   // adres na wypadek, gdyby przeglądarka nie dała pamięci
+      const nowa = BAGNO ? 'polana' : 'bagno';
+      try { window.name = 'noc-mapa=' + nowa; } catch (e) { /* */ }
+      try { localStorage.setItem('noc-mapa', nowa); } catch (e) { /* bez pamięci */ }
+      location.reload();
     });
   }
   for (const b of document.querySelectorAll('.przycisk-bohater')) b.addEventListener('click', () => {
