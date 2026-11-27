@@ -183,7 +183,7 @@ export const WROGOWIE = {
 export const ETAPY = [
   {
     nazwa: 'Coś przy totemach',
-    mysl: 'Totemy się budzą. Coś przy nich oddycha.',
+    mysl: 'Ręka pali. Powietrze pęka jak lód.',
     zlosc: { szybkosc: 1.05, odpoczynek: 0.95, zycie: 1, obrazenia: 1 },
     grupy: [{ typ: 'ghul', ile: 5, z: ['zachod', 'wschod'], co: 1.6 }],
   },

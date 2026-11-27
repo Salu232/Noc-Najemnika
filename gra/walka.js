@@ -21,7 +21,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     statystyki: { zabici: 0, upadki: 0, parowania: 0, czas: 0, totemy: 0 },
     // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
     totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
-    lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [],
+    lup: [], ogien: 1, ogienPrzygasl: false, wybor: null, ulepszenia: [], portale: [],
     plecak: {},                                                               // nowa gra: pusty plecak (Patryk, 26 XI: bez zapisów, dopóki gra nie urośnie)
     kartka: null, czytana: null, kartki: 0, przemiana: 0,   // dziennik rycerza i cena klątwy (25 XI)
     mod: { zasieg: 1, szybkosc: 1, garda: 1, oddech: 1, klatwa: 1, cialo: 1 },
@@ -777,20 +777,30 @@ function aktualizujEtapy(gra, dt) {
     gra.fazaCzas -= dt * (gra.bohater.wChacie ? CHATA_ODPOCZYNEK.tempoCiszy : 1);   // w chacie cisza stoi
     if (gra.fazaCzas <= 0) {
       gra.faza = 'walka'; gra.walkaCzas = 0; gra.kolejka = []; gra.ostrzezono = false;
-      // 26 XI (Przemek rozbił wszystkie totemy przed pierwszą falą i noc się skończyła): totem ucisza swoją stronę tylko na tę falę, z każdą nową falą wstaje
-      if (gra.totemy.some(t => t.zniszczony)) powiedz(gra, 'Totemy znów stoją. Noc je odbudowała.', 3);
-      for (const t of gra.totemy) { t.zniszczony = false; t.zycie = TOTEM.zycie; }
+      // Portale (27 XI, Patryk): potwory nie wychodzą już z totemów, tylko z ran w powietrzu, które otwiera klątwa bohatera.
+      // Przeklęty przyciąga przeklęte: portale otwierają się wokół niego (albo wokół ogniska, gdy siedzi w chacie) i zamykają, gdy wyjdzie z nich ostatni.
+      const bb = gra.bohater, sr = bb.wChacie ? OGNISKO : bb, ileP = Math.min(4, 2 + gra.etap), kat0 = Math.random() * Math.PI * 2;
+      gra.portale = [];
+      for (let i = 0; i < ileP; i++) {
+        const a = kat0 + i * Math.PI * 2 / ileP + (Math.random() - 0.5) * 0.8, d = 300 + Math.random() * 160;
+        const p = { x: sr.x + Math.cos(a) * d, y: sr.y + Math.sin(a) * d * 0.75 }; zderzenia(p, 40);
+        gra.portale.push({ x: p.x, y: p.y, t: 0, zostalo: 0, zamyka: 0 });
+      }
+      gra.zdarzenia.push({ typ: 'portal' });
+      let nrP = (Math.random() * ileP) | 0;
       const kt = gra.etap > 0 && KARTKI[gra.etap];
       if (kt && !gra.kartka) { const p = { x: OGNISKO.x + kt.gdzie.dx, y: OGNISKO.y + kt.gdzie.dy }; zderzenia(p, 22); gra.kartka = { nr: gra.etap, x: p.x, y: p.y }; }
       for (const g of ETAPY[gra.etap].grupy) for (let i = 0; i < g.ile; i++) {
-        const z = g.z[i % g.z.length];
-        if (z !== 'boss' && stronaCicha(gra, z)) continue;                              // rozbite totemy: z tej strony nikt nie przyjdzie
-        gra.kolejka.push({ typ: g.typ, z, t: (g.od || 0) + i * g.co });
+        const z = g.z[i % g.z.length] === 'boss' ? 'boss' : (nrP++ % ileP);
+        if (z !== 'boss') gra.portale[z].zostalo++;
+        gra.kolejka.push({ typ: g.typ, z, t: 1.6 + (g.od || 0) + i * g.co });           // 1,6 s: portal się otwiera
       }
       gra.kolejka.sort((a, b) => a.t - b.t);
     }
   } else if (gra.faza === 'walka') {
     gra.walkaCzas += dt;
+    for (const p of gra.portale || []) { p.t += dt; if (p.zamyka) p.zamyka += dt; }
+    if (gra.portale) gra.portale = gra.portale.filter(p => !(p.zamyka > 1.4));
     while (gra.kolejka.length && gra.kolejka[0].t <= gra.walkaCzas) {
       const q = gra.kolejka.shift();
       if (q.z === 'boss') {                                                            // rycerz wychodzi z drogi na południe od ogniska
@@ -800,8 +810,10 @@ function aktualizujEtapy(gra, dt) {
         gra.zdarzenia.push({ typ: 'boss' });
         continue;
       }
-      if (stronaCicha(gra, q.z)) continue;
-      gra.wrogowie.push(nowyWrog(q.typ, punktWMgle(q.z, gra.totemy), ETAPY[gra.etap].zlosc));
+      const pt = gra.portale[q.z], ka = Math.random() * Math.PI * 2, kd = Math.random() * 18;
+      const pw = { x: pt.x + Math.cos(ka) * kd, y: pt.y + Math.sin(ka) * kd * 0.7 }; zderzenia(pw, 14);
+      gra.wrogowie.push(nowyWrog(q.typ, pw, ETAPY[gra.etap].zlosc));
+      if (--pt.zostalo <= 0) pt.zamyka = 0.001;
     }
     if (!gra.kolejka.length && !gra.wrogowie.length) {
       gra.etap++;
@@ -823,7 +835,7 @@ function aktualizujEtapy(gra, dt) {
     if (gra.fazaCzas <= 0) {
       postawBohatera(gra);
       gra.wrogowie = []; gra.kolejka = []; gra.pociski = [];
-      gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa; gra.kwestie = [];
+      gra.faza = 'przerwa'; gra.fazaCzas = NOC.przerwa; gra.kwestie = []; gra.portale = [];
       powiedz(gra, 'Znowu ten ogień. Znowu ta noc.', NOC.przerwa);
     }
   } else if (gra.faza === 'swit') {
@@ -850,6 +862,7 @@ function aktualizujEtapy(gra, dt) {
 const stronaCicha = (gra, z) => gra.totemy.filter(t => t.mgla === z).every(t => t.zniszczony);
 
 function zranTotem(gra, t, ile) {
+  return;   // 27 XI: totemy są już tylko znakiem kultu na polanie; potwory przychodzą z portali (wyżej, aktualizujEtapy)
   if (gra.faza !== 'walka') { t.flash = 0.08; if (!gra.mysl || gra.mysl.czas < 0.5) powiedz(gra, 'Kamień śpi. Obudzi się, kiedy przyjdą.', 2); return; }   // przed falą totemu nie da się rozbić
   t.zycie -= ile; t.flash = 0.15;
   gra.zdarzenia.push({ typ: 'totem_traf', i: t.i, x: t.x, y: t.y });

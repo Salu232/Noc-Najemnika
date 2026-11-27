@@ -310,6 +310,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const blaskBoh = new P.Sprite(T.cieplo); blaskBoh.anchor.set(0.5); blaskBoh.blendMode = P.BLEND_MODES.ADD; blaski.addChild(blaskBoh);
   const blaskBossa = new P.Sprite(T.cieplo); blaskBossa.anchor.set(0.5); blaskBossa.blendMode = P.BLEND_MODES.ADD; blaskBossa.tint = 0xff5a20; blaski.addChild(blaskBossa);   // żar klątwy w rycerzu
   const blaskiTotemow = TOTEMY.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0x9a50ff; blaski.addChild(s); return s; });
+  // portale klątwy (27 XI): czarna rana w ziemi z fioletowym brzegiem i wirem, blask nad ciemnością, światło wycięte w mroku
+  const portaleG = new P.Graphics(); swiat.addChildAt(portaleG, swiat.getChildIndex(aktorzy));
+  const blaskiPortali = [0, 1, 2, 3].map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xa040ff; s.visible = false; blaski.addChild(s); return s; });
   const blaskiPochodni = plomienieRzeczy.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffa860; blaski.addChild(s); return s; });
   const blaskKlatwy = new P.Sprite(T.cieplo); blaskKlatwy.anchor.set(0.5); blaskKlatwy.blendMode = P.BLEND_MODES.ADD; blaskKlatwy.tint = 0xa060ff; blaski.addChild(blaskKlatwy);
   const napisy = new P.Container();
@@ -325,7 +328,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const stempel = () => { const s = new P.Sprite(T.stempel); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ERASE; stemple.addChild(s); return s; };
   const swiatloBoh = stempel(), swiatloOgnia = stempel(), swiatloOkna = stempel(), swiatloIzby = stempel();
   const swiatlaTotemow = TOTEMY.map(() => stempel());
-  const swiatloBossa = stempel(); let dymBossaNa = 0, pierscienBossaNa = 0, bossTrup = null;
+  const swiatloBossa = stempel(); const swiatlaPortali = [0, 1, 2, 3].map(() => stempel()); let dymBossaNa = 0, pierscienBossaNa = 0, bossTrup = null;
   const swiatlaPochodni = plomienieRzeczy.map(() => stempel());
   swiatloBoh.texture = T.stempelBoh;
   ciemnoscC.addChild(ciemnoscG, kreski, stemple);
@@ -1464,6 +1467,22 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (Math.random() < dt * 8 * gestosc) obloczek(bossTrup.x + losuj(-40, 40), bossTrup.y - losuj(0, 40), losuj(-30, 30), losuj(-110, -50), 2, 3, losuj(0.6, 1.1), 0.9, 0xff8a3a, false);
       if (Math.random() < dt * 10 * sl) obloczek(bossTrup.x + losuj(-70, 70), bossTrup.y - losuj(0, 60), losuj(-10, 10), losuj(-40, -18), 1.5, 2.5, losuj(1.5, 2.6), 0.85, 0xffe6a0, false);
     }
+    portaleG.clear();
+    blaskiPortali.forEach((s, i) => {
+      const p = gra.portale && gra.portale[i]; s.visible = !!p; if (!p) { if (swiatlaPortali[i]) swiatlaPortali[i].alpha = 0; return; }
+      const ot = Math.min(1, p.t / 1.2), sm = ot * ot * (3 - 2 * ot), zk = p.zamyka ? Math.max(0, 1 - p.zamyka / 1.4) : 1, r = 48 * sm * zk;
+      s.position.set(p.x, p.y - 20); s.width = s.height = r * 4.2; s.alpha = 0.55 * (0.85 + 0.15 * Math.sin(czas * 5 + i));
+      stawStempel(swiatlaPortali[i], p.x, p.y - 20, r * 3.2, 0.6 * sm * zk);
+      if (r < 1) return;
+      portaleG.beginFill(0x07020c, 0.9); portaleG.drawEllipse(p.x, p.y, r, r * 0.45); portaleG.endFill();
+      portaleG.lineStyle(3, 0xb070ff, 0.9); portaleG.drawEllipse(p.x, p.y, r, r * 0.45); portaleG.lineStyle(0);
+      for (let k = 0; k < 3; k++) {                                       // wir: trzy łuki kręcące się do środka
+        const a0 = czas * 2.4 + k * 2.09; portaleG.lineStyle(2, 0xd8a8ff, 0.55);
+        for (let j = 0; j <= 10; j++) { const a = a0 + j * 0.22, rr = r * (0.9 - j * 0.06); const x = p.x + Math.cos(a) * rr, y = p.y + Math.sin(a) * rr * 0.45; if (j) portaleG.lineTo(x, y); else portaleG.moveTo(x, y); }
+        portaleG.lineStyle(0);
+      }
+      if (Math.random() < dt * 12 * zk) obloczek(p.x + losuj(-r, r) * 0.8, p.y + losuj(-r, r) * 0.3, losuj(-10, 10), losuj(-70, -35), 2, 3.5, losuj(0.5, 1), 0.9, 0xc080ff, false);
+    });
     TOTEMY.forEach((t, i) => {                                            // totemy świecą fioletem, żeby było widać, skąd przyjdą
       const puls = 0.85 + 0.15 * Math.sin(czas * 2.1 + i * 1.7), jest = totemyS.length > 0 && !(gra.totemy && gra.totemy[i].zniszczony);
       stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 190 * puls, jest ? 0.55 : 0);

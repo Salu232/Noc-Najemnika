@@ -69,6 +69,7 @@ export function zagraj(z) {
       rog(t); if (z.boss) rog(t + 2.6);
       break;
     }
+    case 'portal': ton(t, 1.4, 'sawtooth', 40, 95, 0.18); szum(t, 1.3, 'bandpass', 200, 2400, 0.3, 5); ton(t + 0.3, 1.1, 'sine', 300, 120, 0.12); break;   // klątwa rozdziera powietrze (27 XI)
     case 'klatwa': ton(t, 0.8, 'sine', 62, 24, 1); szum(t, 0.5, 'lowpass', 1400, 90, 0.7); szum(t, 0.25, 'highpass', 5000, 2500, 0.18); break;
   }
 }
