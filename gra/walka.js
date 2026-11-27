@@ -1017,7 +1017,7 @@ function odkrywanie(gra, w, dt) {
   if (gra.podpowiedzZa <= 0 && gra.mysl.czas <= 0) {
     gra.podpowiedzZa = WSTEP.kolejnaPodpowiedz;
     const zostalo = MIEJSCA.filter(m => !gra.odkryte.includes(m.id) && (m.id !== 'totem' || totemGotowy));
-    if (gra.odkryte.length === 0 && !zostalo.some(m => Math.hypot(m.x - b.x, m.y - b.y) < 500)) powiedz(gra, 'Droga prowadzi do chaty. Tam, gdzie coś błyszczy, warto się zatrzymać (E).', 5);
+    if (gra.odkryte.length === 0 && !zostalo.some(m => Math.hypot(m.x - b.x, m.y - b.y) < 500)) powiedz(gra, BAGNO ? 'Kładki prowadzą między wyspami. Tam, gdzie coś błyszczy, warto się zatrzymać (E).' : 'Droga prowadzi do chaty. Tam, gdzie coś błyszczy, warto się zatrzymać (E).', 5);
     else if (zostalo.length) {
       const m = zostalo.reduce((a, c) => Math.hypot(c.x - b.x, c.y - b.y) < Math.hypot(a.x - b.x, a.y - b.y) ? c : a);
       gra.wskazane = m.id; powiedz(gra, m.wsk || WSTEP.wskazowki[m.id], 4.5);

@@ -118,7 +118,8 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
 - W płytkiej wodzie bohater brnie wolniej (×0,62), potwory też (×0,72). Dla bohatera głęboka woda jest nie do przejścia. Potwory przez nią brną bardzo wolno (×0,45; topielec i utopiec ×1,1), bo od 27 XI 22:40 stały po drugiej stronie rozlewiska. Wiedźmy z kulami do głębokiej wody nie wchodzą, żeby nie uciekały tam, gdzie miecz nie sięga.
 - Topielec ma własne klatki z filmów Patryka (od 27 XI 21:40). Wynurza się z wody, chwyta na 1,1 s i puszcza po cięciu.
 - **Fale bagna nie mają potworów z polany** (Patryk, 27 XI: *„nie dodawaj potwórw z polany co najwyżej wiedzmy, to nowy rozdział”*). Fala 1: 5 topielców. Fala 2: 7 topielców, 2 pełzacze, wiedźma. Fala 3: 10 topielców, 3 pełzacze, 2 wiedźmy, utopiec. Noc 4: wiedźma bagna, 6 topielców, 2 pełzacze, utopiec. Bot (`node testy/bot-noc2.mjs 2 dobry bagno 900`, 27 XI 23:10, 10 prób po 15 minut gry): na bagnie 0–20 upadków, dwa razy doszedł do świtu, raz utknął w drugiej fali. Na polanie (4 próby) 22–32 upadki i żadnego świtu. Bagno nie jest więc trudniejsze od polany. Bot na bagnie obchodzi głęboką wodę po siatce, a gdy utknie na brzegu, robi krok w bok.
-- Kartki są jeszcze z polany, a ostatnia noc ma wiedźmę zamiast rycerza. Miejsca do obejrzenia przed nocą są już bagienne: kocioł, chata, stos, kładka, wóz i kamień ze znakiem.
+- Kartki są jeszcze z polany, a ostatnia noc ma wiedźmę zamiast rycerza.
+- Sprawdzone 27 XI 23:40 w przeglądarce (test przechodzi całą noc od otwarcia gry do klęczącej wiedźmy): fale mają dokładnie zapisane potwory, zero błędów w konsoli. Poprawione przy tym napisy, które mówiły o drodze: handlarz („Na bagnie, w środku nocy”) i podpowiedź na start („Kładki prowadzą między wyspami”). Miejsca do obejrzenia przed nocą są już bagienne: kocioł, chata, stos, kładka, wóz i kamień ze znakiem.
 
 ## Co Claude zrobi, zanim przyjdą obrazy
 

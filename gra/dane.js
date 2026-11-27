@@ -506,7 +506,7 @@ export const HANDLARZ = {
     'Pazury, kły, krew. Wszystko się komuś przyda. Pokaż, co masz.',
     'Rycerz też tu u mnie kupował. Dużo kupował. Pod koniec już tylko krew.',
   ],
-  zobaczyl: 'Starzec z latarnią. Przy drodze, w środku nocy. Jak on tu przeszedł przez mgłę?',
+  zobaczyl: BAGNO ? 'Starzec z latarnią. Na bagnie, w środku nocy. Jak on tu przeszedł przez wodę?' : 'Starzec z latarnią. Przy drodze, w środku nocy. Jak on tu przeszedł przez mgłę?',
 };
 
 // Portale klątwy (27 XI, druga wersja): otwarcie trwa 1,6 s, potem wypuszczają grupkę i zarastają w 1,2 s.
