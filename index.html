@@ -205,12 +205,21 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 .przepis.towar .obraz { grid-column: 1; grid-row: 1 / span 2; width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 2px 3px #000); }
 .przepis.towar strong, .przepis.towar .opis { grid-column: 2; }
 .przepis.towar button { grid-column: 3; grid-row: 1 / span 2; }
+
 /* handlarz (27 XI): portret, sakiewka, kupno mikstury i sprzedaż łupu */
 #ekran-handlarza .karta { max-height: calc(100vh - 24px); overflow-y: auto; }
 .handlarz-glowa { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
 .handlarz-glowa img { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--linia); flex: none; object-fit: cover; }
 .handlarz-glowa h2 { margin: 0 0 4px; }
 .handlarz-glowa .wstep { margin: 0; font-style: italic; }
+/* telefon poziomo: niski ekran, więc mniejsza głowa handlarza i ikony, żeby towary było widać bez przewijania */
+@media (max-height: 500px) {
+  .handlarz-glowa img { width: 56px; height: 56px; }
+  #ekran-handlarza .handlarz-glowa p.wstep { font-size: 13px; }
+  .grosze { margin: 2px 0 4px; }
+  .przepis.towar { grid-template-columns: 40px 1fr auto; padding: 6px 10px; }
+  .przepis.towar .obraz { width: 40px; height: 40px; }
+}
 .grosze { margin: 4px 0 10px; font-size: 15px; color: #d8b45a; }
 .grosze::before { content: ""; display: inline-block; width: 26px; height: 26px; margin-right: 6px; vertical-align: -7px; background: url(grafika/przedmioty/sakiewka.webp) center / contain no-repeat; }
 .przepis .naglowek { grid-column: 1 / -1; margin: 6px 0 0; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--przygaszony); }

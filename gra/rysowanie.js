@@ -516,10 +516,16 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // napisy nad głową: „Sparowane!”, „+7”…
   const styleNapisu = { fontFamily: 'Alegreya SC, Georgia, serif', fontSize: 22, fontWeight: '700', fill: 0xf0e6d6, stroke: 0x000000, strokeThickness: 5 };
   const wolneNapisy = [], aktywneNapisy = [];
-  function napis(tekst, x, y, kolor = 0xf0e6d6) {
+  function napis(tekst, x, y, kolor = 0xf0e6d6, ikona = null) {
     let t = wolneNapisy.pop();
     if (!t) { t = new P.Text(tekst, styleNapisu); t.anchor.set(0.5, 1); napisy.addChild(t); } else t.text = tekst;
     t.style.fill = kolor; t.visible = true; t.position.set(x, y); t.alpha = 1;
+    // ikona za napisem, np. moneta przy „+2” (27 XI, arkusz Gemini)
+    if (ikona) {
+      if (!t.ikona) { t.ikona = new P.Sprite(); t.ikona.anchor.set(0, 0.5); t.addChild(t.ikona); }
+      t.ikona.visible = false; t.updateText(true); const w = t.texture.orig.width, h = t.texture.orig.height;   // sam tekst, bez ikony
+      t.ikona.texture = ikona; t.ikona.scale.set(26 / 128); t.ikona.position.set(w / 2 + 3, -h / 2); t.ikona.visible = true;   // ikony z arkusza mają 128 px
+    } else if (t.ikona) t.ikona.visible = false;
     aktywneNapisy.push({ t, czas: 0, y });
   }
 
@@ -922,7 +928,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       else if (z.typ === 'drewno' || z.typ === 'kartka') stanRys.jedno = { n: 'podnosi', od: czas, dl: 1.3 };
       else if (z.typ === 'podniesione') stanRys.jedno = { n: 'podnosi', od: czas, dl: 0.9, schyla: true };   // łup z ziemi: szybki skłon (walka.js, b.schyla)
       if (z.typ === 'parowanie') { napis('Sparowane!', b.x, b.y - 96, 0xffe2a0); pierscienie.push({ x: b.x, y: b.y - 40, r0: 20, r1: 90, t: 0, czas: 0.3, kolor: 0xfff0c0 }); }
-      else if (z.typ === 'grosze_z') napis(`+${z.ile} ${z.ile === 1 ? 'moneta' : z.ile < 5 ? 'monety' : 'monet'}`, z.x, z.y - 70, 0xe8c060);
+      else if (z.typ === 'grosze_z') napis(`+${z.ile}`, z.x - 12, z.y - 70, 0xe8c060, ikonaRzeczy('moneta'));
       else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
       else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
       else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);

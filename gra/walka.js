@@ -613,7 +613,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
       powiedz(gra, 'Upadł. Klątwa schodzi z niego jak dym.', 4.5);
       gra.zdarzenia.push({ typ: 'bossPadl', x: e.x, y: e.y });
     }
-    const gr = GROSZE[e.typ.nazwa] || 0; if (gr) { gra.grosze += gr; gra.zdarzenia.push({ typ: 'grosze_z', ile: gr, x: e.x, y: e.y }); }
+    const gr = GROSZE[e.typ.nazwa] || 0; if (gr) { gra.grosze += gr; gra.statystyki.monety = (gra.statystyki.monety || 0) + gr; gra.zdarzenia.push({ typ: 'grosze_z', ile: gr, x: e.x, y: e.y }); }
     if (!zKlatwy) gra.bohater.klatwa = Math.min(1, gra.bohater.klatwa + KLATWA.zaZabicie * gra.mod.klatwa);
     if (Math.random() < (e.typ.ciezki ? LUP.szansaKolos : LUP.szansaGhul)) gra.lup.push({ typ: 'mikstura', x: e.x + losuj(-10, 10), y: e.y + losuj(-6, 6), t: 0 });
     // rzeczy do plecaka (26 XI): pazur z ghula, kieł z kolosa, krew z wiedźmy, z rycerza przyłbica i amulet (te nie znikają)
