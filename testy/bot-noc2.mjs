@@ -7,9 +7,9 @@ const ile = Number(process.argv[2]) || 6, tryb = process.argv[3] || 'dobry', lim
 globalThis.MAPA_NOCY = process.argv[4] || 'polana';
 const { nowaGra, aktualizuj, wybierzUlepszenie, zamknijKartke, sprzedaj, kupTowar, kupMiksture, mozeKupic, mozeKupicTowar } = await import('../gra/walka.js');
 const { LUP } = await import('../gra/dane.js');
-const { zderzenia, SZER, WYS } = await import('../gra/swiat.js');
+const { zderzenia, SZER, WYS, PROG_BOHATERA } = await import('../gra/swiat.js');
 const K = 24, GW = Math.ceil(SZER / K), GH = Math.ceil(WYS / K), wolne = new Uint8Array(GW * GH);
-for (let j = 0; j < GH; j++) for (let i = 0; i < GW; i++) { const p = { x: i * K, y: j * K }; zderzenia(p, 14); wolne[j * GW + i] = Math.hypot(p.x - i * K, p.y - j * K) < 2 ? 1 : 0; }
+for (let j = 0; j < GH; j++) for (let i = 0; i < GW; i++) { const p = { x: i * K, y: j * K }; zderzenia(p, 14, false, PROG_BOHATERA); wolne[j * GW + i] = Math.hypot(p.x - i * K, p.y - j * K) < 2 ? 1 : 0; }
 const komorka = (p) => Math.max(0, Math.min(GW - 1, Math.round(p.x / K))) + Math.max(0, Math.min(GH - 1, Math.round(p.y / K))) * GW;
 function prosto(a, b) { const n = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 12); for (let i = 1; i < n; i++) { const t = i / n; if (!wolne[komorka({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t })]) return false; } return true; }
 function nastepny(a, b) {                       // BFS od celu: zwraca punkt kilka kratek dalej na drodze bohatera

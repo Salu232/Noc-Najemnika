@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL, ZIOLA, LATARNIA, DARY, ROZMOWA_WIEDZMY } from './dane.js';
-import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY, wGlebokiej, dlaBohatera, wIzbieWiedzmy, SZER, WYS } from './swiat.js';
+import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY, wGlebokiej, dlaBohatera, PROG_BOHATERA, wIzbieWiedzmy, SZER, WYS } from './swiat.js';
 // Topielce na bagnie: ile w każdej fali (wychodzą z wody, oprócz potworów z portali)
 // Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
 const BRODZI = 0.62, BRODZI_WROG = 0.72;
@@ -407,7 +407,7 @@ function aktualizujBohatera(gra, dt, w) {
   else b.idzie = false;
   b.x += b.odrzutX * dt; b.y += b.odrzutY * dt;
   b.odrzutX *= Math.max(0, 1 - dt * 8); b.odrzutY *= Math.max(0, 1 - dt * 8);
-  zderzenia(b, b.promien);
+  zderzenia(b, b.promien, false, PROG_BOHATERA);
 
   // wytrzymałość i „Krew za krew”
   if (b.odnowaZa > 0) b.odnowaZa -= dt;

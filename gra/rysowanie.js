@@ -231,8 +231,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const ci = cien.getContext('2d').createImageData(w, h), ma = maska.getContext('2d').createImageData(w, h);
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
         const g = glebia(x * K + K / 2, y * K + K / 2), i4 = (y * w + x) * 4;
-        ci.data[i4] = 8; ci.data[i4 + 1] = 20; ci.data[i4 + 2] = 22; ci.data[i4 + 3] = g <= 0 ? 90 : Math.round(255 * Math.min(0.62, 0.3 + 0.32 * Math.min(1, g / 2)));   // brzeg ciemny pas, głąb ciemniejsza
-        ma.data[i4 + 3] = Math.round(255 * Math.min(1, Math.max(0, (g + 0.12) / 0.3)));
+        // 27 XI 23:40 (Patryk: „stoje jak na mapie”, „a to jest woda”): bohater nie wchodzi do wody, więc woda jest pełna od samego
+        // brzegu (głębia 0,02, PROG_BOHATERA), z wąskim pasem mokrego mułu tuż przed nią. Gdzie widać wodę, tam się nie wejdzie.
+        ci.data[i4] = 8; ci.data[i4 + 1] = 20; ci.data[i4 + 2] = 22; ci.data[i4 + 3] = Math.round(255 * (g <= 0.02 ? 0.4 : 0.42 + 0.22 * Math.min(1, g / 2)));
+        ma.data[i4 + 3] = Math.round(255 * Math.min(1, Math.max(0, (g + 0.2) / 0.22)));
       }
       cien.getContext('2d').putImageData(ci, 0, 0); maska.getContext('2d').putImageData(ma, 0, 0);
       g2.imageSmoothingEnabled = true;
@@ -456,6 +458,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     vw = innerWidth; vh = innerHeight;
     renderer.resize(vw, vh);
     zoom = ogr(Math.min(vw, vh) / 560, 0.5, 1.4);      // na telefonie w pionie widać około 560 jednostek wszerz
+    { const pg = typeof location !== 'undefined' && Number(new URLSearchParams(location.search).get('podglad')); if (pg) zoom = pg; }   // do testów: ?podglad=0.4 pokazuje całą mapę
     if (ciemnoscRT) ciemnoscRT.destroy(true);
     ciemnoscRT = P.RenderTexture.create({ width: vw, height: vh, resolution: renderer.resolution * 0.5 });
     ciemnosc.texture = ciemnoscRT;

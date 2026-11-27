@@ -130,11 +130,15 @@ export const CHATA_WIEDZMY = BAGNO ? (() => {
     X0, Y0, s, w, x: 1630, y: 790,
     izba, pomost,
     drzwi: { x0: 1594, x1: 1662, y: 788 },
-    kladka: { a: w(1110, 1400), b: w(1440, 1880), szer: 34 },           // kładka z pomostu na wyspę (jest na obrazie)
+    kladka: { a: w(1170, 1390), b: w(1500, 1870), szer: 40 },           // kładka z pomostu na wyspę (jest na obrazie)
     sciany: [[w(443, 1158), w(1000, 1250)], [w(1135, 1245), w(1330, 1212), w(1450, 1148)]],   // frontowa: lewa i prawa od drzwi
     kociol: { ...w(1425, 1192), promien: 20 },
+    // Pod pomostem (Patryk, 27 XI 23:30: „ja chodze po tych słupkach jak po powiezchni”): ląd wyspy wchodził między słupy.
+    // Ten pas jest teraz wodą, a pomost i kładka zostają do chodzenia. Obrys od przedniej krawędzi pomostu do podstaw słupów z zapasem.
+    pod: [w(360, 1150), w(990, 1440), w(1730, 1240), w(1750, 1600), w(1680, 1830), w(1360, 1960), w(1210, 1880), w(1010, 1830), w(880, 1760), w(660, 1640), w(480, 1520), w(360, 1300)],
+    slupy: [w(480, 1460), w(660, 1580), w(873, 1700), w(980, 1773), w(1207, 1840), w(1353, 1927), w(1633, 1800), w(1347, 1467), w(1460, 1453), w(1640, 1547)],   // podstawy słupów na obrazie: twarde
     podstawa: 750,                                                     // zIndex chaty z dachem: kto stoi na pomoście, jest przed nią
-    strefa: { x0: 1270, y0: 330, x1: 1990, y1: 935 },                  // pod chatą i za nią woda; tu nie rosną drzewa ani trzciny
+    strefa: { x0: 1270, y0: 545, x1: 1990, y1: 935 },                  // pod chatą i za nią woda; tu nie rosną drzewa ani trzciny
     bryla: { x0: 1330, y0: 380, x1: 1935, y1: 885 },
   };
 })() : null;
@@ -149,10 +153,11 @@ export function glebia(x, y) {
   if (!BAGNO) return -1;
   let d = naWyspie(x, y);
   const cw = CHATA_WIEDZMY, st = cw.strefa;
+  if (wWielokacie(x, y, cw.pod)) d = Math.max(d, 2.2);                   // między słupami chaty: woda, nie ląd (pomost i kładka niżej wracają)
   if (x > st.x0 && x < st.x1 && y > st.y0 && y < st.y1) {             // chata nad wodą: ląd tylko na podłodze i pomoście
     const e = Math.min(x - st.x0, st.x1 - x, y - st.y0, st.y1 - y), f = Math.min(1, e / 90);   // miękko od brzegów strefy
     if (d < 1.6) d += (1.6 - d) * f * f * (3 - 2 * f);
-    d = Math.min(d, 0.5 + Math.min(odWielokata(x, y, cw.izba), odWielokata(x, y, cw.pomost)) / 16);
+    d = Math.min(d, 0.5 + odWielokata(x, y, cw.izba) / 16, 0.5 + odWielokata(x, y, cw.pomost) / 6);   // pomost bez zapasu: krawędź to krawędź
   }
   if (DROGA_GOTOWA) d = Math.min(d, odDrogi(x, y) / (DROGA_SZER * 0.75));
   for (const k of KLADKI) d = Math.min(d, odOdcinka(x, y, k.a, k.b) / k.szer);
@@ -345,7 +350,10 @@ function odepchnijOdOdcinka(p, a, b, r) {
 }
 
 // Wypycha postać (x, y, promien) z drzew, ścian chaty, płotów i ogniska.
-export function zderzenia(p, r, plywa = false) {   // plywa: potwory na bagnie brną też przez głęboką wodę (wolno), tylko bohater nie
+// Bohater na bagnie nie wchodzi do wody wcale (Patryk, 27 XI 23:34: „stoje jak na mapie”, „a to jest woda”): granica to brzeg (głębia 0),
+// a nie próg głębokiej wody. Potwory dalej brną.
+export const PROG_BOHATERA = BAGNO ? 0.02 : 1;
+export function zderzenia(p, r, plywa = false, prog = 1) {   // plywa: potwory na bagnie brną też przez głęboką wodę (wolno), tylko bohater nie
   const cx = (p.x / KOM) | 0, cy = (p.y / KOM) | 0;
   for (let ix = cx - 1; ix <= cx + 1; ix++) for (let iy = cy - 1; iy <= cy + 1; iy++) {
     const lista = siatka.get(ix * 1000 + iy); if (!lista) continue;
@@ -379,9 +387,10 @@ export function zderzenia(p, r, plywa = false) {   // plywa: potwory na bagnie b
       if (e < m && e > 0.001) { p.x = qx + (p.x - qx) / e * m; p.y = qy + (p.y - qy) / e * m; }
     }
     { const dx = p.x - cw.kociol.x, dy = p.y - cw.kociol.y, q = Math.hypot(dx, dy), m = r + cw.kociol.promien; if (q < m && q > 0.001) { p.x = cw.kociol.x + dx / q * m; p.y = cw.kociol.y + dy / q * m; } }
+    for (const l of cw.slupy) { const dx = p.x - l.x, dy = p.y - l.y, q = Math.hypot(dx, dy), m = r + 7; if (q < m && q > 0.001) { p.x = l.x + dx / q * m; p.y = l.y + dy / q * m; } }   // słupy chaty
     for (const l of LATARNIE) { const dx = p.x - l.x, dy = p.y - l.y, q = Math.hypot(dx, dy), m = r + 8; if (q < m && q > 0.001) { p.x = l.x + dx / q * m; p.y = l.y + dy / q * m; } }   // pal pochodni
     // głęboka woda: krok po kroku pod spadek głębokości, aż do płycizny
-    for (let k = 0; !plywa && k < 20 && glebia(p.x, p.y) > 1; k++) {
+    for (let k = 0; !plywa && k < 40 && glebia(p.x, p.y) > prog; k++) {
       const h = 6, gx = glebia(p.x + h, p.y) - glebia(p.x - h, p.y), gy = glebia(p.x, p.y + h) - glebia(p.x, p.y - h), gl = Math.hypot(gx, gy) || 1;
       p.x -= gx / gl * 5; p.y -= gy / gl * 5;
     }
@@ -399,7 +408,7 @@ const DK = 20, DW = Math.ceil(SZER / DK) + 1, DH = Math.ceil(WYS / DK) + 1;
 export function dlaBohatera(p) {
   if (!dojscie) {
     const wolne = new Uint8Array(DW * DH);
-    for (let j = 0; j < DH; j++) for (let i = 0; i < DW; i++) wolne[j * DW + i] = glebia(i * DK, j * DK) < 0.97 && i * DK > 30 && j * DK > 60 && i * DK < SZER - 30 && j * DK < WYS - 30 ? 1 : 0;   // tylko głęboka woda i brzeg mapy: drzewa i kładki obejdzie
+    for (let j = 0; j < DH; j++) for (let i = 0; i < DW; i++) wolne[j * DW + i] = glebia(i * DK, j * DK) < PROG_BOHATERA && i * DK > 30 && j * DK > 60 && i * DK < SZER - 30 && j * DK < WYS - 30 ? 1 : 0;   // tylko głęboka woda i brzeg mapy: drzewa i kładki obejdzie
     dojscie = new Uint8Array(DW * DH); const s = Math.round(START.x / DK) + Math.round(START.y / DK) * DW, kol = [s]; dojscie[s] = 1;
     for (let h = 0; h < kol.length; h++) { const c = kol[h], x = c % DW; for (const n of [x > 0 ? c - 1 : -1, x < DW - 1 ? c + 1 : -1, c - DW, c + DW]) if (n >= 0 && n < DW * DH && !dojscie[n] && wolne[n]) { dojscie[n] = 1; kol.push(n); } }
   }
