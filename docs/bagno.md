@@ -82,6 +82,7 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
 - **Wchodzi się tam tylko z historii** (Patryk, 27 XI: *„musi być połączone ze sobą”*, *„będzie się szło drogą i później, jak w typowych grach, zmienia się mapa”*). Po świcie nad polaną, kiedy padnie rycerz, ekran końca ma „Ruszaj na bagno”. Ekran znika, jest ranek, a bohater idzie drogą z powrotem przez las. Na skraju mapy obraz ciemnieje i wczytuje się bagno. Bohater zabiera monety, mikstury, plecak z amuletem, pas i ulepszenia ze stołu. Ulepszenia z fal zostają na polanie, bo były „na resztę nocy”. „Jeszcze raz” na bagnie zaczyna bagno od nowa z tymi samymi rzeczami.
 - **Ziemia bagna z Gemini** (Patryk, 27 XI): `grafika/ziemia-bagno.webp`, rozjaśniona ×1,5 jak ziemia polany. Oryginał leży w `grafika/zrodla/ziemia-bagno-gemini.png`.
 - Na bagnie jest własny prolog, własne zdanie przy przyjściu i przy zapadnięciu nocy.
+- Gra zawsze zaczyna się na polanie (27 XI 16:51, Patryk: „wchodzę i mam bagno wiedźmy”). Mapa przechodzi tylko przez jedno przeładowanie; odświeżenie na bagnie wraca na polanę.
 - Przycisku mapy na ekranie startu już nie ma. Do prób w menu pauzy jest „Próba: przeskocz na bagno” (bez rzeczy z polany) i z powrotem.
 - W płytkiej wodzie bohater brnie wolniej (×0,62), potwory też (×0,72). Głęboka woda jest nie do przejścia.
 - Topielec ma na razie klatki ghula w kolorze mułu. Wynurza się z wody, chwyta na 1,1 s i puszcza po cięciu. Fale na bagnie mają dodatkowo 3, 5, 7 i 4 topielce.

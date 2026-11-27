@@ -140,8 +140,9 @@ async function start() {
   }
   let stanZPolany = null;
   if (BAGNO) {
-    try { const m = /noc-stan=([^;]*)/.exec(window.name || ''); if (m) stanZPolany = JSON.parse(decodeURIComponent(m[1])); } catch (e) { /* */ }
+    try { const m = /noc-stan=([^;]*)/.exec(window.__nocStan || ''); if (m) stanZPolany = JSON.parse(decodeURIComponent(m[1])); } catch (e) { /* */ }
     if (!stanZPolany) try { const z = localStorage.getItem('noc-stan'); if (z) stanZPolany = JSON.parse(z); } catch (e) { /* bez pamięci */ }
+    try { localStorage.removeItem('noc-stan'); } catch (e) { /* */ }
     przeniesStan(gra, stanZPolany);
     document.title = 'Noc najemnika: bagno wiedźmy';
     const h = document.querySelector('#ekran-startu h1') || document.querySelector('h1'); if (h) h.textContent = 'Bagno wiedźmy';

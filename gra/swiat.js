@@ -8,9 +8,11 @@ export const SZER = 3200, WYS = 2400;
 // W artefakcie adresu nie da się zmienić, więc przycisk na ekranie startu zapisuje wybór w przeglądarce (noc-mapa) i przeładowuje grę.
 // Patryk, 27 XI 14:57: na telefonie w artefakcie przycisk nie działał (pamięć przeglądarki albo zmiana adresu tam nie przechodzi).
 // Dlatego najpierw window.name: zostaje w tej samej ramce po przeładowaniu, także w zamkniętej ramce artefaktu.
-const zPamieci = () => { try { return localStorage.getItem('noc-mapa'); } catch (e) { return null; } };
-const zNazwy = () => { try { const m = /noc-mapa=(\w+)/.exec(window.name || ''); return m && m[1]; } catch (e) { return null; } };
-export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || (typeof window !== 'undefined' && zNazwy()) || zPamieci() || 'polana') === 'bagno' ? 'bagno' : 'polana';
+// jednorazowo (27 XI): pamięć przeglądarki niesie mapę tylko przez jedno przeładowanie, więc nowe otwarcie gry zaczyna się na polanie
+const zPamieci = () => { try { const m = localStorage.getItem('noc-mapa'); localStorage.removeItem('noc-mapa'); return m; } catch (e) { return null; } };
+// też jednorazowo: po odczycie nazwa ramki jest czyszczona, więc odświeżenie albo nowe otwarcie gry zaczyna od polany (Patryk, 27 XI 16:51)
+const zNazwy = () => { try { const m = /noc-mapa=(\w+)/.exec(window.name || ''); if (m) window.__nocStan = window.name; window.name = ''; return m && m[1]; } catch (e) { return null; } };
+export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || ((n, p) => n || p)(typeof window !== 'undefined' && zNazwy(), zPamieci()) || 'polana') === 'bagno' ? 'bagno' : 'polana';
 export const BAGNO = MAPA === 'bagno';
 
 // Chata z Gemini (grafika/chata.webp, 951×951) w skali świata.
