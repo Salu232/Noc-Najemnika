@@ -722,15 +722,21 @@ function aktualizujWrogow(gra, dt) {
         }
       }
     } else if (e.stan === 'zamach') {
-      if (!typ.ciezki) { e.kat = doBoh; ax = -dx / d * 25; ay = -dy / d * 25; }
+      // bestia (Patryk i Przemek, 27 XI 18:48: „w trakcie skoku magicznie zmieniają kierunek”, „nie da się prawie ich ataku ominąć”):
+      // celuje tylko przez pierwsze 40% przysiadu, potem kierunek i miejsce lądowania są zamrożone i widać je na ziemi
+      if (typ.doskok) {
+        if (e.t < typ.zamach * 0.4 || !e.celSkoku) { e.kat = doBoh; const dl = Math.min(d + 35, typ.zasiegAtaku + 60); e.celSkoku = { x: e.x + Math.cos(doBoh) * dl, y: e.y + Math.sin(doBoh) * dl, dl }; }
+        ax = -Math.cos(e.kat) * 25; ay = -Math.sin(e.kat) * 25;
+      }
+      else if (!typ.ciezki) { e.kat = doBoh; ax = -dx / d * 25; ay = -dy / d * 25; }
       e.drzy = (Math.random() - 0.5) * 2.4;
       if (typ.pocisk) { ax = 0; ay = 0; e.drzy *= 0.4; }
       if (e.t >= (e.at || typ).zamach) {
         e.stan = 'skok'; e.t = 0; e.drzy = 0; e.trafil = false;
         if (e.at && e.at.leci) e.skokOd = { x: e.x, y: e.y };
-        if (typ.doskok) {                                                    // bestia: skacze tam, gdzie bohater stoi teraz, i trochę dalej
-          const dl = Math.min(d + 35, typ.zasiegAtaku + 60);
-          e.lot = { vx: Math.cos(doBoh) * dl / typ.skok, vy: Math.sin(doBoh) * dl / typ.skok / PION };
+        if (typ.doskok) {                                                    // bestia: skacze prosto w zamrożone miejsce (celSkoku)
+          const dl = e.celSkoku ? e.celSkoku.dl : Math.min(d + 35, typ.zasiegAtaku + 60);
+          e.lot = { vx: Math.cos(e.kat) * dl / typ.skok, vy: Math.sin(e.kat) * dl / typ.skok / PION };
         }
         if (typ.pocisk) {                                                   // rzuca kulę tam, gdzie bohater stoi teraz
           const pc = typ.pocisk, sx = Math.cos(doBoh) >= 0 ? 1 : -1;
@@ -750,11 +756,11 @@ function aktualizujWrogow(gra, dt) {
       if (!e.trafil && typ.ciezki && e.t >= (e.at || typ).skok * ((e.at && e.at.trafW) || 0.5)) {
         e.trafil = true;
         if (e.cel && Math.hypot(b.x - e.cel.x, b.y - e.cel.y) < (e.at || typ).strefa + b.promien) trafBohatera(gra, e);
-      } else if (!e.trafil && !typ.ciezki && !typ.pocisk && e.t >= 0.03 && d < e.promien + b.promien + 22) {
+      } else if (!e.trafil && !typ.ciezki && !typ.pocisk && e.t >= 0.03 && (!typ.doskok || e.t < typ.skok * 0.85) && d < e.promien + b.promien + (typ.doskok ? 14 : 22)) {
         e.trafil = true; trafBohatera(gra, e);          // ghul trafia, jeśli w czasie skoku dosięgnie bohatera
       }
       if (typ.doskok && e.lot) { e.vx = e.lot.vx; e.vy = e.lot.vy; }       // leci równo do celu, ściany chaty go zatrzymują
-      if (e.t >= (e.at || typ).skok) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; e.lot = null; if (typ.doskok) { e.vx *= 0.15; e.vy *= 0.15; } }
+      if (e.t >= (e.at || typ).skok) { e.stan = 'odpoczynek'; e.t = 0; e.cel = null; e.lot = null; e.celSkoku = null; if (typ.doskok) { e.vx *= 0.15; e.vy *= 0.15; } }
     } else if (e.stan === 'odpoczynek') {
       ax = dx / d * szyb * 0.35; ay = dy / d * szyb * 0.35;
       if (e.t >= e.odpoczynek) { e.stan = 'idzie'; e.t = 0; e.at = null; }
@@ -1055,4 +1061,4 @@ export function etapNazwa(gra) {
 }
 
 // do testów (testy/, narzędzia w przeglądarce): zranienie wroga z zewnątrz
-export const __test = { zranWroga };
+export const __test = { zranWroga, nowyWrog };

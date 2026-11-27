@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Patryk i Przemek | Psy (bestie): skok zmienia kierunek w locie i prawie nie da się go ominąć | zrobione | Celuje tylko przez pierwsze 40% przysiadu, potem kierunek zamrożony; na ziemi czerwona smuga i krąg lądowania; trafia tylko w pierwszych 85% lotu i z mniejszego zasięgu. W symulacji: krok w bok przy wybiciu wystarcza, stanie w miejscu zawsze obrywa. |
 | 2026-11-27 | Patryk | Więcej monet na polanie przed trzecią falą | zrobione | +8 monet za pierwszą falę, +12 za drugą; po trzeciej nic, żeby przed rycerzem nie było stać na wszystko. |
 | 2026-11-27 | Patryk | Droga z polany na północ, nią idzie się na bagno; pod chatą wiedźmy woda, nie da się stanąć między palami | zrobione | „stoję jakby na grafice”, „drogę na polanie do góry”. |
 | 2026-11-27 | Patryk (obrazy z Gemini) | Chata wiedźmy na palach z dachem i wnętrzem, woda bagna | zrobione | Do chaty się wchodzi, dach znika jak na polanie. |

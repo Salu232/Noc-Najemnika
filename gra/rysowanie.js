@@ -942,6 +942,11 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   }
   // kolos zapowiada uderzenie kręgiem na ziemi, a gdy wali, ziemia faluje
   function zapowiedzKolosa(e, gra) {
+    if (e.typ.doskok && e.stan === 'zamach' && e.celSkoku && e.t >= e.typ.zamach * 0.4) {   // bestia: zamrożony skok, smuga i krąg lądowania
+      const q = Math.min(1, (e.t - e.typ.zamach * 0.4) / (e.typ.zamach * 0.6)), c = e.celSkoku;
+      znakiZiemia.lineStyle(10, 0xff4a2a, 0.12 + 0.18 * q); znakiZiemia.moveTo(e.x, e.y); znakiZiemia.lineTo(c.x, c.y);
+      znakiZiemia.lineStyle(2.5, 0xff5a3a, 0.5 + 0.4 * q); znakiZiemia.beginFill(0xff3a1a, 0.08 + 0.2 * q); znakiZiemia.drawEllipse(c.x, c.y, 34, 34 * PERSP); znakiZiemia.endFill(); znakiZiemia.lineStyle(0);
+    }
     if (e.typ.ciezki && e.stan === 'zamach' && e.cel) {
       const q = ogr(e.t / (e.at || e.typ).zamach, 0, 1);
       { const zK = krag(e.cel.x, e.cel.y, (e.at || e.typ).strefa, q); znakiZiemia.lineStyle(zK ? 0 : 3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
