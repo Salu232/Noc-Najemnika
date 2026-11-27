@@ -39,6 +39,7 @@ export function zagraj(z) {
     if (z.typ === 'rzut' && probka('wiedzma-rzut', 0.75, 0.6)) return;
     if (z.typ === 'jek' && probka('wiedzma-jek', 0.8, 1.6)) return;
     if (z.typ === 'bossPadl') probka('wiedzma-upadek', 0.9, 2);
+    if (z.typ === 'glos') { probka(z.n, 1, 1); return; }
   }
   switch (z.typ) {
     case 'zamach':
@@ -126,7 +127,8 @@ let utwor = null, granie = null;
 // Wycięte z dźwięku filmów Veo do dzwiek/wiedzma-*.mp3. Jeśli się nie wczytają, zostają dźwięki z kodu.
 const probki = {}, ostatnio = {};
 function wczytajProbki() {
-  for (const n of ['wiedzma-rzut', 'wiedzma-jek', 'wiedzma-upadek'])
+  // kwestie wiedźmy (dusza, wejscie, wrzask) czekają na filmy Patryka: bez pliku po prostu ich nie słychać
+  for (const n of ['wiedzma-rzut', 'wiedzma-jek', 'wiedzma-upadek', 'wiedzma-dusza', 'wiedzma-wejscie', 'wiedzma-wrzask'])
     fetch(new URL(`../dzwiek/${n}.mp3`, import.meta.url).href).then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))
       .then(b => new Promise((ok, zle) => ac.decodeAudioData(b, ok, zle))).then(b => { probki[n] = b; }).catch(() => { /* bez próbki */ });
 }

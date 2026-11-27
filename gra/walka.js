@@ -659,6 +659,7 @@ function upadek(gra) {
   gra.faza = 'upadek'; gra.fazaCzas = NOC.powrot;
   gra.statystyki.upadki++;
   powiedz(gra, 'Klątwa nie pozwala ci umrzeć.', NOC.powrot);
+  if (gra.wrogowie.some(e => e.typ.czary && e.stan !== 'martwy')) gra.zdarzenia.push({ typ: 'glos', n: 'wiedzma-dusza', wiedzma: true });   // „Straciłeś swoją duszę, najemniku” (Patryk, 27 XI 22:03)
 }
 
 // ---------- wrogowie ----------
@@ -688,6 +689,7 @@ function zranWroga(gra, e, ile, kat, odrzut, przerywa, przecina = false, zKlatwy
     gra.wstrzas = Math.max(gra.wstrzas, 14); gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.15);
     powiedz(gra, pm.tekst || 'Klątwa go bierze. Tak będę wyglądał, jeśli jej nie zatrzymam.', 5);
     if (pm.topielce) przywolajTopielce(gra, pm.topielce, true);
+    if (e.typ.czary) gra.zdarzenia.push({ typ: 'glos', n: 'wiedzma-wrzask', wiedzma: true });
     gra.zdarzenia.push({ typ: 'przemiana', x: e.x, y: e.y });
     return;
   }
@@ -1050,7 +1052,7 @@ function aktualizujEtapy(gra, dt) {
         const k = CHATA_WIEDZMY.kociol, p = { x: k.x + 50, y: k.y + 40 }; zderzenia(p, 18);
         gra.wrogowie.push(nowyWrog(q.typ, p, ETAPY[gra.etap].zlosc));
         powiedz(gra, 'To ona. Gospodyni tego bagna.', 4);
-        gra.zdarzenia.push({ typ: 'boss' });
+        gra.zdarzenia.push({ typ: 'boss' }, { typ: 'glos', n: 'wiedzma-wejscie', wiedzma: true });
         continue;
       }
       if (q.z === 'boss') {                                                            // rycerz wychodzi z drogi na południe od ogniska
