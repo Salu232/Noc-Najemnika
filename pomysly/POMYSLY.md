@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Patryk (obrazy z Gemini) | Chata wiedźmy na palach z dachem i wnętrzem, woda bagna | zrobione | Do chaty się wchodzi, dach znika jak na polanie. |
 | 2026-11-27 | Patryk | Gra ma się zaczynać od polany, a nie od bagna | zrobione | Błąd: przeglądarka pamiętała bagno po skrócie z pauzy. Teraz mapa przechodzi tylko przez jedno przeładowanie. |
 | 2026-11-27 | Patryk | Na bagno idzie się drogą, a na końcu drogi zmienia się mapa, jak w typowych grach. Ziemia bagna z Gemini | zrobione | Po świcie „Ruszaj na bagno”, ranek, droga przez las na południe, ściemnienie i bagno. |
 | 2026-11-27 | Claude (za Patrykiem) | Bagno jako osobna mapa z wysp i wody, wejście po świcie nad polaną („Idź na bagno”), bohater zabiera monety, mikstury, plecak, pas i ulepszenia ze stołu | zrobione | Patryk: „inna mapa ma być”, „musi być połączone ze sobą”. Skrót do prób w pauzie. |

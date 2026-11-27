@@ -1,7 +1,7 @@
 // Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
 // Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, glebia, KLADKI, CHATA_WIEDZMY } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, glebia, KLADKI, CHATA_WIEDZMY, wIzbieWiedzmy } from './swiat.js';
 import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
 import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
@@ -26,7 +26,7 @@ const FILM_WROGA = {
   rycerz: { ciecie: 75, droga: 420, drogaChod: 190, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
 };
 
-export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null, obrazHandlarza = null } = {}) {
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null, obrazHandlarza = null, obrazChatyWiedzmy = null, obrazWnetrzaWiedzmy = null, obrazWody = null } = {}) {
   const P = window.PIXI;
   const renderer = P.autoDetectRenderer({
     view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
@@ -210,10 +210,31 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       d[i4] = r; d[i4 + 1] = gg; d[i4 + 2] = bb; d[i4 + 3] = Math.round(Math.min(1, a) * 255);
     }
     cx.putImageData(im, 0, 0);
-    const wodaS = new P.Sprite(P.Texture.from(cv)); wodaS.scale.set(K); wodaG.addChild(wodaS);
+    let wodaS;
+    if (obrazWody) {
+      // Woda z Gemini (Patryk, 27 XI 16:55): kafel 1024 px powtarzany jak ziemia (około 460 jednostek), przycięty do mapy głębokości
+      // z miękkim brzegiem; im głębiej, tym ciemniej. Liczone raz, w połowie rozdzielczości świata.
+      const S = 2, c2 = document.createElement('canvas'); c2.width = Math.ceil(SZER / S); c2.height = Math.ceil(WYS / S);
+      const g2 = c2.getContext('2d'), wz = g2.createPattern(obrazWody, 'repeat');
+      if (wz.setTransform) wz.setTransform(new DOMMatrix([0.45 / S, 0, 0, 0.45 / S, 0, 0]));
+      g2.fillStyle = wz; g2.fillRect(0, 0, c2.width, c2.height);
+      const cien = document.createElement('canvas'), maska = document.createElement('canvas'); cien.width = maska.width = w; cien.height = maska.height = h;
+      const ci = cien.getContext('2d').createImageData(w, h), ma = maska.getContext('2d').createImageData(w, h);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const g = glebia(x * K + K / 2, y * K + K / 2), i4 = (y * w + x) * 4;
+        ci.data[i4] = 8; ci.data[i4 + 1] = 20; ci.data[i4 + 2] = 22; ci.data[i4 + 3] = g <= 0 ? 90 : Math.round(255 * Math.min(0.62, 0.3 + 0.32 * Math.min(1, g / 2)));   // brzeg ciemny pas, głąb ciemniejsza
+        ma.data[i4 + 3] = Math.round(255 * Math.min(1, Math.max(0, (g + 0.12) / 0.3)));
+      }
+      cien.getContext('2d').putImageData(ci, 0, 0); maska.getContext('2d').putImageData(ma, 0, 0);
+      g2.imageSmoothingEnabled = true;
+      g2.drawImage(cien, 0, 0, c2.width, c2.height);
+      g2.globalCompositeOperation = 'destination-in'; g2.drawImage(maska, 0, 0, c2.width, c2.height); g2.globalCompositeOperation = 'source-over';
+      wodaS = new P.Sprite(P.Texture.from(c2)); wodaS.scale.set(S);
+    } else { wodaS = new P.Sprite(P.Texture.from(cv)); wodaS.scale.set(K); }
+    wodaG.addChild(wodaS);
     const dod = new P.Graphics(); wodaG.addChild(dod);
     let z = 7; const l = () => { z = (z * 1103515245 + 12345) & 0x7fffffff; return z / 0x7fffffff; };
-    for (let i = 0, n = 0; i < 6000 && n < 420; i++) {                // rzęsa i liście grzybieni na wodzie przy brzegach
+    for (let i = 0, n = 0; !obrazWody && i < 6000 && n < 420; i++) {                // rzęsa i liście grzybieni (bez kafla wody z Gemini)
       const x = l() * SZER, y = l() * WYS, g = glebia(x, y); if (g < 0.6 || g > 1.8) continue;
       const r = 3 + l() * 8; dod.beginFill(l() < 0.3 ? 0x41562f : 0x2a3b22, 0.8); dod.drawEllipse(x, y, r, r * 0.55); dod.endFill(); n++;
     }
@@ -243,29 +264,25 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // chata
   const chata = new P.Sprite(T.chata); chata.position.set(CHATA.x, CHATA.y); chata.scale.set(CHATA.skala); chata.zIndex = CHATA.podstawa;
   aktorzy.addChild(chata, izbaPrzod);
-  // Chata wiedźmy na palach i kocioł (bagno): rysowane kodem, dopóki nie przyjdzie obraz z Gemini (docs/bagno.md, punkt 1).
+  // Chata wiedźmy na palach z Gemini (27 XI 16:55): z dachem stoi między aktorami (za nią to, co dalej na północ),
+  // a gdy bohater wejdzie do izby, dach gaśnie i widać wnętrze. Oba obrazy mają ten sam kadr. Bez obrazów: prostokąty kodem.
+  let chataW = null, wnetrzeW = null;
   if (BAGNO) {
-    const cw = CHATA_WIEDZMY, B = cw.bryla, g = new P.Graphics(); g.zIndex = B.y1;
-    g.beginFill(0x000000, 0.35); g.drawEllipse(cw.x, B.y1 + 6, (B.x1 - B.x0) * 0.6, 26); g.endFill();
-    for (let x = B.x0 + 8; x <= B.x1 - 8; x += 38) { g.beginFill(0x231a12); g.drawRect(x - 4, B.y1 - 30, 8, 40); g.endFill(); }   // pale
-    g.beginFill(0x4a3a28); g.drawRect(B.x0 - 12, B.y1 - 42, B.x1 - B.x0 + 24, 16); g.endFill();                                  // pomost
-    for (let x = B.x0 - 12; x < B.x1 + 12; x += 14) { g.lineStyle(1, 0x2a2018, 0.8); g.moveTo(x, B.y1 - 42); g.lineTo(x, B.y1 - 26); } g.lineStyle(0);
-    const wx0 = B.x0 + 22, wx1 = B.x1 - 22, wy1 = B.y1 - 42, wy0 = wy1 - 118;
-    g.beginFill(0x3b3026); g.drawRect(wx0, wy0, wx1 - wx0, wy1 - wy0); g.endFill();                                                // ściany z desek
-    for (let x = wx0 + 12; x < wx1; x += 16) { g.lineStyle(2, 0x261e17, 0.9); g.moveTo(x, wy0 + 4); g.lineTo(x + (x % 3) - 1, wy1); } g.lineStyle(0);
-    g.beginFill(0x120d0a); g.drawRect(cw.x - 18, wy1 - 70, 36, 70); g.endFill();                                                 // drzwi
-    g.beginFill(0xd08a3a, 0.85); g.drawRect(wx1 - 46, wy0 + 36, 22, 18); g.endFill();                                            // okno z blaskiem
-    g.beginFill(0x4e4630); g.drawPolygon([wx0 - 34, wy0 + 14, cw.x - 20, wy0 - 92, cw.x + 30, wy0 - 96, wx1 + 34, wy0 + 14]); g.endFill();   // dach z trzciny
-    g.beginFill(0x3a3424); g.drawPolygon([wx0 - 34, wy0 + 14, wx1 + 34, wy0 + 14, wx1 + 26, wy0 + 2, wx0 - 26, wy0 + 2]); g.endFill();
-    for (let i = 0; i < 26; i++) { const x = wx0 - 30 + i * ((wx1 - wx0 + 60) / 26); g.lineStyle(1.5, 0x6a6040, 0.6); g.moveTo(x, wy0 + 14); g.lineTo(x + 4, wy0 - 40 + Math.abs(i - 13) * 3); } g.lineStyle(0);
-    for (const x of [wx0 + 10, wx0 + 40, wx1 - 14]) { g.lineStyle(1, 0x2a2418); g.moveTo(x, wy0 + 14); g.lineTo(x, wy0 + 36); g.lineStyle(0); g.beginFill(x % 2 ? 0xd8d0c0 : 0x5a6a3a); g.drawCircle(x, wy0 + 40, 5); g.endFill(); }   // czaszki i zioła
-    aktorzy.addChild(g);
-    const k = new P.Graphics(); k.zIndex = OGNISKO.y + 0.6;                                     // kocioł nad żarem
-    k.beginFill(0x0e0e12); k.drawEllipse(OGNISKO.x, OGNISKO.y - 30, 34, 28); k.endFill();
-    k.beginFill(0x1c1c22); k.drawEllipse(OGNISKO.x, OGNISKO.y - 52, 32, 9); k.endFill();
-    k.beginFill(0x4f8a34, 0.95); k.drawEllipse(OGNISKO.x, OGNISKO.y - 52, 26, 6); k.endFill();
-    k.lineStyle(3, 0x0e0e12); for (const s2 of [-1, 1]) { k.moveTo(OGNISKO.x + s2 * 22, OGNISKO.y - 10); k.lineTo(OGNISKO.x + s2 * 28, OGNISKO.y + 6); } k.lineStyle(0);
-    aktorzy.addChild(k);
+    const cw = CHATA_WIEDZMY;
+    if (obrazChatyWiedzmy) {
+      const sk = cw.s * 2048 / obrazChatyWiedzmy.width;
+      chataW = new P.Sprite(P.Texture.from(obrazChatyWiedzmy)); chataW.position.set(cw.X0, cw.Y0); chataW.scale.set(sk); chataW.zIndex = cw.podstawa;
+      aktorzy.addChild(chataW);
+      if (obrazWnetrzaWiedzmy) {
+        wnetrzeW = new P.Sprite(P.Texture.from(obrazWnetrzaWiedzmy)); wnetrzeW.position.set(cw.X0, cw.Y0); wnetrzeW.scale.set(cw.s * 2048 / obrazWnetrzaWiedzmy.width);
+        wnetrzeW.zIndex = -1; wnetrzeW.alpha = 0; wnetrzeW.visible = false; aktorzy.addChild(wnetrzeW);
+      }
+    } else {
+      const g = new P.Graphics(); g.zIndex = cw.podstawa;
+      for (const q of cw.sciany) { g.beginFill(0x3b3026); g.drawRect(q.x0, q.y0 - 120, q.x1 - q.x0, q.y1 - q.y0 + 120); g.endFill(); }
+      g.beginFill(0x1c1c22); g.drawCircle(cw.kociol.x, cw.kociol.y - 20, 20); g.endFill();
+      aktorzy.addChild(g);
+    }
   }
   // Drzwi chaty (Patryk, 24 XI 13:51): skrzydło wycięte z obrazu obraca się do środka na zawiasach po lewej,
   // za nim ciemna sień z blaskiem ognia. Zamknięte drzwi są po prostu częścią obrazu chaty.
@@ -965,6 +982,12 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       pierscienie.push({ x, y, r0: 2, r1: 10 + Math.random() * 16, t: 0, czas: 0.9 + Math.random() * 0.8, kolor: 0x7c8c74, ziemia: true, gr: 1.5, alfa: 0.45 });
     }
     const b = gra.bohater;
+    if (chataW) {                                                      // izba wiedźmy: dach gaśnie w ćwierć sekundy
+      const wI = wIzbieWiedzmy(b) || (b.y < CHATA_WIEDZMY.izba.y1 + 14 && b.y > CHATA_WIEDZMY.izba.y0 && b.x > CHATA_WIEDZMY.drzwi.x0 && b.x < CHATA_WIEDZMY.drzwi.x1);
+      stanRys.izbaW = ogr((stanRys.izbaW || 0) + (wI ? 1 : -1) * dt * 4, 0, 1);
+      chataW.alpha = 1 - stanRys.izbaW; chataW.visible = stanRys.izbaW < 1;
+      if (wnetrzeW) { wnetrzeW.alpha = stanRys.izbaW; wnetrzeW.visible = stanRys.izbaW > 0; }
+    }
     // kałuża po wiedźmie wsiąka w ziemię: po 20 s blednie przez 4 s i znika (Patryk, 25 XI 16:57)
     // każde inne ciało po WSIAKA s ciemnieje, spłaszcza się i znika; krew pod nim zostaje
     for (let i = trupy.length - 1; i >= 0; i--) {
