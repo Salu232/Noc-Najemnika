@@ -4,7 +4,8 @@ import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
-import { obudzDzwiek, zagraj, przelaczDzwiek, muzyka } from './dzwiek.js';
+import { obudzDzwiek, zagraj, przelaczDzwiek, muzyka, otoczenie } from './dzwiek.js';
+import { OGNISKO } from './swiat.js';
 
 // Wersja „legacy” umie rysować także bez karty graficznej (decyzja 002: PixiJS).
 const PIXI_ADRESY = [
@@ -172,6 +173,8 @@ async function start() {
     const zd = gra.zdarzenia.splice(0);
     for (const z of zd) { zagraj(z); if (z.typ === 'koniec') setTimeout(pokazKoniec, 900); }
     muzyka(!pauza && gra.faza === 'walka' && gra.wrogowie.length ? (gra.etap >= 3 ? 2 : 1) : 0);
+    { const b = gra.bohater, d = Math.hypot(b.x - OGNISKO.x, b.y - OGNISKO.y);
+      otoczenie({ gra: zaczeta && !pauza && gra.faza !== 'koniec', wIzbie: !!b.wChacie, walka: gra.faza === 'walka', ogien: b.wChacie ? 0 : Math.max(0, 1 - d / 420) * (0.35 + 0.65 * (gra.ogien ?? 1)), napiecie: gra.faza === 'przerwa' && gra.etap > 0 && gra.fazaCzas < 12 ? 1 : 0 }); }
     rys.rysuj(gra, dt, zd);
     hud.aktualizuj(gra, dt, rys.opis);
     pokazWybor();

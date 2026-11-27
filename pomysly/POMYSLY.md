@@ -8,6 +8,7 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
+| 2026-11-27 | Claude | Dźwięki otoczenia zamiast muzyki poza walką: deszcz i wiatr, trzask ogniska (głośniej bliżej), w izbie deszcz przytłumiony, co kilkanaście sekund wycie, trzask gałęzi albo sowa (przed falą częściej). Zmierzone w przeglądarce: otoczenie ok. -37 dB, przy ogniu -31, walka z muzyką -29 | zrobione (v92) | Patryk 27 XI 11:41 |
 | 2026-11-27 | Patryk | Muzyka walki o połowę ciszej i lekko przytłumiona, żeby była tłem | zrobione (v91) | Patryk 27 XI 11:41 |
 | 2026-11-27 | Patryk | Muzyka walki z utworu Patryka (Suno, „Blood on the Frozen River”, 3:06) wyciętego z nagrania; każda fala od początku utworu, cisza do 6 s jej nie urywa. Handlarz stoi spokojnie, a monety podrzuca tylko po zakupie albo sprzedaży | zrobione (v90) | Patryk 27 XI 11:33; muzyka z kodu zostaje jako zapas |
 | 2026-11-27 | Patryk | Handlarz przelicza monety po zakupie (osobny film) | czeka na film | na razie po zakupie wyjmuje fiolkę |

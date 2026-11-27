@@ -177,3 +177,79 @@ export function muzyka(moc) {
     muz.nast += kr; muz.krok++;
   }
 }
+
+// Dźwięki otoczenia (27 XI, Patryk: „w tle muzyczka czy dźwięki pogody?”; Claude: poza walką bez muzyki, sama noc).
+// Deszcz i wiatr cały czas, trzask ogniska tym głośniej, im bliżej, w izbie deszcz przytłumiony jak o dach.
+// Co kilkanaście sekund coś daleko w lesie: wycie, trzask gałęzi albo sowa; przed falą częściej i bliżej.
+let oto = null;
+function petlaSzumu(sek) {
+  const b = ac.createBuffer(2, Math.floor(ac.sampleRate * sek), ac.sampleRate);
+  for (let k = 0; k < 2; k++) { const d = b.getChannelData(k); let r = 0; for (let i = 0; i < d.length; i++) { r = 0.97 * r + 0.03 * (Math.random() * 2 - 1); d[i] = (Math.random() * 2 - 1) * 0.6 + r * 4; } }
+  const z = ac.createBufferSource(); z.buffer = b; z.loop = true; z.start(); return z;
+}
+function zbudujOtoczenie() {
+  const wyj = ac.createGain(); wyj.gain.value = 0.0001; wyj.connect(glosnosc);
+  // deszcz: szum przez filtr; na dworze jasny, w izbie stłumiony
+  const dz = petlaSzumu(4), dzF = ac.createBiquadFilter(); dzF.type = 'lowpass'; dzF.frequency.value = 7000;
+  const dzH = ac.createBiquadFilter(); dzH.type = 'highpass'; dzH.frequency.value = 400;
+  const dzG = ac.createGain(); dzG.gain.value = 0.11; dz.connect(dzH); dzH.connect(dzF); dzF.connect(dzG); dzG.connect(wyj);
+  // wiatr: wąskie pasmo, które powoli pływa w górę i w dół
+  const wi = petlaSzumu(5), wiF = ac.createBiquadFilter(); wiF.type = 'bandpass'; wiF.Q.value = 3; wiF.frequency.value = 450;
+  const lfo = ac.createOscillator(), lfoG = ac.createGain(); lfo.frequency.value = 0.07; lfoG.gain.value = 220; lfo.connect(lfoG); lfoG.connect(wiF.frequency); lfo.start();
+  const lfo2 = ac.createOscillator(), lfo2G = ac.createGain(); lfo2.frequency.value = 0.045; lfo2G.gain.value = 0.05;
+  const wiG = ac.createGain(); wiG.gain.value = 0.07; lfo2.connect(lfo2G); lfo2G.connect(wiG.gain); lfo2.start();
+  wi.connect(wiF); wiF.connect(wiG); wiG.connect(wyj);
+  // ognisko: niski szum płomienia; trzaski dokłada otoczenie() co klatkę
+  const og = petlaSzumu(3), ogF = ac.createBiquadFilter(); ogF.type = 'lowpass'; ogF.frequency.value = 320;
+  const ogG = ac.createGain(); ogG.gain.value = 0.0001; og.connect(ogF); ogF.connect(ogG); ogG.connect(wyj);
+  return { wyj, dzF, dzG, wiG, ogG, ogien: 0, nastepne: ac.currentTime + 8 };
+}
+function trzask(t, moc) {
+  const z = ac.createBufferSource(); z.buffer = szumBufor; const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800 + Math.random() * 2500;
+  const g = ac.createGain(); const a = moc * (0.05 + Math.random() * 0.12); g.gain.setValueAtTime(a, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.01 + Math.random() * 0.03);
+  z.connect(f); f.connect(g); g.connect(oto.wyj); z.start(t, Math.random() * 0.5); z.stop(t + 0.06);
+}
+function zLasu(t, blisko) {                                           // jedno zdarzenie z ciemności, w pogłosie
+  const g = ac.createGain(); g.gain.value = blisko ? 0.5 : 0.25; const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = blisko ? 2400 : 1200;
+  const pan = ac.createStereoPanner ? ac.createStereoPanner() : null; if (pan) { pan.pan.value = Math.random() * 1.6 - 0.8; g.connect(pan); pan.connect(lp); } else g.connect(lp);
+  lp.connect(oto.wyj); lp.connect(poglos());
+  const r = Math.random(), los = (a, b) => a + Math.random() * (b - a);
+  if (r < 0.45) {                                                     // wycie: ślizg w górę, drżenie, opadnięcie
+    const f0 = los(330, 420), dl = los(2.2, 3.4);
+    for (const [m, a] of [[1, 0.22], [2.01, 0.05]]) {
+      const o = ac.createOscillator(); o.type = 'sine'; const v = ac.createOscillator(), vg = ac.createGain(); v.frequency.value = 5.5; vg.gain.value = 6 * m; v.connect(vg); vg.connect(o.frequency);
+      o.frequency.setValueAtTime(f0 * 0.75 * m, t); o.frequency.linearRampToValueAtTime(f0 * 1.35 * m, t + dl * 0.35); o.frequency.linearRampToValueAtTime(f0 * 1.25 * m, t + dl * 0.75); o.frequency.linearRampToValueAtTime(f0 * 0.8 * m, t + dl);
+      const og = ac.createGain(); og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(a, t + 0.5); og.gain.setValueAtTime(a, t + dl * 0.7); og.gain.exponentialRampToValueAtTime(0.0001, t + dl);
+      o.connect(og); og.connect(g); o.start(t); v.start(t); o.stop(t + dl + 0.1); v.stop(t + dl + 0.1);
+    }
+  } else if (r < 0.75) {                                              // trzask gałęzi: dwa, trzy suche pęknięcia
+    for (let k = 0, tt = t; k < 2 + (Math.random() * 2 | 0); k++, tt += los(0.06, 0.25)) {
+      const z = ac.createBufferSource(); z.buffer = szumBufor; const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = los(700, 1600); f.Q.value = 1.5;
+      const zg = ac.createGain(); zg.gain.setValueAtTime(0.6, tt); zg.gain.exponentialRampToValueAtTime(0.0001, tt + los(0.05, 0.12));
+      z.connect(f); f.connect(zg); zg.connect(g); z.start(tt, Math.random() * 0.4); z.stop(tt + 0.15);
+    }
+  } else {                                                            // sowa: dwa niskie pohukiwania
+    for (const [d, dl] of [[0, 0.35], [0.55, 0.6]]) {
+      const o = ac.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(390, t + d); o.frequency.linearRampToValueAtTime(350, t + d + dl);
+      const og = ac.createGain(); og.gain.setValueAtTime(0.0001, t + d); og.gain.exponentialRampToValueAtTime(0.18, t + d + 0.06); og.gain.exponentialRampToValueAtTime(0.0001, t + d + dl);
+      o.connect(og); og.connect(g); o.start(t + d); o.stop(t + d + dl + 0.05);
+    }
+  }
+}
+// s: { gra: czy gra trwa (nie pauza), wIzbie, ogien: 0..1 jak blisko i jak mocno pali się ognisko, napiecie: 0..1 przed falą, walka }
+export function otoczenie(s) {
+  if (!ac || ac.state !== 'running') return;
+  if (!oto) oto = zbudujOtoczenie();
+  const t = ac.currentTime, on = wlaczony && s.gra;
+  oto.wyj.gain.setTargetAtTime(on ? 1.3 : 0.0001, t, 0.6);
+  oto.dzF.frequency.setTargetAtTime(s.wIzbie ? 700 : 7000, t, 0.25);
+  oto.dzG.gain.setTargetAtTime(s.wIzbie ? 0.16 : (s.walka ? 0.07 : 0.11), t, 0.3);
+  oto.wiG.gain.setTargetAtTime(s.wIzbie ? 0.02 : 0.07, t, 0.4);
+  oto.ogG.gain.setTargetAtTime(0.0001 + 0.3 * s.ogien, t, 0.3);
+  if (!on) return;
+  if (Math.random() < s.ogien * 0.35) trzask(t + Math.random() * 0.05, s.ogien);
+  if (t >= oto.nastepne) {
+    if (!s.walka && !s.wIzbie || Math.random() < 0.3) zLasu(t, s.napiecie > 0.5);
+    oto.nastepne = t + (s.napiecie > 0.5 ? 5 + Math.random() * 6 : 12 + Math.random() * 18);
+  }
+}
