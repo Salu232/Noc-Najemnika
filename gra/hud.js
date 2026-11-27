@@ -1,6 +1,6 @@
 // Pasek życia z „Krwią za krew”, wytrzymałość, klątwa, nazwa etapu i myśl bohatera. Zwykły HTML nad płótnem.
 import { BOHATER } from './dane.js';
-import { etapNazwa } from './walka.js';
+import { etapNazwa, kosztUniku } from './walka.js';
 
 export function przygotujHud() {
   const $ = id => document.getElementById(id);
@@ -25,6 +25,7 @@ export function przygotujHud() {
     ustaw('smugaZyje', b.smugaCzas > 0 && b.smuga > 0, v => el.smuga.classList.toggle('zywa', v));
     ustaw('sila', (b.sila / BOHATER.sila * 100).toFixed(0), v => { el.sila.style.width = v + '%'; });
     ustaw('slaby', b.sila < gra.bron.koszt, v => el.sila.classList.toggle('pusta', v));
+    ustaw('brakTchu', b.sila < kosztUniku(gra, b), v => { const u = document.getElementById('przycisk-unik'); if (u) u.classList.toggle('brak', v); });
     ustaw('klatwa', (b.klatwa * 100).toFixed(0), v => { el.klatwa.style.width = v + '%'; });
     ustaw('klatwaGotowa', b.klatwa >= 1, v => { el.klatwa.classList.toggle('gotowa', v); el.przyciskKlatwy.classList.toggle('gotowa', v); });
     ustaw('etap', etapNazwa(gra), v => { el.etap.textContent = v; });

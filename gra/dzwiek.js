@@ -60,6 +60,7 @@ export function zagraj(z) {
       ton(t, 0.35, 'sawtooth', z.otwarte ? 210 : 260, z.otwarte ? 320 : 180, 0.05); szum(t, 0.3, 'bandpass', 900, 1400, 0.08, 6);
       if (!z.otwarte) ton(t + 0.38, 0.14, 'sine', 90, 45, 0.5);
       break;
+    case 'brak_tchu': szum(t, 0.32, 'bandpass', 900, 350, 0.3, 1.5); ton(t, 0.16, 'square', 130, 95, 0.08); ton(t + 0.12, 0.14, 'square', 105, 80, 0.06); break;   // ciężki wydech i głuche „nie” (27 XI, Przemek)
     case 'unikniety': szum(t, 0.15, 'bandpass', 1400, 600, 0.15, 2); break;
     case 'klatwa_laduje': ton(t, 0.45, 'sawtooth', 55, 140, 0.12); szum(t, 0.45, 'bandpass', 300, 1600, 0.12, 4); break;
     case 'ostrzezenie':                                                    // róg wojenny z lasu przed falą (27 XI, poprawiony po teście Patryka: „słaby”)

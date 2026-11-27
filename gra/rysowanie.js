@@ -9,6 +9,7 @@ import { KLATKI as KW, ANIMACJE as AW } from './klatki-bohatera-wielki.js';
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
 import * as KH from './klatki-handlarza.js';
 import * as O from './obrazki.js';
+import { kosztUniku } from './walka.js';
 
 const TAU = Math.PI * 2;
 const PERSP = 0.62;            // świat widziany z ukosa: pion jest spłaszczony
@@ -1050,6 +1051,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         const ka = b.cios ? b.cios.kat : b.kat, sila = z.mocny ? 9 : 2.5 + gra.bron.obrazenia * 1.5;
         stanRys.kop.x += Math.cos(ka) * sila; stanRys.kop.y += Math.sin(ka) * sila * PERSP;
         if (z.mocny) stanRys.ucisk = 1;
+      } else if (z.typ === 'brak_tchu') { stanRys.brakTchu = 1;
       } else if (z.typ === 'rana') { stanRys.ranaKier = Math.sign(b.odrzutX) || -(Math.cos(b.kat) >= 0 ? 1 : -1); stanRys.zadyszka += 0.12; }
       else if (z.typ === 'blok') {
         if (z.x != null) { blysk(['iskry_a', 'iskry_b', 'iskry_c'][(Math.random() * 3) | 0], z.x, z.y, z.kat + Math.PI + losuj(-0.7, 0.7), 95, 0.32, true); blysk('iskry_gwiazda', z.x, z.y, null, 62, 0.24, true); }
@@ -1262,6 +1264,21 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
 
     // smuga cięcia i garda
     smugi.clear(); znaki.clear(); znakiZiemia.clear();
+    {                                                                    // kółko kondycji przy głowie (27 XI 19:11, Przemek: „kondycja powinna być bardziej czytelna”)
+      const b = gra.bohater, f = Math.max(0, Math.min(1, b.sila / BOHATER.sila)), malo = b.sila < kosztUniku(gra, b);
+      stanRys.tchuPelny = f >= 0.995 && !malo ? (stanRys.tchuPelny || 0) + dt : 0;
+      stanRys.tchuAlfa = ogr((stanRys.tchuAlfa || 0) + (stanRys.tchuPelny > 0.7 || b.stan === 'upadl' || b.spi || b.wChacie ? -dt * 3 : dt * 6), 0, 1);
+      stanRys.brakTchu = Math.max(0, (stanRys.brakTchu || 0) - dt * 2.5);
+      const a = stanRys.tchuAlfa, puls = stanRys.brakTchu;
+      if (a > 0.01) {
+        const x = b.x + 30, y = b.y - 92, r = 10 + 4 * puls;
+        znaki.lineStyle(5, 0x000000, 0.5 * a); znaki.drawCircle(x, y, r);
+        const kol = malo ? 0xe04030 : 0xe8c060;
+        if (f > 0.01) { znaki.lineStyle(3.5, puls > 0 ? 0xff5030 : kol, (0.85 + 0.15 * puls) * a); znaki.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + f * TAU); }
+        if (puls > 0) { znaki.lineStyle(2, 0xff5030, puls * a); znaki.drawCircle(x, y, r + 6 + (1 - puls) * 10); }
+        znaki.lineStyle(0);
+      }
+    }
     for (const p of gra.pociski || []) {                                 // kule klątwy wiedźmy: fioletowa poświata, jasne jądro, krótki ogon
       const y = p.y - p.z, d = Math.hypot(p.vx, p.vy) || 1, ux = p.vx / d, uy = p.vy / d, puls = 1 + 0.15 * Math.sin(czas * 30 + p.t * 7);
       smugi.lineStyle(0);

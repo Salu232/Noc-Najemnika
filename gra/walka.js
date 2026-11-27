@@ -289,6 +289,8 @@ function aktualizujBohatera(gra, dt, w) {
   const chceUnik = w.unik || (b.unikChce != null && gra.czas - b.unikChce < 0.3);
   const mozeUnik = chceUnik && b.sila >= kosztUniku(gra, b) && !(b.chwyt > 0);   // z chwytu topielca nie da się przeturlać
   if (mozeUnik) b.kolejkaAtaku = false;                                       // unik ma pierwszeństwo przed kolejnym ciosem
+  // brak tchu (27 XI 19:11, Przemek: „gracz potrzebuje feedbacku, że nie może użyć uniku”): każde wciśnięcie bez sił daje dźwięk i błysk kółka kondycji
+  if (w.unik && !mozeUnik && !(b.chwyt > 0) && b.stan !== 'upadl') { if (gra.czas - (b.brakTchuOd ?? -9) > 0.2) { b.brakTchuOd = gra.czas; gra.zdarzenia.push({ typ: 'brak_tchu' }); } }
   if (w.unik && !mozeUnik && gra.czas - (b.zadyszkaOd ?? -9) > 2.5 && gra.mysl.czas < 0.5) { b.zadyszkaOd = gra.czas; powiedz(gra, 'Brak tchu. Nie przeturlam się.', 1.2); }
 
   // klątwa: z wolnego stanu albo w trakcie brania zamachu, gdy pasek jest pełny
@@ -454,7 +456,7 @@ function zacznijUnik(gra, rx, ry, rl) {
   zuzyjSile(b, kosztUniku(gra, b));
   b.seriaUnikow = gra.czas - (b.ostatniUnik ?? -9) < BOHATER.unik.seriaCzas ? (b.seriaUnikow || 0) + 1 : 1; b.ostatniUnik = gra.czas;
 }
-function kosztUniku(gra, b) {
+export function kosztUniku(gra, b) {
   const u = BOHATER.unik, seria = gra.czas - (b.ostatniUnik ?? -9) < u.seriaCzas ? (b.seriaUnikow || 0) : 0;
   return u.koszt * (1 + u.seria * seria);
 }
