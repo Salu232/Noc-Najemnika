@@ -303,6 +303,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // Duch bohatera za chatą albo drzewem: jasna, płaska sylwetka, a nie przezroczysta kopia, żeby nie wyglądało, że stoi na dachu.
   const duchS = new P.Sprite(); duchS.alpha = 0.5;
   try { const cm = new P.filters.ColorMatrixFilter(); cm.matrix = [0, 0, 0, 0, 0.62, 0, 0, 0, 0, 0.76, 0, 0, 0, 0, 0.9, 0, 0, 0, 1, 0]; duchS.filters = [cm]; } catch (e) { duchS.alpha = 0.33; }
+  // Poświata pod bohaterem (27 XI, Patryk: w ciemnych falach ginie w tłumie). ?poswiata=0 bez, 1 ciepła (domyślna), 2 chłodna i mocniejsza.
+  const WARIANT_POSWIATY = Number(new URLSearchParams(location.search).get('poswiata') ?? 1);
+  const poswiata = new P.Sprite(T.cieplo); poswiata.anchor.set(0.5); poswiata.blendMode = P.BLEND_MODES.ADD;
+  poswiata.tint = WARIANT_POSWIATY === 2 ? 0x9fb8ff : 0xffb060; swiat.addChildAt(poswiata, swiat.getChildIndex(aktorzy));
   const blaskBoh = new P.Sprite(T.cieplo); blaskBoh.anchor.set(0.5); blaskBoh.blendMode = P.BLEND_MODES.ADD; blaski.addChild(blaskBoh);
   const blaskBossa = new P.Sprite(T.cieplo); blaskBossa.anchor.set(0.5); blaskBossa.blendMode = P.BLEND_MODES.ADD; blaskBossa.tint = 0xff5a20; blaski.addChild(blaskBossa);   // żar klątwy w rycerzu
   const blaskiTotemow = TOTEMY.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0x9a50ff; blaski.addChild(s); return s; });
@@ -1062,6 +1066,8 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       bohG.position.set(b.x, b.y); bohG.skew.set(-lx, 0); bohG.scale.set(sxs, sy); bohG.rotation = obrot;
       bohG.zIndex = b.y; bohG.alpha = alfaB; bohG.tint = tint;
     }
+    poswiata.visible = WARIANT_POSWIATY > 0 && !upadl;
+    if (poswiata.visible) { const mocP = (WARIANT_POSWIATY === 2 ? 1 : 0.8) * Math.min(1, gra.mroczek / 0.5) * (0.92 + 0.08 * Math.sin(czas * 2.3)); poswiata.position.set(b.x, b.y - 2); poswiata.width = 150; poswiata.height = 64; poswiata.alpha = mocP; }
     bohCien.position.set(b.x, b.y + 1); bohCien.width = kB ? Math.max(40, kB.w * SKALA_B * 0.55) : 40; bohCien.height = 15;
     // ciepły blask, gdy ładuje mocny cios
     const sr = wSwiecie(0, -50);

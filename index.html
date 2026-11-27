@@ -173,6 +173,8 @@ button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
 /* plecak (26 XI): przycisk obok pauzy, okno z polami; I albo przycisk otwiera, gra stoi */
 #przycisk-plecak { position: fixed; z-index: 3; top: calc(8px + env(safe-area-inset-top, 0px)); right: calc(max(12px, env(safe-area-inset-right, 0px)) + 48px); width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--linia); background: rgba(0, 0, 0, 0.45) center / 70% no-repeat; font-size: 11px; padding: 0; }
 #przycisk-plecak.ma-ikone { font-size: 0; }
+#przycisk-plecak.nowa::after { content: ''; position: absolute; top: 2px; right: 2px; width: 10px; height: 10px; border-radius: 50%; background: #d9a441; box-shadow: 0 0 6px #d9a441; }
+.pole.nowa { outline: 1px solid #d9a441; }
 .pola-plecaka { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
 .pole { position: relative; display: grid; justify-items: center; gap: 4px; padding: 8px 4px 6px; border: 1px solid var(--linia); border-radius: 4px; background: rgba(0, 0, 0, 0.35); font: inherit; color: inherit; font-size: 12px; line-height: 1.2; text-align: center; cursor: pointer; }
 .pole[aria-pressed="true"] { border-color: #c89a5a; background: rgba(200, 154, 90, 0.12); }

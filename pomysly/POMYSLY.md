@@ -8,11 +8,11 @@ Każdy pomysł trafia tutaj z datą i autorem, nawet luźny. Najnowsze są na g�
 
 | Data | Autor | Pomysł | Status | Uwagi |
 | --- | --- | --- | --- | --- |
-| 2026-11-26 | Claude (z nagrania Patryka 20:43) | Kartki z walki nie otwierają się po fali jedna za drugą: czekają w plecaku ze znakiem „nowa kartka”. Przed bossem chwila na miksturę (bohater wchodzi z małym życiem po hordzie). | do zrobienia | |
-| 2026-11-26 | Patryk | Tempo fal: więcej czasu między falami (nie zdąży wejść do chaty); przed falą dźwięk ostrzegawczy; dynamiczna muzyka w walce; fala 1: bohater myśli, co się dzieje (nikt go tu nie chciał prowadzić); fala 2 zmusza do przygotowania; fala 3 podkreślona, że to nie koniec; fala 4 z bossem nie sam. | do zrobienia (następna sesja) | |
+| 2026-11-26 | Claude (z nagrania Patryka 20:43) | Kartki z walki nie otwierają się po fali jedna za drugą: czekają w plecaku ze znakiem „nowa kartka”. Przed bossem chwila na miksturę (bohater wchodzi z małym życiem po hordzie). | zrobione (kartki w plecaku ze znakiem, przerwa przed bossem 30 s) | v82 |
+| 2026-11-26 | Patryk | Tempo fal: więcej czasu między falami (nie zdąży wejść do chaty); przed falą dźwięk ostrzegawczy; dynamiczna muzyka w walce; fala 1: bohater myśli, co się dzieje (nikt go tu nie chciał prowadzić); fala 2 zmusza do przygotowania; fala 3 podkreślona, że to nie koniec; fala 4 z bossem nie sam. | zrobione | v82 |
 | 2026-11-26 | Patryk | Zamiast totemów: portale przyzwane przez klątwę. Przeklęty bohater przyciąga przeklęte stwory (jak w Berserku). Przemek rozbił totemy, bo nie podszedł ich obejrzeć; Patryk na totemy nie zwracał uwagi, wciągała go walka. | do przemyślenia i zrobienia | |
-| 2026-11-26 | Patryk | Wytrzymałość: każdy przewrót (unik) zużywa jej więcej, po kilku pod rząd nie da się turlać, zostaje blok. Na bestię, która każe dużo unikać. | do zrobienia | |
-| 2026-11-26 | Patryk | Poświata pod bohaterem: spróbować i pokazać, Patryk oceni na oko. Patryk nagra całą noc do analizy. | do zrobienia | |
+| 2026-11-26 | Patryk | Wytrzymałość: każdy przewrót (unik) zużywa jej więcej, po kilku pod rząd nie da się turlać, zostaje blok. Na bestię, która każe dużo unikać. | zrobione | v82 |
+| 2026-11-26 | Patryk | Poświata pod bohaterem: spróbować i pokazać, Patryk oceni na oko. Patryk nagra całą noc do analizy. | zrobione: ?poswiata=1 ciepła (domyślna), 2 chłodna, 0 bez | v82 |
 | 2026-11-26 | Patryk, Przemek | Totemy: przed falą nie da się ich rozbić („Kamień śpi”), a rozbity ucisza swoją stronę tylko na tę falę; z każdą nową falą wstają. Powód: Przemek rozbił wszystkie przed pierwszą falą i skończył noc. Do tego chód w dół przodem tylko z mieczem w dłoni (film ma wyciągnięty miecz). | zrobione | v81 |
 | 2026-11-26 | Patryk | Ghul też już nie pada przecięty na pół: każdy potwór pada z filmu śmierci (mocny cios dalej daje więcej krwi). | zrobione | v80 |
 | 2026-11-26 | Patryk | Bestia nie daje się przeciąć na pół (źle wyglądało): zawsze pada z filmu śmierci. | zrobione | v79 |

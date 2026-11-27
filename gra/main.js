@@ -175,6 +175,7 @@ async function start() {
     hud.aktualizuj(gra, dt, rys.opis);
     pokazWybor();
     pokazKartke();
+    $('przycisk-plecak').classList.toggle('nowa', !!(gra.nowe && gra.nowe.length));
     if (!!gra.stol !== stolPokazany) { stolPokazany = !!gra.stol; pokaz('ekran-stolu', stolPokazany); if (stolPokazany) pokazStol(); }
   }
   // Plecak (26 XI): I albo przycisk; gra stoi. Pola: mikstury, rzeczy z potworów i łup z rycerza, przeczytane kartki.
@@ -202,7 +203,9 @@ async function start() {
     for (let i = 0; i < KARTKI.length; i++) {
       const czytal = i < gra.kartki;
       const ki = document.createElement('img'); ki.className = 'ikona'; ki.alt = ''; ki.src = 'grafika/kartka.webp';
-      const b = pole(ki, `Kartka ${i + 1}`, 0, czytal ? 'Kartka z dziennika rycerza.' : 'Tej kartki jeszcze nie znalazłeś.', czytal ? () => { kartkaZPlecaka = true; gra.czytana = i; pokazKartke(); } : null);
+      const nowa = (gra.nowe || []).includes(i);
+      const b = pole(ki, `Kartka ${i + 1}`, 0, nowa ? 'Nowa, jeszcze nieprzeczytana.' : czytal ? 'Kartka z dziennika rycerza.' : 'Tej kartki jeszcze nie znalazłeś.', czytal ? () => { kartkaZPlecaka = true; gra.nowe = (gra.nowe || []).filter(n => n !== i); gra.czytana = i; pokazKartke(); } : null);
+      if (nowa) b.classList.add('nowa');
       if (!czytal) b.classList.add('puste');
       lista.append(b);
     }

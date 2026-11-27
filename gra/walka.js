@@ -117,7 +117,6 @@ export function zamknijKartke(gra) { gra.czytana = null; }
 
 export function aktualizuj(gra, dt, w) {
   // kartka podniesiona w walce czeka na ciszę po fali (Patryk, 26 XI 13:27: trzy kartki w minutę przerywały walkę)
-  if (gra.kartkaCzeka != null && gra.faza !== 'walka' && !gra.wybor && gra.czytana === null) { gra.czytana = gra.kartkaCzeka; gra.kartkaCzeka = null; }
   if (gra.wybor || gra.czytana !== null || gra.stol) return;      // wybór ulepszenia, kartka albo stół: noc czeka
   if (gra.zatrzymanie > 0) { gra.zatrzymanie -= dt; return; }   // krótkie zatrzymanie po trafieniu: czuć ciężar ciosu
   gra.czas += dt;
@@ -889,7 +888,8 @@ function aktualizujCele(gra, dt, w) {
   }
   // kartka z dziennika: podniesiona otwiera się do czytania
   if (gra.kartka && b.stan !== 'upadl' && Math.hypot(gra.kartka.x - b.x, gra.kartka.y - b.y) < KARTKA.zasieg + b.promien) {
-    if (gra.faza === 'walka') { gra.kartkaCzeka = gra.kartka.nr; powiedz(gra, 'Kartka z dziennika. Przeczytam, kiedy ucichnie.', 2.5); }
+    // 27 XI (z nagrania Patryka): kartki z walki nie wyskakują po fali jedna za drugą, tylko czekają w plecaku ze znakiem „nowa”
+    if (gra.faza === 'walka') { gra.nowe = (gra.nowe || []).concat(gra.kartka.nr); powiedz(gra, 'Kartka z dziennika. Do plecaka, przeczytam w ciszy (I).', 2.5); }
     else gra.czytana = gra.kartka.nr;
     gra.kartki++; gra.zdarzenia.push({ typ: 'kartka', x: gra.kartka.x, y: gra.kartka.y }); gra.kartka = null;
   }
