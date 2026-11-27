@@ -26,7 +26,8 @@ export const BOHATER = {
   oknoSerii: 0.35,         // ile czasu po powrocie miecza można dołożyć następny cios z rozpędem
 
   // Pomysł „Krew za krew” (docs/walka.md, punkt 7.2)
-  krewZaKrew: { czas: 3, zaTrafienie: 7 },
+  // 27 XI 13:25: raz na cios zamiast za każdego trafionego, i 5 zamiast 7
+  krewZaKrew: { czas: 3, zaTrafienie: 5 },
 
   // Pomysł „Miecz, który waży” (docs/walka.md, punkt 7.3): ile trwa wyrywanie miecza z kolosa
   // i jak długo gra staje przy trafieniu

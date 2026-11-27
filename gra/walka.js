@@ -480,7 +480,7 @@ function tnij(gra, dt) {
     gdzie.push({ x: wrog.x, y: wrog.y, wys: 20 * wrog.typ.skala, kat: katOd + kier * Math.PI / 2 });
     zranWroga(gra, wrog, obrW, katOd, bron.odrzut * (c.mocny ? MOCNY.odrzut : 1), bron.przerywa || c.mocny, c.mocny || bron.przecinaCiezkich);
     nowe++; c.trafienia++;
-    krewZaKrew(b);
+    if (!c.krew) { c.krew = true; krewZaKrew(b); }   // raz na cios, nie za każdego trafionego (Patryk, 27 XI 13:25: mocny cios w hordę odnawiał cały pasek)
     b.klatwa = Math.min(1, b.klatwa + KLATWA.zaTrafienie * gra.mod.klatwa);
     if (wrog.typ.ciezki && !wrog.typ.boss && wrog.zycie > 0 && !bron.przecinaCiezkich && !c.mocny) {   // w bossie miecz nie grzęźnie: bot „słaby” utykał 136 razy na noc
       c.utknal = true;
