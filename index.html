@@ -71,11 +71,38 @@ body {
 @media (pointer: coarse) { #boss { bottom: auto; top: calc(32px + env(safe-area-inset-top, 0px)); width: min(36vw, 300px); } #boss-nazwa { font-size: 11px; margin-bottom: 3px; } #boss .boss-belka { height: 7px; } }
 
 /* etap i myśl */
-#etap {
-  position: fixed; z-index: 2; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
-  margin: 0; font-family: var(--font-tytul); font-weight: 500; font-size: 15px; letter-spacing: 0.05em;
-  color: var(--przygaszony); text-shadow: 0 1px 3px #000; pointer-events: none; white-space: nowrap;
+/* Napis u góry to też przycisk dziennika zadań (Jozz, 28 XI): nazwa etapu, pod nią cel na teraz, a dotknięcie albo L otwiera dziennik */
+#naglowek {
+  position: fixed; z-index: 3; top: calc(8px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  display: grid; justify-items: center; gap: 1px; max-width: min(440px, calc(100vw - 32px)); padding: 4px 12px 5px;
+  border: 1px solid transparent; border-radius: 6px; background: radial-gradient(ellipse at center, rgba(8, 7, 6, 0.55), rgba(8, 7, 6, 0) 75%); text-shadow: 0 1px 3px #000, 0 0 6px #000; cursor: pointer;
 }
+#naglowek:hover { border-color: var(--linia); background: rgba(10, 9, 8, 0.45); }
+#etap { margin: 0; font-family: var(--font-tytul); font-weight: 500; font-size: 15px; letter-spacing: 0.05em; color: var(--przygaszony); white-space: nowrap; }
+#cel { font-size: 13px; color: var(--tekst); line-height: 1.25; text-align: center; }
+#cel:empty { display: none; }
+#naglowek .klawisz { font-size: 11px; color: rgba(224, 160, 85, 0.75); letter-spacing: 0.04em; }
+#naglowek.z-bossem #cel { display: none; }   /* w walce z bossem cel mówi pasek bossa, a na telefonie pasek leży tuż pod napisem */
+@media (pointer: coarse) { #naglowek .klawisz { display: none; } #etap::after { content: " ▾"; color: var(--zar); } }
+/* okno dziennika */
+#ekran-dziennika .karta { max-height: calc(100vh - 24px); overflow-y: auto; gap: 10px; }
+#ekran-dziennika .karta { position: relative; }
+.zamknij-x { position: sticky; top: 0; justify-self: end; margin: -10px -10px -36px 0; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--linia); background: rgba(14, 12, 11, 0.95); font-size: 22px; line-height: 1; z-index: 1; }
+#ekran-dziennika .rozdzial { margin: 0; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--zar); }
+#ekran-dziennika .cel-teraz { color: var(--tekst); font-size: 17px; }
+.lista-zadan { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lista-zadan li { padding: 7px 12px; border: 1px solid var(--linia); border-left: 3px solid var(--zar); border-radius: 4px; background: rgba(0, 0, 0, 0.35); display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; }
+.lista-zadan li p { grid-column: 1 / -1; }
+.lista-zadan li strong { font-size: 16px; color: #f0dcc0; }
+.lista-zadan li .gdzie { font-size: 13px; color: var(--zar); text-align: right; }
+.lista-zadan li .gdzie:empty { display: none; }
+.lista-zadan li p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--przygaszony); }
+.lista-zadan li.czeka { opacity: 0.55; border-left-color: var(--linia); }
+.lista-zadan li.dodatkowe { border-left-color: #7a8a5a; }
+.lista-zrobionych { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 14px; color: var(--przygaszony); }
+.lista-zrobionych li::before { content: "✓ "; color: #8fb070; }
+.lista-zrobionych li { text-decoration: line-through; text-decoration-color: rgba(168, 159, 146, 0.5); }
+@media (max-height: 500px) { .lista-zadan li { padding: 6px 10px; } .lista-zadan li p { font-size: 13px; } }
 #mysl {
   position: fixed; z-index: 2; top: 22%; left: 50%; transform: translateX(-50%);
   width: min(560px, calc(100vw - 32px)); margin: 0; text-align: center;
@@ -90,7 +117,9 @@ body {
 #info { position: fixed; z-index: 2; left: max(10px, env(safe-area-inset-left, 0px)); bottom: calc(6px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 11px; color: rgba(235, 227, 213, 0.45); pointer-events: none; }
 /* Na telefonie pasek mniejszy (Patryk, 25 XI: „trochę za duży”): ok. 70% dawnej szerokości, w pionie i w poziomie. */
 @media (pointer: coarse), (max-width: 560px) { .pasek { width: clamp(160px, min(28vw, 46vh), 230px); top: calc(8px + env(safe-area-inset-top, 0px)); } }
-@media (max-width: 560px) { #etap { top: calc(92px + env(safe-area-inset-top, 0px)); left: auto; right: max(16px, env(safe-area-inset-right, 0px)); transform: none; font-size: 13px; } }
+@media (max-width: 560px) { #naglowek { top: calc(88px + env(safe-area-inset-top, 0px)); left: auto; right: max(10px, env(safe-area-inset-right, 0px)); transform: none; justify-items: end; max-width: 60vw; } #etap { font-size: 13px; } #cel { font-size: 12px; text-align: right; } }
+/* telefon poziomo: pasek zajmuje lewy róg, przyciski prawy; nagłówek zostaje na środku u góry, krótszy */
+@media (pointer: coarse) and (min-width: 561px) { #naglowek { max-width: 40vw; } #cel { font-size: 12px; } }
 
 /* chata: przycisk czynności (posłanie, zamknięte drzwi) i ekran snu */
 #akcja {
@@ -277,7 +306,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
   <div id="zapasy"><span id="zapas-mikstur"></span><span id="zapas-groszy">0 monet</span><span id="zapas-napoju" hidden></span><span id="zapas-drewna" hidden>Niesiesz polano</span></div>
   <div id="krew-podpowiedz">Krew za krew: tnij, żeby odzyskać</div>
 </div>
-<p id="etap"></p>
+<button type="button" id="naglowek" aria-label="Dziennik zadań (L)"><span id="etap"></span><span id="cel"></span><span class="klawisz" id="naglowek-klawisz">Dziennik · L</span></button>
 <div id="boss" hidden><p id="boss-nazwa"></p><div class="boss-belka"><div id="boss-zycie"></div></div></div>
 <p id="mysl" aria-live="polite"></p>
 <p id="info"></p>
@@ -315,6 +344,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
           <li>Spacja: unik (przewrót); trzymana dłużej: bieg</li>
           <li>Chata: wejdź drzwiami, dach zniknie. E przy posłaniu: śpisz i leczysz rany (tylko w ciszy między etapami)</li>
           <li>R: klątwa, gdy fioletowy pasek jest pełny</li>
+          <li>L albo klik w napis u góry: dziennik zadań (co zrobione, co zostało i gdzie)</li>
         </ul>
       </div>
       <div>
@@ -326,6 +356,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
           <li>Tnij, przytrzymanie: mocny cios po puszczeniu</li>
           <li>Przyciski Blok i Unik; Klątwa, gdy fioletowy pasek jest pełny</li>
           <li>Chata: wejdź drzwiami, a przy posłaniu przycisk Odpocznij (w ciszy między etapami)</li>
+          <li>Napis u góry: dotknij, a otworzy się dziennik zadań (co zrobione, co zostało i gdzie)</li>
         </ul>
       </div>
     </div>
@@ -354,7 +385,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 <div class="ekran" id="ekran-pauzy" hidden>
   <div class="karta">
     <h2>Pauza</h2>
-    <p>Komputer: WASD, mysz celuje, lewy przycisk tnie (przytrzymany ładuje mocny cios), prawy blokuje, spacja to unik (trzymana dłużej: bieg), R to klątwa. Telefon: lewy kciuk chodzi, przycisk Tnij działa jak drążek: stuknij, przeciągnij, by celować, przytrzymaj, by naładować. Przycisk Unik przytrzymany dłużej to bieg. Klątwa: przycisk Klątwa, gdy fioletowy pasek jest pełny.</p>
+    <p>Komputer: WASD, mysz celuje, lewy przycisk tnie (przytrzymany ładuje mocny cios), prawy blokuje, spacja to unik (trzymana dłużej: bieg), R to klątwa, L to dziennik zadań. Telefon: lewy kciuk chodzi, przycisk Tnij działa jak drążek: stuknij, przeciągnij, by celować, przytrzymaj, by naładować. Przycisk Unik przytrzymany dłużej to bieg. Klątwa: przycisk Klątwa, gdy fioletowy pasek jest pełny. Dziennik zadań: dotknij napisu u góry.</p>
     <p class="etykieta">Miecz</p>
     <div class="bronie" role="group" aria-label="Wybór miecza"></div>
     <p class="opis-broni"></p>
@@ -405,6 +436,20 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
     </div>
     <p id="dar-wiedzmy" hidden></p>
     <div class="akcje"><button type="button" class="glowny" id="dalej-rozmowy">Dalej</button></div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-dziennika" hidden>
+  <div class="karta">
+    <button type="button" class="zamknij-x" id="zamknij-dziennik-x" aria-label="Zamknij dziennik">×</button>
+    <p class="rozdzial" id="dziennik-rozdzial"></p>
+    <h2 id="dziennik-tytul">Dziennik</h2>
+    <p class="cel-teraz" id="dziennik-cel"></p>
+    <p class="etykieta" id="dziennik-naglowek-zadan">Do zrobienia</p>
+    <ul class="lista-zadan" id="dziennik-zadania"></ul>
+    <p class="etykieta" id="dziennik-naglowek-zrobionych">Za tobą</p>
+    <ul class="lista-zrobionych" id="dziennik-zrobione"></ul>
+    <div class="akcje"><button type="button" class="glowny" id="zamknij-dziennik">Zamknij (L)</button></div>
   </div>
 </div>
 

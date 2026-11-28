@@ -1,12 +1,14 @@
 // Pasek życia z „Krwią za krew”, wytrzymałość, klątwa, nazwa etapu i myśl bohatera. Zwykły HTML nad płótnem.
 import { BOHATER } from './dane.js';
 import { etapNazwa, kosztUniku } from './walka.js';
+import { dziennik } from './dziennik.js';
 
 export function przygotujHud() {
   const $ = id => document.getElementById(id);
   const el = {
     zycie: $('zycie'), smuga: $('smuga'), sila: $('sila'), etap: $('etap'), mysl: $('mysl'),
     krew: $('krew-podpowiedz'), info: $('info'), pasekZycia: $('pasek-zycia'), portret: $('rama-portret'), klatwa: $('klatwa'), przyciskKlatwy: $('przycisk-klatwa'), akcja: $('akcja'), wnetrze: $('wnetrze'),
+    cel: $('cel'), naglowek: $('naglowek'),
     boss: $('boss'), bossZycie: $('boss-zycie'), bossNazwa: $('boss-nazwa'),
     mikstury: $('zapas-mikstur'), drewno: $('zapas-drewna'), ileMikstur: $('ile-mikstur'), przyciskMikstury: $('przycisk-mikstura'),
   };
@@ -14,7 +16,7 @@ export function przygotujHud() {
   const ustaw = (klucz, wartosc, fn) => { if (ostatnie[klucz] !== wartosc) { ostatnie[klucz] = wartosc; fn(wartosc); } };
 
   // licznik klatek: średnia z ostatniej sekundy
-  let klatki = 0, odliczanie = 0, fps = 0;
+  let klatki = 0, odliczanie = 0, fps = 0, celZa = 0;
 
   const dotykHud = matchMedia && matchMedia('(pointer: coarse)').matches;
   function aktualizuj(gra, dt, opisRysowania) {
@@ -29,6 +31,10 @@ export function przygotujHud() {
     ustaw('klatwa', (b.klatwa * 100).toFixed(0), v => { el.klatwa.style.width = v + '%'; });
     ustaw('klatwaGotowa', b.klatwa >= 1, v => { el.klatwa.classList.toggle('gotowa', v); el.przyciskKlatwy.classList.toggle('gotowa', v); });
     ustaw('etap', etapNazwa(gra), v => { el.etap.textContent = v; });
+    // cel na teraz pod nazwą etapu (dziennik zadań, 28 XI); liczony 4 razy na sekundę, bo sekundy ciszy i liczba potworów i tak skaczą co chwilę
+    celZa -= dt;
+    if (celZa <= 0) { celZa = 0.25; const d = dziennik(gra, dotykHud); ustaw('cel', d.cel, v => { if (el.cel) el.cel.textContent = v; }); }
+    ustaw('zBossem', !!gra.wrogowie.find(e => e.typ.boss), v => { if (el.naglowek) el.naglowek.classList.toggle('z-bossem', v); });
     // pasek bossa u dołu ekranu: widać go, póki rycerz żyje
     const boss = gra.wrogowie.find(e => e.typ.boss);
     ustaw('boss', !!boss, v => { if (el.boss) el.boss.hidden = !v; });

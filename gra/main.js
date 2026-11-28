@@ -4,6 +4,7 @@ import { BRONIE, DOMYSLNA_BRON, ULEPSZENIA, KARTKI, PRZEMIANA, WSTEP, PRZEDMIOTY
 import { przygotujRysowanie } from './rysowanie.js';
 import { przygotujWejscie } from './wejscie.js';
 import { przygotujHud } from './hud.js';
+import { dziennik } from './dziennik.js';
 import { obudzDzwiek, zagraj, przelaczDzwiek, muzyka, otoczenie } from './dzwiek.js';
 import { OGNISKO, BAGNO } from './swiat.js';
 
@@ -127,7 +128,7 @@ async function start() {
   $('wroc').addEventListener('click', wznow);
   const zatrzymaj = () => { if (zaczeta && !pauza && gra.faza !== 'koniec') { pauza = true; pokaz('ekran-pauzy', true); } };
   $('przycisk-pauza').addEventListener('click', zatrzymaj);
-  addEventListener('keydown', e => { if (e.key === 'Escape' || e.key.toLowerCase() === 'p') { if (pauza && zaczeta && gra.faza !== 'koniec') wznow(); else zatrzymaj(); } });
+  addEventListener('keydown', e => { if (dziennikOtwarty && e.key === 'Escape') { przelaczDziennik(false); return; } if (e.key === 'Escape' || e.key.toLowerCase() === 'p') { if (dziennikOtwarty) return; if (pauza && zaczeta && gra.faza !== 'koniec') wznow(); else zatrzymaj(); } });
   document.addEventListener('visibilitychange', () => { if (document.hidden) zatrzymaj(); });
   const napisBohatera = () => { for (const x of document.querySelectorAll('.przycisk-bohater')) { x.hidden = !rys.maBohateraZGemini; x.textContent = rys.bohater === 'gemini' ? 'Bohater: z Gemini' : 'Bohater: rysowany kodem'; } };
   napisBohatera();
@@ -279,6 +280,39 @@ async function start() {
     if (pauza && !plecakOtwarty) return; przelaczPlecak();
   });
   const ikonaPlecaka = new Image(); ikonaPlecaka.onload = () => { $('przycisk-plecak').style.backgroundImage = 'url(grafika/przedmioty/plecak.webp)'; $('przycisk-plecak').classList.add('ma-ikone'); }; ikonaPlecaka.src = 'grafika/przedmioty/plecak.webp';
+  // Dziennik zadań (Jozz, 28 XI): napis u góry albo L otwiera okno z tym, co do zrobienia teraz, gdzie to jest i co już za tobą. Gra stoi.
+  let dziennikOtwarty = false;
+  const dotykGry = matchMedia && matchMedia('(pointer: coarse)').matches;
+  function pokazDziennik() {
+    const d = dziennik(gra, dotykGry);
+    $('dziennik-rozdzial').textContent = d.rozdzial; $('dziennik-tytul').textContent = d.tytul || 'Dziennik'; $('dziennik-cel').textContent = d.cel;
+    const lista = $('dziennik-zadania'); lista.textContent = '';
+    const glowne = d.zadania.filter(z => !z.dodatkowe), dodatkowe = d.zadania.filter(z => z.dodatkowe);
+    for (const z of [...glowne, ...dodatkowe]) {
+      const li = document.createElement('li'); if (z.czeka) li.className = 'czeka'; else if (z.dodatkowe) li.className = 'dodatkowe';
+      const t = document.createElement('strong'), g = document.createElement('span'), o = document.createElement('p');
+      t.textContent = z.tekst; g.className = 'gdzie'; g.textContent = z.kierunek ? duzaLitera(z.kierunek) : ''; o.textContent = z.opis;
+      li.append(t, g, o); lista.append(li);
+    }
+    $('dziennik-naglowek-zadan').hidden = !d.zadania.length;
+    const zr = $('dziennik-zrobione'); zr.textContent = '';
+    for (const z of d.zrobione) { const li = document.createElement('li'); li.textContent = z; zr.append(li); }
+    $('dziennik-naglowek-zrobionych').hidden = !d.zrobione.length;
+  }
+  const duzaLitera = s => s.charAt(0).toUpperCase() + s.slice(1);
+  function przelaczDziennik(otworz = !dziennikOtwarty) {
+    if (otworz && (!zaczeta || pauza || gra.faza === 'koniec' || gra.czytana !== null || gra.wybor || gra.handel || gra.rozmowa || gra.stol)) return;
+    dziennikOtwarty = otworz; pokaz('ekran-dziennika', otworz);
+    if (otworz) { pauza = true; pokazDziennik(); } else pauza = false;
+  }
+  $('naglowek').addEventListener('click', () => przelaczDziennik(true));
+  $('zamknij-dziennik').addEventListener('click', () => przelaczDziennik(false));
+  $('zamknij-dziennik-x').addEventListener('click', () => przelaczDziennik(false));
+  $('ekran-dziennika').addEventListener('click', e => { if (e.target === e.currentTarget) przelaczDziennik(false); });   // dotknięcie obok okna zamyka
+  addEventListener('keydown', e => {
+    if (e.key.toLowerCase() !== 'l' || e.repeat) return;
+    if (dziennikOtwarty) przelaczDziennik(false); else przelaczDziennik(true);
+  });
   // Stół w izbie (26 XI): przerabianie łupów na trwałe ulepszenia; gra stoi, dopóki nie odejdziesz.
   // Rozmowa z pokonaną wiedźmą (bagno, 27 XI): kwestie po kolei, na końcu dar.
   let rozmowaPokazana = false;

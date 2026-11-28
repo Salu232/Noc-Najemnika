@@ -12,7 +12,8 @@ Każdy plik robi jedną rzecz. Logika nie wie nic o rysowaniu, a rysowanie nicze
 | [klatki-bohatera.js](klatki-bohatera.js) | gdzie w [../grafika/bohater.webp](../grafika/bohater.webp) leży każda klatka bohatera z filmów Przemka, gdzie ma stopy i które klatki tworzą którą animację; plik robi [../narzedzia/wytnij-z-filmow.py](../narzedzia/wytnij-z-filmow.py) |
 | [klatki-wrogow.js](klatki-wrogow.js) | to samo dla ghula i kolosa ([../grafika/ghul.webp](../grafika/ghul.webp), [../grafika/kolos.webp](../grafika/kolos.webp)); plik robi to samo narzędzie |
 | [wejscie.js](wejscie.js) | sterowanie: klawiatura i mysz, drążek ruchu, przycisk Tnij jak drążek (stuknij, celuj, ładuj) oraz Blok i Unik |
-| [hud.js](hud.js) | pasek życia i sił, nazwa etapu, myśl bohatera, licznik klatek |
+| [hud.js](hud.js) | pasek życia i sił, nazwa etapu z celem na teraz, myśl bohatera, licznik klatek |
+| [dziennik.js](dziennik.js) | dziennik zadań: co do zrobienia teraz, gdzie to jest (kierunek od bohatera) i co już za tobą; samo liczenie, okno składa main.js, test w [../testy/dziennik.mjs](../testy/dziennik.mjs) |
 | [dzwiek.js](dzwiek.js) | dźwięki składane w przeglądarce, bez plików |
 | [main.js](main.js) | składa wszystko razem: wczytuje PixiJS i obraz chaty, prowadzi pętlę gry, pauzę i koniec nocy |
 
