@@ -346,7 +346,7 @@ if (BAGNO) {
     grupy: [{ typ: 'topielec', ile: 10, z: ['woda'], co: 1.8, od: 2 }, { typ: 'pelzacz', ile: 3, z: W, co: 7, od: 5 }, { typ: 'wiedzma', ile: 2, z: W, co: 8, od: 12 }, { typ: 'utopiec', ile: 1, z: ['woda'], co: 0, od: 20 }] };
   ETAPY[3] = {
     nazwa: 'Wiedźma',
-    mysl: 'Drzwi chaty skrzypią. Ktoś wychodzi na pomost.',
+    mysl: 'Mgła przed chatą gęstnieje. Ktoś w niej stoi.',
     przerwa: 30,
     przed: ['Cicho. Nawet żaby przestały.', 'W chacie pali się światło. Wcześniej go nie było.', 'Ona tam jest. Czeka, aż przyjdą wszystkie.'],
     zlosc: { szybkosc: 1.28, odpoczynek: 0.55, zycie: 1.5, obrazenia: 1.45 },

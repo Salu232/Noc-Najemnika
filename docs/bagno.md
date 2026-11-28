@@ -121,6 +121,9 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
 - Kartki są jeszcze z polany, a ostatnia noc ma wiedźmę zamiast rycerza.
 - Sprawdzone 27 XI 23:40 w przeglądarce (test przechodzi całą noc od otwarcia gry do klęczącej wiedźmy): fale mają dokładnie zapisane potwory, zero błędów w konsoli. Poprawione przy tym napisy, które mówiły o drodze: handlarz („Na bagnie, w środku nocy”) i podpowiedź na start („Kładki prowadzą między wyspami”). Miejsca do obejrzenia przed nocą są już bagienne: kocioł, chata, stos, kładka, wóz i kamień ze znakiem.
 
+- **28 XI 02:30 (Jozz przez Patryka):** wiedźma-boss nie wychodzi z izby, tylko od razu stoi na wyspie u stóp kładki do chaty (*„nie powinna respić się w domku, tylko odrazu na polanie przed nim”*). Do izby wchodzi się tylko przez drzwi: boki chaty mają ściany. Przy rogu pomostu bohater nie zsuwa się już do wody.
+- **Postać na środku kolizji** (Jozz: *„nie musisz zmieniać animacji, tylko jej offset”*): `python3 narzedzia/srodki-bohatera.py` mierzy w każdej klatce bohatera środek tułowia i zapisuje przesunięcie do `gra/srodki-bohatera.js`. Po nowych klatkach trzeba go uruchomić jeszcze raz.
+
 ## Co Claude zrobi, zanim przyjdą obrazy
 
 - Przełączanie map w `swiat.js`, bo dziś polana jest jedyną mapą, ze stałymi `SZER`, `WYS` i drogą.

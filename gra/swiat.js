@@ -131,7 +131,8 @@ export const CHATA_WIEDZMY = BAGNO ? (() => {
     izba, pomost,
     drzwi: { x0: 1594, x1: 1662, y: 788 },
     kladka: { a: w(1170, 1390), b: w(1500, 1870), szer: 40 },           // kładka z pomostu na wyspę (jest na obrazie)
-    sciany: [[w(443, 1158), w(1000, 1250)], [w(1135, 1245), w(1330, 1212), w(1450, 1148)]],   // frontowa: lewa i prawa od drzwi
+    sciany: [[w(443, 1158), w(1000, 1250)], [w(1135, 1245), w(1330, 1212), w(1450, 1148)],   // frontowa: lewa i prawa od drzwi
+      [w(443, 1158), w(470, 1050), w(480, 840)], [w(1450, 1148), w(1460, 1060), w(1460, 840)]],   // boczne: do izby wchodzi się tylko drzwiami (27 XI: wszedł bokiem przy kotle)
     kociol: { ...w(1425, 1192), promien: 20 },
     // Pod pomostem (Patryk, 27 XI 23:30: „ja chodze po tych słupkach jak po powiezchni”): ląd wyspy wchodził między słupy.
     // Ten pas jest teraz wodą, a pomost i kładka zostają do chodzenia. Obrys od przedniej krawędzi pomostu do podstaw słupów z zapasem.
@@ -157,9 +158,9 @@ export function glebia(x, y) {
   if (x > st.x0 && x < st.x1 && y > st.y0 && y < st.y1) {             // chata nad wodą: ląd tylko na podłodze i pomoście
     const e = Math.min(x - st.x0, st.x1 - x, y - st.y0, st.y1 - y), f = Math.min(1, e / 90);   // miękko od brzegów strefy
     if (d < 1.6) d += (1.6 - d) * f * f * (3 - 2 * f);
-    d = Math.min(d, 0.5 + odWielokata(x, y, cw.izba) / 16, 0.5 + odWielokata(x, y, cw.pomost) / 6);   // pomost bez zapasu: krawędź to krawędź
+    d = Math.min(d, 0.5 + odWielokata(x, y, cw.izba) / 6, 0.5 + odWielokata(x, y, cw.pomost) / 6);   // pomost bez zapasu: krawędź to krawędź
   }
-  if (DROGA_GOTOWA) d = Math.min(d, odDrogi(x, y) / (DROGA_SZER * 0.75));
+  if (DROGA_GOTOWA) d = Math.min(d, odDrogi(x, y) / (DROGA_SZER * 0.44));   // grobla: brzeg wody tam, gdzie kończy się narysowana droga (27 XI: stał obok niej w wodzie)
   for (const k of KLADKI) d = Math.min(d, odOdcinka(x, y, k.a, k.b) / k.szer);
   d = Math.min(d, odOdcinka(x, y, cw.kladka.a, cw.kladka.b) / cw.kladka.szer);
   d *= 1 + 0.07 * szumBrzegu(x, y);

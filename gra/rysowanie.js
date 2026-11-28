@@ -6,6 +6,7 @@ import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './r
 import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP, LATARNIA } from './dane.js';
 import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
 import { KLATKI as KW, ANIMACJE as AW } from './klatki-bohatera-wielki.js';
+import { PRZESUNIECIE as PRZ_B } from './srodki-bohatera.js';   // Jozz, 28 XI: tułów nad cieniem w każdej animacji
 import { WROGOWIE_FILM } from './klatki-wrogow.js';
 import * as KH from './klatki-handlarza.js';
 import * as O from './obrazki.js';
@@ -124,7 +125,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const klatkiB = {};
   if (obrazBohatera) {
     const baza = new P.BaseTexture(obrazBohatera); baza.mipmap = P.MIPMAP_MODES.ON;
-    for (const k in KB) klatkiB[k] = { ...KB[k], t: new P.Texture(baza, new P.Rectangle(KB[k].x, KB[k].y, KB[k].w, KB[k].h)) };
+    for (const k in KB) klatkiB[k] = { ...KB[k], ax: KB[k].ax + (PRZ_B[k] || 0) / KB[k].w, t: new P.Texture(baza, new P.Rectangle(KB[k].x, KB[k].y, KB[k].w, KB[k].h)) };
   }
   const maObraz = Object.keys(klatkiB).length > 0;
   // Z mieczem dwuręcznym (Patryk z Flow, 24 XI 19:01) bohater ma własne cięcie, gardę, bieg i blok z grafika/bohater-wielki.webp.
@@ -132,7 +133,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   const ABW = { ...AB };
   if (maObraz && obrazBohateraWielki) {
     const baza = new P.BaseTexture(obrazBohateraWielki); baza.mipmap = P.MIPMAP_MODES.ON;
-    for (const k in KW) klatkiB[k] = { ...KW[k], t: new P.Texture(baza, new P.Rectangle(KW[k].x, KW[k].y, KW[k].w, KW[k].h)) };
+    for (const k in KW) klatkiB[k] = { ...KW[k], ax: KW[k].ax + (PRZ_B[k] || 0) / KW[k].w, t: new P.Texture(baza, new P.Rectangle(KW[k].x, KW[k].y, KW[k].w, KW[k].h)) };
     Object.assign(ABW, AW);
     if (AW.przewrot) { ABW.przewrot_przod = AW.przewrot_przod || AW.przewrot; ABW.przewrot_tyl = AW.przewrot_tyl || AW.przewrot; }   // dwuręczny ma jeden unik (25 XI): w każdą stronę ten sam rzut, a nie przewrót zwykłym mieczem
   }
@@ -234,7 +235,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         // 27 XI 23:40 (Patryk: „stoje jak na mapie”, „a to jest woda”): bohater nie wchodzi do wody, więc woda jest pełna od samego
         // brzegu (głębia 0,02, PROG_BOHATERA), z wąskim pasem mokrego mułu tuż przed nią. Gdzie widać wodę, tam się nie wejdzie.
         ci.data[i4] = 8; ci.data[i4 + 1] = 20; ci.data[i4 + 2] = 22; ci.data[i4 + 3] = Math.round(255 * (g <= 0.02 ? 0.4 : 0.42 + 0.22 * Math.min(1, g / 2)));
-        ma.data[i4 + 3] = Math.round(255 * Math.min(1, Math.max(0, (g + 0.2) / 0.22)));
+        ma.data[i4 + 3] = Math.round(255 * Math.min(1, Math.max(0, (g + 0.04) / 0.1)));   // ląd wygląda jak ląd aż do linii, na której bohater staje
       }
       cien.getContext('2d').putImageData(ci, 0, 0); maska.getContext('2d').putImageData(ma, 0, 0);
       g2.imageSmoothingEnabled = true;
@@ -1136,6 +1137,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const ox = Math.round((vw / 2 - kx * zz + ((Math.random() - 0.5) * drz + stanRys.kop.x) * zz) * 2) / 2;
     const oy = Math.round((vh / 2 - ky * zz + ((Math.random() - 0.5) * drz + stanRys.kop.y) * zz) * 2) / 2;
     for (const w of [swiat, nad]) { w.scale.set(zz); w.position.set(ox, oy); }
+    window.__ekran = { ox, oy, zz };                // do testów: świat → ekran
 
     // widoczny kawałek świata (z zapasem na wysokie drzewa)
     const L = -ox / zz - 140, Pr = (vw - ox) / zz + 140, G = -oy / zz - 60, D = (vh - oy) / zz + 380;

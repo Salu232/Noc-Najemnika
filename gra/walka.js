@@ -403,11 +403,13 @@ function aktualizujBohatera(gra, dt, w) {
     if (!e || e.stan === 'martwy' || b.chwyt <= 0) { b.chwyt = 0; b.chwytWrog = null; b.chwytKoniec = gra.czas; }
     else { v = 0; const d = Math.hypot(e.x - b.x, e.y - b.y) || 1; if (d > 40) { b.x += (e.x - b.x) / d * 30 * dt; b.y += (e.y - b.y) / d * 30 * dt; } }
   }
+  const bx0 = b.x, by0 = b.y;
   if (v > 0 && rl > 0.05) { b.x += rx * v * dt; b.y += ry * v * dt * PION; b.idzie = true; b.chod += dt * 9 * Math.min(1, rl) * (v / BOHATER.szybkosc + 0.3); }
   else b.idzie = false;
   b.x += b.odrzutX * dt; b.y += b.odrzutY * dt;
   b.odrzutX *= Math.max(0, 1 - dt * 8); b.odrzutY *= Math.max(0, 1 - dt * 8);
   zderzenia(b, b.promien, false, PROG_BOHATERA);
+  if (BAGNO && wGlebokiej(b) && !wGlebokiej({ x: bx0, y: by0 })) { b.x = bx0; b.y = by0; }   // zderzenia zepchnęły go do wody (róg pomostu, 27 XI): zostaje, gdzie był
 
   // wytrzymałość i „Krew za krew”
   if (b.odnowaZa > 0) b.odnowaZa -= dt;
@@ -1078,8 +1080,8 @@ function aktualizujEtapy(gra, dt) {
     }
     while (gra.kolejka.length && gra.kolejka[0].t <= gra.walkaCzas) {
       const q = gra.kolejka.shift();
-      if (q.z === 'boss' && BAGNO) {                                                  // wiedźma wychodzi z chaty na pomost, przy kotle
-        const k = CHATA_WIEDZMY.kociol, p = { x: k.x + 50, y: k.y + 40 }; zderzenia(p, 18);
+      if (q.z === 'boss' && BAGNO) {   // wiedźma staje od razu na wyspie przed chatą (Jozz, 28 XI 01:03: „nie powinna respić się w domku, tylko odrazu na polanie przed nim”)
+        const p = { x: 1700, y: 1060 }; zderzenia(p, 18, false, PROG_BOHATERA);
         gra.wrogowie.push(nowyWrog(q.typ, p, ETAPY[gra.etap].zlosc));
         powiedz(gra, 'To ona. Gospodyni tego bagna.', 4);
         gra.zdarzenia.push({ typ: 'boss' }, { typ: 'glos', n: 'wiedzma-wejscie', wiedzma: true });
