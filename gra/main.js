@@ -301,14 +301,18 @@ async function start() {
   }
   const duzaLitera = s => s.charAt(0).toUpperCase() + s.slice(1);
   function przelaczDziennik(otworz = !dziennikOtwarty) {
+    if (!jestDziennik) return;
     if (otworz && (!zaczeta || pauza || gra.faza === 'koniec' || gra.czytana !== null || gra.wybor || gra.handel || gra.rozmowa || gra.stol)) return;
     dziennikOtwarty = otworz; pokaz('ekran-dziennika', otworz);
     if (otworz) { pauza = true; pokazDziennik(); } else pauza = false;
   }
-  $('naglowek').addEventListener('click', () => przelaczDziennik(true));
-  $('zamknij-dziennik').addEventListener('click', () => przelaczDziennik(false));
-  $('zamknij-dziennik-x').addEventListener('click', () => przelaczDziennik(false));
-  $('ekran-dziennika').addEventListener('click', e => { if (e.target === e.currentTarget) przelaczDziennik(false); });   // dotknięcie obok okna zamyka
+  const jestDziennik = !!$('ekran-dziennika');                            // stara strona bez okna dziennika: gra działa dalej, tylko bez niego
+  if (jestDziennik) {
+    $('naglowek').addEventListener('click', () => przelaczDziennik(true));
+    $('zamknij-dziennik').addEventListener('click', () => przelaczDziennik(false));
+    $('zamknij-dziennik-x').addEventListener('click', () => przelaczDziennik(false));
+    $('ekran-dziennika').addEventListener('click', e => { if (e.target === e.currentTarget) przelaczDziennik(false); });   // dotknięcie obok okna zamyka
+  }
   addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'l' || e.repeat) return;
     if (dziennikOtwarty) przelaczDziennik(false); else przelaczDziennik(true);
