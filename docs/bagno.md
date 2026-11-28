@@ -149,6 +149,11 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
   - Droga (*„tu droga musi się konczyc inaczej”*): urywała się prostą krawędzią w pół drogi do ogniska. Rysunek sięga teraz pod ognisko (`DROGA_RYS`), a ostatnie 170 j. koleiny i kreski gasną w ubitej ziemi. Grobla do chodzenia bez zmian.
   - Handlarz (*„handlarz w innym miejscu musi stać”*): stał w zwalonej kłodzie na zachód od ogniska. Teraz stoi przy końcu grobli, po lewej, na czystej ziemi (1505, 1268).
 
+- **28 XI koło południa (v139, Patryk: *„trudny jest ten pełzacz”*, *„ciężko go atakować z tyłu jak masz inne potwory”*, *„ani razu nie przeszedłem do wiedźmy”*):**
+  - Pełzacz: życie 4–5 (było 6–7), szybkość 96–110 (112–128), zamach 0,75 s (0,55), cios 12 (15), odpoczynek 1,8 s (1,3), pancerz ±49° (±60°), obrót 1,6 rad/s (2,4), ogłuszenie 1,8 s (1,3).
+  - Drugie zwykłe cięcie w pancerz przewraca go tak jak mocny cios (`e.pek` w `gra/walka.js`), więc da się go pokonać w tłumie bez obchodzenia.
+  - W pauzie na bagnie: „Próba: od razu ostatnia noc (wiedźma)”, cisza 8 s i fala z wiedźmą.
+
 ## Co Claude zrobi, zanim przyjdą obrazy
 
 - Przełączanie map w `swiat.js`, bo dziś polana jest jedyną mapą, ze stałymi `SZER`, `WYS` i drogą.

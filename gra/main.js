@@ -173,6 +173,11 @@ async function start() {
   // skrót do prób, póki bagno się buduje: w pauzie, nie na ekranie startu
   $('przeskocz-mapa').textContent = BAGNO ? 'Próba: wróć na polanę' : 'Próba: przeskocz na bagno';
   $('przeskocz-mapa').addEventListener('click', () => przejdz(BAGNO ? 'polana' : 'bagno', null));
+  // Patryk, 28 XI 11:49: „ani razu nie przeszedłem do wiedźmy”: na bagnie w pauzie skok do ciszy przed ostatnią nocą
+  if (BAGNO) { pokaz('do-wiedzmy', true); $('do-wiedzmy').addEventListener('click', () => {
+    Object.assign(gra, { faza: 'przerwa', etap: 3, fazaCzas: 8, przerwaT: 0, kwestie: [], ostrzezono: false, wrogowie: [], kolejka: [], portale: [], odkryj: null });
+    gra.mroczek = Math.max(gra.mroczek, 0.75); gra.bohater.zycie = Math.max(gra.bohater.zycie, 100); wznow();
+  }); }
   // „Zacznij od bagna” (Patryk, 27 XI 23:09: „daj odrazu mape z bagien (…) jak mam testowac to musze mieć to”): od razu na bagno,
   // z rzeczami, z jakimi zwykle schodzi się z polany (bot, 27 XI: 20–50 monet, pas, 2–3 mikstury, amulet i przyłbica z rycerza).
   $('od-bagna').addEventListener('click', () => przejdz('bagno', STAN_TESTOWY));

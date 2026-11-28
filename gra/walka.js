@@ -570,8 +570,10 @@ function tnij(gra, dt) {
     if (wPancerz(e2, b)) {                                               // pełzacz od przodu: miecz odbija się od pancerza
       c.trafieni.add(e2); gra.zatrzymanie = Math.max(gra.zatrzymanie, 0.05);
       gra.zdarzenia.push({ typ: 'blok', x: e2.x, y: e2.y - 20, kat: Math.atan2(e2.y - b.y, e2.x - b.x) });
-      if (c.mocny) { e2.stan = 'ogluszony'; e2.t = 0; e2.ogluszCzas = e2.typ.pancerz.ogluszenie; e2.vx += Math.cos(Math.atan2(e2.y - b.y, e2.x - b.x)) * 260; e2.vy += Math.sin(Math.atan2(e2.y - b.y, e2.x - b.x)) * 260; }   // mocny cios przewraca go: chwila na cięcie
-      if (!gra.pancerzRada) { gra.pancerzRada = true; powiedz(gra, 'Pancerz odbija ostrze. Z boku albo od tyłu. Albo przewrócić go mocnym ciosem.', 4.5); }
+      // 28 XI 11:50 (Patryk: „ciężko go atakować z tyłu, jak masz inne potwory”): drugie cięcie w pancerz też go przewraca
+      e2.pek = (e2.pek || 0) + 1;
+      if (c.mocny || e2.pek >= 2) { e2.pek = 0; e2.stan = 'ogluszony'; e2.t = 0; e2.ogluszCzas = e2.typ.pancerz.ogluszenie; e2.vx += Math.cos(Math.atan2(e2.y - b.y, e2.x - b.x)) * 260; e2.vy += Math.sin(Math.atan2(e2.y - b.y, e2.x - b.x)) * 260; }   // mocny cios przewraca go: chwila na cięcie
+      if (!gra.pancerzRada) { gra.pancerzRada = true; powiedz(gra, 'Pancerz odbija ostrze. Z boku albo od tyłu. Albo drugi raz w pancerz, mocnym ciosem od razu: wtedy się przewraca.', 4.5); }
       continue;
     }
     cele.push({ e: e2, r, d });

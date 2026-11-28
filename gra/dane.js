@@ -183,19 +183,21 @@ export const WROGOWIE = {
   // Pełzacz (obraz i filmy Przemka 25–26 XI; na bagno 27 XI 22:37, Patryk: „on miał być na bagna”). Niski i szybki,
   // pancerz na grzbiecie odbija cięcie od przodu (kąt w radianach od kierunku, w który patrzy). Obraca się wolno, w ataku wcale,
   // a rzut niesie go za bohatera: po rzucie albo unikiem w bok widać jego boki. Klątwa i ogłuszenie omijają pancerz.
+  // 28 XI 11:49 (Patryk: „trudny jest ten pełzacz”): było życie 6–7, szybkość 112–128, zamach 0,55 s, cios 15, odpoczynek 1,3 s,
+  // pancerz ±60° (kat 1.05), obrót 2,4 rad/s, ogłuszenie 1,3 s. Teraz wolniejszy, dłużej zapowiada skok, dłużej odpoczywa i obraca się wolniej.
   pelzacz: {
     nazwa: 'pelzacz',
-    zycie: [6, 7],
-    szybkosc: [112, 128],
+    zycie: [4, 5],
+    szybkosc: [96, 110],
     promien: 18,
     skala: 1.2,
     zasiegAtaku: 110,
-    zamach: 0.55,
+    zamach: 0.75,
     skok: 0.42,
-    obrazenia: 15,
-    odpoczynek: 1.3,
+    obrazenia: 12,
+    odpoczynek: 1.8,
     ciezki: false,
-    pancerz: { kat: 1.05, obrot: 2.4, rzut: 520, ogluszenie: 1.3 },
+    pancerz: { kat: 0.85, obrot: 1.6, rzut: 520, ogluszenie: 1.8 },
   },
   // Upiór (bagno, z listy Patryka 25 XI; docs/bagno.md „Nowe potwory”). Półprzezroczysty, przenika przez potwory, ściany i wodę.
   // Miecz go nie rani, póki nie zgęstnieje: od 35% zamachu, w czasie ciosu i przez okno (s) po nim. Klątwa rani zawsze.
