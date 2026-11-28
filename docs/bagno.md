@@ -141,6 +141,8 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
   - Telefon w pionie: na starcie bohater stał pod przyciskami, kamera schodzi teraz niżej niż mapa. Dziennik mówi, że drzwi izby otwiera się E.
   - Sprawdzone: 139 podejść bohatera do każdego obiektu bagna z czterech stron (zrzut każdego), siatka miejsc do stania na obu mapach, fala z bohaterem w izbie (drzwi wyważone w 26. sekundzie, potwory doszły) i za chatą na polanie (7 potworów doszło), cała noc na bagnie i na polanie bez błędów, pięć rozmiarów ekranu.
 
+- **28 XI przed południem (v137, przed testem z Przemkiem):** gra znów zaczyna się na polanie (`START_NA_BAGNIE = false`; na bagno od razu: przycisk „Zacznij od bagna”). Dwie wysepki na północy (zachodnia i wschodnia) dostały kładki, bo wyglądały na ląd bez wejścia. Ekran startowy bagna opisuje drzwi, pochodnie i kocioł zamiast posłania z polany. Cała gra przeszła w przeglądarce jednym ciągiem (polana, świt, droga klawiszami, bagno, rozmowa z wiedźmą), bez błędów w konsoli.
+
 ## Co Claude zrobi, zanim przyjdą obrazy
 
 - Przełączanie map w `swiat.js`, bo dziś polana jest jedyną mapą, ze stałymi `SZER`, `WYS` i drogą.

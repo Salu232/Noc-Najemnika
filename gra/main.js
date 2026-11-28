@@ -157,6 +157,10 @@ async function start() {
     if (w) w.textContent = !doTestow
       ? 'Rozdział drugi. Przyszedłeś z polany z tym, co zostało w plecaku. Woda, martwy las i topielce, które chwytają: tnij, żeby puściły.'
       : 'Rozdział drugi, na czas testów od razu tutaj, z rzeczami jak po polanie (25 monet, pas, 3 mikstury, amulet i przyłbica). Topielce chwytają: tnij, żeby puściły. Pełzacza bij z boku albo w plecy.';
+    // na bagnie nie ma posłania (28 XI): opis chaty z polany mylił
+    const cp = document.getElementById('chata-pc'), ct = document.getElementById('chata-tel');
+    if (cp) cp.textContent = 'E: drzwi chaty na pomoście, zapalanie pochodni, kocioł (z trzech wiązek ziela mikstura)';
+    if (ct) ct.textContent = 'Drzwi chaty, pochodnie i kocioł: napis na dole ekranu, gdy stoisz obok';
   }
   // „Ruszaj na bagno”: ekran końca znika, bohater idzie drogą przez las; na skraju mapy ściemnia się i wczytuje bagno
   $('na-bagno').addEventListener('click', () => { ruszajNaBagno(gra); pokaz('ekran-konca', false); pauza = false; });

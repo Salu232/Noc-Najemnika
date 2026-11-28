@@ -15,7 +15,7 @@ const zPamieci = () => { try { const m = localStorage.getItem('noc-przejscie'); 
 const zNazwy = () => { try { const m = /noc-mapa=(\w+)/.exec(window.name || ''); if (m) window.__nocStan = window.name; window.name = ''; return m && m[1]; } catch (e) { return null; } };
 // Na czas testów (Patryk, 27 XI 23:09: „daj odrazu mape z bagien”, „jak wszytko bedzie grało to wtedy to zmienimy”): gra otwiera się na bagnie.
 // Polana jest w menu pauzy („Próba: wróć na polanę”). Po testach: false.
-export const START_NA_BAGNIE = true;
+export const START_NA_BAGNIE = false;
 export const MAPA = (globalThis.MAPA_NOCY || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('mapa')) || ((n, p) => n || p)(typeof window !== 'undefined' && zNazwy(), zPamieci()) || (START_NA_BAGNIE ? 'bagno' : 'polana')) === 'bagno' ? 'bagno' : 'polana';
 export const BAGNO = MAPA === 'bagno';
 
@@ -116,6 +116,8 @@ export const KLADKI = BAGNO ? [
   { a: { x: 1965, y: 1020 }, b: { x: 1900, y: 470 }, szer: 22 },    // środek – północ, obok chaty
   { a: { x: 720, y: 1165 }, b: { x: 760, y: 1635 }, szer: 22 },     // zachód – południowy zachód
   { a: { x: 2500, y: 1265 }, b: { x: 2420, y: 1655 }, szer: 22 },   // wschód – południowy wschód
+  { a: { x: 430, y: 500 }, b: { x: 620, y: 840 }, szer: 22 },      // 28 XI: wysepka na północnym zachodzie wyglądała na ląd, a nie było na nią wejścia
+  { a: { x: 2830, y: 520 }, b: { x: 2640, y: 930 }, szer: 22 },     // 28 XI: tak samo wysepka na północnym wschodzie
 ] : [];
 // Chata wiedźmy na palach z Gemini (Patryk, 27 XI 16:55): dwa obrazy w tym samym kadrze, z dachem i bez dachu (wnętrze).
 // Obraz 2048 px, w świecie 0,4 jednostki na piksel: piksel (ix, iy) leży w (X0 + 0,4·ix, Y0 + 0,4·iy).

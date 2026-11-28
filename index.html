@@ -114,6 +114,11 @@ body {
   content: ""; display: block; width: 56px; height: 56px; margin: 0 auto 8px; border-radius: 50%;
   background: url("grafika/portret-maly.webp") center / cover; border: 1px solid var(--linia); box-shadow: 0 2px 10px #000;
 }
+/* telefon poziomo (28 XI): trzy wiersze myśli z portretem zasłaniały bohatera na środku ekranu; niżej nagłówka, mniejsze, portret obok tekstu */
+@media (max-height: 500px) {
+  #mysl { top: calc(70px + env(safe-area-inset-top, 0px)); width: min(560px, 58vw); font-size: 16px; line-height: 1.2; display: flex; align-items: center; gap: 10px; text-align: left; }
+  #mysl::before { flex: none; width: 36px; height: 36px; margin: 0; }
+}
 #info { position: fixed; z-index: 2; left: max(10px, env(safe-area-inset-left, 0px)); bottom: calc(6px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 11px; color: rgba(235, 227, 213, 0.45); pointer-events: none; }
 /* Na telefonie pasek mniejszy (Patryk, 25 XI: „trochę za duży”): ok. 70% dawnej szerokości, w pionie i w poziomie. */
 @media (pointer: coarse), (max-width: 560px) { .pasek { width: clamp(160px, min(28vw, 46vh), 230px); top: calc(8px + env(safe-area-inset-top, 0px)); } }
@@ -342,7 +347,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
           <li>Lewy przycisk: cięcie, a przytrzymany: mocny cios po puszczeniu</li>
           <li>Prawy przycisk albo Shift: blok</li>
           <li>Spacja: unik (przewrót); trzymana dłużej: bieg</li>
-          <li>Chata: wejdź drzwiami, dach zniknie. E przy posłaniu: śpisz i leczysz rany (tylko w ciszy między etapami)</li>
+          <li id="chata-pc">Chata: wejdź drzwiami, dach zniknie. E przy posłaniu: śpisz i leczysz rany (tylko w ciszy między etapami)</li>
           <li>R: klątwa, gdy fioletowy pasek jest pełny</li>
           <li>L albo klik w napis u góry: dziennik zadań (co zrobione, co zostało i gdzie)</li>
         </ul>
@@ -355,7 +360,7 @@ dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
           <li>Tnij, przeciągnięcie: celujesz, cięcie po puszczeniu</li>
           <li>Tnij, przytrzymanie: mocny cios po puszczeniu</li>
           <li>Przyciski Blok i Unik; Klątwa, gdy fioletowy pasek jest pełny</li>
-          <li>Chata: wejdź drzwiami, a przy posłaniu przycisk Odpocznij (w ciszy między etapami)</li>
+          <li id="chata-tel">Chata: wejdź drzwiami, a przy posłaniu przycisk Odpocznij (w ciszy między etapami)</li>
           <li>Napis u góry: dotknij, a otworzy się dziennik zadań (co zrobione, co zostało i gdzie)</li>
         </ul>
       </div>
