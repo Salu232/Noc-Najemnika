@@ -154,6 +154,8 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
   - Drugie zwykłe cięcie w pancerz przewraca go tak jak mocny cios (`e.pek` w `gra/walka.js`), więc da się go pokonać w tłumie bez obchodzenia.
   - W pauzie na bagnie: „Próba: od razu ostatnia noc (wiedźma)”, cisza 8 s i fala z wiedźmą.
 
+- **28 XI po południu (v140), kolejka ciosu.** Jozz, dosłownie: *„jest coś bardzo nie tak z kolejkowaniem inputów, odczuwalne najbardziej w atakach”*. Do v139 każde kliknięcie ataku ustawiało `kolejkaAtaku` i czekało bez końca: w trakcie ciosu, zachwiania czy upadku. Cios wyskakiwał sam, gdy gracz już uciekał. Teraz kliknięcie ma czas (`b.atakChce`) i ważne jest najwyżej `BUFOR_CIOSU` = 0,35 s, a ruch w stronę odwrotną do ciosu kasuje je od razu (`gra/walka.js`). Test `testy/przegladarka/testKolejka.js`: 5 kliknięć i ucieczka dawały 2 ciosy, teraz 1.
+
 ## Co Claude zrobi, zanim przyjdą obrazy
 
 - Przełączanie map w `swiat.js`, bo dziś polana jest jedyną mapą, ze stałymi `SZER`, `WYS` i drogą.

@@ -296,7 +296,7 @@ function aktualizujBohatera(gra, dt, w) {
 
   // blok przerywa branie zamachu, ładowanie i powrót miecza; samego cięcia nie (27 XI 19:20, Przemek: „sprawdź, jak szybko możesz użyć obrony po ataku”:
   // było 0,3–0,6 s czekania na powrót miecza, teraz najwyżej tyle, ile trwa cięcie, 0,13–0,17 s)
-  if (w.blok && b.stan === 'cios' && b.cios.faza !== 'ciecie') { b.stan = 'wolny'; b.cios = null; b.kolejkaAtaku = false; }
+  if (w.blok && b.stan === 'cios' && b.cios.faza !== 'ciecie') { b.stan = 'wolny'; b.cios = null; b.kolejkaAtaku = false; b.atakChce = null; }
   const chceBlok = w.blok && b.stan === 'wolny';
   if (chceBlok && !b.blok) b.blokOd = gra.czas;
   b.blok = chceBlok;
@@ -311,17 +311,23 @@ function aktualizujBohatera(gra, dt, w) {
     if (cel) { const r = rozn(Math.atan2(cel.y - b.y, cel.x - b.x), b.kat), k = Math.min(Math.abs(r), BOHATER.blok.obrot * dt); b.kat += Math.sign(r) * k; }
   }
 
-  if (w.blok) b.kolejkaAtaku = false;                                      // cios kliknięty przed blokiem nie wyskakuje sam po jego puszczeniu
-  else if (w.atakStart) b.kolejkaAtaku = true;
+  // Kolejka ciosu (28 XI, Jozz: „jest coś bardzo nie tak z kolejkowaniem inputów, odczuwalne najbardziej w atakach”; „postać nie może
+  // bez mojej zgody wykonywać ataku, tylko dlatego, że sekundę wcześniej nacisnąłem atak 5 razy”). Było: każde kliknięcie w trakcie ciosu,
+  // zachwiania albo upadku czekało bez końca i cios wyskakiwał sam, nawet gdy gracz już uciekał. Teraz cios czeka najwyżej
+  // BUFOR_CIOSU s od kliknięcia, a ruch w przeciwną stronę niż cios (ucieczka) kasuje go od razu.
+  if (w.blok) { b.kolejkaAtaku = false; b.atakChce = null; }               // cios kliknięty przed blokiem nie wyskakuje sam po jego puszczeniu
+  else if (w.atakStart) b.atakChce = gra.czas;
+  if (b.atakChce != null && b.stan !== 'wolny' && rl > 0.5 && Math.abs(rozn(Math.atan2(ry, rx), b.kat)) > Math.PI * 0.55) b.atakChce = null;
+  b.kolejkaAtaku = b.atakChce != null && gra.czas - b.atakChce <= BUFOR_CIOSU;
   // unik zapamiętany na 0,3 s (27 XI 19:04, Przemek: „po raz 10 przyciskam unik”, a postać kończy animację):
   // wciśnięty w trakcie cięcia, zachwiania albo innego uniku wykona się, gdy tylko będzie mógł
   // ale nie w pierwszej połowie przewrotu: wciśnięcia klepane w trakcie turlania dawały drugi przewrót
   // (27 XI 19:37, Przemek: „daję raz unik, daje mi unik dwa razy”)
   if (w.unik && !(b.stan === 'unik' && b.t < (b.unikCzas || BOHATER.unik.czas) * 0.5)) b.unikChce = gra.czas;
-  if (w.unik) b.kolejkaAtaku = false;                                      // unik wciśnięty po ataku kasuje cios czekający w kolejce, nawet bez tchu
+  if (w.unik) { b.kolejkaAtaku = false; b.atakChce = null; }                                      // unik wciśnięty po ataku kasuje cios czekający w kolejce, nawet bez tchu
   const chceUnik = w.unik || (b.unikChce != null && gra.czas - b.unikChce < 0.3);
   const mozeUnik = chceUnik && b.sila >= kosztUniku(gra, b) && !(b.chwyt > 0);   // z chwytu topielca nie da się przeturlać
-  if (mozeUnik) b.kolejkaAtaku = false;                                       // unik ma pierwszeństwo przed kolejnym ciosem
+  if (mozeUnik) { b.kolejkaAtaku = false; b.atakChce = null; }                                       // unik ma pierwszeństwo przed kolejnym ciosem
   // brak tchu (27 XI 19:11, Przemek: „gracz potrzebuje feedbacku, że nie może użyć uniku”): każde wciśnięcie bez sił daje dźwięk i błysk kółka kondycji
   if (w.unik && !mozeUnik && !(b.chwyt > 0) && b.stan !== 'upadl') { if (gra.czas - (b.brakTchuOd ?? -9) > 0.2) { b.brakTchuOd = gra.czas; gra.zdarzenia.push({ typ: 'brak_tchu' }); } }
   if (w.unik && !mozeUnik && gra.czas - (b.zadyszkaOd ?? -9) > 2.5 && gra.mysl.czas < 0.5) { b.zadyszkaOd = gra.czas; powiedz(gra, 'Brak tchu. Nie przeturlam się.', 1.2); }
@@ -379,7 +385,7 @@ function aktualizujBohatera(gra, dt, w) {
   } else if (b.stan === 'klatwa') {
     b.t += dt;
     if (!b.klatwaUderzyla && b.t >= KLATWA.ladowanie) uderzKlatwa(gra);
-    if (b.t >= KLATWA.ladowanie + KLATWA.uderzenie + KLATWA.wstawanie) { b.stan = 'wolny'; b.kolejkaAtaku = false; }
+    if (b.t >= KLATWA.ladowanie + KLATWA.uderzenie + KLATWA.wstawanie) { b.stan = 'wolny'; b.kolejkaAtaku = false; b.atakChce = null; }
   }
 
   // ruch: z ciężkim mieczem w ręku idzie się wolniej
@@ -422,7 +428,7 @@ function aktualizujBohatera(gra, dt, w) {
 // Klątwa: najpierw unosi rękę (można go wtedy obejść, ale nie zranić), potem uderza w ziemię.
 function zacznijKlatwe(gra) {
   const b = gra.bohater;
-  b.stan = 'klatwa'; b.t = 0; b.cios = null; b.blok = false; b.kolejkaAtaku = false; b.rozped = 0;
+  b.stan = 'klatwa'; b.t = 0; b.cios = null; b.blok = false; b.kolejkaAtaku = false; b.atakChce = null; b.rozped = 0;
   b.klatwa = 0; b.klatwaUderzyla = false;
   gra.przemiana = Math.min(1, gra.przemiana + PRZEMIANA.zaKlatwe);   // cena klątwy
   b.nietykalny = KLATWA.ladowanie + KLATWA.uderzenie + KLATWA.wstawanie;
@@ -505,7 +511,7 @@ function zacznijUnik(gra, rx, ry, rl) {
   const u = BOHATER.unik, pion = Math.abs(Math.sin(b.unikKat)) > 0.7;   // w górę i w dół pełny przewrót przez głowę: wolniej i krócej
   b.unikCzas = pion ? u.czasPion : u.czas; b.unikDystans = pion ? u.dystansPion : u.dystans;
   b.nietykalny = pion ? u.nietykalnyPion : u.nietykalny;
-  b.kolejkaAtaku = false; b.rozped = 0;
+  b.kolejkaAtaku = false; b.atakChce = null; b.rozped = 0;
   zuzyjSile(b, kosztUniku(gra, b));
   b.seriaUnikow = gra.czas - (b.ostatniUnik ?? -9) < BOHATER.unik.seriaCzas ? (b.seriaUnikow || 0) + 1 : 1; b.ostatniUnik = gra.czas;
 }
@@ -515,9 +521,10 @@ export function kosztUniku(gra, b) {
 }
 
 // Branie zamachu. Cios zadany zaraz po poprzednim ma rozpęd i idzie w drugą stronę.
+const BUFOR_CIOSU = 0.35;                                               // ile sekund kliknięcie ciosu czeka, aż bohater będzie mógł ciąć
 function zacznijCios(gra, w, zaraz = false) {
   const b = gra.bohater, bron = gra.bron;
-  b.kolejkaAtaku = false;
+  b.kolejkaAtaku = false; b.atakChce = null;
   if (b.sila < bron.koszt * 0.4) return;                            // brak sił: bohater nie podniesie miecza
   const seria = zaraz || b.seriaCzas > 0;
   b.rozped = seria ? Math.min(BOHATER.rozped.max, b.rozped + 1) : 0;
