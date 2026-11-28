@@ -1,0 +1,484 @@
+<meta charset="utf-8">
+<title>Polana we mgle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap&subset=latin-ext">
+<style>
+/* Gra na cały ekran. Na wierzchu: pasek życia w lewym górnym rogu, etap na środku u góry,
+   myśl bohatera pod nim, przyciski kciuka w prawym dolnym rogu (tylko na telefonie). Jeden, nocny wygląd. */
+:root {
+  --tlo: #0b0b0d;
+  --panel: rgba(14, 12, 11, 0.86);
+  --tekst: #ebe3d5;
+  --przygaszony: #a89f92;
+  --zar: #e0a055;
+  --krew: #b3262a;
+  --krew-jasna: #e8676a;
+  --sila: #c99a4a;
+  --linia: rgba(235, 227, 213, 0.18);
+  --font-tytul: "Alegreya SC", "Palatino Linotype", Georgia, serif;
+  --font-tekst: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--tlo); color: var(--tekst);
+  font-family: var(--font-tekst); font-size: 16px;
+  overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+[hidden] { display: none !important; }
+#gra { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+
+/* pasek życia i wytrzymałości */
+.pasek {
+  position: fixed; z-index: 2;
+  top: calc(12px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px));
+  width: clamp(230px, 46vw, 330px); display: grid; gap: 5px; pointer-events: none;
+}
+/* Rama z czaszkami z arkusza Przemka (Patryk, 24 XI 18:20): w kole portret, w belce trzy paski; rama leży nad nimi.
+   Miejsca koła i belki to części szerokości i wysokości ramy (zmierzone w narzedzia/wytnij-z-arkuszy.py). */
+.rama { position: relative; aspect-ratio: 660 / 301; margin-left: -4%; }
+.rama-portret { position: absolute; left: 9.5%; top: 19%; width: 23.6%; height: 52%; border-radius: 50%;
+  background: #120c0a url("grafika/portret-maly.webp") center 30% / cover; filter: saturate(0.85); }
+.rama-portret.rana { box-shadow: inset 0 0 18px 6px rgba(200, 30, 30, 0.85); }
+.rama-paski { position: absolute; left: 36.5%; right: 11%; top: 35.5%; height: 18%; display: grid; grid-template-rows: 2fr 1fr 1fr; gap: 1px; background: #050404; }
+.rama-paski .belka, .rama-paski .belka.cienka { height: auto; min-height: 0; border: 0; border-radius: 0; }   /* wysokość daje siatka; 24 XI: cienkie 7 px zjadały pasek życia na wąskim telefonie */
+.rama-obraz { position: absolute; inset: 0; width: 100%; height: 100%; }
+.belka { position: relative; height: 12px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--linia); border-radius: 2px; overflow: hidden; }
+.belka.cienka { height: 7px; }
+#zycie { position: absolute; inset: 0 auto 0 0; background: var(--krew); width: 100%; }
+#smuga { position: absolute; top: 0; bottom: 0; background: rgba(232, 103, 106, 0.35); }
+#smuga.zywa { background: repeating-linear-gradient(135deg, var(--krew-jasna) 0 4px, rgba(232, 103, 106, 0.45) 4px 8px); animation: puls 0.5s ease-in-out infinite alternate; }
+@keyframes puls { from { opacity: 0.55; } to { opacity: 1; } }
+#sila { position: absolute; inset: 0 auto 0 0; background: var(--sila); width: 100%; transition: width 0.08s linear; }
+#sila.pusta { background: #7a5a3a; }
+#klatwa { position: absolute; inset: 0 auto 0 0; background: #5b3a86; width: 0; transition: width 0.15s linear; }
+#klatwa.gotowa { background: #a868ff; box-shadow: 0 0 8px #a868ff; }
+#pasek-zycia.rana { box-shadow: 0 0 0 2px var(--krew-jasna); }
+#krew-podpowiedz { font-size: 13px; color: var(--krew-jasna); text-shadow: 0 1px 2px #000; opacity: 0; transition: opacity 0.2s; }
+#krew-podpowiedz.widac { opacity: 1; }
+
+/* pasek bossa ostatniej nocy */
+#boss { position: fixed; z-index: 2; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); width: min(520px, calc(100vw - 32px)); pointer-events: none; text-align: center; }
+#boss-nazwa { margin: 0 0 5px; font-family: var(--font-tytul); font-size: 15px; letter-spacing: 0.06em; color: #e6d2b0; text-shadow: 0 1px 3px #000; }
+.boss-belka { height: 10px; border: 1px solid #5a4636; background: #120c0a; box-shadow: 0 0 0 1px #000, 0 2px 8px #000; }
+#boss-zycie { height: 100%; width: 100%; background: linear-gradient(#8e1c16, #5a0e0b); transition: width 0.15s; }
+#boss.druga #boss-zycie { background: linear-gradient(#d0521e, #7a1d08); box-shadow: 0 0 10px #ff6a2a; }
+#boss.druga #boss-nazwa { color: #ffb070; }
+/* telefon: wąski pasek przy górnej krawędzi, pod nazwą nocy (Patryk, 26 XI 0:38: na środku ekranu „bardzo przeszkadza”) */
+@media (pointer: coarse) { #boss { bottom: auto; top: calc(32px + env(safe-area-inset-top, 0px)); width: min(36vw, 300px); } #boss-nazwa { font-size: 11px; margin-bottom: 3px; } #boss .boss-belka { height: 7px; } }
+
+/* etap i myśl */
+/* Napis u góry to też przycisk dziennika zadań (Jozz, 28 XI): nazwa etapu, pod nią cel na teraz, a dotknięcie albo L otwiera dziennik */
+#naglowek {
+  position: fixed; z-index: 3; top: calc(8px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  display: grid; justify-items: center; gap: 1px; max-width: min(440px, calc(100vw - 32px)); padding: 4px 12px 5px;
+  border: 1px solid transparent; border-radius: 6px; background: radial-gradient(ellipse at center, rgba(8, 7, 6, 0.55), rgba(8, 7, 6, 0) 75%); text-shadow: 0 1px 3px #000, 0 0 6px #000; cursor: pointer;
+}
+#naglowek:hover { border-color: var(--linia); background: rgba(10, 9, 8, 0.45); }
+#etap { margin: 0; font-family: var(--font-tytul); font-weight: 500; font-size: 15px; letter-spacing: 0.05em; color: var(--przygaszony); white-space: nowrap; }
+#cel { font-size: 13px; color: var(--tekst); line-height: 1.25; text-align: center; }
+#cel:empty { display: none; }
+#naglowek .klawisz { font-size: 11px; color: rgba(224, 160, 85, 0.75); letter-spacing: 0.04em; }
+#naglowek.z-bossem #cel { display: none; }   /* w walce z bossem cel mówi pasek bossa, a na telefonie pasek leży tuż pod napisem */
+@media (pointer: coarse) { #naglowek .klawisz { display: none; } #etap::after { content: " ▾"; color: var(--zar); } }
+/* okno dziennika */
+#ekran-dziennika .karta { max-height: calc(100vh - 24px); overflow-y: auto; gap: 10px; }
+#ekran-dziennika .karta { position: relative; }
+.zamknij-x { position: sticky; top: 0; justify-self: end; margin: -10px -10px -36px 0; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--linia); background: rgba(14, 12, 11, 0.95); font-size: 22px; line-height: 1; z-index: 1; }
+#ekran-dziennika .rozdzial { margin: 0; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--zar); }
+#ekran-dziennika .cel-teraz { color: var(--tekst); font-size: 17px; }
+.lista-zadan { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lista-zadan li { padding: 7px 12px; border: 1px solid var(--linia); border-left: 3px solid var(--zar); border-radius: 4px; background: rgba(0, 0, 0, 0.35); display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; }
+.lista-zadan li p { grid-column: 1 / -1; }
+.lista-zadan li strong { font-size: 16px; color: #f0dcc0; }
+.lista-zadan li .gdzie { font-size: 13px; color: var(--zar); text-align: right; }
+.lista-zadan li .gdzie:empty { display: none; }
+.lista-zadan li p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--przygaszony); }
+.lista-zadan li.czeka { opacity: 0.55; border-left-color: var(--linia); }
+.lista-zadan li.dodatkowe { border-left-color: #7a8a5a; }
+.lista-zrobionych { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 14px; color: var(--przygaszony); }
+.lista-zrobionych li::before { content: "✓ "; color: #8fb070; }
+.lista-zrobionych li { text-decoration: line-through; text-decoration-color: rgba(168, 159, 146, 0.5); }
+@media (max-height: 500px) { .lista-zadan li { padding: 6px 10px; } .lista-zadan li p { font-size: 13px; } }
+#mysl {
+  position: fixed; z-index: 2; top: 22%; left: 50%; transform: translateX(-50%);
+  width: min(560px, calc(100vw - 32px)); margin: 0; text-align: center;
+  font-family: var(--font-tytul); font-size: clamp(19px, 4.6vw, 27px); line-height: 1.25; text-wrap: balance;
+  color: var(--tekst); text-shadow: 0 2px 6px #000, 0 0 18px #000; opacity: 0; transition: opacity 0.6s; pointer-events: none;
+}
+#mysl.widac { opacity: 1; }
+#mysl::before {               /* myśli bohatera mają jego twarz (portret od Przemka) */
+  content: ""; display: block; width: 56px; height: 56px; margin: 0 auto 8px; border-radius: 50%;
+  background: url("grafika/portret-maly.webp") center / cover; border: 1px solid var(--linia); box-shadow: 0 2px 10px #000;
+}
+/* telefon poziomo (28 XI): trzy wiersze myśli z portretem zasłaniały bohatera na środku ekranu; niżej nagłówka, mniejsze, portret obok tekstu */
+@media (max-height: 500px) {
+  #mysl { top: calc(70px + env(safe-area-inset-top, 0px)); width: min(560px, 58vw); font-size: 16px; line-height: 1.2; display: flex; align-items: center; gap: 10px; text-align: left; }
+  #mysl::before { flex: none; width: 36px; height: 36px; margin: 0; }
+}
+#info { position: fixed; z-index: 2; left: max(10px, env(safe-area-inset-left, 0px)); bottom: calc(6px + env(safe-area-inset-bottom, 0px)); margin: 0; font-size: 11px; color: rgba(235, 227, 213, 0.45); pointer-events: none; }
+/* Na telefonie pasek mniejszy (Patryk, 25 XI: „trochę za duży”): ok. 70% dawnej szerokości, w pionie i w poziomie. */
+@media (pointer: coarse), (max-width: 560px) { .pasek { width: clamp(160px, min(28vw, 46vh), 230px); top: calc(8px + env(safe-area-inset-top, 0px)); } }
+@media (max-width: 560px) { #naglowek { top: calc(88px + env(safe-area-inset-top, 0px)); left: auto; right: max(10px, env(safe-area-inset-right, 0px)); transform: none; justify-items: end; max-width: 60vw; } #etap { font-size: 13px; } #cel { font-size: 12px; text-align: right; } }
+/* telefon poziomo: pasek zajmuje lewy róg, przyciski prawy; nagłówek zostaje na środku u góry, krótszy */
+@media (pointer: coarse) and (min-width: 561px) { #naglowek { max-width: 40vw; } #cel { font-size: 12px; } }
+
+/* chata: przycisk czynności (posłanie, zamknięte drzwi) i ekran snu */
+#akcja {
+  position: fixed; z-index: 4; left: 50%; transform: translateX(-50%); bottom: calc(26% + env(safe-area-inset-bottom, 0px));
+  padding: 10px 18px; border-radius: 22px; border: 1px solid var(--zar); background: rgba(10, 10, 12, 0.72);
+  font-family: var(--font-tytul); font-size: 17px; box-shadow: 0 0 14px rgba(224, 160, 85, 0.35);
+}
+#akcja.zamkniete { border-color: var(--linia); box-shadow: none; color: var(--przygaszony); }
+#wnetrze {
+  position: fixed; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: radial-gradient(ellipse at 50% 45%, rgba(60, 26, 8, 0.45) 0%, rgba(5, 4, 3, 0.82) 70%);
+  opacity: 0; transition: opacity 0.5s; pointer-events: none; text-align: center; padding: 0 24px;
+}
+#wnetrze.widac { opacity: 1; }
+#wnetrze p { margin: 0; font-family: var(--font-tytul); font-size: clamp(20px, 4.8vw, 28px); color: var(--tekst); text-shadow: 0 2px 8px #000; }
+#wnetrze p.male { font-family: var(--font-tekst); font-size: 15px; color: var(--przygaszony); }
+
+/* przyciski */
+button { font: 500 16px/1.2 var(--font-tekst); color: var(--tekst); cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--zar); outline-offset: 2px; }
+#przycisk-pauza {
+  position: fixed; z-index: 3; top: calc(8px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--linia); background: rgba(0, 0, 0, 0.45); font-size: 14px; letter-spacing: 1px;
+}
+#przyciski { position: fixed; z-index: 3; right: max(14px, env(safe-area-inset-right, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); width: 196px; height: 196px; }
+.kciuk {
+  position: absolute; width: 66px; height: 66px; border-radius: 50%; border: 2px solid rgba(235, 227, 213, 0.35);
+  background: rgba(10, 10, 12, 0.5); font-family: var(--font-tytul); font-weight: 700; font-size: 16px; touch-action: none;
+}
+.kciuk.wcisniety { background: rgba(224, 160, 85, 0.4); border-color: var(--zar); }
+#przycisk-tnij { right: 0; bottom: 0; width: 104px; height: 104px; font-size: 20px; border-color: rgba(224, 160, 85, 0.6); }
+#przycisk-blok { right: 118px; bottom: 6px; }
+#przycisk-unik { right: 10px; bottom: 120px; }
+#przycisk-klatwa { right: 118px; bottom: 96px; width: 58px; height: 58px; font-size: 13px; opacity: 0.45; border-color: rgba(168, 104, 255, 0.5); }
+#przycisk-klatwa.gotowa { opacity: 1; border-color: #a868ff; box-shadow: 0 0 12px rgba(168, 104, 255, 0.6); }
+/* Ikony z arkusza Przemka (etap B, narzedzia/wytnij-z-arkuszy.py); napis zostaje na dole, mały */
+#przycisk-tnij, #przycisk-unik, #przycisk-klatwa { background-size: cover; background-position: center; color: #f3ead8;
+  display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; text-shadow: 0 1px 3px #000, 0 0 6px #000; }
+#przycisk-tnij { background-image: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.55)), url(grafika/ikona-tnij.webp); font-size: 15px; padding-bottom: 12px; }
+#przycisk-unik { background-image: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.55)), url(grafika/ikona-unik.webp); font-size: 12px; }
+#przycisk-klatwa { background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.45)), url(grafika/ikona-klatwa.webp); font-size: 11px; }
+.kciuk.wcisniety { filter: brightness(1.35); }
+#przycisk-mikstura { right: 190px; bottom: 30px; width: 54px; height: 54px; font-size: 10px; background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.5)), url(grafika/ikona-mikstura.webp);
+  background-size: cover; background-position: center; color: #f3ead8; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; text-shadow: 0 1px 3px #000; }
+#przycisk-mikstura.pusta { opacity: 0.35; }
+#przycisk-unik.brak { opacity: 0.4; filter: grayscale(1) brightness(0.8); }
+#przycisk-mikstura b { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; border-radius: 9px; background: #8e1418; font-size: 11px; line-height: 18px; }
+#zapas-groszy { color: #e8c060; }
+#zapasy > span { white-space: nowrap; }
+#zapas-napoju { display: inline-flex; gap: 8px; }
+#zapas-napoju[hidden] { display: none; }
+#zapas-napoju span { display: inline-flex; align-items: center; gap: 2px; }
+#zapas-napoju img { width: 16px; height: 16px; object-fit: contain; filter: drop-shadow(0 1px 2px #000); }
+#zapas-groszy::before { content: ""; display: inline-block; width: 15px; height: 15px; margin-right: 4px; vertical-align: -3px; background: url(grafika/przedmioty/moneta.webp) center / contain no-repeat; }
+#zapasy { display: flex; gap: 10px; font-size: 12px; color: var(--tekst, #e9e1d2); text-shadow: 0 1px 3px #000; padding-left: 6px; }
+#zapas-mikstur::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: -3px; border-radius: 50%; background: url(grafika/ikona-mikstura.webp) center / cover; }
+/* wybór ulepszenia w ramie z czaszkami i pasami (Patryk, 24 XI 19:06): border-image, więc rogi się nie rozciągają */
+#ekran-wyboru .karta {
+  box-sizing: border-box; width: min(560px, 100%); background: none; border: none; border-radius: 0; padding: 4px 10px 6px;
+  border-style: solid; border-width: 60px 60px 66px 60px; border-image: url("grafika/panel-wyboru.webp") 120 120 132 120 fill / 60px 60px 66px 60px stretch;
+}
+#ekran-wyboru h2 { color: #f0c890; text-shadow: 0 2px 4px #000; }
+#ekran-wyboru .karta > p { margin: 0; color: #d8c8b0; }
+@media (max-width: 420px) { #ekran-wyboru .karta { border-width: 44px 40px 48px 40px; border-image-width: 44px 40px 48px 40px; } }
+#karty-wyboru { display: grid; gap: 10px; margin-top: 12px; }
+.wybor-karta { display: grid; gap: 4px; text-align: left; padding: 12px 14px; border-radius: 4px; border: 1px solid rgba(224, 160, 85, 0.45); background: rgba(16, 12, 9, 0.72); color: inherit; cursor: pointer; }
+.wybor-karta strong { font-family: var(--font-tytul); font-size: 18px; color: #f0c890; }
+.wybor-karta:hover, .wybor-karta:focus-visible { border-color: var(--zar); background: rgba(60, 40, 22, 0.95); }
+.drazek { position: fixed; z-index: 2; left: 0; top: 0; border-radius: 50%; pointer-events: none; }
+#drazek-tlo { width: 100px; height: 100px; border: 2px solid rgba(235, 227, 213, 0.3); }
+#drazek-galka { width: 40px; height: 40px; background: rgba(235, 227, 213, 0.3); }
+#cel-tlo { width: 100px; height: 100px; border: 2px solid rgba(224, 160, 85, 0.45); }
+#cel-galka { width: 40px; height: 40px; background: rgba(224, 160, 85, 0.45); }
+.bronie { display: flex; flex-wrap: wrap; gap: 8px; }
+.bronie button { padding: 8px 12px; border-radius: 4px; border: 1px solid var(--linia); background: transparent; font-size: 15px; }
+.bronie button[aria-pressed="true"] { border-color: var(--zar); background: rgba(224, 160, 85, 0.18); }
+.opis-broni { font-size: 14px; min-height: 1.4em; }
+.etykieta { margin: 0; font-size: 14px; font-weight: 700; color: var(--zar); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* prolog (26 XI): zdania pojawiają się jedno po drugim na czarnym tle, dotknięcie albo spacja przyspiesza */
+#prolog { position: fixed; inset: 0; z-index: 30; background: #050507; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; cursor: pointer; }
+#prolog p { max-width: 640px; margin: 0 0 18px; font-family: var(--font-tytul); font-size: clamp(17px, 2.4vw, 23px); line-height: 1.5; color: #d8ccb6; text-align: center; opacity: 0; transform: translateY(6px); transition: opacity 1.4s ease, transform 1.4s ease; }
+#prolog p.widac { opacity: 1; transform: none; }
+#prolog p.minione { opacity: 0.38; }
+#prolog .pomin { position: absolute; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: none; border: 1px solid #4a3e30; color: #a89a84; font: inherit; font-size: 14px; padding: 8px 14px; border-radius: 4px; cursor: pointer; }
+#prolog .dalej { margin-top: 10px; font-size: 13px; color: #7a6e5e; letter-spacing: 0.08em; opacity: 0; transition: opacity 1s; }
+#prolog .dalej.widac { opacity: 1; }
+/* plecak (26 XI): przycisk obok pauzy, okno z polami; I albo przycisk otwiera, gra stoi */
+#przycisk-plecak { position: fixed; z-index: 3; top: calc(8px + env(safe-area-inset-top, 0px)); right: calc(max(12px, env(safe-area-inset-right, 0px)) + 48px); width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--linia); background: rgba(0, 0, 0, 0.45) center / 70% no-repeat; font-size: 11px; padding: 0; }
+#przycisk-plecak.ma-ikone { font-size: 0; }
+#przycisk-plecak.nowa::after { content: ''; position: absolute; top: 2px; right: 2px; width: 10px; height: 10px; border-radius: 50%; background: #d9a441; box-shadow: 0 0 6px #d9a441; }
+.pole.nowa { outline: 1px solid #d9a441; }
+.pola-plecaka { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
+.pole { position: relative; display: grid; justify-items: center; gap: 4px; padding: 8px 4px 6px; border: 1px solid var(--linia); border-radius: 4px; background: rgba(0, 0, 0, 0.35); font: inherit; color: inherit; font-size: 12px; line-height: 1.2; text-align: center; cursor: pointer; }
+.pole[aria-pressed="true"] { border-color: #c89a5a; background: rgba(200, 154, 90, 0.12); }
+.pole.puste { opacity: 0.35; cursor: default; }
+.pole .ikona { width: 46px; height: 46px; object-fit: contain; }
+.pole .zastepcza { width: 34px; height: 34px; margin: 6px; border-radius: 50%; box-shadow: 0 0 12px currentColor, inset 0 0 8px rgba(0,0,0,0.6); }
+.pole b { position: absolute; top: 4px; right: 6px; font-size: 12px; color: #e8c890; }
+#opis-rzeczy { min-height: 3em; margin: 0; color: var(--przygaszony); font-size: 14px; }
+/* stół w izbie (26 XI): przepisy z kosztem w łupach */
+.przepisy { display: grid; gap: 8px; }
+.przepis { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--linia); border-radius: 4px; background: rgba(0, 0, 0, 0.35); }
+.przepis strong { font-size: 15px; }
+.przepis .opis { grid-column: 1; margin: 0; font-size: 13px; color: var(--przygaszony); }
+.przepis .koszt { grid-column: 1; display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; }
+.przepis .koszt span { display: inline-flex; align-items: center; gap: 3px; }
+.przepis .koszt span.brak { color: #c0574a; }
+.przepis .koszt img { width: 22px; height: 22px; }
+.przepis button { grid-column: 2; grid-row: 1 / span 3; }
+.przepis button:disabled { opacity: 0.35; cursor: default; }
+.przepis.towar { grid-template-columns: 56px 1fr auto; }
+.przepis.towar .obraz { grid-column: 1; grid-row: 1 / span 2; width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 2px 3px #000); }
+.przepis.towar strong, .przepis.towar .opis { grid-column: 2; }
+.przepis.towar button { grid-column: 3; grid-row: 1 / span 2; }
+
+/* handlarz (27 XI): portret, sakiewka, kupno mikstury i sprzedaż łupu */
+#ekran-handlarza .karta { max-height: calc(100vh - 24px); overflow-y: auto; }
+.handlarz-glowa { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+.handlarz-glowa img { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--linia); flex: none; object-fit: cover; }
+.handlarz-glowa h2 { margin: 0 0 4px; }
+.handlarz-glowa .wstep { margin: 0; font-style: italic; }
+/* telefon poziomo: niski ekran, więc mniejsza głowa handlarza i ikony, żeby towary było widać bez przewijania */
+@media (max-height: 500px) {
+  .handlarz-glowa img { width: 56px; height: 56px; }
+  #ekran-handlarza .handlarz-glowa p.wstep { font-size: 13px; }
+  .grosze { margin: 2px 0 4px; }
+  .przepis.towar { grid-template-columns: 40px 1fr auto; padding: 6px 10px; }
+  .przepis.towar .obraz { width: 40px; height: 40px; }
+}
+.grosze { margin: 4px 0 10px; font-size: 15px; color: #d8b45a; }
+.grosze::before { content: ""; display: inline-block; width: 26px; height: 26px; margin-right: 6px; vertical-align: -7px; background: url(grafika/przedmioty/sakiewka.webp) center / contain no-repeat; }
+.przepis .naglowek { grid-column: 1 / -1; margin: 6px 0 0; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--przygaszony); }
+.przepisy .pusto { margin: 0; font-size: 13px; color: var(--przygaszony); }
+/* ekrany: start, pauza, koniec */
+#dalej-konca { color: #e8b070; font-style: italic; }
+.ekran {
+  position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px;
+  background: radial-gradient(ellipse at center, rgba(5, 5, 7, 0.55), rgba(5, 5, 7, 0.88));
+  overflow-y: auto;
+}
+.karta {
+  width: min(520px, 100%); background: var(--panel); border: 1px solid var(--linia); border-radius: 6px;
+  padding: 22px 22px 20px; display: grid; gap: 12px;
+}
+/* ekran startu: las i twarz bohatera (obrazy od Przemka) */
+#ekran-startu { background: linear-gradient(rgba(5, 5, 7, 0.5), rgba(5, 5, 7, 0.82)), url("grafika/las.webp") center / cover; }
+.portret { display: block; width: calc(100% + 44px); margin: -22px -22px 0; height: auto; aspect-ratio: 13 / 5; max-height: 26vh; object-fit: cover; object-position: 50% 30%; border-radius: 6px 6px 0 0; }
+h1, h2 { margin: 0; font-family: var(--font-tytul); font-weight: 700; letter-spacing: 0.04em; text-wrap: balance; }
+h1 { font-size: 30px; }
+h2 { font-size: 24px; }
+.karta p { margin: 0; line-height: 1.45; color: var(--przygaszony); }
+.karta p.wstep { color: var(--tekst); font-size: 17px; }
+.kartka-dziennika { text-align: center; max-width: 440px; }
+.kartka-dziennika img { display: block; margin: 0 auto 8px; width: 180px; height: auto; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6)); }
+.kartka-dziennika p.nr { margin: 0; font-size: 13px; color: var(--przygaszony); letter-spacing: 0.06em; text-transform: uppercase; }
+.kartka-dziennika p.wstep { font-style: italic; line-height: 1.5; }
+.sterowanie { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+@media (pointer: coarse) { .sterowanie .pc { order: 2; } }
+.sterowanie h3 { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--zar); text-transform: uppercase; letter-spacing: 0.06em; }
+.sterowanie ul { margin: 0; padding-left: 18px; color: var(--przygaszony); line-height: 1.45; font-size: 15px; }
+.akcje { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.glowny { font-family: var(--font-tytul); font-weight: 700; font-size: 19px; padding: 10px 22px; border-radius: 4px; border: 1px solid var(--zar); background: rgba(224, 160, 85, 0.18); }
+.drugi { padding: 9px 14px; border-radius: 4px; border: 1px solid var(--linia); background: transparent; font-size: 15px; }
+#ladowanie { color: var(--przygaszony); }
+.zrodlo { font-size: 13px; }
+dl#wynik { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; font-size: 17px; }
+dl#wynik dt { color: var(--przygaszony); }
+dl#wynik dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+</style>
+
+<canvas id="gra" aria-label="Polana nocą: chata, ognisko, las i mgła, z której wychodzą potwory"></canvas>
+
+<div class="pasek" aria-label="Życie i siły">
+  <div class="rama">
+    <div class="rama-portret" id="rama-portret"></div>
+    <div class="rama-paski">
+      <div class="belka" id="pasek-zycia"><div id="zycie"></div><div id="smuga"></div></div>
+      <div class="belka cienka"><div id="sila"></div></div>
+      <div class="belka cienka" title="Klątwa: R"><div id="klatwa"></div></div>
+    </div>
+    <img class="rama-obraz" src="grafika/rama-paska.webp" alt="" onerror="this.remove()">
+  </div>
+  <div id="zapasy"><span id="zapas-mikstur"></span><span id="zapas-groszy">0 monet</span><span id="zapas-napoju" hidden></span><span id="zapas-drewna" hidden>Niesiesz polano</span></div>
+  <div id="krew-podpowiedz">Krew za krew: tnij, żeby odzyskać</div>
+</div>
+<button type="button" id="naglowek" aria-label="Dziennik zadań (L)"><span id="etap"></span><span id="cel"></span><span class="klawisz" id="naglowek-klawisz">Dziennik · L</span></button>
+<div id="boss" hidden><p id="boss-nazwa"></p><div class="boss-belka"><div id="boss-zycie"></div></div></div>
+<p id="mysl" aria-live="polite"></p>
+<p id="info"></p>
+<div id="wnetrze" aria-hidden="true"><p>Śpisz na posłaniu.</p><p class="male">Rany się goją. Noc poczeka, aż wyjdziesz.</p></div>
+<button type="button" id="akcja" hidden></button>
+<button type="button" id="przycisk-pauza" aria-label="Pauza">II</button>
+<button type="button" id="przycisk-plecak" aria-label="Plecak (I)">Plecak</button>
+
+<div id="przyciski" hidden>
+  <button type="button" class="kciuk" id="przycisk-tnij">Tnij</button>
+  <button type="button" class="kciuk" id="przycisk-blok">Blok</button>
+  <button type="button" class="kciuk" id="przycisk-unik">Unik</button>
+  <button type="button" class="kciuk" id="przycisk-klatwa">Klątwa</button>
+  <button type="button" class="kciuk" id="przycisk-mikstura">Mikstura <b id="ile-mikstur">1</b></button>
+</div>
+<div class="drazek" id="drazek-tlo" hidden></div>
+<div class="drazek" id="drazek-galka" hidden></div>
+<div class="drazek" id="cel-tlo" hidden></div>
+<div class="drazek" id="cel-galka" hidden></div>
+
+<div id="prolog" hidden><div id="prolog-tekst"></div><p class="dalej" id="prolog-dalej">dotknij albo naciśnij spację</p><button type="button" class="pomin" id="prolog-pomin">Pomiń</button></div>
+<div class="ekran" id="ekran-startu">
+  <div class="karta">
+    <img class="portret" src="grafika/portret.webp" alt="Twarz najemnika w deszczu, w nocnym lesie" width="1040" height="400">
+    <h1>Polana we mgle</h1>
+    <p class="wstep">Noc przy chacie w lesie. Z mgły na skraju polany wychodzą potwory, najpierw jeden, potem coraz więcej. Dotrwaj do świtu.</p>
+    <div class="sterowanie">
+      <div class="pc">
+        <h3>Komputer</h3>
+        <ul>
+          <li>WASD albo strzałki: ruch</li>
+          <li>Mysz: kierunek cięcia</li>
+          <li>Lewy przycisk: cięcie, a przytrzymany: mocny cios po puszczeniu</li>
+          <li>Prawy przycisk albo Shift: blok</li>
+          <li>Spacja: unik (przewrót); trzymana dłużej: bieg</li>
+          <li id="chata-pc">Chata: wejdź drzwiami, dach zniknie. E przy posłaniu: śpisz i leczysz rany (tylko w ciszy między etapami)</li>
+          <li>R: klątwa, gdy fioletowy pasek jest pełny</li>
+          <li>L albo klik w napis u góry: dziennik zadań (co zrobione, co zostało i gdzie)</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Telefon</h3>
+        <ul>
+          <li>Lewy kciuk: ruch</li>
+          <li>Tnij, stuknięcie: cięcie w najbliższego</li>
+          <li>Tnij, przeciągnięcie: celujesz, cięcie po puszczeniu</li>
+          <li>Tnij, przytrzymanie: mocny cios po puszczeniu</li>
+          <li>Przyciski Blok i Unik; Klątwa, gdy fioletowy pasek jest pełny</li>
+          <li id="chata-tel">Chata: wejdź drzwiami, a przy posłaniu przycisk Odpocznij (w ciszy między etapami)</li>
+          <li>Napis u góry: dotknij, a otworzy się dziennik zadań (co zrobione, co zostało i gdzie)</li>
+        </ul>
+      </div>
+    </div>
+    <p>Miecz ma wagę: najpierw zamach, potem cięcie po łuku, potem miecz wraca. Cięcia jedno po drugim nabierają rozpędu. Zablokuj tuż przed ciosem potwora, a sparujesz. Po ranie masz chwilę, żeby cięciami odzyskać część krwi. Klątwa w prawej ręce wali w ziemię i odrzuca wszystko wokół; jej pasek napełniają trafienia i zabici.</p>
+    <p class="etykieta">Miecz</p>
+    <div class="bronie" role="group" aria-label="Wybór miecza"></div>
+    <p class="opis-broni"></p>
+    <div class="akcje">
+      <button type="button" class="glowny" id="zacznij" hidden>Zacznij</button>
+      <button type="button" class="drugi" id="od-bagna" hidden>Zacznij od bagna</button>
+      <button type="button" class="drugi przycisk-bohater" hidden>Bohater: z Gemini</button>
+      <span id="ladowanie">Wczytuję grę…</span>
+    </div>
+    <p class="zrodlo">Próbna wersja walki. Bohater, jego twarz i las w tle: obrazy i filmy z Gemini od Przemka. Chata: obraz z Gemini. Potwory, las na mapie i światło rysuje kod. Bohatera rysowanego kodem włączysz przyciskiem obok.</p>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-wyboru" hidden>
+  <div class="karta">
+    <h2>Fala odparta</h2>
+    <p>Wybierz jedno ulepszenie na resztę nocy.</p>
+    <div id="karty-wyboru"></div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-pauzy" hidden>
+  <div class="karta">
+    <h2>Pauza</h2>
+    <p>Komputer: WASD, mysz celuje, lewy przycisk tnie (przytrzymany ładuje mocny cios), prawy blokuje, spacja to unik (trzymana dłużej: bieg), R to klątwa, L to dziennik zadań. Telefon: lewy kciuk chodzi, przycisk Tnij działa jak drążek: stuknij, przeciągnij, by celować, przytrzymaj, by naładować. Przycisk Unik przytrzymany dłużej to bieg. Klątwa: przycisk Klątwa, gdy fioletowy pasek jest pełny. Dziennik zadań: dotknij napisu u góry.</p>
+    <p class="etykieta">Miecz</p>
+    <div class="bronie" role="group" aria-label="Wybór miecza"></div>
+    <p class="opis-broni"></p>
+    <div class="akcje">
+      <button type="button" class="glowny" id="wroc">Wróć do gry</button>
+      <button type="button" class="drugi przycisk-dzwiek">Dźwięk: włączony</button>
+      <button type="button" class="drugi przycisk-bohater" hidden>Bohater: z Gemini</button>
+      <button type="button" class="drugi" id="przeskocz-mapa">Próba: przeskocz na bagno</button>
+      <button type="button" class="drugi" id="do-wiedzmy" hidden>Próba: od razu ostatnia noc (wiedźma)</button>
+    </div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-plecaka" hidden>
+  <div class="karta">
+    <h2>Plecak</h2>
+    <div class="pola-plecaka" id="pola-plecaka"></div>
+    <p id="opis-rzeczy">Dotknij rzeczy, żeby ją obejrzeć. Kartki można przeczytać jeszcze raz.</p>
+    <div class="akcje"><button type="button" class="glowny" id="zamknij-plecak">Zamknij (I)</button></div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-stolu" hidden>
+  <div class="karta">
+    <h2>Stół w izbie</h2>
+    <p class="wstep">Nóż, szydło i trochę drutu. Z tego, co zostało po potworach, da się coś zrobić. Ulepszenia zostają na następne noce.</p>
+    <div class="przepisy" id="przepisy"></div>
+    <div class="akcje"><button type="button" class="glowny" id="odejdz-od-stolu">Odejdź od stołu</button></div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-handlarza" hidden>
+  <div class="karta">
+    <div class="handlarz-glowa">
+      <img src="grafika/handlarz-portret.webp" alt="" width="96" height="96">
+      <div><h2>Handlarz</h2><p class="wstep" id="slowa-handlarza"></p></div>
+    </div>
+    <p class="grosze" id="grosze"></p>
+    <div class="przepisy" id="towary"></div>
+    <div class="akcje"><button type="button" class="glowny" id="odejdz-od-handlarza">Odejdź</button></div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-rozmowy" hidden>
+  <div class="karta">
+    <div class="handlarz-glowa">
+      <img id="portret-wiedzmy" src="grafika/wiedzma-bagna-portret.webp" alt="" width="96" height="96">
+      <div><h2>Wiedźma z bagna</h2><p class="wstep" id="slowa-wiedzmy"></p></div>
+    </div>
+    <p id="dar-wiedzmy" hidden></p>
+    <div class="akcje"><button type="button" class="glowny" id="dalej-rozmowy">Dalej</button></div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-dziennika" hidden>
+  <div class="karta">
+    <button type="button" class="zamknij-x" id="zamknij-dziennik-x" aria-label="Zamknij dziennik">×</button>
+    <p class="rozdzial" id="dziennik-rozdzial"></p>
+    <h2 id="dziennik-tytul">Dziennik</h2>
+    <p class="cel-teraz" id="dziennik-cel"></p>
+    <p class="etykieta" id="dziennik-naglowek-zadan">Do zrobienia</p>
+    <ul class="lista-zadan" id="dziennik-zadania"></ul>
+    <p class="etykieta" id="dziennik-naglowek-zrobionych">Za tobą</p>
+    <ul class="lista-zrobionych" id="dziennik-zrobione"></ul>
+    <div class="akcje"><button type="button" class="glowny" id="zamknij-dziennik">Zamknij (L)</button></div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-kartki" hidden>
+  <div class="karta kartka-dziennika">
+    <img src="grafika/kartka.webp" alt="" width="180" height="168">
+    <p class="nr" id="nr-kartki"></p>
+    <p class="wstep" id="tekst-kartki"></p>
+    <div class="akcje"><button type="button" class="glowny" id="schowaj-kartke">Schowaj kartkę</button></div>
+  </div>
+</div>
+
+<div class="ekran" id="ekran-konca" hidden>
+  <div class="karta">
+    <h2 id="tytul-konca">Świt</h2>
+    <p class="wstep" id="tekst-konca">Mgła cofa się do lasu. Przetrwałeś noc.</p>
+    <p class="wstep dalej" id="dalej-konca" hidden></p>
+    <dl id="wynik"></dl>
+    <div class="akcje">
+      <button type="button" class="glowny" id="na-bagno" hidden>Ruszaj na bagno</button>
+      <button type="button" class="drugi" id="jeszcze-raz">Jeszcze raz</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="gra/main.js"></script>

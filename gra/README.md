@@ -1,0 +1,24 @@
+# Kod gry
+
+Każdy plik robi jedną rzecz. Logika nie wie nic o rysowaniu, a rysowanie niczego w logice nie zmienia, więc oba da się sprawdzać osobno (bot w [../testy/bot-noc.mjs](../testy/bot-noc.mjs) gra samą logiką).
+
+| Plik | Co robi |
+| --- | --- |
+| [dane.js](dane.js) | **liczby gry:** bohater, trzy miecze, mocny cios, blok, unik, ghul, kolos, etapy nocy. Tu zmieniamy siłę i trudność |
+| [swiat.js](swiat.js) | mapa: wielkość, chata, płot, ognisko, mgły, las i zderzenia z nimi |
+| [walka.js](walka.js) | logika: ruch, cios w fazach (zamach, cięcie po łuku, powrót), rozpęd, mocny cios, blok, parowanie, unik, Krew za krew, Miecz który waży, wrogowie i etapy nocy |
+| [rysowanie.js](rysowanie.js) | obraz w PixiJS: ziemia, las, chata, postacie i ich animacje (pochylenie, padanie, cięcie na pół), krew, mgła, noc z wyciętym światłem, deszcz |
+| [obrazki.js](obrazki.js) | rysunki robione kodem, dopóki nie ma obrazów z Gemini: sosny, ghul, kolos, światło, mgła (bohatera rysowanego kodem rysuje rysowanie.js) |
+| [klatki-bohatera.js](klatki-bohatera.js) | gdzie w [../grafika/bohater.webp](../grafika/bohater.webp) leży każda klatka bohatera z filmów Przemka, gdzie ma stopy i które klatki tworzą którą animację; plik robi [../narzedzia/wytnij-z-filmow.py](../narzedzia/wytnij-z-filmow.py) |
+| [klatki-wrogow.js](klatki-wrogow.js) | to samo dla ghula i kolosa ([../grafika/ghul.webp](../grafika/ghul.webp), [../grafika/kolos.webp](../grafika/kolos.webp)); plik robi to samo narzędzie |
+| [wejscie.js](wejscie.js) | sterowanie: klawiatura i mysz, drążek ruchu, przycisk Tnij jak drążek (stuknij, celuj, ładuj) oraz Blok i Unik |
+| [hud.js](hud.js) | pasek życia i sił, nazwa etapu z celem na teraz, myśl bohatera, licznik klatek |
+| [dziennik.js](dziennik.js) | dziennik zadań: co do zrobienia teraz, gdzie to jest (kierunek od bohatera) i co już za tobą; samo liczenie, okno składa main.js, test w [../testy/dziennik.mjs](../testy/dziennik.mjs) |
+| [dzwiek.js](dzwiek.js) | dźwięki składane w przeglądarce, bez plików |
+| [main.js](main.js) | składa wszystko razem: wczytuje PixiJS i obraz chaty, prowadzi pętlę gry, pauzę i koniec nocy |
+
+Strona gry to [../index.html](../index.html). Obrazy z Gemini leżą w [../grafika/](../grafika/): chata i bohater. Adres z `?tempo=0.25` puszcza grę cztery razy wolniej, do oglądania animacji.
+
+**Jak to działa w jednej klatce:** `main.js` pyta `wejscie.js`, co gracz wcisnął, `walka.js` przesuwa świat o ułamek sekundy, a `rysowanie.js` i `hud.js` pokazują, co z tego wyszło. Zdarzenia z walki (cięcie, trafienie, parowanie, rana) idą do dźwięków i do napisów nad głową.
+
+**Noc w grze** dokłada silnik: obrazy są w świetle dnia, a gra zalewa ekran ciemnością i wycina w niej światło ogniska, okna i bohatera. To kierunek z „Próby chaty” (dziennik pomysłów, 22 XI).

@@ -1,0 +1,1872 @@
+// Rysowanie gry w PixiJS: karta graficzna, a gdy jej nie ma, zwykłe płótno.
+// Logika jest w walka.js. Tu tylko obraz: niczego w stanie gry nie zmieniamy poza kolejką śladów.
+
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DRZEWA, OZDOBY, TOTEMY, RZECZY, MIEJSCA, MIEJSCE_HANDLARZA, BAGNO, glebia, KLADKI, CHATA_WIEDZMY, wIzbieWiedzmy, DROGA_POLNOC, LATARNIE } from './swiat.js';
+import { REKWIZYTY, OGIEN_KLATEK, OGIEN_FPS, TOTEM_KLATEK, TOTEM_FPS } from './rekwizyty.js';
+import { PRZEDMIOTY, BOHATER, WROGOWIE, KLATWA, TOTEM, LUP, LATARNIA } from './dane.js';
+import { KLATKI as KB, ANIMACJE as AB, SKALA as SKALA_B, PATRZY as PATRZY_B } from './klatki-bohatera.js';
+import { KLATKI as KW, ANIMACJE as AW } from './klatki-bohatera-wielki.js';
+import { PRZESUNIECIE as PRZ_B } from './srodki-bohatera.js';   // Jozz, 28 XI: tułów nad cieniem w każdej animacji
+import { WROGOWIE_FILM } from './klatki-wrogow.js';
+import * as KH from './klatki-handlarza.js';
+import * as O from './obrazki.js';
+import { kosztUniku } from './walka.js';
+
+const TAU = Math.PI * 2;
+const PERSP = 0.62;            // świat widziany z ukosa: pion jest spłaszczony
+const OB = 0x0b0a09;           // kolor obrysu
+const ogr = (v, a, b) => Math.max(a, Math.min(b, v));
+const losuj = (a, b) => a + Math.random() * (b - a);
+
+const CIECIE_WYS = { ghul: 17, kolos: 30, wiedzma: 17, rycerz: 32, bestia: 17, topielec: 17, czarownica: 55, pelzacz: 20, utopiec: 22 };   // na jakiej wysokości miecz przecina ciało wroga
+// Potwory z filmów Przemka (narzedzia/wytnij-z-filmow.py): ghul ma 72 jednostki wzrostu, kolos 165.
+const FILM_WROGA = {
+  ghul: { ciecie: 30, droga: 75, smierc: 1.0, trafienie: 0.3, oko: { x: 30, y: -62 }, cien: 3.6 },    // droga: ile jednostek na pełny cykl chodu
+  kolos: { ciecie: 70, droga: 100, smierc: 1.5, trafienie: 0.35, oko: { x: 72, y: -130 }, cien: 3.6 },
+  wiedzma: { ciecie: 45, droga: 50, smierc: 1.5, kaluza: 0.55, trafienie: 0.35, oko: { x: 28, y: -86 }, cien: 3.2 },
+  topielec: { ciecie: 40, droga: 90, smierc: 1.6, trafienie: 0.3, oko: { x: 16, y: -82 }, cien: 3.4 },   // z filmów Patryka (27 XI 21:30); chód brodzący, dwa kroki na cykl
+  utopiec: { ciecie: 50, droga: 80, smierc: 2.2, trafienie: 0.35, oko: { x: 20, y: -100 }, cien: 4.4 },   // stary topielec z 26 XI jako elita (27 XI)
+  pelzacz: { ciecie: 22, droga: 120, smierc: 1.4, trafienie: 0.35, oko: { x: 50, y: -46 }, cien: 4.2 },   // z filmów Przemka (26 XI), na bagnie od 27 XI 22:40
+  czarownica: { ciecie: 55, droga: 80, smierc: 2, trafienie: 0.4, oko: { x: 8, y: -108 }, cien: 3.0 },   // wiedźma, boss bagna, z filmów Patryka (27 XI 21:58); nie umiera, klęka
+  bestia: { ciecie: 32, droga: 330, smierc: 1.4, trafienie: 0.3, oko: { x: 48, y: -66 }, cien: 3.0 },   // czworonożny skoczek z filmów Patryka (26 XI)
+  rycerz: { ciecie: 75, droga: 420, drogaChod: 190, smierc: 2.6, trafienie: 0.5, oko: { x: 6, y: -128 }, cien: 2.6 },   // boss z filmów Patryka (25 XI wieczorem); droga 420: lista chodu to 6 s filmu (ok. 6 kroków), przy 70 nogi przebierały 6 razy za szybko   // wiedźma z filmów Patryka (25 XI); bez obrazu rysowana jak ghul
+};
+
+export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obrazBohatera = null, obrazBohateraWielki = null, bohater = 'gemini', obrazyWrogow = {}, obrazBezDachu = null, obrazDrzwi = null, obrazRekwizytow = null, obrazZiemi = null, obrazDrogi = null, obrazKaflaDrogi = null, obrazKartki = null, obrazHandlarza = null, obrazChatyWiedzmy = null, obrazWnetrzaWiedzmy = null, obrazWody = null, obrazKladki = null } = {}) {
+  const P = window.PIXI;
+  const renderer = P.autoDetectRenderer({
+    view: cv, width: innerWidth, height: innerHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true,
+    backgroundColor: 0x07080b, antialias: false, powerPreference: 'high-performance', forceCanvas: wymusProcesor,
+  });
+  const karta = renderer.type === P.RENDERER_TYPE.WEBGL;
+  if (!karta) renderer.resolution = 1;          // bez karty liczy procesor: mniej pikseli
+  const lekko = !karta;                          // bez karty: bez deszczu, kreskowania i winiety
+  const tx = c => new P.Texture(new P.BaseTexture(c));
+
+  // ---------- maska chaty ----------
+  // Bohater jest „za chatą” tylko wtedy, gdy jego tułów wypada na nieprzezroczysty piksel obrazu chaty.
+  // Wcześniej liczył się prostokąt, więc stojąc obok chaty, przy jej boku, też robił się przezroczysty (Patryk, 24 XI 12:15).
+  // Obraz chaty ma też podwórko: ubitą ziemię, cień i płot. Te części idą na ziemię, pod postacie;
+  // nad bohaterem (wg głębokości podstawy) zostaje tylko sam dom: dach, ściany, komin, dym, drewno i beczka.
+  const calaChata = O.chataWDzien(obrazChaty);
+  const DOM = [[158, 0], [951, 0], [951, 300], [862, 300], [862, 585], [850, 600], [800, 672], [795, 692], [158, 692]];
+  // wycina z obrazu kolejne wielokąty: [punkty, true] zostawia tylko środek, [punkty, false] wycina środek
+  const wytnij = (obraz, ...ksztalty) => {
+    const c = document.createElement('canvas'); c.width = obraz.width; c.height = obraz.height;
+    const g = c.getContext('2d'); g.drawImage(obraz, 0, 0);
+    for (const [pkt, zostaw] of ksztalty) {
+      g.globalCompositeOperation = zostaw ? 'destination-in' : 'destination-out';
+      g.beginPath(); pkt.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill();
+    }
+    return c;
+  };
+  const plotnoChaty = wytnij(calaChata, [DOM, true]), plotnoPodworka = wytnij(calaChata, [DOM, false]);
+  // Chata bez dachu (jak w Tibii, docs/chata.md): ten sam kadr co chata. Gdy bohater jest w izbie, dom z dachem gaśnie,
+  // a w jego miejscu jest izba. Podłoga, tylna i lewa ściana leżą pod postaciami; przednia ściana (do wysokości piersi),
+  // skrzydło drzwi, drewno i kamienna prawa ściana stoją przed bohaterem, który jest w środku.
+  const PRZOD = [[150, 540], [392, 540], [392, 512], [428, 512], [428, 700], [503, 700], [503, 527], [525, 527], [525, 558],
+    [740, 558], [740, 360], [951, 360], [951, 951], [150, 951]];
+  const bezDachu = obrazBezDachu ? O.chataWDzien(obrazBezDachu) : null;
+  let maskaChaty = null;
+  try {
+    const d = plotnoChaty.getContext('2d').getImageData(0, 0, plotnoChaty.width, plotnoChaty.height).data;
+    maskaChaty = new Uint8Array((plotnoChaty.width >> 2) * (plotnoChaty.height >> 2));
+    for (let y = 0; y < plotnoChaty.height >> 2; y++) for (let x = 0; x < plotnoChaty.width >> 2; x++)
+      maskaChaty[y * (plotnoChaty.width >> 2) + x] = d[((y * 4 + 2) * plotnoChaty.width + x * 4 + 2) * 4 + 3] > 128 ? 1 : 0;
+  } catch (e) { /* bez maski: zostaje prostokąt */ }
+  const chataZaslania = (x, y) => {
+    const ix = (x - CHATA.x) / CHATA.skala, iy = (y - CHATA.y) / CHATA.skala;
+    if (ix < 0 || iy < 0 || ix >= plotnoChaty.width || iy >= 692) return false;
+    if (!maskaChaty) return ix > 140 && ix < 880 && iy > 120;
+    return maskaChaty[(iy >> 2) * (plotnoChaty.width >> 2) + (ix >> 2)] === 1;
+  };
+
+  // ---------- tekstury ----------
+  // Rysunki z arkuszy Przemka (narzedzia/wytnij-z-arkuszy.py): drzewa, kępy, krew, ognisko. Bez nich jak dotąd.
+  let R = null;
+  if (obrazRekwizytow) {
+    const baza = new P.BaseTexture(obrazRekwizytow); baza.mipmap = P.MIPMAP_MODES.ON; R = {};
+    for (const n in REKWIZYTY) { const f = REKWIZYTY[n]; R[n] = { ...f, t: new P.Texture(baza, new P.Rectangle(f.x, f.y, f.w, f.h)) }; }
+  }
+  const rysunek = (n, x, y, szer, lustro) => {         // sprite rysunku z arkusza, postawiony podstawą w (x, y), szeroki na szer
+    const f = R[n], sp = new P.Sprite(f.t); sp.anchor.set(f.ax, f.ay); sp.position.set(x, y);
+    const k = szer / f.w; sp.scale.set(lustro ? -k : k, k); return sp;
+  };
+  const T = {
+    ziemia: tx(O.kafelZiemi()), plamy: tx(O.plamyZiemi()), droga: tx(O.obrazDrogi(obrazDrogi, obrazKaflaDrogi)), drogaPolnoc: DROGA_POLNOC.length ? tx(O.obrazDrogi(obrazDrogi, obrazKaflaDrogi, DROGA_POLNOC, 11)) : null,
+    drzewa: [0, 1, 2, 3].map(w => { const d = O.obrazDrzewa(w); return { t: tx(d.canvas), ax: d.ox / d.w, ay: d.oy / d.h }; }),
+    chata: tx(plotnoChaty), podworko: tx(plotnoPodworka),
+    cien: tx(O.cien()), kreski: tx(O.kreskowanie()), mgla: [0, 1, 2].map(w => tx(O.mgielka(w))),
+    stempel: tx(O.kolo(256, [[0, 'rgba(0,0,0,1)'], [0.45, 'rgba(0,0,0,0.62)'], [1, 'rgba(0,0,0,0)']])),
+    // wokół bohatera jaśniej i szerzej (Patryk, 24 XI 14:39: „musi być bardziej rozjaśnione wokół bohatera”): pełne światło do połowy promienia
+    stempelBoh: tx(O.kolo(256, [[0, 'rgba(0,0,0,1)'], [0.5, 'rgba(0,0,0,0.92)'], [0.75, 'rgba(0,0,0,0.55)'], [1, 'rgba(0,0,0,0)']])),
+    cieplo: tx(O.kolo(256, [[0, 'rgba(255,150,70,0.5)'], [0.5, 'rgba(200,90,40,0.18)'], [1, 'rgba(0,0,0,0)']])),
+    okoCzerwone: tx(O.kolo(64, [[0, 'rgba(255,80,60,1)'], [0.22, 'rgba(235,30,30,0.65)'], [1, 'rgba(0,0,0,0)']])),
+    okoBursztyn: tx(O.kolo(64, [[0, 'rgba(255,200,80,1)'], [0.22, 'rgba(235,140,20,0.65)'], [1, 'rgba(0,0,0,0)']])),
+    iskra: tx(O.kolo(32, [[0, 'rgba(255,245,210,1)'], [0.4, 'rgba(255,190,90,0.85)'], [1, 'rgba(0,0,0,0)']])),
+    krew: ['#8e1418', '#6d0f12', '#a31b1e'].map(k => tx(O.kropka(32, k))),
+  };
+  const atlasy = {};
+  for (const [nazwa, wzor, rysuj] of [['ghul', O.GHUL, O.rysujGhula], ['kolos', O.KOLOS, O.rysujKolosa]]) {
+    const a = O.atlasWroga(wzor, rysuj), baza = new P.BaseTexture(a.canvas), klatki = [];
+    for (let w = 0; w < 8; w++) for (let k = 0; k < wzor.klatki; k++) klatki.push(new P.Texture(baza, new P.Rectangle(k * a.cw, w * a.ch, a.cw, a.ch)));
+    // połówki do cięcia na pół: żywa klatka 0 w każdym wierszu i martwe ciało
+    const cut = Math.round((wzor.oy - CIECIE_WYS[nazwa]) * O.PX), martwy = tx(O.obrazMartwego(wzor, rysuj)), mb = martwy.baseTexture;
+    const polowki = [];
+    for (let w = 0; w < 8; w++) polowki.push({ gora: new P.Texture(baza, new P.Rectangle(0, w * a.ch, a.cw, cut)), dol: new P.Texture(baza, new P.Rectangle(0, w * a.ch + cut, a.cw, a.ch - cut)) });
+    atlasy[nazwa] = {
+      wzor, klatki, martwy, polowki,
+      martweGora: new P.Texture(mb, new P.Rectangle(0, 0, mb.width, cut)), martweDol: new P.Texture(mb, new P.Rectangle(0, cut, mb.width, mb.height - cut)),
+      ax: wzor.ox / wzor.w, ay: wzor.oy / wzor.h, ayDol: (wzor.oy * O.PX - cut) / (a.ch - cut),
+    };
+  }
+  atlasy.wiedzma = atlasy.bestia = atlasy.ghul;                     // wiedźma nie ma rysunku kodem: bez obrazu z filmów wygląda jak ghul
+  // bohater z filmów Przemka (Gemini): klatki animacji w grafika/bohater.webp, wycięte narzędziem narzedzia/wytnij-z-filmow.py
+  const klatkiB = {};
+  if (obrazBohatera) {
+    const baza = new P.BaseTexture(obrazBohatera); baza.mipmap = P.MIPMAP_MODES.ON;
+    for (const k in KB) klatkiB[k] = { ...KB[k], ax: KB[k].ax + (PRZ_B[k] || 0) / KB[k].w, t: new P.Texture(baza, new P.Rectangle(KB[k].x, KB[k].y, KB[k].w, KB[k].h)) };
+  }
+  const maObraz = Object.keys(klatkiB).length > 0;
+  // Z mieczem dwuręcznym (Patryk z Flow, 24 XI 19:01) bohater ma własne cięcie, gardę, bieg i blok z grafika/bohater-wielki.webp.
+  // A to animacje, z których bierze klatki w tej klatce gry: zwykłe albo zwykłe z podmienionymi na dwuręczne.
+  const ABW = { ...AB };
+  if (maObraz && obrazBohateraWielki) {
+    const baza = new P.BaseTexture(obrazBohateraWielki); baza.mipmap = P.MIPMAP_MODES.ON;
+    for (const k in KW) klatkiB[k] = { ...KW[k], ax: KW[k].ax + (PRZ_B[k] || 0) / KW[k].w, t: new P.Texture(baza, new P.Rectangle(KW[k].x, KW[k].y, KW[k].w, KW[k].h)) };
+    Object.assign(ABW, AW);
+    if (AW.przewrot) { ABW.przewrot_przod = AW.przewrot_przod || AW.przewrot; ABW.przewrot_tyl = AW.przewrot_tyl || AW.przewrot; }   // dwuręczny ma jeden unik (25 XI): w każdą stronę ten sam rzut, a nie przewrót zwykłym mieczem
+  }
+  let A = AB;
+  // ghul i kolos z filmów Przemka; bez obrazu zostają rysowane kodem (atlasy wyżej)
+  const filmW = {};
+  for (const nazwa in WROGOWIE_FILM) {
+    const img = obrazyWrogow[nazwa]; if (!img) continue;
+    const d = WROGOWIE_FILM[nazwa], baza = new P.BaseTexture(img); baza.mipmap = P.MIPMAP_MODES.ON;
+    const k = {};
+    for (const n in d.KLATKI) { const f = d.KLATKI[n]; k[n] = { ...f, t: new P.Texture(baza, new P.Rectangle(f.x, f.y, f.w, f.h)) }; }
+    // połówki do cięcia na pół: pierwsza klatka chodu przecięta w pasie
+    const f = k[d.ANIMACJE.chod[0]], cut = Math.max(4, Math.round(f.ay * f.h - FILM_WROGA[nazwa].ciecie / d.SKALA));
+    const gora = new P.Texture(baza, new P.Rectangle(f.x, f.y, f.w, cut)), dol = new P.Texture(baza, new P.Rectangle(f.x, f.y + cut, f.w, f.h - cut));
+    filmW[nazwa] = { ...FILM_WROGA[nazwa], skala: d.SKALA, patrzy: d.PATRZY, anim: d.ANIMACJE, k, gora, dol, ax: f.ax, ayDol: (f.ay * f.h - cut) / (f.h - cut) };
+  }
+  // Wiedźma bagna (boss) czeka na filmy Patryka: do tego czasu to film wiedźmy z polany, większy i w kolorze mułu
+  if (!filmW.czarownica && filmW.wiedzma) filmW.czarownica = { ...filmW.wiedzma, skala: filmW.wiedzma.skala * 1.3, zastepczy: 0xa9d0a0 };
+  const klatkaW = (fw, n, q) => { const l = fw.anim[n]; return fw.k[l[Math.min(l.length - 1, Math.max(0, Math.floor(q * l.length)))]]; };
+  const klatkaPetliW = (fw, n, c) => { const l = fw.anim[n]; return fw.k[l[((Math.floor(c * l.length) % l.length) + l.length) % l.length]]; };
+  let trybBohatera = maObraz ? bohater : 'rysowany';
+  // Chód z filmu Przemka to spokojny marsz: stopa na ziemi przesuwa się o około 60 jednostek na cykl (dwa kroki).
+  // Bohater w grze idzie prawie biegiem (165 jednostek na sekundę). Gdyby nogi miały nadążyć bez ślizgu, przebierałyby
+  // 5 kroków na sekundę. Stąd kompromis: cykl co 110 jednostek drogi, czyli w pełnym marszu 3 kroki na sekundę,
+  // dwa i pół raza szybciej niż w filmie. Stopy trochę się ślizgają; zniknie to dopiero przy filmie biegu.
+  // 24 XI doszedł film biegu i on zastąpił chód: stopa przesuwa się w nim o około 73 jednostki na cykl (dwa kroki),
+  // więc cykl co 90 jednostek drogi to bieg prawie 2 kroki na sekundę i tylko lekki ślizg. Idąc w górę ekranu
+  // bohater pokazuje plecy (film chodu tyłem). mijanie: chwile cyklu, w których nogi się mijają, od nich rusza i na nich staje.
+  // chod_przod (w dół ekranu, przodem do nas) czeka na film; dopóki go nie ma w klatkach, w dół idzie bieg bokiem
+  // bieg_miecz: ten sam bieg z mieczem w dłoni (film Patryka z Flow, 24 XI); nogi mijają się w klatkach 12 i 24–25 filmu
+  const RUCH = { bieg: { droga: 90, mijanie: [0.42, 0.94] }, bieg_miecz: { droga: 87, mijanie: [0.125, 0.65] }, chod_tyl: { droga: 110, mijanie: [0, 0.5] }, chod_przod: { droga: 110, mijanie: [0, 0.5] }, chod_przod_s: { droga: 110, mijanie: [0, 0.5] } };
+
+  // ---------- warstwy ----------
+  const scena = new P.Container();
+  const swiat = new P.Container();               // pod ciemnością
+  const nad = new P.Container();                 // nad ciemnością, ta sama kamera
+  const ekran = new P.Container();               // deszcz, winieta, błyski
+
+  // Ziemia: bezszwowy kafel z Gemini (Patryk, 25 XI; 1024 px, rozjaśniony o 55%, bo noc przyciemnia go jeszcze raz),
+  // a bez niego dawny kafel rysowany kodem. Jeden kafel to około 460 jednostek świata, czyli prawie pięć wzrostów bohatera.
+  const ziemia = obrazZiemi ? new P.TilingSprite(P.Texture.from(obrazZiemi), SZER, WYS) : new P.TilingSprite(T.ziemia, SZER, WYS);
+  if (obrazZiemi) ziemia.tileScale.set(0.45);
+  const plamy = new P.Sprite(T.plamy); plamy.scale.set(O.SKALA_PLAM);
+  const droga = new P.Sprite(T.droga); droga.scale.set(O.SKALA_DROGI); droga.position.set(O.RAMKA_DROGI.x, O.RAMKA_DROGI.y);
+  const drogaPolnoc = new P.Container();                 // droga na bagno, na północ od chaty (tylko polana)
+  if (T.drogaPolnoc) { const r2 = O.ramkaDrogi(DROGA_POLNOC), sp = new P.Sprite(T.drogaPolnoc); sp.scale.set(O.SKALA_DROGI); sp.position.set(r2.x, r2.y); drogaPolnoc.addChild(sp); }
+  const podworko = new P.Sprite(T.podworko); podworko.position.set(CHATA.x, CHATA.y); podworko.scale.set(CHATA.skala);
+  const izbaSpod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, false])) : P.Texture.EMPTY);
+  const izbaPrzod = new P.Sprite(bezDachu ? tx(wytnij(bezDachu, [DOM, true], [PRZOD, true])) : P.Texture.EMPTY);
+  for (const s of [izbaSpod, izbaPrzod]) { s.position.set(CHATA.x, CHATA.y); s.scale.set(CHATA.skala); s.visible = false; }
+  izbaPrzod.zIndex = CHATA.podstawa;
+  const sladyRT = P.RenderTexture.create({ width: SZER, height: WYS, resolution: 0.5 });
+  const slady = new P.Sprite(sladyRT);
+  const cienie = new P.Container();
+  const aktorzy = new P.Container(); aktorzy.sortableChildren = true;
+  const echa = new P.Graphics();                 // powidoki uniku bohatera rysowanego kodem
+  const echaS = new P.Container();               // powidoki uniku bohatera z Gemini: przygaszone kopie obrazu
+  const powietrze = new P.Container();           // krew w locie
+  const znakiZiemia = new P.Graphics();          // zapowiedź uderzenia kolosa i fala po nim: leżą na ziemi
+  const para = new P.Graphics();                 // oddech w zimnej nocy
+  // Dym z komina i iskry z paleniska w izbie: chata ma wyglądać na zamieszkaną (Patryk, 25 XI 20:40, „dym z komina … jest w miejscu”).
+  // Dym był namalowany na obrazie chaty i stał; teraz obłoki wychodzą z wylotu, rosną, płyną z wiatrem i bledną.
+  const dymK = new P.Graphics(), dymy = [], iskryIzby = [];
+  const KOMIN = { x: CHATA.x + 768 * CHATA.skala, y: CHATA.y + 146 * CHATA.skala };
+  let dymNa = 0, iskraNa = 0;
+  const trupyC = new P.Container();              // ciała leżą jako ostre obrazy, aż wsiąkną
+  const ozdoby = new P.Container();                // kępy trawy, mchu i liści z arkuszy Przemka: leżą pod krwią
+  // Bagno (27 XI): woda wszędzie, ląd to wyspy, grobla i kładki (swiat.js, glebia()). Woda to obraz liczony raz z mapy głębokości
+  // w 1/8 rozdzielczości i wygładzony przy powiększaniu, więc brzegi są miękkie i zgadzają się z tym, gdzie da się chodzić.
+  // Zastępcze, dopóki nie przyjdą kafle ziemi i wody z Gemini (docs/bagno.md).
+  const wodaG = new P.Container();
+  if (BAGNO) {
+    ziemia.tint = obrazZiemi ? 0xffffff : 0x93a184; plamy.tint = 0x8a9a7c; droga.tint = 0x9c9480;
+    const K = 8, w = Math.ceil(SZER / K), h = Math.ceil(WYS / K), cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const cx = cv.getContext('2d'), im = cx.createImageData(w, h), d = im.data;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const g = glebia(x * K + K / 2, y * K + K / 2), i4 = (y * w + x) * 4;
+      if (g <= -0.15) continue;
+      const sz = 0.5 + 0.5 * Math.sin(x * 0.37 + y * 0.21) * Math.sin(x * 0.11 - y * 0.29);
+      let r, gg, bb, a;
+      if (g <= 0) { r = 52; gg = 48; bb = 32; a = (g + 0.15) / 0.15 * 0.35; }                      // mokry brzeg
+      else if (g <= 1) { const t = g; r = 52 - 30 * t; gg = 50 - 22 * t; bb = 32 - 12 * t; a = 0.35 + 0.5 * t; }   // płycizna: muł i woda
+      else { const t = Math.min(1, (g - 1) / 2); r = 18 - 8 * t + sz * 6; gg = 26 - 10 * t + sz * 6; bb = 22 - 8 * t + sz * 5; a = 0.9 + 0.06 * t; }   // głębia
+      d[i4] = r; d[i4 + 1] = gg; d[i4 + 2] = bb; d[i4 + 3] = Math.round(Math.min(1, a) * 255);
+    }
+    cx.putImageData(im, 0, 0);
+    let wodaS;
+    if (obrazWody) {
+      // Woda z Gemini (Patryk, 27 XI 16:55): kafel 1024 px powtarzany jak ziemia (około 460 jednostek), przycięty do mapy głębokości
+      // z miękkim brzegiem; im głębiej, tym ciemniej. Liczone raz, w połowie rozdzielczości świata.
+      const S = 2, c2 = document.createElement('canvas'); c2.width = Math.ceil(SZER / S); c2.height = Math.ceil(WYS / S);
+      const g2 = c2.getContext('2d'), wz = g2.createPattern(obrazWody, 'repeat');
+      if (wz.setTransform) wz.setTransform(new DOMMatrix([0.45 / S, 0, 0, 0.45 / S, 0, 0]));
+      g2.fillStyle = wz; g2.fillRect(0, 0, c2.width, c2.height);
+      const cien = document.createElement('canvas'), maska = document.createElement('canvas'); cien.width = maska.width = w; cien.height = maska.height = h;
+      const ci = cien.getContext('2d').createImageData(w, h), ma = maska.getContext('2d').createImageData(w, h);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const g = glebia(x * K + K / 2, y * K + K / 2), i4 = (y * w + x) * 4;
+        // 27 XI 23:40 (Patryk: „stoje jak na mapie”, „a to jest woda”): bohater nie wchodzi do wody, więc woda jest pełna od samego
+        // brzegu (głębia 0,02, PROG_BOHATERA), z wąskim pasem mokrego mułu tuż przed nią. Gdzie widać wodę, tam się nie wejdzie.
+        ci.data[i4] = 8; ci.data[i4 + 1] = 20; ci.data[i4 + 2] = 22; ci.data[i4 + 3] = Math.round(255 * (g <= 0.02 ? 0.4 : 0.42 + 0.22 * Math.min(1, g / 2)));
+        ma.data[i4 + 3] = Math.round(255 * Math.min(1, Math.max(0, (g + 0.04) / 0.1)));   // ląd wygląda jak ląd aż do linii, na której bohater staje
+      }
+      cien.getContext('2d').putImageData(ci, 0, 0); maska.getContext('2d').putImageData(ma, 0, 0);
+      g2.imageSmoothingEnabled = true;
+      g2.drawImage(cien, 0, 0, c2.width, c2.height);
+      g2.globalCompositeOperation = 'destination-in'; g2.drawImage(maska, 0, 0, c2.width, c2.height); g2.globalCompositeOperation = 'source-over';
+      wodaS = new P.Sprite(P.Texture.from(c2)); wodaS.scale.set(S);
+    } else { wodaS = new P.Sprite(P.Texture.from(cv)); wodaS.scale.set(K); }
+    wodaG.addChild(wodaS);
+    const dod = new P.Graphics(); wodaG.addChild(dod);
+    let z = 7; const l = () => { z = (z * 1103515245 + 12345) & 0x7fffffff; return z / 0x7fffffff; };
+    for (let i = 0, n = 0; !obrazWody && i < 6000 && n < 420; i++) {                // rzęsa i liście grzybieni (bez kafla wody z Gemini)
+      const x = l() * SZER, y = l() * WYS, g = glebia(x, y); if (g < 0.6 || g > 1.8) continue;
+      const r = 3 + l() * 8; dod.beginFill(l() < 0.3 ? 0x41562f : 0x2a3b22, 0.8); dod.drawEllipse(x, y, r, r * 0.55); dod.endFill(); n++;
+    }
+    const texK = obrazKladki ? P.Texture.from(obrazKladki) : null;   // kładka z Gemini (Patryk, 27 XI): pas desek powtarzany wzdłuż każdej kładki
+    for (const k of KLADKI) if (texK) {
+      const dx = k.b.x - k.a.x, dy = k.b.y - k.a.y, L = Math.hypot(dx, dy), s = (k.szer * 0.9 * 2.2) / 177;   // deski zajmują 177 z 256 px wysokości obrazu
+      const t = new P.TilingSprite(texK, (L + 24) / s, 256); t.scale.set(s); t.anchor.set(0, 0.5); t.rotation = Math.atan2(dy, dx);
+      t.position.set(k.a.x - dx / L * 12, k.a.y - dy / L * 12); wodaG.addChild(t);
+    } else {                                                          // kładki: deski w poprzek, dwa pale na końcach
+      const dx = k.b.x - k.a.x, dy = k.b.y - k.a.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux, sz = k.szer * 0.9;
+      for (let t = 0; t < L; t += 13) {
+        const x = k.a.x + ux * t, y = k.a.y + uy * t, c = (t * 7) % 3 === 0 ? 0x4a3a28 : 0x5a4630;
+        dod.beginFill(c, 0.97); dod.drawPolygon([x + nx * sz, y + ny * sz, x + nx * sz + ux * 10, y + ny * sz + uy * 10, x - nx * sz + ux * 10, y - ny * sz + uy * 10, x - nx * sz, y - ny * sz]); dod.endFill();
+      }
+      for (const q of [k.a, k.b]) for (const sgn of [-1, 1]) { dod.beginFill(0x2a2018); dod.drawCircle(q.x + nx * sz * sgn, q.y + ny * sz * sgn, 4); dod.endFill(); }
+    }
+  }
+  swiat.addChild(ziemia, plamy, droga, drogaPolnoc, wodaG, ozdoby, podworko, izbaSpod, slady, trupyC, znakiZiemia, cienie, echaS, aktorzy, echa, powietrze, para, dymK);
+
+  // drzewa
+  const drzewa = DRZEWA.map((d, i) => {
+    if (R && R[d.rys]) {                          // drzewo z arkusza: wysokość od pnia do czubka to d.h
+      const f = R[d.rys], k = d.h / (f.h * f.ay), sp = new P.Sprite(f.t); sp.anchor.set(f.ax, f.ay);
+      sp.scale.set(d.lustro ? -k : k, k); sp.position.set(d.x, d.y); sp.zIndex = d.y; aktorzy.addChild(sp); return sp;
+    }
+    const w = i % 7 === 3 ? 3 : d.wariant, td = T.drzewa[w];
+    const s = new P.Sprite(td.t); s.anchor.set(td.ax, td.ay);
+    s.scale.set(d.h / O.DRZEWO_H / O.PX); s.position.set(d.x, d.y); s.zIndex = d.y;
+    aktorzy.addChild(s); return s;
+  });
+
+  // chata
+  const chata = new P.Sprite(T.chata); chata.position.set(CHATA.x, CHATA.y); chata.scale.set(CHATA.skala); chata.zIndex = CHATA.podstawa;
+  aktorzy.addChild(chata, izbaPrzod);
+  // Chata wiedźmy na palach z Gemini (27 XI 16:55): z dachem stoi między aktorami (za nią to, co dalej na północ),
+  // a gdy bohater wejdzie do izby, dach gaśnie i widać wnętrze. Oba obrazy mają ten sam kadr. Bez obrazów: prostokąty kodem.
+  let chataW = null, wnetrzeW = null, izbaWPrzod = null, lataOtwarta = null, lataZamknieta = null, kociolZ = null, kociolW = null;
+  if (BAGNO) {
+    const cw = CHATA_WIEDZMY;
+    if (obrazChatyWiedzmy) {
+      const sk = cw.s * 2048 / obrazChatyWiedzmy.width;
+      chataW = new P.Sprite(P.Texture.from(obrazChatyWiedzmy)); chataW.position.set(cw.X0, cw.Y0); chataW.scale.set(sk); chataW.zIndex = cw.podstawa;
+      aktorzy.addChild(chataW);
+      if (obrazWnetrzaWiedzmy) {
+        wnetrzeW = new P.Sprite(P.Texture.from(obrazWnetrzaWiedzmy)); wnetrzeW.position.set(cw.X0, cw.Y0); wnetrzeW.scale.set(cw.s * 2048 / obrazWnetrzaWiedzmy.width);
+        wnetrzeW.zIndex = -1; wnetrzeW.alpha = 0; wnetrzeW.visible = false; aktorzy.addChild(wnetrzeW);
+        // To, co w izbie stoi przed bohaterem (ściana frontowa, skrzydło drzwi, słup, deska, prawa ściana), osobno nad nim,
+        // i łaty drzwi: otwarte widziane z zewnątrz, zamknięte widziane ze środka (Patryk, 28 XI 02:41).
+        const wytnijWiele = (obraz, wielokaty) => {
+          const c = document.createElement('canvas'); c.width = obraz.width; c.height = obraz.height;
+          const g = c.getContext('2d'), k = obraz.width / 2048; g.beginPath();
+          for (const pk of wielokaty) { pk.forEach(([x, y], i) => i ? g.lineTo(x * k, y * k) : g.moveTo(x * k, y * k)); g.closePath(); }
+          g.clip(); g.drawImage(obraz, 0, 0); return c;
+        };
+        const nowy = (obraz, wielokaty) => { const sp = new P.Sprite(P.Texture.from(wytnijWiele(obraz, wielokaty))); sp.position.set(cw.X0, cw.Y0); sp.scale.set(cw.s * 2048 / obraz.width); sp.visible = false; aktorzy.addChild(sp); return sp; };
+        izbaWPrzod = nowy(obrazWnetrzaWiedzmy, cw.przod);
+        lataOtwarta = nowy(obrazWnetrzaWiedzmy, [cw.lataDrzwi]); lataOtwarta.zIndex = cw.podstawa + 0.01;
+        lataZamknieta = nowy(obrazChatyWiedzmy, [cw.lataDrzwi]);
+        // kocioł z obu obrazów osobno, z głębią podstawy: kto stoi za nim, jest za nim (28 XI, Patryk: „koleny”, stał na kotle)
+        kociolZ = nowy(obrazChatyWiedzmy, [cw.obrysKotla]); kociolZ.zIndex = cw.kociol.y; kociolZ.visible = true;
+        kociolW = nowy(obrazWnetrzaWiedzmy, [cw.obrysKotla]); kociolW.zIndex = cw.kociol.y + 0.01;
+      }
+    } else {
+      const g = new P.Graphics(); g.zIndex = cw.podstawa;
+      g.beginFill(0x3b3026); g.drawPolygon(cw.izba.flatMap(q => [q.x, q.y])); g.endFill(); g.beginFill(0x5a4630); g.drawPolygon(cw.pomost.flatMap(q => [q.x, q.y])); g.endFill();
+      g.beginFill(0x1c1c22); g.drawCircle(cw.kociol.x, cw.kociol.y - 20, 20); g.endFill();
+      aktorzy.addChild(g);
+    }
+  }
+  // Drzwi chaty (Patryk, 24 XI 13:51): skrzydło wycięte z obrazu obraca się do środka na zawiasach po lewej,
+  // za nim ciemna sień z blaskiem ognia. Zamknięte drzwi są po prostu częścią obrazu chaty.
+  const SK = CHATA.skrzydlo, skW = Math.round((SK.x1 - SK.x0) / CHATA.skala), skH = Math.round((SK.y1 - SK.y0) / CHATA.skala);
+  const sien = document.createElement('canvas'); sien.width = skW; sien.height = skH;
+  { const g = sien.getContext('2d'); g.fillStyle = '#120c08'; g.fillRect(0, 0, skW, skH);
+    const gr = g.createRadialGradient(skW * 0.55, skH * 1.05, 4, skW * 0.55, skH * 1.05, skH * 0.95);
+    gr.addColorStop(0, 'rgba(235,140,60,0.55)'); gr.addColorStop(0.5, 'rgba(150,80,35,0.25)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, skW, skH); }
+  const liscC = document.createElement('canvas'); liscC.width = skW; liscC.height = skH;
+  liscC.getContext('2d').drawImage(plotnoChaty, Math.round((SK.x0 - CHATA.x) / CHATA.skala), Math.round((SK.y0 - CHATA.y) / CHATA.skala), skW, skH, 0, 0, skW, skH);
+  const drzwiC = new P.Container(); drzwiC.zIndex = CHATA.podstawa + 0.01; drzwiC.visible = false;
+  const sienS = new P.Sprite(tx(sien)), lisc = new P.Sprite(tx(liscC));
+  for (const sp of [sienS, lisc]) { sp.position.set(SK.x0, SK.y0); sp.scale.set(CHATA.skala); }
+  drzwiC.addChild(sienS, lisc); aktorzy.addChild(drzwiC);
+  // Z izby (bez dachu) drzwi są na obrazie otwarte; gdy je zamknąć, kładziemy na nie łatę z zamkniętymi
+  // (narzedzia/chata-drzwi-zamkniete.py). Patryk, 24 XI 14:41: „jak jesteś w srodku to właśnie nie mozesz zamknąć”.
+  const drzwiIzby = new P.Sprite(bezDachu && obrazDrzwi ? tx(O.chataWDzien(obrazDrzwi)) : P.Texture.EMPTY);
+  drzwiIzby.position.set(CHATA.x, CHATA.y); drzwiIzby.scale.set(CHATA.skala); drzwiIzby.zIndex = CHATA.podstawa + 0.02; drzwiIzby.visible = false;
+  aktorzy.addChild(drzwiIzby);
+
+  // ognisko: kamienie i polana (ogień jest nad ciemnością)
+  const kamienie = new P.Graphics(); kamienie.position.set(OGNISKO.x, OGNISKO.y); kamienie.zIndex = OGNISKO.y - 1;
+  kamienie.beginFill(0x000000, 0.35); kamienie.drawEllipse(0, 2, 32, 11); kamienie.endFill();
+  kamienie.lineStyle(7, 0x0a0806); kamienie.moveTo(-16, 3); kamienie.lineTo(14, -5); kamienie.moveTo(-12, -6); kamienie.lineTo(16, 4);
+  kamienie.lineStyle(4, 0x7a5a3e); kamienie.moveTo(-16, 3); kamienie.lineTo(14, -5); kamienie.moveTo(-12, -6); kamienie.lineTo(16, 4);
+  for (let i = 0; i < 9; i++) {
+    const a = i / 9 * TAU; kamienie.lineStyle(1.2, OB); kamienie.beginFill(0x9a968e);
+    kamienie.drawEllipse(Math.cos(a) * 24, Math.sin(a) * 9, 7, 5); kamienie.endFill();
+  }
+  aktorzy.addChild(kamienie);
+  // Ognisko z filmu Przemka: krąg kamieni z płomieniem w pętli (18 klatek, 12 na sekundę). Druga kopia
+  // dodaje światło (blend ADD), żeby płomień świecił w nocy. Krąg ma 80 jednostek szerokości.
+  let ogien = null, ogienBlask = null;
+  if (R && R.ogien_00) {
+    kamienie.visible = false;
+    ogien = rysunek('ogien_00', OGNISKO.x, OGNISKO.y + 4, 80); ogien.zIndex = OGNISKO.y;
+    ogienBlask = rysunek('ogien_00', OGNISKO.x, OGNISKO.y + 4, 80); ogienBlask.zIndex = OGNISKO.y + 0.4; ogienBlask.blendMode = P.BLEND_MODES.ADD;
+    aktorzy.addChild(ogien, ogienBlask);
+  }
+  // Kępy i plamy na ziemi; krzaki stoją jak drzewa (sortowane po y) i od 28 XI mają zderzenia (swiat.js, KRZAKI).
+  const ozdobyS = [];
+  if (R) for (const o of OZDOBY) {
+    if (!R[o.rys]) continue;
+    const szer = (/^krzak/.test(o.rys) ? 78 : /^(liscie|bloto|ziemia_d)/.test(o.rys) ? 115 : o.plaskie ? 110 : 52) * o.skala;
+    const sp = rysunek(o.rys, o.x, o.y, szer, o.lustro);
+    if (o.stoi) { sp.zIndex = o.y; aktorzy.addChild(sp); } else { sp.alpha = o.plaskie ? 0.75 : 1; ozdoby.addChild(sp); }
+    ozdobyS.push([sp, o]);
+  }
+  // Rzeczy przy drodze (swiat.js RZECZY): stoją i sortują się jak drzewa. Pochodnia ma płomień, który świeci w nocy.
+  const plomienieRzeczy = [];
+  if (R) for (const r of RZECZY) {
+    if (!R[r.rys]) continue;
+    const sp = rysunek(r.rys, r.x, r.y, r.szer, r.lustro); sp.zIndex = r.y; aktorzy.addChild(sp);
+    if (r.swiatlo) plomienieRzeczy.push({ x: r.x + (0.33 - R[r.rys].ax) * Math.abs(sp.width), y: r.y - Math.abs(sp.height) * R[r.rys].ay * 0.86 });
+  }
+  // Pochodnie na palach na bagnie (27 XI): zapalona to pełny rysunek pochodni z płomieniem; zgaszona to sam osmalony kosz (rysunek ucięty nad koszem).
+  const latarnieS = R && R.pochodnia ? LATARNIE.map(l => {
+    const f = R.pochodnia, pal = rysunek('pochodnia', l.x, l.y, 40); pal.zIndex = l.y; aktorzy.addChild(pal);
+    const odc = 0.34, fr = f.t.frame, tz = new P.Texture(f.t.baseTexture, new P.Rectangle(fr.x, fr.y + fr.height * odc, fr.width, fr.height * (1 - odc)));
+    const zgas = new P.Sprite(tz); zgas.anchor.set(f.ax, (f.ay - odc) / (1 - odc)); zgas.position.set(l.x, l.y); zgas.scale.copyFrom(pal.scale); zgas.tint = 0x6a6a6a; zgas.zIndex = l.y; aktorzy.addChild(zgas);
+    return { pal, zgas, blask: null, x: l.x + (0.33 - f.ax) * Math.abs(pal.width), y: l.y - Math.abs(pal.height) * f.ay * 0.86 };
+  }) : [];
+  // Totemy z fioletowym dymem: tu wychodzą potwory zamiast z mgły. Każdy zaczyna pętlę w innym miejscu.
+  const totemyS = [];
+  if (R && R.totem_czaszka_00) TOTEMY.forEach((t, i) => {
+    const f = R[t.rys + '_00'], sp = rysunek(t.rys + '_00', t.x, t.y, t.wys / (f.h * f.ay) * f.w); sp.zIndex = t.y; aktorzy.addChild(sp);
+    totemyS.push({ sp, t, i, faza: i * 7 });
+  });
+
+  // bohater: obraz z Gemini (bohS) albo grafika rysowana kodem co klatkę (bohG)
+  const bohG = new P.Graphics(); aktorzy.addChild(bohG);
+  const bohS = new P.Sprite(); aktorzy.addChild(bohS);
+  const bohCien = new P.Sprite(T.cien); bohCien.anchor.set(0.5); cienie.addChild(bohCien);
+
+  // nad ciemnością
+  const mgla = new P.Container();
+  const kleby = [];
+  for (const k in MGLY) {
+    const m = MGLY[k];
+    // Mgła: wiele przygaszonych, postrzępionych pasm w chłodnym szarym kolorze, nisko przy ziemi, wolno dryfuje.
+    // Przy bohaterze rzednie, żeby go nie zakrywać.
+    for (let i = 0; i < 14; i++) {
+      const s = new P.Sprite(T.mgla[i % 3]); s.anchor.set(0.5); s.tint = 0x9aa6b8;
+      kleby.push({ s, m, a: i / 14 * TAU + losuj(-0.2, 0.2), r: m.r * losuj(0.1, 0.75), v: losuj(0.02, 0.06) * (i % 2 ? 1 : -1),
+        roz: m.r * losuj(0.55, 1.05), splaszcz: losuj(0.42, 0.6), alfa: losuj(0.28, 0.48), faza: losuj(0, TAU), obrot: losuj(-0.15, 0.15) });
+      mgla.addChild(s);
+    }
+  }
+  const znaki = new P.Graphics();                  // zapowiedzi ataków, garda, ogłuszenie
+  const blaski = new P.Container();
+  const blaskOgnia = new P.Sprite(T.cieplo); blaskOgnia.anchor.set(0.5); blaskOgnia.blendMode = P.BLEND_MODES.ADD;
+  const blaskOkna = new P.Sprite(T.cieplo); blaskOkna.anchor.set(0.5); blaskOkna.blendMode = P.BLEND_MODES.ADD; blaskOkna.alpha = 0.7;
+  const blaskIzby = new P.Sprite(T.cieplo); blaskIzby.anchor.set(0.5); blaskIzby.blendMode = P.BLEND_MODES.ADD;
+  blaski.addChild(blaskOgnia, blaskOkna, blaskIzby);
+  const plomienie = new P.Graphics(); plomienie.blendMode = P.BLEND_MODES.ADD; plomienie.zIndex = OGNISKO.y + 0.5;
+  aktorzy.addChild(plomienie);
+  const oczy = new P.Container();
+  const iskry = new P.Container();
+  const smugi = new P.Graphics();
+  const duch = new P.Graphics(); duch.alpha = 0.33;
+  // Duch bohatera za chatą albo drzewem: jasna, płaska sylwetka, a nie przezroczysta kopia, żeby nie wyglądało, że stoi na dachu.
+  const duchS = new P.Sprite(); duchS.alpha = 0.5;
+  try { const cm = new P.filters.ColorMatrixFilter(); cm.matrix = [0, 0, 0, 0, 0.62, 0, 0, 0, 0, 0.76, 0, 0, 0, 0, 0.9, 0, 0, 0, 1, 0]; duchS.filters = [cm]; } catch (e) { duchS.alpha = 0.33; }
+  // Poświata pod bohaterem (27 XI, Patryk: w ciemnych falach ginie w tłumie). ?poswiata=0 bez, 1 ciepła (domyślna), 2 chłodna i mocniejsza.
+  const WARIANT_POSWIATY = Number(new URLSearchParams(location.search).get('poswiata') ?? 1);
+  const poswiata = new P.Sprite(T.cieplo); poswiata.anchor.set(0.5); poswiata.blendMode = P.BLEND_MODES.ADD;
+  poswiata.tint = WARIANT_POSWIATY === 2 ? 0x9fb8ff : 0xffb060; swiat.addChildAt(poswiata, swiat.getChildIndex(aktorzy));
+  const blaskBoh = new P.Sprite(T.cieplo); blaskBoh.anchor.set(0.5); blaskBoh.blendMode = P.BLEND_MODES.ADD; blaski.addChild(blaskBoh);
+  const blaskBossa = new P.Sprite(T.cieplo); blaskBossa.anchor.set(0.5); blaskBossa.blendMode = P.BLEND_MODES.ADD; blaskBossa.tint = 0xff5a20; blaski.addChild(blaskBossa);   // żar klątwy w rycerzu
+  const blaskiTotemow = TOTEMY.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0x9a50ff; blaski.addChild(s); return s; });
+  // portale klątwy (27 XI): czarna rana w ziemi z fioletowym brzegiem i wirem, blask nad ciemnością, światło wycięte w mroku
+  const portaleG = new P.Graphics(); swiat.addChildAt(portaleG, swiat.getChildIndex(aktorzy));
+  const NPORT = 6;
+  const blaskiPortali = Array.from({ length: NPORT }, () => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xa040ff; s.visible = false; blaski.addChild(s); return s; });
+  // druga wersja (27 XI, Patryk: „lepsze te portale”): pionowa szczelina w powietrzu, sortowana z postaciami, z trzeszczącym brzegiem
+  const szczeliny = Array.from({ length: NPORT }, () => { const g = new P.Graphics(); g.visible = false; aktorzy.addChild(g); return g; });
+  const blaskiPochodni = plomienieRzeczy.map(() => { const s = new P.Sprite(T.cieplo); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffa860; blaski.addChild(s); return s; });
+  for (const L of latarnieS) { L.blask = new P.Sprite(T.cieplo); L.blask.anchor.set(0.5); L.blask.blendMode = P.BLEND_MODES.ADD; L.blask.tint = 0xffa050; L.blask.visible = false; blaski.addChild(L.blask); }
+  const blaskKlatwy = new P.Sprite(T.cieplo); blaskKlatwy.anchor.set(0.5); blaskKlatwy.blendMode = P.BLEND_MODES.ADD; blaskKlatwy.tint = 0xa060ff; blaski.addChild(blaskKlatwy);
+  const napisy = new P.Container();
+  const blyskiC = new P.Container();              // iskry z arkusza Przemka: nad ciemnością, świecą
+  nad.addChild(mgla, znaki, blaski, oczy, smugi, iskry, blyskiC, duch, duchS, napisy);
+  mgla.visible = totemyS.length === 0;           // z totemami mgły nie ma: potwory wychodzą spod totemów
+
+  // ciemność z wyciętym światłem (rysowana do osobnej tekstury w połowie rozdzielczości)
+  const ciemnoscC = new P.Container();
+  const ciemnoscG = new P.Graphics();
+  const kreski = new P.TilingSprite(T.kreski, 16, 16);
+  const stemple = new P.Container();
+  const stempel = () => { const s = new P.Sprite(T.stempel); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ERASE; stemple.addChild(s); return s; };
+  const swiatloBoh = stempel(), swiatloOgnia = stempel(), swiatloOkna = stempel(), swiatloIzby = stempel();
+  const swiatlaTotemow = TOTEMY.map(() => stempel());
+  const swiatloBossa = stempel(); const swiatlaPortali = Array.from({ length: NPORT }, () => stempel()); let dymBossaNa = 0, pierscienBossaNa = 0, bossTrup = null;
+  const swiatlaPochodni = plomienieRzeczy.map(() => stempel());
+  const swiatlaLatarni = latarnieS.map(() => stempel());
+  swiatloBoh.texture = T.stempelBoh;
+  ciemnoscC.addChild(ciemnoscG, kreski, stemple);
+  let ciemnoscRT = null; const ciemnosc = new P.Sprite();
+
+  const deszcz = new P.Graphics();
+  const winieta = new P.Sprite();
+  const bolG = new P.Graphics();
+  // Słońce o świcie (26 XI): ciepła poświata z prawego górnego rogu i kilka ukośnych promieni, nad ciemnością i deszczem.
+  const slonceC = new P.Container(); slonceC.visible = false;
+  const slonceS = new P.Sprite(T.cieplo); slonceS.anchor.set(0.5); slonceS.blendMode = P.BLEND_MODES.ADD; slonceS.tint = 0xd8d2c0;   // blade, chłodne światło przez mgłę, nie ciepły zachód (Patryk, 26 XI 11:43: żeby nie zepsuć mrocznego stylu)
+  const promienie = [0, 1, 2, 3, 4].map(i => { const r = new P.Sprite(T.cieplo); r.anchor.set(0.5, 0); r.blendMode = P.BLEND_MODES.ADD; r.tint = 0xe6e0cc; return { r, kat: 0.5 + i * 0.13, faza: i * 1.7, szer: 0.6 + (i % 3) * 0.35 }; });
+  slonceC.addChild(slonceS, ...promienie.map(p => p.r));
+  ekran.addChild(deszcz, winieta, slonceC, bolG);
+  scena.addChild(swiat, ciemnosc, nad, ekran);
+
+
+  // ---------- rozmiar i kamera ----------
+  let vw = 1, vh = 1, zoom = 1;
+  const kam = { x: OGNISKO.x, y: OGNISKO.y, gotowa: false };
+  function rozmiar() {
+    vw = innerWidth; vh = innerHeight;
+    renderer.resize(vw, vh);
+    zoom = ogr(Math.min(vw, vh) / 560, 0.5, 1.4);      // na telefonie w pionie widać około 560 jednostek wszerz
+    { const pg = typeof location !== 'undefined' && Number(new URLSearchParams(location.search).get('podglad')); if (pg) zoom = pg; }   // do testów: ?podglad=0.4 pokazuje całą mapę
+    if (ciemnoscRT) ciemnoscRT.destroy(true);
+    ciemnoscRT = P.RenderTexture.create({ width: vw, height: vh, resolution: renderer.resolution * 0.5 });
+    ciemnosc.texture = ciemnoscRT;
+    kreski.width = vw; kreski.height = vh; kreski.tileScale.set(1 / (renderer.resolution * 0.5));
+    kreski.visible = !lekko;
+    if (winieta.texture && winieta.texture !== P.Texture.EMPTY) winieta.texture.destroy(true);
+    winieta.texture = tx(O.winieta(Math.min(vw, 900), Math.min(vh, 900))); winieta.width = vw; winieta.height = vh;
+    winieta.visible = !lekko;
+  }
+  rozmiar();
+
+  const ekranNaSwiat = (px, py) => ({ x: (px - swiat.x) / swiat.scale.x, y: (py - swiat.y) / swiat.scale.y });
+  const swiatNaEkran = (x, y) => ({ x: swiat.x + x * swiat.scale.x, y: swiat.y + y * swiat.scale.y });
+
+  // ---------- krótkie animacje: padające ciała, błyski cięć, kurz i oddech ----------
+  const padajace = [], ciecia = [], obloczki = [], pioruny = [];
+  function nowyPadajacy(s) {
+    const typ = WROGOWIE[s.wrog], fw = filmW[s.wrog];
+    if (fw) return { s, fw, ciezki: !!typ.ciezki, dir: -s.sx, t: 0, czas: s.przeciety ? (typ.ciezki ? 0.65 : 0.42) : fw.smierc, gasnie: -1, kon: null };
+    return { s, at: atlasy[s.wrog] || atlasy.ghul, sk: typ.skala, ciezki: !!typ.ciezki, dir: -s.sx, wiersz: s.sx < 0 ? 1 : 0, t: 0, czas: typ.ciezki ? 0.65 : 0.42, gasnie: -1, kon: null };
+  }
+  // Ciało leży jako zwykły obraz w pełnej ostrości (tekstura śladów ma połowę rozdzielczości).
+  const trupy = [];
+  // Ciała wsiąkają w ziemię: po WSIAKA s ciemnieją, spłaszczają się i znikają przez 5 s. Krew zostaje w śladach
+  // (Patryk, 27 XI: pod koniec nocy polana była dywanem trupów — „tak niech wsiąkają”).
+  const WSIAKA = 40, WSIAKA_DL = 5;
+  function zostaw(lista) {
+    for (const k of lista) {
+      const sp = new P.Sprite(k.tex); sp.anchor.set(k.ax, k.ay); sp.position.set(k.x, k.y); sp.rotation = k.rot; sp.scale.set(k.sx, k.sy);
+      trupyC.addChild(sp); trupy.push({ sp, k, od: czas });
+    }
+    // za dużo ciał naraz: najstarsze zaczynają wsiąkać od razu, zamiast czekać swoje
+    let nad = trupy.length - 30;
+    for (const t of trupy) { if (nad <= 0) break; if (czas - t.od < (t.k.znika || WSIAKA)) { t.k.znika = Math.max(0, czas - t.od); } nad--; }
+  }
+  function obloczek(x, y, vx, vy, r0, r1, czas, alfa, kolor, ziemia) { if (obloczki.length < 80) obloczki.push({ x, y, vx, vy, r0, r1, t: 0, czas, alfa, kolor, ziemia }); }
+  function kurz(x, y, kat, ile, moc = 1) {
+    for (let i = 0; i < ile; i++) {
+      const a = kat + losuj(-0.6, 0.6), v = losuj(20, 60) * moc;
+      obloczek(x + losuj(-6, 6), y + losuj(-3, 3), Math.cos(a) * v, Math.sin(a) * v * PERSP, 3, losuj(9, 15) * moc, losuj(0.35, 0.55), 0.32 * Math.min(1.4, moc), 0x8a7f6c, true);
+    }
+  }
+
+  // ---------- ślady na ziemi (krew, ciała, cienie drzew) ----------
+  const KALUZE = ['kaluza_a', 'kaluza_b', 'kaluza_c', 'kaluza_d'];
+  const BRYZGI = ['bryzg_a', 'bryzg_b', 'bryzg_c', 'bryzg_d', 'bryzg_e', 'bryzg_f', 'bryzg_g', 'bryzg_h'];
+  function dorysujSlady(lista) {
+    if (!lista.length) return;
+    const c = new P.Container();
+    for (const s of lista) {
+      if (s.typ === 'cialo' && s.pada) { padajace.push(nowyPadajacy(s)); continue; }      // najpierw upadek, ślad później
+      if (s.typ === 'cialo' && filmW[s.wrog]) {
+        const fw = filmW[s.wrog], k = fw.k[fw.anim.trup[0]], sp = new P.Sprite(k.t); sp.anchor.set(k.ax, k.ay);
+        const sk = fw.skala * (fw.kaluza || 1); sp.position.set(s.x, s.y); sp.scale.set(sk * (s.sx === fw.patrzy ? 1 : -1), sk); c.addChild(sp);
+      } else if (s.typ === 'cialo') {
+        const at = atlasy[s.wrog] || atlasy.ghul, w = at.wzor, sk = (s.wrog === 'kolos' ? 2.3 : 1.25) / O.PX;
+        const sp = new P.Sprite(at.martwy); sp.anchor.set(w.ox / w.w, w.oy / w.h);
+        sp.position.set(s.x, s.y); sp.rotation = s.obrot; sp.scale.set(sk * s.sx, sk); c.addChild(sp);
+      } else if (R && (s.typ === 'kaluza' || (s.typ === 'kropla' && (s.r || 2) >= 1))) {
+        // krew z arkusza Przemka: kałuża pod trupem, rozbryzg tam, gdzie spadła kropla (spłaszczony jak ziemia)
+        const kal = s.typ === 'kaluza', n = kal ? (s.duza ? KALUZE : BRYZGI)[(Math.random() * 4) | 0] : BRYZGI[(Math.random() * BRYZGI.length) | 0];
+        const szer = kal ? (s.duza ? losuj(70, 95) : losuj(38, 52)) : s.r * losuj(5, 8);
+        const sp = rysunek(n, s.x, s.y, szer, Math.random() < 0.5);
+        if (!kal) { sp.rotation = losuj(-0.5, 0.5); sp.scale.y *= 0.7; }
+        sp.alpha = kal ? 0.92 : losuj(0.7, 0.9); c.addChild(sp);
+      } else if (s.typ === 'kaluza' || s.typ === 'kropla') {
+        const n = s.typ === 'kaluza' ? (s.duza ? 7 : 3) : 1, roz = s.typ === 'kaluza' ? 1 : 0.3;
+        for (let i = 0; i < n; i++) {
+          const sp = new P.Sprite(T.krew[(Math.random() * 3) | 0]); sp.anchor.set(0.5);
+          sp.position.set(s.x + losuj(-14, 14) * roz, s.y + losuj(-7, 7) * roz);
+          const r = s.typ === 'kaluza' ? losuj(4, 13) : (s.r || 2) * losuj(0.8, 1.4);
+          sp.width = r * 2; sp.height = r * losuj(1.1, 1.5); sp.rotation = losuj(0, Math.PI); sp.alpha = losuj(0.4, 0.75);
+          c.addChild(sp);
+        }
+      } else if (s.typ === 'cien') {
+        const sp = new P.Sprite(T.cien); sp.anchor.set(0.5); sp.position.set(s.x, s.y); sp.width = s.w; sp.height = s.h; sp.alpha = s.alfa || 1; c.addChild(sp);
+      }
+    }
+    renderer.render(c, { renderTexture: sladyRT, clear: false });
+    c.destroy({ children: true });
+    lista.length = 0;
+  }
+  const blyski = []; let czasRys = 0;            // iskry i rozbryzgi z arkusza (etap B, niżej)
+  function wyczysc() {
+    padajace.length = 0; ciecia.length = 0; obloczki.length = 0; pioruny.length = 0; bossTrup = null;
+    for (const f of blyski) f.sp.destroy(); blyski.length = 0;
+    for (const t of trupy) t.sp.destroy(); trupy.length = 0;
+    renderer.render(new P.Container(), { renderTexture: sladyRT, clear: true });
+    dorysujSlady(DRZEWA.map(d => ({ typ: 'cien', x: d.x + 14, y: d.y + 3, w: d.h * 0.42, h: d.h * 0.12, alfa: 0.8 })));
+  }
+  wyczysc();
+
+  // ---------- iskry i rozbryzgi z arkusza Przemka (etap B) ----------
+  // Rysunki kierunkowe lecą w prawo do góry z lewego dolnego rogu, więc obracamy je o kat + 45°.
+  function blysk(n, x, y, kat, szer, czas, nadCiemnoscia) {
+    if (!R || !R[n]) return;
+    const sp = rysunek(n, x, y, szer, false);
+    if (kat != null) { sp.anchor.set(0.12, 0.88); sp.rotation = kat + Math.PI / 4; } else sp.rotation = losuj(0, TAU);
+    if (nadCiemnoscia) { sp.blendMode = P.BLEND_MODES.ADD; blyskiC.addChild(sp); } else { sp.zIndex = y + 60; aktorzy.addChild(sp); }
+    blyski.push({ sp, t: 0, czas, k: sp.scale.x });
+  }
+  function ruszBlyski(dt) {
+    for (let i = blyski.length - 1; i >= 0; i--) {
+      const f = blyski[i]; f.t += dt; const q = f.t / f.czas;
+      if (q >= 1) { f.sp.destroy(); blyski.splice(i, 1); continue; }
+      const k = f.k * (0.7 + 0.45 * Math.sqrt(q)); f.sp.scale.set(k, Math.abs(k)); f.sp.alpha = q < 0.4 ? 1 : 1 - (q - 0.4) / 0.6;
+    }
+  }
+  // krąg z kolcami pod uderzeniem kolosa: jeden na kolosa, chowany co klatkę, jeśli nikt go nie użył
+  const kregi = []; let kregiUzyte = 0;
+  function krag(x, y, r, q) {
+    if (!R || !R.krag_kolce) return false;
+    if (kregiUzyte >= kregi.length) { const sp = rysunek('krag_kolce', 0, 0, 100, false); znakiZiemia.parent.addChildAt(sp, znakiZiemia.parent.getChildIndex(znakiZiemia) + 1); kregi.push(sp); }
+    const sp = kregi[kregiUzyte++], f = R.krag_kolce; sp.visible = true; sp.position.set(x, y);
+    const w = r * 2.25 / f.w; sp.scale.set(w, r * 2.25 * PERSP / f.h); sp.rotation = 0;
+    sp.alpha = 0.55 + 0.45 * q; sp.tint = q > 0.75 && Math.floor(czasRys * 14) % 2 ? 0xffb0a0 : 0xffffff;
+    return true;
+  }
+
+  // ---------- pule obiektów ----------
+  function pula(rodzic, nowy) {
+    const lista = []; let n = 0;
+    return {
+      start() { n = 0; },
+      wez() { let o = lista[n]; if (!o) { o = nowy(); lista.push(o); rodzic.addChild(o); } o.visible = true; n++; return o; },
+      koniec() { for (let i = n; i < lista.length; i++) lista[i].visible = false; },
+    };
+  }
+  const pulaWrogow = pula(aktorzy, () => new P.Sprite());
+  const pulaCieni = pula(cienie, () => { const s = new P.Sprite(T.cien); s.anchor.set(0.5); return s; });
+  const pulaOczu = pula(oczy, () => { const s = new P.Sprite(T.okoCzerwone); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; return s; });
+  const pulaKawalkow = pula(aktorzy, () => new P.Sprite());
+  const pulaBlyskow = pula(aktorzy, () => { const s = new P.Sprite(); s.blendMode = P.BLEND_MODES.ADD; s.tint = 0xffd8c8; return s; });   // potwór rozbłyska, gdy dostaje
+  const pulaEch = pula(echaS, () => { const s = new P.Sprite(); s.tint = 0x9fb4cc; return s; });
+  const pulaLupu = pula(aktorzy, () => { const s = new P.Sprite(); return s; });
+  const ikonyRzeczy = {};
+  const ikonaRzeczy = id => ikonyRzeczy[id] || (ikonyRzeczy[id] = P.Texture.from(new URL(`../grafika/przedmioty/${id}.webp`, import.meta.url).href));
+  // kartka z dziennika rycerza leży na ziemi i ciepło się żarzy, żeby było ją widać w ciemności (25 XI)
+  const kartkaS = new P.Sprite(obrazKartki ? P.Texture.from(obrazKartki) : P.Texture.WHITE); kartkaS.anchor.set(0.5, 0.7); kartkaS.visible = false; aktorzy.addChild(kartkaS);
+  // Handlarz (27 XI): stoi przy drodze między falami, z latarnią, która wycina światło w mroku. Patrzy na bohatera.
+  const handlK = (() => {
+    if (!obrazHandlarza) return null;
+    const baza = new P.BaseTexture(obrazHandlarza); baza.mipmap = P.MIPMAP_MODES.ON; const k = {};
+    for (const n in KH.KLATKI) { const f = KH.KLATKI[n]; k[n] = { ...f, t: new P.Texture(baza, new P.Rectangle(f.x, f.y, f.w, f.h)) }; }
+    return k;
+  })();
+  const handlS = new P.Sprite(); handlS.visible = false; aktorzy.addChild(handlS);
+  const handlCien = new P.Sprite(T.cien); handlCien.anchor.set(0.5); handlCien.visible = false; cienie.addChild(handlCien);
+  const blaskLatarni = new P.Sprite(T.cieplo); blaskLatarni.anchor.set(0.5); blaskLatarni.blendMode = P.BLEND_MODES.ADD; blaskLatarni.tint = 0xffc070; blaskLatarni.visible = false; blaski.addChild(blaskLatarni);
+  const blaskFiolki = new P.Sprite(T.cieplo); blaskFiolki.anchor.set(0.5); blaskFiolki.blendMode = P.BLEND_MODES.ADD; blaskFiolki.tint = 0xfff0b0; blaskFiolki.visible = false; blaski.addChild(blaskFiolki);
+  const swiatloLatarni = stempel();
+  if (!obrazKartki) { kartkaS.tint = 0xd8c8a0; kartkaS.width = 26; kartkaS.height = 18; } else kartkaS.scale.set(0.42);
+  const blaskKartki = new P.Sprite(T.cieplo); blaskKartki.anchor.set(0.5); blaskKartki.blendMode = P.BLEND_MODES.ADD; blaskKartki.tint = 0xff9a50; blaskKartki.visible = false; blaski.addChild(blaskKartki);
+  const pulaKrwi = pula(powietrze, () => { const s = new P.Sprite(T.krew[0]); s.anchor.set(0.5); return s; });
+  const pulaIskier = pula(iskry, () => { const s = new P.Sprite(T.iskra); s.anchor.set(0.5); s.blendMode = P.BLEND_MODES.ADD; return s; });
+
+  // napisy nad głową: „Sparowane!”, „+7”…
+  const styleNapisu = { fontFamily: 'Alegreya SC, Georgia, serif', fontSize: 22, fontWeight: '700', fill: 0xf0e6d6, stroke: 0x000000, strokeThickness: 5 };
+  const wolneNapisy = [], aktywneNapisy = [];
+  function napis(tekst, x, y, kolor = 0xf0e6d6, ikona = null) {
+    let t = wolneNapisy.pop();
+    if (!t) { t = new P.Text(tekst, styleNapisu); t.anchor.set(0.5, 1); napisy.addChild(t); } else t.text = tekst;
+    t.style.fill = kolor; t.visible = true; t.position.set(x, y); t.alpha = 1;
+    // ikona za napisem, np. moneta przy „+2” (27 XI, arkusz Gemini)
+    if (ikona) {
+      if (!t.ikona) { t.ikona = new P.Sprite(); t.ikona.anchor.set(0, 0.5); t.addChild(t.ikona); }
+      t.ikona.visible = false; t.updateText(true); const w = t.texture.orig.width, h = t.texture.orig.height;   // sam tekst, bez ikony
+      t.ikona.texture = ikona; t.ikona.scale.set(26 / 128); t.ikona.position.set(w / 2 + 3, -h / 2); t.ikona.visible = true;   // ikony z arkusza mają 128 px
+    } else if (t.ikona) t.ikona.visible = false;
+    aktywneNapisy.push({ t, czas: 0, y });
+  }
+
+  // krótkie efekty: pierścienie (parowanie, uderzenie kolosa)
+  const pierscienie = [];
+
+  // ---------- bohater ----------
+  // Miecz (Patryk, 24 XI 13:27: wyciągania „nie widać”, chowanie „za szybkie”): wyciąga przez 1 s, chowa przez 1,3 s,
+  // a chowa dopiero 1,5 s po tym, jak zrobi się spokojnie. Oba ruchy widać też w marszu, a cios, unik i blok kończą wyciąganie od razu.
+  const MIECZ = { wyciaga: 1.0, chowa: 1.3, spokojPrzed: 1.5 };
+  const stanRys = {
+    miecz: 'schowany', mieczP: 0, spokoj: 0, blokOd: 0, blokowal: false, blokCios: -9,   // mieczP: 0 w pochwie, 1 w dłoni
+    upadlOd: -1, poprzZycie: BOHATER.zycie, slad: [], poprzStan: 'wolny',
+    zadyszka: 0, oddech: 0, cykl: 0,          // po walce oddycha ciężej i szybciej
+    odepchniecie: 0, pchniecie: 0, ranaKier: 1, // odrzut po bloku, wypad po parowaniu, skąd przyszła rana
+    kop: { x: 0, y: 0 }, ucisk: 0, fiolet: 0,      // fiolet: błysk ekranu i światła po uderzeniu klątwy
+                // kamera drgnie w stronę cięcia; mocny cios lekko przybliża
+    bezDachu: 0,                                  // 0: chata z dachem, 1: dach zdjęty, bohater w izbie
+    px: null, py: null, krok: 0, szedl: false, dochodzi: 0, kierKroku: 1, ruch: 'bieg', walka: 0,   // walka: ile jeszcze sekund trzyma gardę po ostatnim wrogu w pobliżu   // gdzie był klatkę temu, ile cykli chodu przeszedł, czy dokańcza krok po zatrzymaniu
+  };
+
+  const latwo = q => 1 - (1 - q) * (1 - q);
+  const ku = (a, b2, t) => a + Math.atan2(Math.sin(b2 - a), Math.cos(b2 - a)) * t;   // obrót o część kąta najkrótszą drogą
+
+  // Poza bohatera: gdzie jest miecz i jak ustawione jest ciało.
+  // pochyl: > 0 pochyla się do przodu, < 0 odchyla do tyłu; przysiad: < 1 przykuca, > 1 wyciąga się; wykrok: przednia noga idzie naprzód.
+  // Cięższy miecz (waga) mocniej rzuca ciałem.
+  function poza(b, gra) {
+    const bron = gra.bron, L = bron.dlugosc, ciezar = bron.obrazenia, waga = 0.8 + 0.12 * ciezar;
+    const sx = Math.cos(b.kat) >= 0 ? 1 : -1;
+    const spoczynek = b.kat + (0.6 + 0.1 * ciezar) * sx;              // ciężki miecz wisi niżej, prawie wlecze się po ziemi
+    const p = { sx, a: spoczynek, lift: 10 + 6 * ciezar, drgaj: 0, smuga: null, blok: false, reka: 13, blask: 0, L, szer: bron.szerokosc, pochyl: 0, przysiad: 1, wykrok: 0, wstecz: false };
+    if (b.stan === 'cios' && b.cios) {
+      const c = b.cios, kier = Math.sign(c.do - c.od) || 1;
+      p.sx = Math.cos(c.kat) >= 0 ? 1 : -1;
+      const cofniecie = 0.45 + 0.15 * ciezar;                          // jak daleko miecz idzie do tyłu przed cięciem
+      const unies = -L * (0.2 + 0.15 * ciezar);                        // i jak wysoko się unosi (cięższy wyżej)
+      if (c.faza === 'zamach') {
+        const w = latwo(Math.min(1, c.t / Math.max(0.001, c.czasZamachu)));
+        p.a = c.od - kier * cofniecie * w; p.lift = p.lift + (unies - p.lift) * w;
+        p.pochyl = -0.13 * w * waga; p.przysiad = 1 - 0.07 * w; p.wykrok = 0.35 * w;      // bierze zamach: odchyla się i ugina nogi
+      } else if (c.faza === 'laduje') {
+        p.a = c.od - kier * (cofniecie + 0.2 * c.naladowanie); p.lift = unies * (1 + 0.2 * c.naladowanie);
+        p.drgaj = 0.4 + c.naladowanie * 1.2; p.blask = c.naladowanie;
+        p.pochyl = -(0.15 + 0.07 * c.naladowanie) * waga; p.przysiad = 0.92 - 0.04 * c.naladowanie; p.wykrok = 0.45;
+      } else if (c.faza === 'ciecie') {
+        const q = Math.min(1, c.t / c.czasCiecia), r = (1 - q) * (1 - q), e = latwo(q);
+        p.a = c.aktualny - kier * cofniecie * r; p.lift = unies * r + 6 * (1 - r);
+        p.smuga = { od: c.od - kier * cofniecie, do: p.a, alfa: 1, mocny: c.mocny, utknal: c.utknal, l0: unies, l1: p.lift };
+        if (c.mocny) p.blask = 1 - q;
+        p.pochyl = (-0.14 + (c.mocny ? 0.46 : 0.36) * e) * waga;                          // tnie: całe ciało idzie za mieczem
+        p.przysiad = 1 + 0.07 * Math.sin(q * Math.PI) - 0.04 * e; p.wykrok = 0.45 + 0.55 * e;
+      } else {                                                          // powrót: miecz ciągnie dalej, potem wraca do ręki
+        const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0), k = Math.min(1, c.t / Math.max(0.001, koniec));
+        const cel = c.utknal ? c.aktualny : c.do + kier * 0.18 * Math.min(1, k * 3);
+        p.a = k < 0.6 ? cel : ku(cel, spoczynek, (k - 0.6) / 0.4); p.lift = 6 + (p.lift - 6) * Math.max(0, (k - 0.6) / 0.4);
+        if (c.utknal) { p.drgaj = 1.6; p.pochyl = -0.12 * waga; p.wykrok = 0.9; p.przysiad = 0.95; }   // wyszarpuje miecz z cielska
+        else { const r2 = Math.max(0, (k - 0.25) / 0.75); p.pochyl = 0.22 * waga * (1 - latwo(r2)); p.wykrok = 1 - latwo(r2); p.przysiad = 0.96 + 0.04 * r2; }
+        if (c.t < 0.12) p.smuga = { od: c.od - kier * cofniecie, do: c.utknal ? c.aktualny : c.do, alfa: 1 - c.t / 0.12, mocny: c.mocny, utknal: c.utknal, l0: unies, l1: 6 };
+      }
+    } else if (b.blok) {
+      p.blok = true; p.reka = 16; p.pochyl = 0.06; p.przysiad = 0.94; p.wykrok = 0.4;    // garda: nisko, na szerokich nogach
+    } else if (b.stan === 'unik') {
+      const q = ogr(b.t / (b.unikCzas || BOHATER.unik.czas), 0, 1);
+      p.wstecz = Math.cos(b.unikKat - b.kat) < -0.3;                                     // odskok do tyłu: dalej patrzy na wroga
+      if (!p.wstecz) p.sx = Math.cos(b.unikKat) >= 0 ? 1 : -1;
+      p.a = b.unikKat + Math.PI * 0.85 * p.sx; p.lift = 10;
+      p.pochyl = (p.wstecz ? -0.22 : 0.32) * Math.sin(Math.min(1, q * 1.6) * Math.PI / 2) * (1 - q * 0.6);
+      p.przysiad = 0.84 + 0.16 * q; p.wykrok = 0.8 * (1 - q);
+    } else if (b.stan === 'zachwiany') {
+      p.a = b.kat + 1.35 * sx; p.lift = 24; p.drgaj = 2.2; p.pochyl = -0.22; p.przysiad = 0.93;
+    } else if (b.stan === 'klatwa') {                                    // klątwa: drży, gdy unosi rękę, potem przykuca z pięścią w ziemi
+      const L = KLATWA.ladowanie, U = KLATWA.uderzenie;
+      if (b.t < L) { const w = b.t / L; p.drgaj = 0.7 * w; p.przysiad = 1 - 0.04 * w; p.pochyl = -0.06 * w; }
+      else if (b.t < L + U) { p.przysiad = 0.8; p.pochyl = 0.25; p.a = b.kat + 1.5 * sx; p.lift = 30; }
+      else { const q = latwo(Math.min(1, (b.t - L - U) / KLATWA.wstawanie)); p.przysiad = 0.8 + 0.2 * q; p.pochyl = 0.25 * (1 - q); p.a = b.kat + 1.5 * sx; p.lift = 30 * (1 - q) + 10 * q; }
+    } else if (b.idzie) p.pochyl = 0.07;
+    return p;
+  }
+
+  // Klatka animacji bohatera z filmów. Cios idzie za fazą (zamach, cięcie, powrót), a nie za zegarem,
+  // więc ten sam film pasuje do lekkiego i do wielkiego miecza. Chód idzie za przebytą drogą.
+  const klatkaZ = (n, q) => { const l = A[n]; return l[Math.min(l.length - 1, Math.max(0, Math.floor(q * l.length)))]; };
+  const klatkaPetli = (n, cykle) => { const l = A[n]; return l[((Math.floor(cykle * l.length) % l.length) + l.length) % l.length]; };
+  const unikPionowy = (b) => Math.abs(Math.sin(b.unikKat)) > 0.7 && A.przewrot_przod && A.przewrot_tyl;   // w górę albo w dół, najwyżej 45° od pionu
+  function klatkaBohatera(b, tUp) {
+    if (b.stan === 'klatwa') {
+      const L = KLATWA.ladowanie, U = KLATWA.uderzenie;
+      if (b.t < L) return klatkaZ('klatwa_lad', b.t / L);
+      if (b.t < L + U) return klatkaZ('klatwa_uderz', (b.t - L) / U);
+      return klatkaZ('klatwa_wstaje', (b.t - L - U) / KLATWA.wstawanie);
+    }
+    if (b.stan === 'upadl') return klatkaZ('upadek', (czas - stanRys.upadlOd) / 1.4);   // osuwa się na kolana i pada na bok
+    if (b.stan === 'zachwiany') return klatkaZ('rana', 0.15 + 0.8 * Math.min(1, b.t / Math.max(0.01, b.trwanie)));
+    if (b.stan === 'cios' && b.cios) {
+      const c = b.cios;
+      if (c.faza === 'zamach') return klatkaZ('zamach', c.t / Math.max(0.001, c.czasZamachu));
+      if (c.faza === 'laduje') return klatkaZ('zamach', 1);
+      if (c.faza === 'ciecie') return klatkaZ('ciecie', c.t / Math.max(0.001, c.czasCiecia));
+      const koniec = c.czasPowrotu + (c.utknal ? BOHATER.miecz.grzeznie : 0);
+      return klatkaZ('powrot', c.utknal ? 0 : c.t / Math.max(0.001, koniec));
+    }
+    // cofanie się w gardzie z filmu (dwuręczny, Patryk z Flow, 24 XI 19:46): jeden krok filmu na jeden krok gardy z walka.js
+    if (b.blok && b.idzie && A.cofa && czas - stanRys.blokCios >= 0.4 && czas - stanRys.blokOd >= 0.2) return klatkaPetli('cofa', stanRys.cofaFaza * (A === AB ? 0.5 : 1));   // film zwykłego miecza ma w pętli dwa kroki
+    if (b.blok && A.blok_trzyma) {
+      // blok z filmu (Patryk, 24 XI 15:17: „żeby lepiej wygląda animacja blokowania”): unosi miecz w 0,2 s, trzyma
+      // (klatki tam i z powrotem, powoli), a cios w ostrze odpycha go na 0,4 s i wraca do trzymania
+      const tc = czas - stanRys.blokCios;
+      if (tc < 0.4) return klatkaZ('blok_cios', tc / 0.4);
+      const tu = czas - stanRys.blokOd;
+      if (tu < 0.2) return klatkaZ('blok_unosi', tu / 0.2);
+      const l = A.blok_trzyma.length, i = Math.floor((tu - 0.2) * 6) % (2 * l - 2); return A.blok_trzyma[i < l ? i : 2 * l - 2 - i];
+    }
+    if (b.blok) return klatkaZ('blok', Math.min(0.99, (czas - stanRys.blokOd) / 0.15));   // unosi miecz do bloku w 0,15 s, potem trzyma
+    if (b.flash > 0) return klatkaZ('rana', (1 - b.flash / 0.25) * 0.55);
+    if (b.stan === 'unik') {   // unik to przewrót w stronę uniku; w górę i w dół koziołek plecami albo przodem (niżej)
+      if (unikPionowy(b)) return klatkaZ(Math.sin(b.unikKat) > 0 ? 'przewrot_przod' : 'przewrot_tyl', b.t / (b.unikCzas || BOHATER.unik.czas));
+      return klatkaZ('przewrot', b.t / (b.unikCzas || BOHATER.unik.czas));
+    }
+    // Wyciąga miecz, gdy zaczyna się walka, i chowa go po niej (film Patryka z Flow, 24 XI; chowanie to ten sam film wstecz).
+    // Ma pierwszeństwo przed chodem, żeby było go widać także w ruchu.
+    if (stanRys.miecz === 'wyciaga' || stanRys.miecz === 'chowa') return klatkaZ('wyciaga', stanRys.mieczP);
+    // picie mikstury i podnoszenie z ziemi (filmy Patryka, 27 XI): tylko gdy stoi; ruch albo walka przerywa
+    if (stanRys.jedno) {
+      const j = stanRys.jedno, q = j.schyla ? (b.schyla > 0 ? 1 - b.schyla / j.dl : 1) : (czas - j.od) / j.dl;   // skłon po łup idzie równo z postojem w walka.js
+      if (q >= 1 || (b.idzie && !(b.schyla > 0)) || b.stan !== 'wolny' || b.blok || !A[j.n]) stanRys.jedno = null; else return klatkaZ(j.n, q);   // b.schyla: w klatce podniesienia jeszcze szedł, więc skłon nie może tego przerwać (Patryk, 27 XI 10:59)
+    }
+    if (b.idzie || stanRys.dochodzi > 0) return klatkaPetli(stanRys.ruchR || stanRys.ruch, stanRys.krok);
+    // W walce stoi w gardzie z mieczem uniesionym przed sobą; gdy wokół pusto, opuszcza miecz i oddycha (Patryk, 24 XI).
+    // Klatki gardy idą tam i z powrotem, powoli, jak ważenie miecza w dłoniach.
+    if (A.wyciaga ? stanRys.miecz === 'w_dloni' : stanRys.walka > 0) { const l = A.gotowosc.length, i = Math.floor(czas * 4) % (2 * l - 2); return A.gotowosc[i < l ? i : 2 * l - 2 - i]; }
+    // Poza walką, z mieczem w pochwie, stoi prosto przodem do nas (Patryk, 24 XI 14:54: dawny oddech z filmu wyglądał,
+    // „jakby był cały czas na chodzie”). Klatki idą tam i z powrotem, powoli, jak oddech.
+    if (A.stoi && stanRys.miecz === 'schowany') { const l = A.stoi.length, i = Math.floor(czas * 3) % (2 * l - 2); return A.stoi[i < l ? i : 2 * l - 2 - i]; }
+    return klatkaPetli('spoczynek', czas * 8 / A.spoczynek.length);       // oddech jak w filmie: 8 klatek na sekundę
+  }
+  // ustawia obraz bohatera: stopy w (x, y), pochylenie lx, przysiad sy (szerokość zmienia się odwrotnie, żeby ciało nie traciło masy)
+  function ustawPostac(sp, k, sx, x, y, lx, sy, obrot) {
+    sp.texture = k.t; sp.anchor.set(k.ax, k.ay);
+    sp.scale.set(SKALA_B * (PATRZY_B === sx ? 1 : -1) / Math.sqrt(sy), SKALA_B * sy);
+    sp.skew.set(-lx, 0); sp.rotation = obrot; sp.position.set(x, y);
+  }
+
+  // rysuje bohatera kodem do grafiki g, stopy w (0,0); p to poza z poza()
+  function rysujBohatera(g, b, gra, p, alfaCala = 1) {
+    const sx = p.sx, X = v => v * sx;
+    const krok = b.idzie && b.stan !== 'unik' ? Math.sin(b.chod) : 0;
+    const pod = b.idzie && b.stan !== 'unik' ? Math.abs(Math.cos(b.chod)) * 2 : 0;
+    const wk = p.wykrok;
+    const dj = p.drgaj ? (Math.random() - 0.5) * p.drgaj : 0;
+    const oy = -pod;
+    const wiel = (pts) => { const w = new Array(pts.length); for (let i = 0; i < pts.length; i += 2) { w[i] = X(pts[i]) + dj; w[i + 1] = pts[i + 1] + oy; } return w; };
+    const ksztalt = (pts, kolor, lw = 1.6) => { g.lineStyle(lw, OB, alfaCala); g.beginFill(kolor, alfaCala); g.drawPolygon(wiel(pts)); g.endFill(); };
+    const elipsa = (x, y, rx, ry, kolor, lw = 1.6) => { g.lineStyle(lw, OB, alfaCala); g.beginFill(kolor, alfaCala); g.drawEllipse(X(x) + dj, y + oy, rx, ry); g.endFill(); };
+
+    // ręka z mieczem: dłoń w świecie, nie odbijana
+    const srodek = { x: dj, y: -44 + oy };
+    let hx, hy, tx2, ty2;
+    if (p.blok) {
+      hx = srodek.x + Math.cos(b.kat) * p.reka; hy = srodek.y + Math.sin(b.kat) * p.reka * PERSP - 6;
+      const kp = b.kat - sx * (Math.PI / 2 - 0.55);
+      tx2 = hx + Math.cos(kp) * p.L * 0.85; ty2 = hy + Math.sin(kp) * p.L * 0.85 * PERSP - 14;
+    } else {
+      hx = srodek.x + Math.cos(p.a) * p.reka; hy = srodek.y + Math.sin(p.a) * p.reka * PERSP;
+      tx2 = hx + Math.cos(p.a) * p.L; ty2 = hy + Math.sin(p.a) * p.L * PERSP + p.lift;
+    }
+    const mieczZa = ty2 < hy - 8;              // ostrze w górę ekranu: chowa się za plecami
+    p.ostrze = { hx, hy: hy, tx: tx2, ty: ty2 };
+
+    const ramie = { x: X(8) + dj, y: -56 + oy };
+    if (mieczZa) { rysujMiecz(g, hx, hy, tx2, ty2, alfaCala, p); rysujReke(g, ramie, hx, hy, alfaCala); }
+
+    // futro zwisające z pleców
+    ksztalt([-8, -62, -17, -50, -21, -30, -19, -14, -15, -19, -12, -11, -8, -18, -4, -13, -2, -56], 0x2f2b28);
+    g.lineStyle(1, 0x4a4540, alfaCala); g.moveTo(X(-12) + dj, -50 + oy); g.lineTo(X(-15) + dj, -20 + oy); g.moveTo(X(-7) + dj, -52 + oy); g.lineTo(X(-8) + dj, -22 + oy);
+    // druga ręka
+    g.lineStyle(6.2, OB, alfaCala); g.moveTo(X(-8) + dj, -56 + oy); g.lineTo(X(-11 - krok * 2) + dj, -36 + oy);
+    g.lineStyle(4, 0x5a4a3c, alfaCala); g.moveTo(X(-8) + dj, -56 + oy); g.lineTo(X(-11 - krok * 2) + dj, -36 + oy);
+    // nogi i buty: od bioder do stóp; w wykroku przednia noga idzie naprzód, tylna się zapiera
+    for (const [bx0, cx, kol] of [[-4, -5 + krok * 4 - wk * 6, 0x37302a], [4, 4 - krok * 4 + wk * 8, 0x433a32]]) {
+      ksztalt([bx0 - 3.8, -34, bx0 + 3.8, -34, cx + 3.3, -7, cx - 3.3, -7], kol);
+      ksztalt([cx - 4, -9, cx + 4, -9, cx + 7.5, -1, cx - 4.2, -1], 0x2a231d);
+    }
+    // tułów: połatana skórzana kurta
+    ksztalt([-11, -61, 11, -61, 13, -31, -13, -31], 0x433830);
+    g.lineStyle(0); g.beginFill(0x55473b, alfaCala); g.drawRect(X(sx > 0 ? -8 : 2) + dj, -52 + oy, 6, 7); g.endFill();
+    g.lineStyle(0.8, 0x1a1410, alfaCala);
+    for (let k = 0; k < 3; k++) { const x0 = X(-8 + k * 2.2) + dj; g.moveTo(x0, -53 + oy); g.lineTo(x0, -51 + oy); }
+    // kolczuga spod kurty
+    ksztalt([-13, -32, 13, -32, 13, -25, 10, -22, 7, -25, 4, -22, 1, -25, -2, -22, -5, -25, -8, -22, -11, -25, -13, -22], 0x767a81, 1.2);
+    // pas
+    ksztalt([-13.5, -35, 13.5, -35, 13.5, -31, -13.5, -31], 0x2b221b, 1.2);
+    elipsa(2, -33, 2.2, 1.8, 0xa29d92, 0.8);
+    // wilcze futro na ramionach
+    ksztalt([-17, -56, -15, -64, -11, -62, -8, -68, -3, -64, 1, -70, 5, -65, 9, -67, 12, -62, 16, -58, 12, -53, 5, -56, -4, -54, -12, -52], 0x8f897e);
+    g.lineStyle(1, 0x5c574f, alfaCala);
+    g.moveTo(X(-9) + dj, -60 + oy); g.lineTo(X(-6) + dj, -57 + oy); g.moveTo(X(1) + dj, -63 + oy); g.lineTo(X(3) + dj, -58 + oy);
+    // naramiennik z ciemnej stali
+    elipsa(9, -57, 7.2, 5, 0x8d939b, 1.4);
+    g.lineStyle(0); g.beginFill(0xd8dce0, alfaCala); g.drawCircle(X(9) + dj, -58 + oy, 1); g.endFill();
+    // głowa
+    elipsa(3, -71, 7.8, 7.8, 0xb48d72);
+    ksztalt([-5, -71, -6, -78, -2, -81.5, 3, -80.5, 8, -80, 10.5, -76.5, 9, -74, 5, -77, 0, -76, -3, -72.5], 0x231d19, 1.2);
+    g.lineStyle(0); g.beginFill(0x1a1310, alfaCala); g.drawCircle(X(7.2) + dj, -71.5 + oy, 1.1); g.endFill();
+    g.lineStyle(1.1, 0x7a3a30, alfaCala); g.moveTo(X(4.5) + dj, -69 + oy); g.lineTo(X(8.5) + dj, -66 + oy);   // blizna na policzku
+
+    if (!mieczZa) { rysujReke(g, ramie, hx, hy, alfaCala); rysujMiecz(g, hx, hy, tx2, ty2, alfaCala, p); }
+    return p;
+  }
+
+  function rysujReke(g, ramie, hx, hy, al) {
+    g.lineStyle(7, OB, al); g.moveTo(ramie.x, ramie.y); g.lineTo(hx, hy);
+    g.lineStyle(4.6, 0xa98670, al); g.moveTo(ramie.x, ramie.y); g.lineTo(hx, hy);
+    // bandaż i czarne żyły klątwy
+    const mx = (ramie.x + hx) / 2, my = (ramie.y + hy) / 2;
+    g.lineStyle(4.6, 0xd6ccb8, al); g.moveTo(mx + (hx - mx) * 0.15, my + (hy - my) * 0.15); g.lineTo(mx + (hx - mx) * 0.55, my + (hy - my) * 0.55);
+    g.lineStyle(0.9, 0x150f18, al); g.moveTo(ramie.x + 1, ramie.y + 2); g.lineTo(mx - 1, my); g.lineTo(mx + 1, my + 1);
+    // karwasz przy nadgarstku
+    g.lineStyle(5.4, 0x4a3c30, al); g.moveTo(hx + (ramie.x - hx) * 0.22, hy + (ramie.y - hy) * 0.22); g.lineTo(hx + (ramie.x - hx) * 0.08, hy + (ramie.y - hy) * 0.08);
+  }
+
+  function rysujMiecz(g, hx, hy, tx2, ty2, al, p) {
+    const dx = tx2 - hx, dy = ty2 - hy, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, px = -uy, py = ux;
+    // łańcuch od głowicy do nadgarstka
+    const gx = hx - ux * 10, gy = hy - uy * 10;
+    g.lineStyle(1.3, 0x2a1a10, al); g.beginFill(0x8a5630, al);
+    for (let i = 1; i <= 4; i++) { const t = i / 5; g.drawEllipse(gx + (hx - gx) * t - px * 2 + Math.sin(i) * 1.5, gy + (hy - gy) * t + 3 + i * 1.6, 1.8, 1.3); }
+    g.endFill();
+    // rękojeść i głowica
+    g.lineStyle(4.4, OB, al); g.moveTo(gx, gy); g.lineTo(hx + ux * 3, hy + uy * 3);
+    g.lineStyle(2.6, 0x3a2a1e, al); g.moveTo(gx, gy); g.lineTo(hx + ux * 3, hy + uy * 3);
+    g.lineStyle(1.2, OB, al); g.beginFill(0x6f747b, al); g.drawCircle(gx, gy, 2.6); g.endFill();
+    // jelec
+    const jx = hx + ux * 4, jy = hy + uy * 4;
+    g.lineStyle(5, OB, al); g.moveTo(jx - px * 8, jy - py * 8); g.lineTo(jx + px * 8, jy + py * 8);
+    g.lineStyle(3, 0x4d4842, al); g.moveTo(jx - px * 8, jy - py * 8); g.lineTo(jx + px * 8, jy + py * 8);
+    // ostrze: ciemne żelazo z jasną krawędzią i wyszczerbieniem
+    const bx = hx + ux * 6, by = hy + uy * 6, sz = p.szer;
+    const pts = [bx + px * sz, by + py * sz, tx2 - ux * 8 + px * sz * 0.8, ty2 - uy * 8 + py * sz * 0.8, tx2, ty2,
+      tx2 - ux * 8 - px * sz * 0.8, ty2 - uy * 8 - py * sz * 0.8,
+      bx + ux * L * 0.55 - px * sz * 0.95, by + uy * L * 0.55 - py * sz * 0.95,
+      bx + ux * (L * 0.55 - 3) - px * sz * 0.35, by + uy * (L * 0.55 - 3) - py * sz * 0.35,
+      bx + ux * (L * 0.55 - 6) - px * sz, by + uy * (L * 0.55 - 6) - py * sz,
+      bx - px * sz, by - py * sz];
+    g.lineStyle(1.6, OB, al); g.beginFill(0x5c6067, al); g.drawPolygon(pts); g.endFill();
+    g.lineStyle(1, 0x34373c, al); g.moveTo(bx, by); g.lineTo(bx + ux * L * 0.7, by + uy * L * 0.7);
+    g.lineStyle(1.1 + p.blask * 1.6, p.blask > 0.05 ? 0xffd890 : 0xdfe3e8, 0.9 * al); g.moveTo(bx + px * sz * 0.8, by + py * sz * 0.8); g.lineTo(tx2 - ux * 6 + px * sz * 0.6, ty2 - uy * 6 + py * sz * 0.6);
+  }
+
+  // ---------- jedna klatka ----------
+  let czas = 0;
+  const krople = Array.from({ length: 220 }, () => ({ x: Math.random(), y: Math.random(), v: 0.9 + Math.random() * 0.6, d: 0.6 + Math.random() * 0.8 }));
+
+  // Uderzenie klątwy: fala po ziemi, pioruny w górę, odłamki, pęknięcia zostają na ziemi.
+  function uderzenieKlatwy(z) {
+    pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: z.zasieg * 1.15, t: 0, czas: 0.45, kolor: 0xb070ff, ziemia: true });
+    pierscienie.push({ x: z.x, y: z.y, r0: 10, r1: z.zasieg * 0.7, t: 0, czas: 0.22, kolor: 0xf0dcff, ziemia: true });
+    for (let i = 0; i < 9; i++) {
+      const a = losuj(0, TAU), r = losuj(20, z.zasieg * 0.9), x0 = z.x + Math.cos(a) * r, y0 = z.y + Math.sin(a) * r * PERSP;
+      const pkt = [x0, y0], wys = losuj(60, 150), n = 6;
+      for (let k = 1; k <= n; k++) pkt.push(x0 + losuj(-14, 14) + (z.x - x0) * 0.15 * k / n, y0 - wys * k / n);
+      pioruny.push({ pkt, t: 0, czas: losuj(0.18, 0.34) });
+    }
+    for (let i = 0; i < 14; i++) { const a = i / 14 * TAU; kurz(z.x + Math.cos(a) * 14, z.y + Math.sin(a) * 7, a, 1, 2.2); }
+    for (let i = 0; i < 10; i++) { const a = losuj(0, TAU), v = losuj(120, 260); obloczek(z.x, z.y - 6, Math.cos(a) * v, Math.sin(a) * v * PERSP, 2, 4, losuj(0.3, 0.5), 0.9, 0x1a0f24, true); }
+    // pęknięcia: rysowane raz do śladów na ziemi
+    const g = new P.Graphics();
+    for (let i = 0; i < 10; i++) {
+      let a = i / 10 * TAU + losuj(-0.25, 0.25), x = z.x, y = z.y; const dl = losuj(50, z.zasieg * 0.85);
+      const pk = [[x, y]];
+      for (let d = 0; d < dl; d += 16) { a += losuj(-0.5, 0.5); x += Math.cos(a) * 16; y += Math.sin(a) * 16 * PERSP; pk.push([x, y]); }
+      for (const [szer, kol, al] of [[4, 0x0b0710, 0.45]]) {      // ślady mają pół rozdzielczości; bez fioletu, bo na stałe wyglądał jak bazgroły (25 XI)
+        g.lineStyle(szer, kol, al); g.moveTo(pk[0][0], pk[0][1]); for (const [px, py] of pk.slice(1)) g.lineTo(px, py);
+      }
+    }
+    renderer.render(g, { renderTexture: sladyRT, clear: false }); g.destroy();
+    stanRys.kop.y += 10; stanRys.ucisk = 1.4; stanRys.fiolet = 1; stanRys.zadyszka += 0.15;
+    napis(z.wir ? 'Wir z bagna' : 'Klątwa', z.x, z.y - 110, 0xc8a0ff);
+  }
+
+  // ---------- potwory z filmów Przemka ----------
+  // Klatka zależy od stanu z walka.js: zamach i skok idą za czasem ataku, chód za przebytą drogą,
+  // trafienie (rozpoznane po błysku) przerywa chód krótkim wstrząsem, ogłuszenie pokazuje cały film trafienia.
+  // Potwory w wodzie (Patryk, 28 XI 02:45: „potwory jak debile się wynurzają z wody”): stały i chodziły po wodzie całe,
+  // a wynurzanie było przesunięciem całej postaci. Teraz klatka jest ucięta na linii wody: widać tylko to, co nad nią.
+  // W płytkiej wodzie po kolana, w głębokiej po pas; wynurzający się wychodzi spod tej linii.
+  const ucieteKlatki = new Map();
+  function ucieta(k, czesc) {                                            // czesc: jaka część wysokości (stopy → czubek) jest pod wodą
+    const st = Math.min(15, Math.round(czesc * 16)); if (st <= 0) return null;
+    let l = ucieteKlatki.get(k.t); if (!l) ucieteKlatki.set(k.t, l = []);
+    if (!l[st]) { const fr = k.t.frame; l[st] = new P.Texture(k.t.baseTexture, new P.Rectangle(fr.x, fr.y, fr.width, Math.max(2, fr.height * k.ay * (1 - st / 16)))); }
+    return l[st];
+  }
+  let dtKl = 1 / 60;
+  function rysujWrogaZFilmu(e, fw, b, gra) {
+    const typ = e.typ;
+    const sx = Math.cos(typ.pancerz && e.kier !== undefined ? e.kier : e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'przemiana' || (e.stan === 'odpoczynek' && !typ.boss) ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;   // pełzacz patrzy tam, gdzie się obrócił
+    if (e.flash > (e._fl || 0) + 0.001) e._trafOd = czas;                 // nowy cios: błysk urósł
+    e._fl = e.flash;
+    const odTraf = czas - (e._trafOd === undefined ? -9 : e._trafOd);
+    let k, oczy = false;
+    const at = e.at ? '_' + e.at.nazwa : '', czasy = e.at || e.czar || typ;            // boss: każdy atak ma własne klatki (zamach_ciecie, skok_pazur…)
+    const trafA = typ.boss && e.faza === 2 && !typ.czary ? null : 'trafienie';             // po przemianie nie ma filmu trafienia: zostaje błysk
+    if (e.stan === 'przemiana') k = fw.anim.przemiana ? klatkaW(fw, 'przemiana', e.t / typ.przemiana.czas) : klatkaPetliW(fw, 'trafienie', e.t * 0.9);
+    else if (e.stan === 'zamach') { k = klatkaW(fw, 'zamach' + at, e.t / czasy.zamach); oczy = !typ.ciezki; }   // kolos unosi pięść nad głowę i zasłania oczy; ostrzega go krąg na ziemi
+    else if (e.stan === 'skok') k = klatkaW(fw, 'skok' + at, e.t / czasy.skok);
+    else if (e.stan === 'ogluszony' && trafA) k = klatkaW(fw, trafA, Math.min(1, e.t / (e.ogluszCzas || 1.2)));
+    else if (odTraf < fw.trafienie && trafA && !(typ.boss && e.stan === 'odpoczynek')) k = klatkaW(fw, trafA, 0.4 * odTraf / fw.trafienie);
+    else if (e.stan === 'odpoczynek' && typ.boss && e.at) k = klatkaW(fw, 'odpoczynek' + at, e.t / Math.max(0.3, e.odpoczynek * 0.85));
+    else if (e.stan === 'odpoczynek' && e.t < 0.6 && fw.anim.odpoczynek) k = klatkaW(fw, 'odpoczynek', e.t / 0.6);
+    else { k = klatkaPetliW(fw, typ.boss && e.faza === 2 && fw.anim.chod2 ? 'chod2' : 'chod', e.anim * 70 / (typ.boss && e.faza === 1 && fw.drogaChod ? fw.drogaChod : fw.droga)); oczy = true; }   // boss w 1. fazie: 2 cykle kroków w liście (ok. 95 jednostek na cykl), w 2.: ok. 4,6 cyklu (Patryk, 25 XI 21:59: „jeździ po mapie”)
+    const zn = sx === fw.patrzy ? 1 : -1, odB = e.x >= b.x ? 1 : -1;
+    let rot = 0, skx = 1, sky = 1;
+    if (e.flash > 0) { const f = e.flash / 0.12; rot += odB * (typ.ciezki ? 0.05 : 0.12) * f; sky *= 1 - 0.08 * f; skx *= 1 + 0.06 * f; }
+    // Wbicie i doskok mają już filmy (Veo z pierwszej i ostatniej klatki), więc przenikanie póz zniknęło.
+    // Doskok dostaje tylko łuk lotu z kodu, bo w filmie podskakuje w miejscu, a w grze leci na bohatera.
+    let nast = null, przenik = 0, wzlot = 0;
+    if (typ.boss && e.at && e.at.leci && e.stan === 'skok') { const kk = Math.min(1, e.t / (czasy.skok * czasy.trafW)); wzlot = 45 * Math.sin(Math.PI * kk); }
+    if (typ.doskok && e.stan === 'skok') wzlot = 18 * Math.sin(Math.PI * Math.min(1, e.t / typ.skok));
+    const sp = pulaWrogow.wez();
+    sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.scale.set(fw.skala * zn * skx, fw.skala * sky); sp.rotation = rot;
+    let zan = 0;
+    if (BAGNO && wzlot <= 0) {
+      const g = glebia(e.x, e.y), cel = g <= 0 ? 0 : g < 1 ? 0.06 + 0.22 * g : 0.36;
+      e._zan = e._zan === undefined ? cel : e._zan + (cel - e._zan) * Math.min(1, dtKl * 6);
+      zan = e._zan;
+      if (e.zWody && e.stan === 'wynurza') zan = Math.max(zan, 0.94 * (1 - e.widac));   // wyłazi spod wody
+    }
+    const tz = zan > 0.03 ? ucieta(k, zan) : null;
+    if (tz) { sp.texture = tz; sp.anchor.set(k.ax, 1); }                  // linia wody w miejscu stóp
+    const widac = e.stan === 'wynurza' && e.zWody && BAGNO ? Math.min(1, e.widac * 3) : e.widac;
+    sp.position.set(e.x + (e.drzy || 0), e.y - wzlot); sp.zIndex = e.y; sp.alpha = e.stan === 'wynurza' || e.stan === 'mgla' ? widac : 1;
+    sp.tint = fw.zastepczy || 0xffffff;                                                   // z filmu każdy ma własne kolory (kolor topielca jest tylko dla zastępczego ghula)
+    if (nast && przenik > 0.02) {
+      const s2 = pulaWrogow.wez(); s2.tint = sp.tint; s2.texture = nast.t; s2.anchor.set(nast.ax, nast.ay); s2.scale.copyFrom(sp.scale); s2.rotation = rot;
+      s2.position.copyFrom(sp.position); s2.zIndex = e.y + 0.005; s2.alpha = przenik; sp.alpha = 1 - 0.6 * przenik;
+    }
+    if (e.flash > 0) {                                                     // rozbłysk przy trafieniu
+      const bl = pulaBlyskow.wez(); bl.texture = sp.texture; bl.anchor.copyFrom(sp.anchor); bl.scale.copyFrom(sp.scale); bl.rotation = rot;
+      bl.position.copyFrom(sp.position); bl.zIndex = e.y + 0.01; bl.alpha = 0.6 * e.flash / 0.12;
+    }
+    const cs = pulaCieni.wez(); cs.position.set(e.x, e.y + 1); cs.width = e.promien * fw.cien; cs.height = e.promien * 1.3; cs.alpha = sp.alpha * Math.max(0, 1 - zan * 4);   // w wodzie bez cienia
+    const zanY = zan * k.t.frame.height * k.ay * fw.skala;                 // o tyle głowa jest niżej
+    if (oczy && zan < 0.8) {                                                            // oczy świecą w ciemności; przed atakiem rozbłyskują
+      const oko = pulaOczu.wez(); oko.texture = typ.ciezki ? T.okoBursztyn : T.okoCzerwone;
+      oko.position.set(e.x + (e.drzy || 0) + sx * fw.oko.x, e.y + fw.oko.y + zanY);
+      const mocOka = e.stan === 'zamach' ? 1.7 + Math.sin(czas * 40) * 0.3 : 1;
+      oko.width = oko.height = (typ.ciezki ? 16 : 11) * mocOka; oko.alpha = sp.alpha * 0.8; oko.tint = typ.pocisk ? 0xc890ff : 0xffffff;   // wiedźma ma fioletowe oczy
+    }
+    if (e.stan === 'ogluszony') {                                          // wiruje mu w głowie (i dostaje podwójne obrażenia)
+      for (let i = 0; i < 3; i++) {
+        const a = czas * 6 + i * TAU / 3, x = e.x + sx * fw.oko.x * 0.6 + Math.cos(a) * 12, y = e.y + fw.oko.y - 16 + Math.sin(a) * 4;
+        znaki.lineStyle(0); znaki.beginFill(0xffe2a0, 0.9); znaki.drawCircle(x, y, 2.4); znaki.endFill();
+      }
+    }
+    zapowiedzKolosa(e, gra);
+  }
+  // kolos zapowiada uderzenie kręgiem na ziemi, a gdy wali, ziemia faluje
+  function zapowiedzKolosa(e, gra) {
+    if (e.typ.doskok && e.stan === 'zamach' && e.celSkoku && e.t >= e.typ.zamach * 0.4) {   // bestia: zamrożony skok, smuga i krąg lądowania
+      const q = Math.min(1, (e.t - e.typ.zamach * 0.4) / (e.typ.zamach * 0.6)), c = e.celSkoku;
+      znakiZiemia.lineStyle(10, 0xff4a2a, 0.12 + 0.18 * q); znakiZiemia.moveTo(e.x, e.y); znakiZiemia.lineTo(c.x, c.y);
+      znakiZiemia.lineStyle(2.5, 0xff5a3a, 0.5 + 0.4 * q); znakiZiemia.beginFill(0xff3a1a, 0.08 + 0.2 * q); znakiZiemia.drawEllipse(c.x, c.y, 34, 34 * PERSP); znakiZiemia.endFill(); znakiZiemia.lineStyle(0);
+    }
+    if (e.typ.ciezki && e.stan === 'zamach' && e.cel) {
+      const q = ogr(e.t / (e.at || e.typ).zamach, 0, 1);
+      { const zK = krag(e.cel.x, e.cel.y, (e.at || e.typ).strefa, q); znakiZiemia.lineStyle(zK ? 0 : 3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
+        znakiZiemia.drawEllipse(e.cel.x, e.cel.y, (e.at || e.typ).strefa, (e.at || e.typ).strefa * PERSP); znakiZiemia.endFill(); }
+      znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0xff6a3a, 0.3); znakiZiemia.drawEllipse(e.cel.x, e.cel.y, (e.at || e.typ).strefa * q, (e.at || e.typ).strefa * PERSP * q); znakiZiemia.endFill();
+    }
+    if (e.typ.ciezki && e.stan === 'skok' && e.cel && !e._uderzyl && e.t >= (e.at || e.typ).skok * ((e.at && e.at.trafW) || 0)) {   // doskok: kurz dopiero przy lądowaniu
+      e._uderzyl = true;
+      pierscienie.push({ x: e.cel.x, y: e.cel.y, r0: 20, r1: (e.at || e.typ).strefa * 1.4, t: 0, czas: 0.4, kolor: 0xd8c8b0, ziemia: true });
+      kurz(e.cel.x, e.cel.y, 0, 6, 1.4); kurz(e.cel.x, e.cel.y, Math.PI, 6, 1.4);
+      for (let i = 0; i < 8; i++) gra.slady.push({ typ: 'kropla', x: e.cel.x + losuj(-40, 40), y: e.cel.y + losuj(-20, 20), r: 0.1 });
+    }
+    if (e.stan !== 'skok') e._uderzyl = false;
+  }
+  // śmierć z filmu: potwór pada (ghul na plecy, kolos na twarz), a ostatnia klatka zostaje na ziemi
+  function padaZFilmu(f, i, dt) {
+    const s = f.s, fw = f.fw, q = Math.min(1, f.t / f.czas);
+    const dx = Math.cos(s.kat), dy = Math.sin(s.kat), slizg = (f.ciezki ? 8 : 18) * latwo(Math.min(1, q * 2));
+    const x = s.x + dx * slizg, y = s.y + dy * slizg, zn = s.sx === fw.patrzy ? 1 : -1;
+    const al = f.gasnie >= 0 ? Math.max(0, 1 - f.gasnie / 0.15) : 1;
+    const k = klatkaW(fw, 'smierc', q);
+    // wiedźma rozpływa się w kałużę: w filmie kałuża jest trzy razy szersza od niej, więc pod koniec ją zmniejszamy
+    const kz = fw.kaluza ? 1 - (1 - fw.kaluza) * latwo(ogr((q - 0.5) / 0.35, 0, 1)) : 1, sk = fw.skala * kz;
+    const sp = pulaKawalkow.wez(); sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.position.set(x, y); sp.rotation = 0;
+    sp.scale.set(sk * zn, sk); sp.zIndex = y; sp.alpha = al;
+    if (f.t < 0.12) { const bl = pulaBlyskow.wez(); bl.texture = k.t; bl.anchor.set(k.ax, k.ay); bl.scale.copyFrom(sp.scale); bl.rotation = 0; bl.position.set(x, y); bl.zIndex = y + 0.01; bl.alpha = 0.7 * (1 - f.t / 0.12); }
+    if (q >= 1 && f.gasnie < 0) {
+      const kt = fw.k[fw.anim.trup[0]];
+      zostaw([{ tex: kt.t, ax: kt.ax, ay: kt.ay, x, y, rot: 0, sx: sk * zn, sy: sk, znika: fw.kaluza ? 20 : 0 }]); f.gasnie = 0;
+      if (f.ciezki) { pierscienie.push({ x: x + zn * 60, y, r0: 20, r1: 110, t: 0, czas: 0.4, kolor: 0xb8a890, ziemia: true }); kurz(x + zn * 60, y, 0, 6, 1.6); kurz(x + zn * 60, y, Math.PI, 6, 1.6); stanRys.kop.y += 6; }
+      else kurz(x - zn * 25, y, s.kat, 3, 0.8);
+    } else if (f.gasnie >= 0) { f.gasnie += dt; if (f.gasnie > 0.15) padajace.splice(i, 1); }
+  }
+
+  function rysuj(gra, dt, zdarzenia) {
+    dtKl = dt;
+    czas += dt;
+    // bagno: deszcz i bąble robią kręgi na głębokiej wodzie
+    if (BAGNO && pierscienie.length < 40) for (let i = 0; i < 3; i++) if (Math.random() < dt * 4) {
+      const x = gra.bohater.x + (Math.random() - 0.5) * 1400, y = gra.bohater.y + (Math.random() - 0.5) * 900; if (glebia(x, y) < 1.05) continue;
+      pierscienie.push({ x, y, r0: 2, r1: 10 + Math.random() * 16, t: 0, czas: 0.9 + Math.random() * 0.8, kolor: 0x7c8c74, ziemia: true, gr: 1.5, alfa: 0.45 });
+    }
+    const b = gra.bohater;
+    if (chataW) {                                                      // izba wiedźmy: dach gaśnie w ćwierć sekundy
+      const otw = gra.drzwiW ? gra.drzwiW.o : 1, dr = CHATA_WIEDZMY.drzwi;
+      const wI = wIzbieWiedzmy(b) || (otw > 0.5 && b.y < dr.y + 10 && b.y > dr.y - 14 && b.x > dr.x0 && b.x < dr.x1);   // w progu otwartych drzwi dach już gaśnie
+      stanRys.izbaW = ogr((stanRys.izbaW || 0) + (wI ? 1 : -1) * dt * 4, 0, 1);
+      const iw = stanRys.izbaW;
+      chataW.alpha = 1 - iw; chataW.visible = iw < 1;
+      if (wnetrzeW) { wnetrzeW.alpha = iw; wnetrzeW.visible = iw > 0; }
+      if (kociolW) { kociolW.alpha = iw; kociolW.visible = iw > 0; }   // pod spodem kocioł z obrazu z dachem, zawsze cały
+      if (izbaWPrzod) {
+        // stoi przed bohaterem i przed potworami w izbie (28 XI: potwór w izbie bliżej ściany niż bohater wychodził na ścianę)
+        let przedY = b.y; for (const e of gra.wrogowie) if (e.y > przedY && wIzbieWiedzmy(e)) przedY = e.y;
+        izbaWPrzod.alpha = iw; izbaWPrzod.visible = iw > 0; izbaWPrzod.zIndex = przedY + 1;
+        lataZamknieta.alpha = iw * (1 - otw); lataZamknieta.visible = lataZamknieta.alpha > 0.01; lataZamknieta.zIndex = przedY + 1.1;
+        lataOtwarta.alpha = (1 - iw) * otw; lataOtwarta.visible = lataOtwarta.alpha > 0.01;
+      }
+    }
+    // kałuża po wiedźmie wsiąka w ziemię: po 20 s blednie przez 4 s i znika (Patryk, 25 XI 16:57)
+    // każde inne ciało po WSIAKA s ciemnieje, spłaszcza się i znika; krew pod nim zostaje
+    for (let i = trupy.length - 1; i >= 0; i--) {
+      const t = trupy[i], q = (czas - t.od - (t.k.znika || WSIAKA)) / (t.k.znika === 20 ? 4 : WSIAKA_DL); if (q <= 0) continue;
+      if (q >= 1) { t.sp.destroy(); trupy.splice(i, 1); continue; }
+      const c = Math.round(255 - 165 * Math.min(1, q * 1.6));
+      t.sp.tint = (c << 16) | (Math.round(c * 0.9) << 8) | Math.round(c * 0.8);
+      t.sp.alpha = 1 - q * q; t.sp.scale.y = t.k.sy * (1 - 0.35 * q);
+    }
+    // dach znika w ćwierć sekundy, gdy bohater wejdzie do izby, i wraca, gdy wyjdzie (jak w Tibii)
+    const wProgu = b.x > CHATA.przejscie.x0 && b.x < CHATA.przejscie.x1 && b.y > CHATA.przejscie.y0 && b.y < CHATA.przejscie.y1 + 6;   // w progu dach już gaśnie
+    if (bezDachu) stanRys.bezDachu = ogr(stanRys.bezDachu + (b.wChacie || wProgu ? 1 : -1) * dt * 4, 0, 1);
+    const fD = stanRys.bezDachu;
+    chata.alpha = 1 - fD; chata.visible = fD < 1;
+    izbaSpod.alpha = izbaPrzod.alpha = fD; izbaSpod.visible = izbaPrzod.visible = fD > 0;
+    const oD = gra.drzwi ? gra.drzwi.o : 0, eD = oD * oD * (3 - 2 * oD);                 // skrzydło zwalnia na końcu obrotu
+    drzwiC.visible = oD > 0.001 && fD < 1; drzwiC.alpha = 1 - fD;
+    drzwiIzby.alpha = fD * (1 - eD); drzwiIzby.visible = drzwiIzby.alpha > 0.01;
+    lisc.scale.x = CHATA.skala * (1 - 0.8 * eD); lisc.skew.y = -0.32 * eD;              // obraca się do środka: węższe i uniesione z prawej
+    const cien = Math.round(255 - 110 * eD); lisc.tint = (cien << 16) | (cien << 8) | cien;
+
+    // zdarzenia, które widać na obrazie
+    for (const z of zdarzenia) {
+      if (z.typ === 'portal_zamkniety') { pierscienie.push({ x: z.x, y: z.y - 70, r0: 8, r1: 70, t: 0, czas: 0.35, kolor: 0xe0c0ff }); pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 90, t: 0, czas: 0.45, kolor: 0x9a40ff, ziemia: true }); }
+      if (z.typ === 'totem_budzi') { pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 420, t: 0, czas: 1.2, kolor: 0xa040ff, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 90, r0: 10, r1: 160, t: 0, czas: 0.6, kolor: 0xe0c0ff }); stanRys.totemBudzi = czas; }
+      if (z.typ === 'mikstura') stanRys.jedno = { n: 'pije', od: czas, dl: 1.5 };
+      else if (z.typ === 'drewno' || z.typ === 'kartka') stanRys.jedno = { n: 'podnosi', od: czas, dl: 1.3 };
+      else if (z.typ === 'podniesione') stanRys.jedno = { n: 'podnosi', od: czas, dl: 0.9, schyla: true };   // łup z ziemi: szybki skłon (walka.js, b.schyla)
+      if (z.typ === 'parowanie') { napis('Sparowane!', b.x, b.y - 96, 0xffe2a0); pierscienie.push({ x: b.x, y: b.y - 40, r0: 20, r1: 90, t: 0, czas: 0.3, kolor: 0xfff0c0 }); }
+      else if (z.typ === 'grosze_z') napis(`+${z.ile}`, z.x - 12, z.y - 70, 0xe8c060, ikonaRzeczy('moneta'));
+      else if (z.typ === 'grzeznie') napis('Miecz grzęźnie', b.x, b.y - 96, 0xc9ccd2);
+      else if (z.typ === 'chwyt') { napis('Trzyma! Tnij!', b.x, b.y - 96, 0x9fd0b0); pierscienie.push({ x: b.x, y: b.y, r0: 50, r1: 20, t: 0, czas: 0.3, kolor: 0x6a9a80, ziemia: true }); }
+      else if (z.typ === 'wynurza') for (let i = 0; i < 3; i++) pierscienie.push({ x: z.x, y: z.y, r0: 6 + i * 10, r1: 50 + i * 30, t: 0, czas: 0.7 + i * 0.25, kolor: 0x90a890, ziemia: true, gr: 2.5, alfa: 0.6 });
+      else if (z.typ === 'unikniety') napis('Unik', b.x, b.y - 96, 0xa8c4e0);
+      else if (z.typ === 'przeciete') napis(`Przecięte: ${z.ile}`, b.x, b.y - 96, 0xe8b070);
+      else if (z.typ === 'mgla') { pierscienie.push({ x: z.x, y: z.y, r0: 10, r1: 130, t: 0, czas: 0.6, kolor: 0xa8c4b0, ziemia: true }); }
+      else if (z.typ === 'przemiana') { pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 260, t: 0, czas: 0.8, kolor: 0xff6a2a, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 80, r0: 10, r1: 140, t: 0, czas: 0.5, kolor: 0xffb070 }); }
+      else if (z.typ === 'bossPadl') { bossTrup = { x: z.x, y: z.y, od: czas }; pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 300, t: 0, czas: 1.1, kolor: 0xff6a2a, ziemia: true }); pierscienie.push({ x: z.x, y: z.y - 60, r0: 10, r1: 160, t: 0, czas: 0.7, kolor: 0x2a1410 }); }
+      else if (z.typ === 'odkryte') pierscienie.push({ x: z.x, y: z.y, r0: 10, r1: 60, t: 0, czas: 0.5, kolor: 0xffe0a0, ziemia: true });
+      else if (z.typ === 'pocisk_zgasl') pierscienie.push({ x: z.x, y: z.y, r0: 8, r1: 46, t: 0, czas: 0.25, kolor: 0xb070ff });
+      else if (z.typ === 'naladowany') pierscienie.push({ x: b.x, y: b.y, r0: 50, r1: 20, t: 0, czas: 0.22, kolor: 0xffd890, ziemia: true });
+      else if (z.typ === 'zamach' && z.mocny) pierscienie.push({ x: b.x, y: b.y, r0: 30, r1: gra.bron.zasieg * 1.1, t: 0, czas: 0.3, kolor: 0xffe8c0, ziemia: true });
+      // animacje ciała i uderzenia
+      if (z.typ === 'zamach') {
+        stanRys.zadyszka += z.mocny ? 0.1 : 0.04 + 0.015 * gra.bron.obrazenia;
+        const ka = b.cios ? b.cios.kat : b.kat;
+        kurz(b.x - Math.cos(ka) * 10, b.y - Math.sin(ka) * 5, ka + Math.PI, z.mocny ? 5 : 2 + gra.bron.obrazenia, z.mocny ? 1.4 : 0.8 + 0.15 * gra.bron.obrazenia);
+      } else if (z.typ === 'trafienie') {
+        for (const m of z.gdzie || []) {
+          blysk(['bryzg_lot_a', 'bryzg_lot_b', 'bryzg_lot_c', 'bryzg_lot_d'][(Math.random() * 4) | 0], m.x, m.y - m.wys, m.kat + losuj(-0.3, 0.3), z.mocny ? 95 : 60, 0.32, false);
+          if (z.mocny) blysk('bryzg_wybuch', m.x, m.y - m.wys, null, 90, 0.3, false);
+        }
+        for (const m of z.gdzie || []) ciecia.push({ x: m.x, y: m.y - m.wys, kat: m.kat, t: 0, czas: z.mocny ? 0.2 : 0.14, dl: z.mocny ? 78 : 40 + 9 * gra.bron.obrazenia });
+        const ka = b.cios ? b.cios.kat : b.kat, sila = z.mocny ? 9 : 2.5 + gra.bron.obrazenia * 1.5;
+        stanRys.kop.x += Math.cos(ka) * sila; stanRys.kop.y += Math.sin(ka) * sila * PERSP;
+        if (z.mocny) stanRys.ucisk = 1;
+      } else if (z.typ === 'brak_tchu') { stanRys.brakTchu = 1;
+      } else if (z.typ === 'rana') { stanRys.ranaKier = Math.sign(b.odrzutX) || -(Math.cos(b.kat) >= 0 ? 1 : -1); stanRys.zadyszka += 0.12; }
+      else if (z.typ === 'blok') {
+        if (z.x != null) { blysk(['iskry_a', 'iskry_b', 'iskry_c'][(Math.random() * 3) | 0], z.x, z.y, z.kat + Math.PI + losuj(-0.7, 0.7), 95, 0.32, true); blysk('iskry_gwiazda', z.x, z.y, null, 62, 0.24, true); }
+        stanRys.odepchniecie = 1; stanRys.blokOd = Math.min(stanRys.blokOd, czas - 0.06); stanRys.blokCios = czas; }   // cios w miecz: ręce na chwilę uginają się
+      else if (z.typ === 'totem_traf') blysk('iskry_gwiazda', z.x + losuj(-12, 12), z.y - 70, null, 60, 0.22, true);
+      else if (z.typ === 'totem_rozbity') {
+        blysk('iskry_wybuch', z.x, z.y - 70, null, 170, 0.5, true); pierscienie.push({ x: z.x, y: z.y, r0: 20, r1: 200, t: 0, czas: 0.5, kolor: 0xb070ff, ziemia: true });
+        for (let i = 0; i < 10; i++) obloczek(z.x + losuj(-20, 20), z.y - losuj(20, 120), losuj(-60, 60), losuj(-50, 10), 8, losuj(18, 30), losuj(0.6, 1.1), 0.5, 0x8a5cc8, false);
+        napis(z.cicha ? 'Totem rozbity' : 'Pękł', z.x, z.y - 190, 0xc9a0ff);
+      }
+      else if (z.typ === 'kartka') pierscienie.push({ x: z.x, y: z.y, r0: 10, r1: 70, t: 0, czas: 0.4, kolor: 0xffb070, ziemia: true });
+      else if (z.typ === 'mikstura') { napis(`+${LUP.leczy}`, b.x + 18, b.y - 84, 0xff6a5a); pierscienie.push({ x: b.x, y: b.y, r0: 10, r1: 60, t: 0, czas: 0.35, kolor: 0xff7070, ziemia: true }); }
+      else if (z.typ === 'podniesione') napis(z.rzecz ? PRZEDMIOTY[z.rzecz].nazwa : 'Mikstura', z.x, z.y - 40, z.rzecz ? 0xe8d8b0 : 0xf0b0b0);
+      else if (z.typ === 'dorzucone') { for (let i = 0; i < 8; i++) obloczek(z.x + losuj(-10, 10), z.y - 20, losuj(-30, 30), losuj(-90, -40), 3, losuj(8, 14), losuj(0.4, 0.8), 0.6, 0xffa050, false); }
+      else if (z.typ === 'parowanie') { stanRys.pchniecie = 1; if (z.x != null) { blysk('iskry_wybuch', z.x, z.y, null, 130, 0.36, true); blysk(['iskry_a', 'iskry_b'][(Math.random() * 2) | 0], z.x, z.y, z.kat + Math.PI, 105, 0.34, true); } }
+      else if (z.typ === 'klatwa_laduje') pierscienie.push({ x: b.x, y: b.y, r0: KLATWA.zasieg, r1: 24, t: 0, czas: KLATWA.ladowanie, kolor: 0x9a5cff, ziemia: true });
+      else if (z.typ === 'klatwa') uderzenieKlatwy(z);
+    }
+    stanRys.zadyszka = ogr(stanRys.zadyszka - dt * 0.05, 0, 1);
+    stanRys.oddech += dt * (2 + 2.8 * stanRys.zadyszka);
+    stanRys.odepchniecie = Math.max(0, stanRys.odepchniecie - dt * 5); stanRys.pchniecie = Math.max(0, stanRys.pchniecie - dt * 5);
+    if (b.stan === 'unik' && stanRys.poprzStan !== 'unik') kurz(b.x, b.y, b.unikKat + Math.PI, 4, 1.1);
+    // „Krew za krew”: życie wróciło po ciosie
+    if (b.stan !== 'upadl' && b.zycie > stanRys.poprzZycie + 0.5 && gra.faza !== 'przerwa') napis(`+${Math.round(b.zycie - stanRys.poprzZycie)}`, b.x + 18, b.y - 84, 0xff6a5a);
+    stanRys.poprzZycie = b.zycie;
+    // kałuża pod bohaterem, gdy upada
+    if (b.stan === 'upadl' && stanRys.poprzStan !== 'upadl') { stanRys.upadlOd = czas; gra.slady.push({ typ: 'kaluza', x: b.x, y: b.y, duza: true }); }
+    stanRys.poprzStan = b.stan;
+    // tryb walki: wróg w promieniu 700 (albo cios w toku) trzyma miecz w gardzie, 2 s po ostatnim opuszcza go
+    if (b.stan === 'cios' || gra.wrogowie.some(e => e.stan !== 'wynurza' && Math.abs(e.x - b.x) < 700 && Math.abs(e.y - b.y) < 700)) stanRys.walka = 2; else stanRys.walka = Math.max(0, stanRys.walka - dt);
+    A = gra.bronKlucz === 'wielki' ? ABW : AB;
+    if (AB.wyciaga) {                                                     // miecz: schowany, wyciaga, w dłoni, chowa
+      // walka: cały etap nocy (od chwili, gdy wychodzą potwory) albo wróg blisko; chowa po chwili spokoju
+      const walczy = (gra.faza === 'walka' || stanRys.walka > 0) && !b.wChacie && b.stan !== 'upadl';
+      stanRys.spokoj = walczy ? 0 : stanRys.spokoj + dt;
+      const m = stanRys.miecz;
+      if (b.stan === 'cios' || b.stan === 'unik' || b.blok) { stanRys.miecz = 'w_dloni'; stanRys.mieczP = 1; stanRys.spokoj = 0; }   // w biegu walki miecz jest już w dłoni
+      else if (walczy && (m === 'schowany' || m === 'chowa')) stanRys.miecz = 'wyciaga';
+      else if (stanRys.spokoj > MIECZ.spokojPrzed && (m === 'w_dloni' || m === 'wyciaga')) stanRys.miecz = 'chowa';
+      // W ruchu nie gra filmu wyciągania ani chowania, bo stojąca postać sunęłaby po mapie (Patryk, 24 XI 19:32).
+      // Biegnąc chwyta miecz od razu (bieg z mieczem) albo od razu go chowa; film gra tylko na stojąco.
+      if (b.idzie && stanRys.miecz === 'wyciaga') { stanRys.miecz = 'w_dloni'; stanRys.mieczP = 1; }
+      if (b.idzie && stanRys.miecz === 'chowa') { stanRys.miecz = 'schowany'; stanRys.mieczP = 0; }
+      if (stanRys.miecz === 'wyciaga') { stanRys.mieczP = Math.min(1, stanRys.mieczP + dt / MIECZ.wyciaga); if (stanRys.mieczP >= 1) stanRys.miecz = 'w_dloni'; }
+      if (stanRys.miecz === 'chowa') { stanRys.mieczP = Math.max(0, stanRys.mieczP - dt / MIECZ.chowa); if (stanRys.mieczP <= 0) stanRys.miecz = 'schowany'; }
+    }
+    dorysujSlady(gra.slady);
+
+    // kamera
+    const celX = b.x + Math.cos(b.kat) * 36, celY = b.y - 40 + Math.sin(b.kat) * 24;
+    if (!kam.gotowa) { kam.x = celX; kam.y = celY; kam.gotowa = true; }
+    const k = Math.min(1, dt * 5); kam.x += (celX - kam.x) * k; kam.y += (celY - kam.y) * k;
+    const zg = Math.exp(-dt * 16); stanRys.kop.x *= zg; stanRys.kop.y *= zg; stanRys.ucisk = Math.max(0, stanRys.ucisk - dt * 5);
+    const zz = zoom * (1 + 0.045 * stanRys.ucisk * stanRys.ucisk);   // mocny cios: kamera na chwilę się przybliża
+    const pw = vw / 2 / zz, ph = vh / 2 / zz;
+    // telefon w pionie (28 XI): przy dolnym brzegu mapy (start na grobli) bohater stał pod przyciskami. Kamera schodzi wtedy niżej niż mapa.
+    const zapas = vh > vw * 1.2 ? ph * 0.45 : 0;
+    const kx = ogr(kam.x, pw, SZER - pw), ky = ogr(kam.y, ph, WYS - ph + zapas);
+    const drz = gra.wstrzas * 0.8;
+    const ox = Math.round((vw / 2 - kx * zz + ((Math.random() - 0.5) * drz + stanRys.kop.x) * zz) * 2) / 2;
+    const oy = Math.round((vh / 2 - ky * zz + ((Math.random() - 0.5) * drz + stanRys.kop.y) * zz) * 2) / 2;
+    for (const w of [swiat, nad]) { w.scale.set(zz); w.position.set(ox, oy); }
+    window.__ekran = { ox, oy, zz };                // do testów: świat → ekran
+
+    // widoczny kawałek świata (z zapasem na wysokie drzewa)
+    const L = -ox / zz - 140, Pr = (vw - ox) / zz + 140, G = -oy / zz - 60, D = (vh - oy) / zz + 380;
+    for (let i = 0; i < drzewa.length; i++) { const d = DRZEWA[i]; drzewa[i].visible = d.x > L && d.x < Pr && d.y > G && d.y < D; }
+    for (const [sp, o] of ozdobyS) sp.visible = o.x > L && o.x < Pr && o.y > G - 100 && o.y < D;
+
+    // bohater: poza, potem ciało (pochylenie, przysiad, oddech, odrzut po ranie i bloku)
+    if (b.blok && !stanRys.blokowal) stanRys.blokOd = czas; stanRys.blokowal = b.blok;
+    const pz = poza(b, gra), zad = stanRys.zadyszka;
+    if (b.stan === 'unik' && trybBohatera === 'gemini' && maObraz) pz.sx = Math.cos(b.unikKat) >= 0 ? 1 : -1;   // przewrót w stronę uniku
+    let lx = pz.sx * pz.pochyl, sy = pz.przysiad;
+    if (b.flash > 0 && b.stan !== 'upadl') lx += stanRys.ranaKier * 0.32 * (b.flash / 0.25);
+    lx += pz.sx * (0.14 * stanRys.pchniecie - 0.2 * stanRys.odepchniecie);
+    const spokoj = b.stan === 'wolny' && !b.idzie && !b.blok;
+    if (spokoj) { sy *= 1 + Math.sin(stanRys.oddech) * (0.008 + 0.025 * zad); lx += pz.sx * 0.05 * zad; }
+    lx = ogr(lx, -0.5, 0.5);
+    const sxs = 1 / Math.sqrt(sy);
+    const wSwiecie = (x, y) => ({ x: b.x + sxs * x - Math.sin(lx) * sy * y, y: b.y + Math.cos(lx) * sy * y });   // punkt ciała (stopy w 0,0) na świecie
+    const upadl = b.stan === 'upadl', tUp = upadl ? Math.min(1, (czas - stanRys.upadlOd) / 0.35) : 0;
+    const gemF = trybBohatera === 'gemini' && maObraz;                      // z filmu upadek pokazuje sam film, bez obracania
+    const obrot = upadl && !gemF ? -pz.sx * 1.45 * tUp : 0, alfaB = upadl ? (gemF ? 1 : 1 - Math.max(0, czas - stanRys.upadlOd - 1.4) * 0.6) : (b.nietykalny > 0 && b.stan !== 'unik' ? 0.75 : 1);
+    // żar klątwy: im częściej po nią sięgasz, tym cieplejszy, czerwonawy odcień bohatera (cena klątwy, 25 XI)
+    const zarR = Math.round(255 - 30 * (gra.przemiana || 0)), zarG = Math.round(255 - 95 * (gra.przemiana || 0)), zarB = Math.round(255 - 120 * (gra.przemiana || 0));
+    const tint = b.flash > 0 ? 0xff8080 : (pz.blask > 0.05 ? 0xffe6c0 : (zarR << 16) | (zarG << 8) | zarB);
+    const gem = trybBohatera === 'gemini' && maObraz;
+    bohG.visible = !gem && !b.spi; bohS.visible = gem && !b.spi; bohCien.visible = !b.spi;   // śpiącego na posłaniu nie widać
+    // chód: klatki biegną z przebytą drogą. W filmie bohater idzie w bok i trochę do nas, więc idąc tyłem
+    // (od celu albo w górę ekranu) film leci wstecz. Rusza i staje w chwili, gdy nogi się mijają, bez przeskoku.
+    if (stanRys.px === null) { stanRys.px = b.x; stanRys.py = b.y; }
+    const ddx = b.x - stanRys.px, ddy = b.y - stanRys.py, dd = Math.hypot(ddx, ddy);
+    stanRys.px = b.x; stanRys.py = b.y;
+    const chodzi = b.idzie && b.stan === 'wolny' && !b.blok;
+    if (chodzi && dd > 0 && dd < 40) {                                      // w górę ekranu plecami, z zapasem, żeby nie migało
+      if (stanRys.ruch === 'bieg' && ddy < -0.8 * dd) { stanRys.ruch = 'chod_tyl'; }
+      else if (stanRys.ruch === 'bieg' && ddy > 0.8 * dd && AB.chod_przod) { stanRys.ruch = 'chod_przod'; }   // w dół przodem, gdy jest film; z mieczem w pochwie osobny film (27 XI, niżej ruchR)
+      else if (stanRys.ruch === 'chod_tyl' && ddy > -0.5 * dd) { stanRys.ruch = 'bieg'; }
+      else if (stanRys.ruch === 'chod_przod' && ddy < 0.5 * dd) { stanRys.ruch = 'bieg'; }
+    }
+    // W walce, z mieczem w dłoni, biegnie z mieczem przed sobą (Patryk, 24 XI: „jak szarżuje … to z bronią w reku”).
+    // Przy zmianie biegu na bieg z mieczem faza kroku przesuwa się tak, żeby nogi były w tym samym miejscu cyklu.
+    const ruchR = stanRys.ruch === 'bieg' && stanRys.miecz === 'w_dloni' && A.bieg_miecz ? 'bieg_miecz'
+      : stanRys.ruch === 'chod_przod' && stanRys.miecz !== 'w_dloni' && A.chod_przod_s ? 'chod_przod_s' : stanRys.ruch;
+    if (stanRys.ruchR && ruchR !== stanRys.ruchR && RUCH[ruchR] && RUCH[stanRys.ruchR]) stanRys.krok += RUCH[ruchR].mijanie[0] - RUCH[stanRys.ruchR].mijanie[0];
+    stanRys.ruchR = ruchR;
+    const RU = RUCH[ruchR];
+    const faza = () => ((stanRys.krok % 1) + 1) % 1;
+    const doMijania = (kier) => { const d = Math.min(...RU.mijanie.map(m => ((kier * (m - faza())) % 1 + 1) % 1)); return d > 0.995 ? 0 : d; };   // ile cyklu do najbliższego mijania nóg
+    if (chodzi && !stanRys.szedl && stanRys.dochodzi <= 0) {                 // rusza: od nóg razem, nie z pół kroku
+      const f = faza(), m = RU.mijanie.reduce((a, c) => Math.abs(c - f) < Math.abs(a - f) ? c : a);
+      stanRys.krok += m - f;
+    }
+    if (b.idzie && b.stan !== 'unik' && dd > 0 && dd < 40) {
+      stanRys.kierKroku = stanRys.ruch === 'chod_tyl' ? (ddy <= 0 ? 1 : -1) : stanRys.ruch === 'chod_przod' ? (ddy >= 0 ? 1 : -1) : (ddx * pz.sx + 0.3 * ddy >= -0.15 * dd ? 1 : -1);
+      stanRys.krok += stanRys.kierKroku * dd / RU.droga;
+      stanRys.dochodzi = 0;
+    } else if (stanRys.szedl && !chodzi && b.stan === 'wolny' && !b.blok && b.flash <= 0) {
+      stanRys.dochodzi = doMijania(stanRys.kierKroku) > 0.02 ? 0.3 : 0;      // stanął w pół kroku: dostawia nogę
+    }
+    if (stanRys.dochodzi > 0) {
+      const ile = Math.min(doMijania(stanRys.kierKroku), 1.6 * dt);       // dostawia w tempie marszu, najdłużej 0,3 s
+      stanRys.krok += stanRys.kierKroku * ile;
+      stanRys.dochodzi = doMijania(stanRys.kierKroku) < 0.005 || b.idzie || b.stan !== 'wolny' ? 0 : stanRys.dochodzi - dt;
+    }
+    stanRys.szedl = chodzi;
+    let kB = null;
+    if (gem) {
+      kB = klatkiB[klatkaBohatera(b, tUp)];
+      lx *= 0.5;                                     // film sam porusza ciałem, kod tylko dodaje trochę wagi
+      const dj = pz.drgaj ? (Math.random() - 0.5) * pz.drgaj : 0;
+      // krok w gardzie: przy każdym kroku lekko ugina kolana i podnosi się (fala prędkości z walka.js)
+      // Z filmem cofania faza filmu idzie za krokiem gardy; idąc do przodu (w stronę, w którą patrzy) film leci wstecz.
+      if (b.blok && b.idzie) { const f = (b.krokGardy || 0) / TAU; stanRys.cofaFaza = ddx * pz.sx > 0.2 * dd ? -f : f; }
+      const krokG = b.blok && b.idzie && !A.cofa ? 0.5 - 0.5 * Math.cos(b.krokGardy || 0) : 0;
+      ustawPostac(bohS, kB, pz.sx, b.x + dj, b.y, lx, sy * (1 - 0.02 * krokG), obrot);   // bez podnoszenia: wyglądało jak podskoki (Patryk, 25 XI 11:57)
+      if (b.stan === 'unik' && unikPionowy(b)) {
+        // Przewrót w górę i w dół z filmów Patryka (Flow, 24 XI, 14:31): koziołek plecami albo przodem, bez obracania obrazu.
+        bohS.skew.set(0, 0);
+      } else if (b.stan === 'unik') {
+        // Unik w bok i po skosie: przewrót bokiem z filmu, po skosie lekko obrócony w stronę uniku.
+        const p = Math.min(1, b.t / (b.unikCzas || BOHATER.unik.czas)), e = Math.sin(Math.PI * p);
+        const pion = Math.sin(b.unikKat), r = pz.sx * Math.atan2(pion, Math.abs(Math.cos(b.unikKat))) * 0.6 * e, c = 45;
+        bohS.rotation = r;
+        bohS.position.set(b.x + dj - c * Math.sin(r), b.y - c + c * Math.cos(r));
+      }
+      bohS.zIndex = b.y; bohS.alpha = alfaB; bohS.tint = tint;
+    } else {
+      bohG.clear(); rysujBohatera(bohG, b, gra, pz);
+      bohG.position.set(b.x, b.y); bohG.skew.set(-lx, 0); bohG.scale.set(sxs, sy); bohG.rotation = obrot;
+      bohG.zIndex = b.y; bohG.alpha = alfaB; bohG.tint = tint;
+    }
+    poswiata.visible = WARIANT_POSWIATY > 0 && !upadl;
+    if (poswiata.visible) { const mocP = (WARIANT_POSWIATY === 2 ? 1 : 0.8) * Math.min(1, gra.mroczek / 0.5) * (0.92 + 0.08 * Math.sin(czas * 2.3)); poswiata.position.set(b.x, b.y - 2); poswiata.width = 150; poswiata.height = 64; poswiata.alpha = mocP; }
+    bohCien.position.set(b.x, b.y + 1); bohCien.width = kB ? Math.max(40, kB.w * SKALA_B * 0.55) : 40; bohCien.height = 15;
+    // ciepły blask, gdy ładuje mocny cios
+    const sr = wSwiecie(0, -50);
+    blaskBoh.position.set(sr.x, sr.y); blaskBoh.width = blaskBoh.height = 150; blaskBoh.alpha = upadl ? 0 : pz.blask * 0.75;
+    // fioletowy żar przeklętej ręki: rośnie, gdy ją unosi, przy uderzeniu przechodzi w ziemię
+    stanRys.fiolet = Math.max(0, stanRys.fiolet - dt * 2.5);
+    if (b.stan === 'klatwa' && b.t < KLATWA.ladowanie) {
+      const w = b.t / KLATWA.ladowanie, rk = gem ? wSwiecie(-pz.sx * 16, -68) : wSwiecie(-pz.sx * 10, -48);
+      blaskKlatwy.position.set(rk.x, rk.y); blaskKlatwy.width = blaskKlatwy.height = 40 + 90 * w; blaskKlatwy.alpha = 0.35 + 0.55 * w;
+    } else {
+      blaskKlatwy.position.set(b.x, b.y - 10); blaskKlatwy.width = blaskKlatwy.height = 120 + 380 * stanRys.fiolet; blaskKlatwy.alpha = stanRys.fiolet;
+    }
+    // oddech w zimnej nocy: obłoczek przy każdym wydechu, gęstszy po walce
+    const cykl = Math.floor(stanRys.oddech / TAU);
+    if (cykl !== stanRys.cykl) {
+      stanRys.cykl = cykl;
+      if (!upadl && gra.mroczek > 0.3) { const u = gem ? wSwiecie(pz.sx * 8, -85) : wSwiecie(pz.sx * 9, -67); obloczek(u.x, u.y, pz.sx * 16, -8, 2, 9 + 7 * zad, 0.9, 0.1 + 0.25 * zad, 0xd8dde4, false); }
+    }
+
+    // powidoki uniku
+    // (czas gry, więc w zwolnionym tempie i w pauzie powidoki stoją razem z grą)
+    echa.clear();
+    const sl = stanRys.slad, ost = sl[sl.length - 1];
+    if (b.stan === 'unik' && (!ost || gra.czas - ost.t > 0.03)) {
+      sl.push(gem ? { x: bohS.x, y: bohS.y, t: gra.czas, tex: bohS.texture, ax: bohS.anchor.x, ay: bohS.anchor.y, sx: bohS.scale.x, sy: bohS.scale.y, skx: bohS.skew.x, rot: bohS.rotation } : { x: b.x, y: b.y, t: gra.czas });
+    }
+    while (sl.length && (gra.czas - sl[0].t > 0.16 || gra.czas < sl[0].t)) sl.shift();
+    pulaEch.start();
+    for (const s of sl) {
+      const al = 1 - (gra.czas - s.t) / 0.16;
+      if (s.tex) { const e = pulaEch.wez(); e.texture = s.tex; e.anchor.set(s.ax, s.ay); e.position.set(s.x, s.y); e.scale.set(s.sx, s.sy); e.skew.set(s.skx, 0); e.rotation = s.rot || 0; e.alpha = 0.4 * al; }
+      else { echa.lineStyle(0); echa.beginFill(0x9fb4cc, 0.22 * al); echa.drawEllipse(s.x, s.y - 40, 11, 30); echa.endFill(); }
+    }
+    pulaEch.koniec();
+
+    // duch bohatera, gdy zasłania go chata
+    duch.clear();
+    let zasloniety = stanRys.bezDachu < 0.5 && b.y < CHATA.podstawa && (chataZaslania(b.x, b.y - 30) || chataZaslania(b.x, b.y - 60) || chataZaslania(b.x, b.y - 90));   // tułów na pikselach chaty, razem z kominem
+    // Drzewo, które zasłania bohatera, samo przygasa, a bohater zostaje zwykły, jak za totemem
+    // (Patryk, 24 XI 19:41: niebieski duch za drzewem „trochę słabo” wygląda). Przygasanie płynne, w około 0,2 s.
+    for (let i = 0; i < drzewa.length; i++) {
+      // zasłania, gdy stoi przed bohaterem, a tułów bohatera wypada w obrysie obrazu drzewa (bez 12% przezroczystych brzegów)
+      const d = DRZEWA[i], sp = drzewa[i];
+      let zaNim = false;
+      if (b.stan !== 'upadl' && d.y > b.y && d.y - b.y < d.h * 1.1) {
+        const w = Math.abs(sp.width), h = Math.abs(sp.height), ax = sp.scale.x < 0 ? 1 - sp.anchor.x : sp.anchor.x;
+        const xL = sp.x - ax * w + w * 0.12, xR = sp.x - ax * w + w * 0.88, yT = sp.y - sp.anchor.y * h;
+        zaNim = b.x > xL && b.x < xR && b.y - 50 > yT;
+      }
+      const cel = zaNim ? 0.38 : 1, a = drzewa[i].alpha;
+      drzewa[i].alpha = Math.abs(cel - a) < 0.01 ? cel : a + (cel - a) * Math.min(1, dt * 10);
+    }
+    duchS.visible = false;
+    if (zasloniety && b.stan !== 'upadl') {
+      if (gem) { duchS.visible = true; ustawPostac(duchS, kB, pz.sx, bohS.x, bohS.y, lx, sy, bohS.rotation); }
+      else { rysujBohatera(duch, b, gra, pz); duch.position.set(b.x, b.y); duch.skew.set(-lx, 0); duch.scale.set(sxs, sy); }
+    }
+
+    // smuga cięcia i garda
+    smugi.clear(); znaki.clear(); znakiZiemia.clear();
+    {                                                                    // kółko kondycji przy głowie (27 XI 19:11, Przemek: „kondycja powinna być bardziej czytelna”)
+      const b = gra.bohater, f = Math.max(0, Math.min(1, b.sila / BOHATER.sila)), malo = b.sila < kosztUniku(gra, b);
+      stanRys.tchuPelny = f >= 0.995 && !malo ? (stanRys.tchuPelny || 0) + dt : 0;
+      stanRys.tchuAlfa = ogr((stanRys.tchuAlfa || 0) + (stanRys.tchuPelny > 0.7 || b.stan === 'upadl' || b.spi || b.wChacie ? -dt * 3 : dt * 6), 0, 1);
+      stanRys.brakTchu = Math.max(0, (stanRys.brakTchu || 0) - dt * 2.5);
+      const puls = stanRys.brakTchu, a = stanRys.tchuAlfa * Math.max(malo ? 1 : 0.2 + 0.8 * (1 - f), puls);   // im mniej kondycji, tym wyraźniejsze (Przemek, 19:20)
+      if (a > 0.01) {
+        const x = b.x + 30, y = b.y - 92, r = 10 + 4 * puls;
+        znaki.lineStyle(5, 0x000000, 0.5 * a); znaki.drawCircle(x, y, r);
+        const kol = malo ? 0xe04030 : 0xe8c060;
+        if (f > 0.01) { znaki.lineStyle(3.5, puls > 0 ? 0xff5030 : kol, (0.85 + 0.15 * puls) * a); znaki.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + f * TAU); }
+        if (puls > 0) { znaki.lineStyle(2, 0xff5030, puls * a); znaki.drawCircle(x, y, r + 6 + (1 - puls) * 10); }
+        znaki.lineStyle(0);
+      }
+    }
+    for (const p of gra.pociski || []) {                                 // kule klątwy wiedźmy: fioletowa poświata, jasne jądro, krótki ogon
+      const y = p.y - p.z, d = Math.hypot(p.vx, p.vy) || 1, ux = p.vx / d, uy = p.vy / d, puls = 1 + 0.15 * Math.sin(czas * 30 + p.t * 7);
+      smugi.lineStyle(0);
+      for (let i = 4; i >= 1; i--) { smugi.beginFill(0x9a50ff, 0.12 * (5 - i)); smugi.drawCircle(p.x - ux * i * 9, y - uy * i * 9 * PERSP, p.promien * (1 - i * 0.15)); smugi.endFill(); }
+      smugi.beginFill(0x7a30e0, 0.35); smugi.drawCircle(p.x, y, p.promien * 1.6 * puls); smugi.endFill();
+      smugi.beginFill(0xc890ff, 0.85); smugi.drawCircle(p.x, y, p.promien * 0.85 * puls); smugi.endFill();
+      smugi.beginFill(0xf4e8ff, 0.95); smugi.drawCircle(p.x, y, p.promien * 0.4); smugi.endFill();
+      for (let j = 0; j < 4; j++) {                                      // trzaskające pioruny wokół kuli, jak w filmie wiedźmy
+        const a0 = Math.random() * TAU, n = 4, r0 = p.promien * 0.6, r1 = p.promien * (1.8 + Math.random() * 1.2);
+        smugi.lineStyle(j ? 1.2 : 2, j ? 0xd8b0ff : 0xffffff, 0.9);
+        smugi.moveTo(p.x + Math.cos(a0) * r0, y + Math.sin(a0) * r0);
+        for (let k = 1; k <= n; k++) { const r = r0 + (r1 - r0) * k / n, a = a0 + (Math.random() - 0.5) * 0.9; smugi.lineTo(p.x + Math.cos(a) * r, y + Math.sin(a) * r); }
+      }
+      smugi.lineStyle(0);
+      for (let i = 1; i <= 5; i++) { smugi.beginFill(0x2a1640, 0.16 * (6 - i) / 5); smugi.drawCircle(p.x - ux * i * 15 + Math.sin(p.t * 20 + i) * 3, y - uy * i * 15 * PERSP - i * 2, p.promien * (0.5 + i * 0.18)); smugi.endFill(); }   // ciemny dym za kulą
+      znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0x000000, 0.25); znakiZiemia.drawEllipse(p.x, p.y, p.promien, p.promien * PERSP); znakiZiemia.endFill();
+    }
+    for (const k of kregi) k.visible = false; kregiUzyte = 0; czasRys = czas; ruszBlyski(dt);
+    if (pz && pz.smuga) {
+      // Smuga miecza. Patryk, 25 XI: „jakby wychodził z niego to ostrze co leci zamach i dziwacznie to wygląda”.
+      // Było: sierp od samego ciała, od punktu za plecami, i dorysowany drugi miecz na czele łuku.
+      // Teraz: tylko cienki sierp na końcu ostrza (zewnętrzne ~25% zasięgu), krótki ogon za ostrzem,
+      // bez drugiego miecza: ostrze rysuje już klatka z filmu.
+      const s = pz.smuga, sc = wSwiecie(0, -44), cx = sc.x, cy = sc.y, n = 16;
+      const r2 = Math.max(pz.L + 16, gra.bron.zasieg * (s.mocny ? 1.05 : 0.92));
+      const kier = Math.sign(s.do - s.od) || 1, ogon = Math.min(Math.abs(s.do - s.od), s.mocny ? 1.7 : 1.25), od = s.do - kier * ogon;
+      const kol = s.utknal ? 0xffd090 : (s.mocny ? 0xfff0d0 : 0xe6ecf2);
+      const pkt = (f, r) => { const a = od + (s.do - od) * f, l = (s.l0 + (s.l1 - s.l0) * f) * r / r2; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r * PERSP + l]; };
+      const wew = f => r2 * (1 - (s.mocny ? 0.3 : 0.22) * Math.pow(f, 1.3));   // sierp gruby przy ostrzu, ostry na ogonie
+      const moc = (s.mocny ? 0.55 : 0.42) * s.alfa;
+      smugi.lineStyle(0);
+      for (let i = 0; i < n; i++) {
+        const f0 = i / n, f1 = (i + 1) / n, al = moc * Math.pow(f1, 1.6);
+        if (al < 0.01) continue;
+        const [ax, ay] = pkt(f0, r2), [bx, by] = pkt(f1, r2), [ci, di] = pkt(f1, wew(f1)), [ei, gi] = pkt(f0, wew(f0));
+        smugi.beginFill(kol, al); smugi.drawPolygon([ax, ay, bx, by, ci, di, ei, gi]); smugi.endFill();
+      }
+      for (let i = Math.floor(n * 0.3); i < n; i++) {                 // ostra krawędź na zewnątrz łuku
+        const [ax, ay] = pkt(i / n, r2), [bx, by] = pkt((i + 1) / n, r2);
+        smugi.lineStyle(s.mocny ? 3 : 2, 0xffffff, 0.75 * s.alfa * Math.pow((i + 1) / n, 1.4)); smugi.moveTo(ax, ay); smugi.lineTo(bx, by);
+      }
+    }
+    // ładowany miecz żarzy się nad ciemnością
+    if (!gem && pz.blask > 0.02 && pz.ostrze && b.stan !== 'upadl') {
+      const o = pz.ostrze, p1 = wSwiecie(o.hx, o.hy), p2 = wSwiecie(o.tx, o.ty), x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
+      smugi.lineStyle(9, 0xff9a30, 0.28 * pz.blask); smugi.moveTo(x1, y1); smugi.lineTo(x2, y2);
+      smugi.lineStyle(3, 0xfff0c8, 0.85 * pz.blask); smugi.moveTo(x1, y1); smugi.lineTo(x2, y2);
+    }
+    // gdzie pójdzie cięcie: łuk na ziemi, dopóki miecz jest w zamachu albo się ładuje
+    if (b.stan === 'cios' && b.cios && (b.cios.faza === 'zamach' || b.cios.faza === 'laduje')) {
+      const c = b.cios, pelny = c.naladowanie >= 1;
+      const zas = gra.bron.zasieg * (pelny ? 1.15 : 1), luk = gra.bron.luk + (pelny ? 0.7 : 0);
+      const pts = [], rw = zas * 0.55;                                 // pas na końcu zasięgu, nie klin od stóp (25 XI)
+      for (let i = 0; i <= 16; i++) { const a = c.kat - luk + 2 * luk * i / 16; pts.push(b.x + Math.cos(a) * zas, b.y + Math.sin(a) * zas * PERSP); }
+      for (let i = 16; i >= 0; i--) { const a = c.kat - luk + 2 * luk * i / 16; pts.push(b.x + Math.cos(a) * rw, b.y + Math.sin(a) * rw * PERSP); }
+      znakiZiemia.lineStyle(2.5, pelny ? 0xffd890 : 0xe6ecf2, pelny ? 0.7 : 0.45); znakiZiemia.beginFill(pelny ? 0xffd890 : 0xe6ecf2, pelny ? 0.18 : 0.1);
+      znakiZiemia.drawPolygon(pts); znakiZiemia.endFill();
+      if (c.faza === 'laduje') {                                       // ładowanie: krąg pod stopami zapełnia się
+        znakiZiemia.lineStyle(4, 0x2a2018, 0.6); znakiZiemia.beginFill(0, 0); znakiZiemia.drawEllipse(b.x, b.y, 30, 30 * PERSP); znakiZiemia.endFill();
+        znakiZiemia.lineStyle(4, pelny ? 0xfff0c0 : 0xffb050, pelny ? 0.95 : 0.85);
+        const kon = -Math.PI / 2 + TAU * c.naladowanie;
+        for (let i = 0; i <= 24; i++) { const a = -Math.PI / 2 + (kon + Math.PI / 2) * i / 24, x = b.x + Math.cos(a) * 30, y = b.y + Math.sin(a) * 30 * PERSP; if (i) znakiZiemia.lineTo(x, y); else znakiZiemia.moveTo(x, y); }
+      }
+    }
+    if (b.blok) {
+      const parowanie = gra.czas - b.blokOd < BOHATER.blok.oknoParowania;
+      const cx = b.x, cy = b.y - 30, r = 46, od = b.kat - BOHATER.blok.kat, doK = b.kat + BOHATER.blok.kat;
+      znaki.lineStyle(parowanie ? 4 : 2.5, parowanie ? 0xfff0c0 : 0xa8c4e0, parowanie ? 0.95 : 0.45);
+      for (let i = 0; i <= 14; i++) { const a = od + (doK - od) * i / 14, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r * PERSP; if (i) znaki.lineTo(x, y); else znaki.moveTo(x, y); }
+    }
+
+    // wrogowie
+    pulaWrogow.start(); pulaCieni.start(); pulaOczu.start(); pulaBlyskow.start();
+    for (const e of gra.wrogowie) {
+      if (e.x < L - 100 || e.x > Pr + 100 || e.y < G || e.y > D) continue;
+      if (filmW[e.typ.nazwa]) { rysujWrogaZFilmu(e, filmW[e.typ.nazwa], b, gra); continue; }
+      const at = atlasy[e.typ.nazwa] || atlasy.ghul, w = at.wzor, sk = e.typ.skala;   // topielec bez obrazu: jak ghul w kolorze mułu
+      const sx = Math.cos(e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'odpoczynek' ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;
+      const zam = e.stan === 'zamach' || e.stan === 'skok';
+      const faza = (((e.anim * (e.typ.ciezki ? 3 : 9)) % TAU) + TAU) % TAU;
+      const klatka = Math.min(w.klatki - 1, (faza / TAU * w.klatki) | 0);
+      const wiersz = (sx < 0 ? 1 : 0) | (zam ? 2 : 0) | (e.flash > 0 ? 4 : 0);
+      const sp = pulaWrogow.wez(); sp.tint = e.typ.kolor || 0xffffff;
+      sp.texture = at.klatki[wiersz * w.klatki + klatka]; sp.anchor.set(w.ox / w.w, w.oy / w.h);
+      const kucniecie = e.stan === 'zamach' && !e.typ.ciezki ? 0.88 : 1;
+      // ciało reaguje: odchyla się od ciosu, ghul wyciąga się w skoku, kolos wznosi się i przysiada przy uderzeniu
+      const odB = e.x >= b.x ? 1 : -1;
+      let rot = 0, skx = 1, sky = kucniecie;
+      if (e.flash > 0) { const f = e.flash / 0.12; rot += odB * (e.typ.ciezki ? 0.1 : 0.34) * f; sky *= 1 - 0.12 * f; skx *= 1 + 0.1 * f; }
+      if (e.stan === 'skok' && !e.typ.ciezki) { rot -= odB * 0.22; sky *= 1.08; skx *= 0.93; }
+      if (e.stan === 'zamach' && e.typ.ciezki) { const q = ogr(e.t / e.typ.zamach, 0, 1); sky *= 1 + 0.06 * q; skx *= 1 - 0.03 * q; rot += odB * 0.08 * q; }
+      if (e.stan === 'skok' && e.typ.ciezki) { const u = Math.sin(Math.min(1, e.t / e.typ.skok * 3) * Math.PI / 2); sky *= 1.06 - 0.16 * u; skx *= 0.97 + 0.12 * u; rot -= odB * 0.12 * (1 - u); }
+      if (e.stan === 'ogluszony') rot += Math.sin(czas * 11 + e.anim) * 0.14;
+      sp.scale.set(sk / O.PX * skx, sk / O.PX * sky); sp.rotation = rot;
+      sp.position.set(e.x + (e.drzy || 0), e.y); sp.zIndex = e.y;
+      sp.alpha = e.stan === 'wynurza' ? e.widac : 1;
+      const cs = pulaCieni.wez(); cs.position.set(e.x, e.y + 1); cs.width = e.promien * 2.8; cs.height = e.promien * 1.05; cs.alpha = sp.alpha;
+      // oczy świecą w ciemności; przed atakiem rozbłyskują
+      const oko = pulaOczu.wez();
+      oko.texture = e.typ.ciezki ? T.okoBursztyn : T.okoCzerwone;
+      const okx = w.oko.x * sx * sk * skx, oky = w.oko.y * sk * sky;
+      oko.position.set(e.x + (e.drzy || 0) + okx * Math.cos(rot) - oky * Math.sin(rot), e.y + okx * Math.sin(rot) + oky * Math.cos(rot));
+      const mocOka = e.stan === 'zamach' ? 1.7 + Math.sin(czas * 40) * 0.3 : (e.stan === 'ogluszony' ? 0.5 : 1);
+      oko.width = oko.height = (e.typ.ciezki ? 16 : 11) * mocOka; oko.alpha = (e.stan === 'wynurza' ? e.widac : 1) * 0.8;
+      // ogłuszony po parowaniu: wiruje mu w głowie (i dostaje podwójne obrażenia)
+      if (e.stan === 'ogluszony') {
+        for (let i = 0; i < 3; i++) {
+          const a = czas * 6 + i * TAU / 3, x = e.x + Math.cos(a) * 12, y = e.y - 48 * sk / 1.25 + Math.sin(a) * 4;
+          znaki.lineStyle(0); znaki.beginFill(0xffe2a0, 0.9); znaki.drawCircle(x, y, 2.4); znaki.endFill();
+        }
+      }
+      // kolos zapowiada uderzenie kręgiem na ziemi
+      if (e.typ.ciezki && e.stan === 'zamach' && e.cel) {
+        const q = ogr(e.t / e.typ.zamach, 0, 1);
+        { const zK = krag(e.cel.x, e.cel.y, e.typ.strefa, q); znakiZiemia.lineStyle(zK ? 0 : 3, 0xff5a3a, 0.85); znakiZiemia.beginFill(0xff3a1a, 0.1 + 0.25 * q);
+          znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa, e.typ.strefa * PERSP); znakiZiemia.endFill(); }
+        znakiZiemia.lineStyle(0); znakiZiemia.beginFill(0xff6a3a, 0.3); znakiZiemia.drawEllipse(e.cel.x, e.cel.y, e.typ.strefa * q, e.typ.strefa * PERSP * q); znakiZiemia.endFill();
+      }
+      if (e.typ.ciezki && e.stan === 'skok' && e.cel && !e._uderzyl) {
+        e._uderzyl = true;
+        pierscienie.push({ x: e.cel.x, y: e.cel.y, r0: 20, r1: e.typ.strefa * 1.4, t: 0, czas: 0.4, kolor: 0xd8c8b0, ziemia: true });
+        for (let i = 0; i < 8; i++) gra.slady.push({ typ: 'kropla', x: e.cel.x + losuj(-40, 40), y: e.cel.y + losuj(-20, 20), r: 0.1 });
+      }
+      if (e.stan !== 'skok') e._uderzyl = false;
+    }
+    if (gra.kleczy && filmW.czarownica) {                                 // pokonana wiedźma klęczy (do filmu Patryka: zgięta klatka z filmu trafienia)
+      const fw = filmW.czarownica, kl = gra.kleczy; if (kl.od === undefined) kl.od = czas;
+      const k = fw.anim.upadek ? klatkaW(fw, 'upadek', (czas - kl.od) / 2.4) : klatkaW(fw, 'trafienie', 0.45);   // upuszcza kostur i klęka, potem klęczy
+      const sp = pulaWrogow.wez(), zn = kl.sx === fw.patrzy ? 1 : -1;
+      sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.scale.set(fw.skala * zn, fw.skala * (fw.anim.upadek ? 1 : 0.86)); sp.rotation = 0;
+      sp.position.set(kl.x, kl.y); sp.zIndex = kl.y; sp.alpha = 1; sp.tint = fw.zastepczy || 0xffffff;
+      const cs = pulaCieni.wez(); cs.position.set(kl.x, kl.y + 1); cs.width = 18 * fw.cien; cs.height = 18 * 1.3; cs.alpha = 0.55;
+    }
+    pulaWrogow.koniec(); pulaCieni.koniec(); pulaOczu.koniec(); pulaBlyskow.koniec();
+
+    // martwi padają od bohatera; mocny cios albo wielki miecz przecina ich na pół
+    pulaKawalkow.start();
+    for (let i = padajace.length - 1; i >= 0; i--) {
+      const f = padajace[i], at = f.at, s = f.s;
+      f.t += dt;
+      if (f.fw && !s.przeciety) { padaZFilmu(f, i, dt); continue; }
+      const q = Math.min(1, f.t / f.czas), sk = f.fw ? f.fw.skala : f.sk / O.PX, w = f.wiersz | (f.t < 0.07 ? 4 : 0);
+      const znak = f.fw ? (s.sx === f.fw.patrzy ? 1 : -1) : 1, wys = f.fw ? f.fw.ciecie : CIECIE_WYS[s.wrog] * f.sk;
+      const P1 = f.fw ? { gora: f.fw.gora, dol: f.fw.dol, ax: f.fw.ax, ayDol: f.fw.ayDol, mG: f.fw.gora, mD: f.fw.dol } : null;
+      const dx = Math.cos(s.kat), dy = Math.sin(s.kat), slizg = (f.ciezki ? 10 : 24) * latwo(q);
+      const al = f.gasnie >= 0 ? Math.max(0, 1 - f.gasnie / 0.15) : 1;
+      const kawalek = (tex, ax, ay, x, y, r, sy = 1) => { const k = pulaKawalkow.wez(); k.texture = tex; k.anchor.set(ax, ay); k.position.set(x, y); k.rotation = r; k.scale.set(sk * znak, sk * sy); k.zIndex = y; k.alpha = al; };
+      if (!s.przeciety) {
+        const x = s.x + dx * slizg, y = s.y + dy * slizg;
+        kawalek(at.klatki[w * at.wzor.klatki], at.ax, at.ay, x, y, s.obrot * q * q);
+        f.kon = [{ tex: at.martwy, ax: at.ax, ay: at.ay, x, y, rot: s.obrot, sx: sk * s.sx, sy: sk }];
+      } else {
+        // górna połowa leci łukiem i obraca się, dolna chwilę stoi, potem pada
+        const h0 = wys, T = f.czas, g = 900, vz = (0.5 * g * T * T - h0) / T, tt = Math.min(f.t, T);
+        const hz = Math.max(0, h0 + vz * tt - 0.5 * g * tt * tt), lot = (f.ciezki ? 30 : 48) * q;
+        const gx = s.x + dx * lot, gy = s.y + dy * lot, rKon = f.dir * 1.4, rDol = f.dir * 1.1;
+        const rG = f.ciezki ? rKon * latwo(q) : f.dir * (TAU + 1.4) * latwo(q);
+        const dxD = s.x + dx * slizg * 0.3, dyD = s.y + dy * slizg * 0.3, rD = rDol * Math.pow(Math.max(0, (q - 0.25) / 0.75), 2);
+        if (P1) {
+          // z filmu (ghul): nogi uginają się w kolanach i siadają w miejscu, zamiast przewracać się sztywno jak deska;
+          // z kikuta tryska krew, górna połowa leci łukiem (Patryk, 25 XI 16:57: lepsze padanie przeciętego ghula)
+          const ug = latwo(ogr((q - 0.15) / 0.6, 0, 1)), syD = 1 - 0.45 * ug, rDk = f.dir * 0.3 * ug * znak;
+          kawalek(P1.dol, P1.ax, P1.ayDol, dxD, dyD, rDk, syD);
+          kawalek(P1.gora, P1.ax, 1, gx, gy - hz, rG * znak);
+          if (q < 0.7 && Math.random() < 0.6) gra.krew.push({ x: dxD, y: dyD, z: wys * syD, vx: losuj(-40, 40), vy: losuj(-25, 25), vz: losuj(120, 220), r: losuj(1.2, 2.4) });
+          f.kon = [{ tex: P1.mD, ax: P1.ax, ay: P1.ayDol, x: dxD, y: dyD, rot: f.dir * 0.3 * znak, sx: sk * znak, sy: sk * 0.55 },
+            { tex: P1.mG, ax: P1.ax, ay: 1, x: gx, y: gy, rot: rKon * znak, sx: sk * znak, sy: sk }];
+        } else {
+          kawalek(at.polowki[w].dol, at.ax, at.ayDol, dxD, dyD, rD);
+          kawalek(at.polowki[w].gora, at.ax, 1, gx, gy - hz, rG);
+          f.kon = [{ tex: at.martweDol, ax: at.ax, ay: at.ayDol, x: dxD, y: dyD, rot: rDol, sx: sk * s.sx, sy: sk },
+            { tex: at.martweGora, ax: at.ax, ay: 1, x: gx, y: gy, rot: rKon, sx: sk * s.sx, sy: sk }];
+        }
+      }
+      if (q >= 1 && f.gasnie < 0) {                                  // leży: zostaje na ziemi, żywa klatka gaśnie nad śladem
+        zostaw(f.kon); f.gasnie = 0;
+        if (f.ciezki) { pierscienie.push({ x: s.x, y: s.y, r0: 20, r1: 90, t: 0, czas: 0.35, kolor: 0xb8a890, ziemia: true }); kurz(s.x, s.y, s.kat, 7, 1.6); stanRys.kop.y += 5; }
+        else kurz(s.x + dx * 20, s.y + dy * 20, s.kat, 2, 0.7);
+      } else if (f.gasnie >= 0) { f.gasnie += dt; if (f.gasnie > 0.15) padajace.splice(i, 1); }
+    }
+    pulaKawalkow.koniec();
+
+    // błysk cięcia tam, gdzie ostrze weszło w ciało
+    for (let i = ciecia.length - 1; i >= 0; i--) {
+      const c = ciecia[i]; c.t += dt; const q = c.t / c.czas;
+      if (q >= 1) { ciecia.splice(i, 1); continue; }
+      const ux = Math.cos(c.kat), uy = Math.sin(c.kat) * PERSP, d = Math.hypot(ux, uy) || 1, vx = ux / d, vy = uy / d;
+      const dl = c.dl * (0.55 + 0.45 * Math.min(1, q * 4)) / 2, gr = 4.5 * (1 - q);
+      smugi.lineStyle(0); smugi.beginFill(0xfff4e0, 0.95 * (1 - q));
+      smugi.drawPolygon([c.x - vx * dl, c.y - vy * dl, c.x - vy * gr, c.y + vx * gr, c.x + vx * dl, c.y + vy * dl, c.x + vy * gr, c.y - vx * gr]);
+      smugi.endFill();
+      if (q < 0.5) { smugi.beginFill(0xffffff, 0.45 * (1 - q * 2)); smugi.drawCircle(c.x, c.y, 6 + 16 * q); smugi.endFill(); }
+    }
+
+    // pioruny klątwy
+    for (let i = pioruny.length - 1; i >= 0; i--) {
+      const p = pioruny[i]; p.t += dt; const q = p.t / p.czas;
+      if (q >= 1) { pioruny.splice(i, 1); continue; }
+      if (Math.random() < 0.25) continue;                                  // migocze
+      for (const [szer, kol, al] of [[4, 0x9a5cff, 0.75], [1.5, 0xf4e8ff, 0.95]]) {
+        smugi.lineStyle(szer, kol, al * (1 - q)); smugi.moveTo(p.pkt[0], p.pkt[1]);
+        for (let k = 2; k < p.pkt.length; k += 2) smugi.lineTo(p.pkt[k] + losuj(-2, 2), p.pkt[k + 1]);
+      }
+    }
+
+    // dym z komina: czas rzeczywisty, więc dym idzie także, gdy gra stoi w ciszy chaty
+    {
+      const dtr = Math.min(0.05, dt);
+      dymNa -= dtr;
+      if (dymNa <= 0) { dymNa = losuj(0.09, 0.15); if (dymy.length < 70) dymy.push({ x: KOMIN.x + losuj(-4, 4), y: KOMIN.y, vx: losuj(4, 10), vy: losuj(-34, -26), r: losuj(5, 7), t: 0, czas: losuj(4.5, 6), f: losuj(0, TAU) }); }
+      dymK.clear();
+      const wid = 1 - 0.8 * stanRys.bezDachu;                    // w izbie dach znika, dym zostaje, ale cichszy
+      for (let i = dymy.length - 1; i >= 0; i--) {
+        const d = dymy[i]; d.t += dtr; const q = d.t / d.czas;
+        if (q >= 1) { dymy.splice(i, 1); continue; }
+        d.vx = Math.min(d.vx + (4 + 2 * Math.sin(czas * 0.4)) * dtr, 26);            // wiatr znosi w prawo, raz mocniej, raz słabiej
+        d.vy *= Math.exp(-dtr * 0.15);
+        d.x += (d.vx + Math.sin(d.f + d.t * 1.3) * 4) * dtr; d.y += d.vy * dtr;
+        const r = d.r + 24 * Math.sqrt(q), al = Math.min(1, q * 25) * Math.pow(1 - q, 1.5) * 0.42 * wid;
+        dymK.lineStyle(0);
+        dymK.beginFill(q < 0.1 ? 0x4a4846 : q < 0.35 ? 0x7c7f84 : 0x9a9fa7, al); dymK.drawEllipse(d.x, d.y, r, r * 0.82); dymK.drawEllipse(d.x + r * 0.45, d.y - r * 0.3, r * 0.6, r * 0.5); dymK.endFill();   // wyżej jaśniejszy, w świetle księżyca
+      }
+      // iskry nad paleniskiem w izbie, widać je, gdy dach jest zdjęty
+      iskraNa -= dtr;
+      if (stanRys.bezDachu > 0.05 && iskraNa <= 0) { iskraNa = losuj(0.12, 0.35); iskryIzby.push({ x: CHATA.palenisko.x + losuj(-14, 14), y: CHATA.palenisko.y + 34, vx: losuj(-8, 8), vy: losuj(-38, -22), t: 0, czas: losuj(0.7, 1.3) }); }
+      for (let i = iskryIzby.length - 1; i >= 0; i--) {
+        const k = iskryIzby[i]; k.t += dtr; const q = k.t / k.czas;
+        if (q >= 1 || stanRys.bezDachu < 0.05) { iskryIzby.splice(i, 1); continue; }
+        k.x += (k.vx + Math.sin(k.t * 9 + i) * 10) * dtr; k.y += k.vy * dtr;
+        dymK.lineStyle(0); dymK.beginFill(q < 0.5 ? 0xffd27a : 0xff8a3a, (1 - q) * stanRys.bezDachu); dymK.drawCircle(k.x, k.y, 1.6 * (1 - q * 0.5)); dymK.endFill();
+      }
+    }
+
+    // kurz spod stóp i oddech
+    para.clear();
+    for (let i = obloczki.length - 1; i >= 0; i--) {
+      const o = obloczki[i]; o.t += dt; const q = o.t / o.czas;
+      if (q >= 1) { obloczki.splice(i, 1); continue; }
+      o.x += o.vx * dt; o.y += o.vy * dt; o.vx *= Math.exp(-dt * 3); o.vy *= Math.exp(-dt * 3);
+      const gz = o.ziemia ? znakiZiemia : para, r = o.r0 + (o.r1 - o.r0) * latwo(q);
+      gz.lineStyle(0); gz.beginFill(o.kolor, o.alfa * (1 - q)); gz.drawEllipse(o.x, o.y, r, r * (o.ziemia ? PERSP : 0.8)); gz.endFill();
+    }
+
+    // krew w powietrzu i iskry
+    pulaKrwi.start();
+    for (const p of gra.krew) { const s = pulaKrwi.wez(); s.position.set(p.x, p.y - p.z); s.width = s.height = p.r * 2; }
+    pulaKrwi.koniec();
+    pulaIskier.start();
+    for (const p of gra.iskry) { const s = pulaIskier.wez(); s.position.set(p.x, p.y); s.width = s.height = 10; s.alpha = Math.min(1, p.t * 5); }
+    pulaIskier.koniec();
+
+    // pierścienie
+    for (let i = pierscienie.length - 1; i >= 0; i--) {
+      const r = pierscienie[i]; r.t += dt; const q = r.t / r.czas;
+      if (q >= 1) { pierscienie.splice(i, 1); continue; }
+      const rr = r.r0 + (r.r1 - r.r0) * (1 - (1 - q) * (1 - q));
+      const gz = r.ziemia ? znakiZiemia : znaki;
+      gz.lineStyle(r.gr || (r.ziemia ? 6 : 3), r.kolor, (r.alfa || 0.8) * (1 - q)); gz.beginFill(0, 0); gz.drawEllipse(r.x, r.y, rr, rr * (r.ziemia ? PERSP : 0.8)); gz.endFill();
+    }
+
+    // napisy unoszą się i gasną
+    for (let i = aktywneNapisy.length - 1; i >= 0; i--) {
+      const n = aktywneNapisy[i]; n.czas += dt;
+      n.t.y = n.y - n.czas * 40; n.t.alpha = Math.max(0, 1 - Math.max(0, n.czas - 0.5) / 0.5); n.t.scale.set(1 / Math.max(0.8, zoom) * 1.1);
+      if (n.czas > 1) { n.t.visible = false; wolneNapisy.push(n.t); aktywneNapisy.splice(i, 1); }
+    }
+
+    // mgła płynie powoli wokół swoich miejsc
+    for (const k of kleby) {
+      k.a += k.v * dt;
+      const x = k.m.x + Math.cos(k.a) * k.r, y = k.m.y + Math.sin(k.a) * k.r * 0.5;
+      k.s.position.set(x, y); k.s.rotation = k.obrot + Math.sin(czas * 0.05 + k.faza) * 0.06;
+      k.s.width = k.roz * 2 * (1 + Math.sin(czas * 0.11 + k.faza) * 0.08); k.s.height = k.roz * 2 * k.splaszcz;
+      const przyBoh = Math.min(1, Math.hypot(x - b.x, (y - b.y) * 1.6) / (k.roz * 0.9));        // przy bohaterze rzednie
+      k.s.alpha = k.alfa * (0.75 + Math.sin(czas * 0.3 + k.faza) * 0.25) * (0.45 + 0.55 * przyBoh) * (gra.faza === 'swit' || gra.faza === 'koniec' || gra.faza === 'wedrowka' || gra.faza === 'odchodzi' ? Math.max(0.2, gra.mroczek / 0.8) * (1 - 0.85 * (gra.slonce || 0)) : 1);
+    }
+
+    // ogień
+    const ogienSila = gra.ogien == null ? 1 : gra.ogien, ogienSkala = 0.45 + 0.55 * ogienSila;   // ognisko gaśnie (walka.js); drewno je podsyca
+    const migot = 0.88 + Math.sin(czas * 9.1) * 0.05 + Math.sin(czas * 13.7 + 1) * 0.04 + Math.sin(czas * 3.3) * 0.03, migotO = migot * ogienSkala;
+    plomienie.clear();
+    const fx = OGNISKO.x, fy = OGNISKO.y;
+    if (ogien) {
+      const kl = R['ogien_' + String(Math.floor(czas * OGIEN_FPS) % OGIEN_KLATEK).padStart(2, '0')].t;
+      ogien.texture = kl; ogienBlask.texture = kl; ogienBlask.alpha = (0.15 + 0.25 * ogienSila) * Math.max(0.4, gra.mroczek / 0.8);
+      ogien.tint = ogienSila > 0.5 ? 0xffffff : 0xb0a098;
+    }
+    for (let i = 0; i < (ogien ? 0 : 4); i++) {
+      const m = Math.sin(czas * (7 + i * 2.3) + i * 1.7) * 0.5 + 0.5, wys = 24 + m * 16 - i * 3, szer = 9 - i * 1.4, off = (i - 1.5) * 4;
+      plomienie.beginFill(i < 2 ? 0xe66e28 : 0xffc86e, 0.55 + m * 0.2);
+      plomienie.moveTo(fx + off - szer, fy - 2);
+      plomienie.quadraticCurveTo(fx + off - szer * 0.4, fy - wys * 0.6, fx + off + Math.sin(czas * 5 + i) * 3, fy - wys);
+      plomienie.quadraticCurveTo(fx + off + szer * 0.4, fy - wys * 0.6, fx + off + szer, fy - 2);
+      plomienie.closePath(); plomienie.endFill();
+    }
+    blaskOgnia.position.set(fx, fy - 10); blaskOgnia.width = blaskOgnia.height = 300 * migotO; blaskOgnia.alpha = 0.55 * Math.max(0.3, gra.mroczek / 0.8);
+    blaskOkna.position.set(CHATA.okno.x, CHATA.okno.y + 20); blaskOkna.width = blaskOkna.height = 170; blaskOkna.alpha = 0.6 * Math.max(0.2, gra.mroczek / 0.8) * (1 - stanRys.bezDachu);
+    blaskIzby.position.set(CHATA.palenisko.x, CHATA.palenisko.y + 20); blaskIzby.width = blaskIzby.height = 260 * migot; blaskIzby.alpha = 0.5 * stanRys.bezDachu * Math.max(0.3, gra.mroczek / 0.8);
+
+    // ciemność: zalewamy ekran nocą i wycinamy światło
+    // Ciemność nocy. Od 25 XI 16:49 do 26 XI komentarz połykał tu drawRect, więc ciemności nie było wcale (noc robiły same grafiki).
+    // Patryk, 26 XI 12:06: „można minimalnie, ale poza krawędziami widać, że noc”: lekka warstwa, kręgi światła ją wycinają.
+    ciemnoscG.clear(); ciemnoscG.beginFill(0x05060b, gra.mroczek * 0.55); ciemnoscG.drawRect(0, 0, vw, vh); ciemnoscG.endFill();
+    kreski.alpha = 0;   // ukośne kreskowanie ciemności wyłączone (Patryk, 25 XI 19:10: „usuń je, przeszkadzają”)
+    const stawStempel = (s, x, y, r, al) => { s.position.set(ox + x * zz, oy + y * zz); s.width = s.height = r * 2 * zz; s.alpha = al; };
+    stawStempel(swiatloBoh, b.x, b.y - 30, 360 + 260 * stanRys.fiolet, 1);
+    stawStempel(swiatloOgnia, fx, fy - 10, 380 * migotO, 0.95);
+    plomienieRzeczy.forEach((p, i) => {                                   // pochodnia przy furtce
+      const m = 0.9 + Math.sin(czas * 11.3 + i) * 0.06 + Math.sin(czas * 7.1 + 2 * i) * 0.05;
+      stawStempel(swiatlaPochodni[i], p.x, p.y + 20, 170 * m, 0.8);
+      const bl = blaskiPochodni[i]; bl.position.set(p.x, p.y); bl.width = bl.height = 130 * m; bl.alpha = 0.6 * Math.max(0.3, gra.mroczek / 0.8);
+    });
+    latarnieS.forEach((L, i) => {                                         // pochodnie na bagnie: światło maleje, gdy mgła je dusi
+      const o = gra.latarnie ? gra.latarnie[i].ogien : 0, jest = o > 0.001;
+      const m = (0.9 + Math.sin(czas * 10.7 + i * 1.7) * 0.06 + Math.sin(czas * 6.3 + i) * 0.05) * (0.45 + 0.55 * Math.min(1, o * 1.5)) * (o < 0.15 ? 0.75 + 0.25 * Math.sin(czas * 23 + i) : 1);
+      L.pal.visible = jest; L.zgas.visible = !jest;
+      stawStempel(swiatlaLatarni[i], L.x, L.y + 20, LATARNIA.zasieg * m, jest ? 0.85 : 0);
+      L.blask.visible = jest; L.blask.position.set(L.x, L.y); L.blask.width = L.blask.height = 150 * m; L.blask.alpha = 0.6 * Math.max(0.3, gra.mroczek / 0.8);
+    });
+    // Przemiana rycerza (Patryk, 25 XI 21:58: „nie widać, żeby dawał takiego efektu”): żar rośnie w nim i rozświetla noc,
+    // z ciała bije czarny dym i iskry, po ziemi co chwilę idzie krąg ognia. Po przemianie żar zostaje słabszy.
+    {
+      const e = gra.wrogowie.find(w => w.typ.boss);
+      let moc = 0, r = 0;
+      if (e && e.stan === 'przemiana') {
+        const q = ogr(e.t / e.typ.przemiana.czas, 0, 1), fala = Math.sin(Math.PI * q);
+        moc = (0.35 + 0.65 * fala) * (0.85 + 0.15 * Math.sin(czas * 23)); r = 220 + 260 * fala;
+        dymBossaNa -= dt; pierscienBossaNa -= dt;
+        if (dymBossaNa <= 0) {
+          dymBossaNa = 0.07;
+          obloczek(e.x + losuj(-30, 30), e.y - losuj(30, 120), losuj(-25, 25), losuj(-70, -35), 8, losuj(26, 44), losuj(1, 1.6), 0.3, 0x140c0a, false);
+          if (Math.random() < 0.6) obloczek(e.x + losuj(-40, 40), e.y - losuj(20, 130), losuj(-60, 60), losuj(-140, -60), 2, 3, losuj(0.5, 0.9), 0.95, 0xff9a40, false);
+        }
+        if (pierscienBossaNa <= 0) { pierscienBossaNa = 0.9 - 0.5 * q; pierscienie.push({ x: e.x, y: e.y, r0: 20, r1: 150 + 120 * fala, t: 0, czas: 0.6, kolor: 0xff5a20, ziemia: true }); gra.wstrzas = Math.max(gra.wstrzas, 3 + 6 * fala); }
+      } else if (e && e.faza === 2) { moc = 0.3 + 0.08 * Math.sin(czas * 5); r = 170; }
+      if (e) { blaskBossa.visible = moc > 0; blaskBossa.position.set(e.x, e.y - 70); blaskBossa.width = blaskBossa.height = r * 1.8; blaskBossa.alpha = 0.45 * moc * Math.max(0.4, gra.mroczek / 0.8); stawStempel(swiatloBossa, e.x, e.y - 60, r, Math.min(1, moc)); }
+      else { blaskBossa.visible = false; swiatloBossa.alpha = 0; }
+    }
+    // Wstęp: nad nieobejrzanymi miejscami unoszą się drobne złote błyski, żeby było wiadomo, gdzie podejść.
+    if (gra.faza === 'wstep') for (const m of MIEJSCA) {
+      const wsk = gra.wskazane === m.id;                                // wskazane w podpowiedzi błyska mocniej
+      if (gra.odkryte.includes(m.id) || Math.random() > dt * (wsk ? 5 : 2.5)) continue;
+      obloczek(m.x + losuj(-18, 18), m.y - losuj(10, 40), losuj(-6, 6), losuj(-30, -14), 1.5, 2.6, losuj(0.9, 1.5), 0.9, 0xffe0a0, false);
+    }
+    // Z ciała rycerza schodzi klątwa: najpierw gęsty czarny dym i żar, z każdą sekundą słabszy; o świcie złote drobiny.
+    if (bossTrup) {
+      const wiek = czas - bossTrup.od, sl = gra.slonce || 0, gestosc = Math.max(0, 1 - wiek / 24);
+      if (Math.random() < dt * 14 * gestosc) obloczek(bossTrup.x + losuj(-35, 35), bossTrup.y - losuj(0, 30), losuj(-12, 12), losuj(-60, -30), 10, losuj(30, 52), losuj(1.6, 2.4), 0.5 * gestosc + 0.08, 0x140c0a, false);
+      if (Math.random() < dt * 8 * gestosc) obloczek(bossTrup.x + losuj(-40, 40), bossTrup.y - losuj(0, 40), losuj(-30, 30), losuj(-110, -50), 2, 3, losuj(0.6, 1.1), 0.9, 0xff8a3a, false);
+      if (Math.random() < dt * 10 * sl) obloczek(bossTrup.x + losuj(-70, 70), bossTrup.y - losuj(0, 60), losuj(-10, 10), losuj(-40, -18), 1.5, 2.5, losuj(1.5, 2.6), 0.85, 0xffe6a0, false);
+    }
+    portaleG.clear();
+    {
+      const otwarte = (gra.portale || []).filter(p => p.otwarty);
+      for (let i = 0; i < NPORT; i++) {
+        const p = otwarte[i], bl = blaskiPortali[i], g = szczeliny[i];
+        bl.visible = g.visible = !!p; if (!p) { swiatlaPortali[i].alpha = 0; continue; }
+        const ot = Math.min(1, p.t / 1.1), sm = ot * ot * (3 - 2 * ot), zk = p.zamyka ? Math.max(0, 1 - p.zamyka / 1.2) : 1;
+        const H = 150 * sm * (0.35 + 0.65 * zk), W = 38 * sm * zk * zk, gora = p.y - 6 - H, sr = p.y - 6 - H / 2;
+        const puls = 0.85 + 0.15 * Math.sin(czas * 7 + i * 2);
+        // ziemia pod szczeliną: wypalony krąg i obracające się znaki
+        const R = 70 * sm * (0.5 + 0.5 * zk);
+        portaleG.beginFill(0x050208, 0.75 * zk); portaleG.drawEllipse(p.x, p.y, R, R * 0.42); portaleG.endFill();
+        portaleG.lineStyle(2, 0x9a40ff, 0.7 * zk);
+        for (let k = 0; k < 12; k++) {                                     // pierścień z przerwami: runy klątwy
+          const a0 = czas * 0.9 + k * TAU / 12, a1 = a0 + TAU / 12 * 0.55;
+          portaleG.moveTo(p.x + Math.cos(a0) * R * 1.12, p.y + Math.sin(a0) * R * 1.12 * 0.42);
+          for (let j = 1; j <= 4; j++) { const a = a0 + (a1 - a0) * j / 4; portaleG.lineTo(p.x + Math.cos(a) * R * 1.12, p.y + Math.sin(a) * R * 1.12 * 0.42); }
+        }
+        portaleG.lineStyle(1.5, 0xff5a30, 0.5 * zk * puls); portaleG.drawEllipse(p.x, p.y, R * 0.8, R * 0.8 * 0.42); portaleG.lineStyle(0);
+        // szczelina: soczewka od ziemi w górę, brzeg drga co klatkę
+        g.clear(); g.zIndex = p.y - 3;
+        if (H > 2) {
+          const N = 14, L = [], Pr = [];
+          for (let k = 0; k <= N; k++) {
+            const q = k / N, y = gora + q * H, sz = Math.sin(Math.PI * q) * W;
+            L.push(p.x - sz * (1 + losuj(-0.18, 0.18)) + losuj(-1.5, 1.5), y); Pr.push(p.x + sz * (1 + losuj(-0.18, 0.18)) + losuj(-1.5, 1.5), y);
+          }
+          const obrys = [];
+          for (let k = 0; k <= N; k++) obrys.push(L[k * 2], L[k * 2 + 1]);
+          for (let k = N; k >= 0; k--) obrys.push(Pr[k * 2], Pr[k * 2 + 1]);
+          g.lineStyle(10, 0x7a20e0, 0.28 * puls); g.drawPolygon(obrys);
+          g.lineStyle(4, 0xb060ff, 0.7); g.beginFill(0x030106, 0.97); g.drawPolygon(obrys); g.endFill();
+          g.lineStyle(1.5, 0xf4dcff, 0.9 * puls); g.drawPolygon(obrys); g.lineStyle(0);
+          for (let k = 0; k < 4; k++) {                                    // w środku: czerwone drobiny, jak oczy w ciemności
+            const q = (czas * 0.35 + k * 0.27 + i * 0.13) % 1, yy = gora + H * (0.2 + 0.6 * q), xx = p.x + Math.sin(czas * 2 + k * 1.7) * W * 0.35 * Math.sin(Math.PI * q);
+            g.beginFill(0xff3a1a, 0.6 * Math.sin(Math.PI * q)); g.drawCircle(xx, yy, 1.6); g.endFill();
+          }
+          if (Math.random() < dt * 4 * zk && W > 6) {                      // wyładowanie z brzegu do ziemi
+            const st = Math.random() < 0.5 ? -1 : 1, y0 = gora + H * losuj(0.3, 0.8); let x = p.x + st * W * 0.8, y = y0;
+            g.lineStyle(2, 0xe8c8ff, 0.95); g.moveTo(x, y);
+            for (let j = 0; j < 5; j++) { x += st * losuj(6, 16); y += losuj(2, 12); g.lineTo(x, y); }
+            g.lineStyle(0);
+          }
+          if (p.t < 0.3) { const fl = 1 - p.t / 0.3; g.beginFill(0xf0d8ff, 0.8 * fl); g.drawEllipse(p.x, sr, 18 + 40 * (1 - fl), H * 0.6); g.endFill(); }   // błysk przy otwarciu
+        }
+        bl.position.set(p.x, sr); bl.width = Math.max(20, W * 7) * puls; bl.height = Math.max(20, H * 1.7); bl.alpha = 0.6 * sm * zk;
+        stawStempel(swiatlaPortali[i], p.x, sr, (90 + H * 0.9) * puls, 0.75 * sm * zk);
+        if (Math.random() < dt * 16 * zk * sm) {                           // dym wciągany do środka
+          const a = Math.random() * TAU, d = losuj(60, 110), x0 = p.x + Math.cos(a) * d, y0 = sr + Math.sin(a) * d * 0.6;
+          obloczek(x0, y0, (p.x - x0) * 1.2, (sr - y0) * 1.2, 3, 1, 0.8, 0.7, Math.random() < 0.3 ? 0x2a0a40 : 0xb070ff, false);
+        }
+      }
+    }
+    TOTEMY.forEach((t, i) => {                                            // totemy świecą fioletem, żeby było widać, skąd przyjdą
+      const puls = 0.85 + 0.15 * Math.sin(czas * 2.1 + i * 1.7), jest = totemyS.length > 0 && !(gra.totemy && gra.totemy[i].zniszczony);
+      const bud = stanRys.totemBudzi != null ? Math.max(0, 1 - (czas - stanRys.totemBudzi) / 4) : 0;   // rozbłysk, gdy jego dotknięcie budzi noc
+      stawStempel(swiatlaTotemow[i], t.x, t.y - 50, 150 * puls * (1 + 1.5 * bud), jest ? 0.3 + 0.6 * bud : 0);   // już tylko znak, nie brama: słabsze światło
+      const bl = blaskiTotemow[i]; bl.visible = jest; bl.position.set(t.x, t.y - 30); bl.width = bl.height = 200 * puls; bl.alpha = (0.2 + 0.8 * bud) * Math.max(0.3, gra.mroczek / 0.8); bl.width = bl.height = 200 * puls * (1 + 1.5 * bud);
+    });
+    for (const o of totemyS) {
+      const st = gra.totemy && gra.totemy[o.i];
+      if (st && st.zniszczony) {                                          // rozbity: przewrócony, szary, bez dymu
+        o.sp.texture = R[o.t.rys + '_00'].t; o.sp.rotation = o.t.x < 1600 ? -1.25 : 1.25; o.sp.tint = 0x5a5560; o.sp.alpha = 0.9; continue;
+      }
+      const k = Math.floor(czas * TOTEM_FPS + o.faza) % TOTEM_KLATEK; o.sp.texture = R[o.t.rys + '_' + String(k).padStart(2, '0')].t;
+      o.sp.rotation = st && st.flash > 0 ? Math.sin(czas * 80) * 0.04 : 0; o.sp.tint = st && st.flash > 0 ? 0xffd0ff : 0xffffff;
+    }
+    // pasek życia totemu, gdy jest naruszony
+    if (gra.totemy) for (const t of gra.totemy) {
+      if (t.zniszczony || t.zycie >= TOTEM.zycie) continue;
+      const w = 54, x = t.x - w / 2, y = t.y - 175, q = Math.max(0, t.zycie / TOTEM.zycie);
+      znaki.lineStyle(0); znaki.beginFill(0x000000, 0.6); znaki.drawRect(x - 1, y - 1, w + 2, 7); znaki.endFill();
+      znaki.beginFill(0xa868ff, 0.9); znaki.drawRect(x, y, w * q, 5); znaki.endFill();
+    }
+    // łup na ziemi: mikstury lekko podskakują i świecą
+    pulaLupu.start();
+    for (const l of gra.lup || []) {
+      const sp = pulaLupu.wez(), f = R && R.mikstura;
+      if (l.typ !== 'mikstura') {                                         // rzecz do plecaka: ikona z arkusza Gemini (26 XI), lekko podskakuje
+        const pr = PRZEDMIOTY[l.typ], tx = ikonaRzeczy(l.typ);
+        if (tx.valid) { sp.texture = tx; sp.anchor.set(0.5, 0.85); sp.blendMode = P.BLEND_MODES.NORMAL; sp.tint = 0xffffff; sp.width = sp.height = pr.z === 'rycerz' ? 40 : 30; }
+        else { sp.texture = T.iskra; sp.anchor.set(0.5); sp.blendMode = P.BLEND_MODES.ADD; sp.tint = parseInt(pr.kolor.slice(1), 16) | 0x303030; sp.width = sp.height = 24; }
+        sp.position.set(l.x, l.y - 2 - Math.abs(Math.sin(czas * 3 + l.x)) * 5); sp.zIndex = l.y; sp.alpha = l.t > LUP.znika - 4 && !l.trwa ? 0.5 + 0.5 * Math.sin(czas * 12) : 1;
+        if (Math.random() < dt * 2) obloczek(l.x + losuj(-6, 6), l.y - 10, 0, losuj(-26, -12), 1.2, 2, 0.8, 0.8, 0xffe8b0, false);
+        continue;
+      }
+      sp.blendMode = P.BLEND_MODES.NORMAL; sp.tint = 0xffffff;
+      if (!f) { sp.visible = false; continue; }
+      sp.texture = f.t; sp.anchor.set(f.ax, f.ay); const k = 26 / f.w; sp.scale.set(k);
+      sp.position.set(l.x, l.y - 4 - Math.abs(Math.sin(czas * 3 + l.x)) * 6); sp.zIndex = l.y;
+      sp.alpha = l.t > LUP.znika - 4 ? 0.5 + 0.5 * Math.sin(czas * 12) : 1;
+    }
+    pulaLupu.koniec();
+    const kk = gra.kartka; kartkaS.visible = blaskKartki.visible = !!kk;
+    if (kk) {
+      kartkaS.position.set(kk.x, kk.y - 2 - Math.abs(Math.sin(czas * 2)) * 3); kartkaS.zIndex = kk.y;
+      const pl = 0.75 + 0.25 * Math.sin(czas * 3.1);
+      blaskKartki.position.set(kk.x, kk.y - 6); blaskKartki.width = blaskKartki.height = 90 * pl; blaskKartki.alpha = 0.55 * pl;
+    }
+    {                                                                     // handlarz przy drodze
+      const hs = gra.handlarz, m = MIEJSCE_HANDLARZA, a = hs && handlK ? hs.widac : 0;
+      handlS.visible = handlCien.visible = blaskLatarni.visible = a > 0.01; blaskFiolki.visible = false;
+      if (a > 0.01) {
+        // Patryk, 27 XI 11:33: monety podrzuca tylko po zakupie albo sprzedaży (film „czeka” raz, 3 s); poza tym stoi spokojnie,
+        // na pierwszych klatkach tego filmu, tam i z powrotem jak oddech. Fiolka (film „pokazuje”) czeka na lepsze miejsce.
+        const pok = hs.pokazuje > 0, liczy = hs.liczy > 0, cz = KH.ANIMACJE.czeka;
+        let f;
+        if (pok || liczy) { const l = pok ? KH.ANIMACJE.pokazuje : cz, q = pok ? 1 - hs.pokazuje / 4 : 1 - hs.liczy / 3; f = handlK[l[Math.min(l.length - 1, Math.floor(q * l.length))]]; }
+        else { const sp = [cz[0], cz[1], cz[2], cz[1]]; f = handlK[sp[Math.floor(czas * 1.5) % sp.length]]; }
+        const strona = gra.bohater.x < m.x ? -1 : 1;
+        handlS.texture = f.t; handlS.anchor.set(f.ax, f.ay); handlS.scale.set(KH.SKALA * strona * KH.PATRZY, KH.SKALA);
+        handlS.position.set(m.x, m.y); handlS.zIndex = m.y; handlS.alpha = a;
+        handlCien.position.set(m.x, m.y + 1); handlCien.width = 58; handlCien.height = 16; handlCien.alpha = a;
+        const lx = m.x - 23 * strona, ly = m.y - 33;
+        blaskLatarni.position.set(lx, ly); blaskLatarni.width = blaskLatarni.height = 80 * migot; blaskLatarni.alpha = 0.7 * a;
+        stawStempel(swiatloLatarni, lx, ly + 14, 150 * migot, 0.65 * a);
+        if (pok && q > 0.3 && q < 0.75) {                                 // świecąca fiolka w wyciągniętej dłoni
+          const s = Math.sin((q - 0.3) / 0.45 * Math.PI); blaskFiolki.visible = true;
+          blaskFiolki.position.set(m.x + 43 * strona, m.y - 35); blaskFiolki.width = blaskFiolki.height = 60 * s; blaskFiolki.alpha = 0.8 * s * a;
+        }
+      } else swiatloLatarni.alpha = 0;
+    }
+    stawStempel(swiatloOkna, CHATA.okno.x, CHATA.okno.y + 30, 150, 0.7 * (1 - stanRys.bezDachu));
+    stawStempel(swiatloIzby, CHATA.palenisko.x, CHATA.palenisko.y + 60, 240 * migot, 0.95 * stanRys.bezDachu);   // ogień z paleniska oświetla izbę
+    renderer.render(ciemnoscC, { renderTexture: ciemnoscRT, clear: true });
+
+    // ekran: deszcz i czerwony błysk po ranie
+    deszcz.clear();
+    if (!lekko) {
+      deszcz.lineStyle(1, 0xbec8d7, 0.22 * (1 - (gra.slonce || 0)));
+      for (const kr of krople) {
+        kr.y += kr.v * dt * 1.4; kr.x -= kr.v * dt * 0.25;
+        if (kr.y > 1) { kr.y -= 1.05; kr.x = Math.random() * 1.2; }
+        const x = kr.x * vw, y = kr.y * vh, d = 16 * kr.d;
+        deszcz.moveTo(x, y); deszcz.lineTo(x - d * 0.18, y + d);
+      }
+    }
+    {
+      const sl = gra.slonce || 0; slonceC.visible = sl > 0.01;
+      if (slonceC.visible) {
+        const m = Math.max(vw, vh);
+        slonceS.position.set(vw * 0.92, -vh * 0.08); slonceS.width = slonceS.height = m * 2.2; slonceS.alpha = 0.3 * sl;
+        for (const p of promienie) {
+          const fal = 0.75 + 0.25 * Math.sin(czas * 0.4 + p.faza);
+          p.r.position.set(vw * 0.92, -vh * 0.08); p.r.rotation = p.kat + 0.03 * Math.sin(czas * 0.15 + p.faza);
+          p.r.width = m * 0.09 * p.szer; p.r.height = m * 2.2; p.r.alpha = 0.3 * sl * fal;
+        }
+      }
+    }
+    bolG.clear();
+    if (b.flash > 0) { bolG.beginFill(0x8a0000, b.flash * 0.9); bolG.drawRect(0, 0, vw, vh); bolG.endFill(); }
+    if (stanRys.fiolet > 0) { bolG.beginFill(0x6a2cc0, stanRys.fiolet * stanRys.fiolet * 0.35); bolG.drawRect(0, 0, vw, vh); bolG.endFill(); }
+
+    renderer.render(scena);
+  }
+
+  return {
+    rysuj, rozmiar, wyczysc, ekranNaSwiat, swiatNaEkran, karta,
+    get bohater() { return trybBohatera; },
+    ustawBohatera(t) { trybBohatera = t === 'gemini' && maObraz ? 'gemini' : 'rysowany'; return trybBohatera; },
+    maBohateraZGemini: maObraz,
+    opis: karta ? 'karta graficzna' : 'procesor (bez karty graficznej)',
+    get zoom() { return zoom; },
+  };
+}
