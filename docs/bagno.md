@@ -135,6 +135,12 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
   - potwory w wodzie są ucięte na linii wody (po kolana w płytkiej, po pas w głębokiej) i wynurzają się spod niej;
   - jak to sprawdzić: siatka miejsc, na których da się stanąć, na obrazie mapy (`testy/przegladarka/`), przejście bohaterem po kładkach i wyspach, izba w 12 punktach.
 
+- **28 XI rano, przegląd pod każdym kątem (v136, Patryk: *„sprawdż to pod kazdym kątem”*):**
+  - Potwory szły prosto na bohatera, więc stawały pod ścianą chaty, za kłodą albo pod izbą. Teraz idą drogą (mapa wolnych pól co 20 j. i odległość od bohatera, `drogaPotwora` w `gra/swiat.js`): obchodzą przeszkody, wchodzą do izby drzwiami, a zamknięte drzwi wyważają po 1,5 s stania pod nimi w walce. Nie atakują przez ścianę (bestia skakała przez chatę na polanie).
+  - Krzaki mają zderzenia (na polanie 93, na bagnie 10), totem szerszy (bohater chował się w nim), potwory w izbie stoją za przednią ścianą, kule wiedźmy nie gasną nad głęboką wodą.
+  - Telefon w pionie: na starcie bohater stał pod przyciskami, kamera schodzi teraz niżej niż mapa. Dziennik mówi, że drzwi izby otwiera się E.
+  - Sprawdzone: 139 podejść bohatera do każdego obiektu bagna z czterech stron (zrzut każdego), siatka miejsc do stania na obu mapach, fala z bohaterem w izbie (drzwi wyważone w 26. sekundzie, potwory doszły) i za chatą na polanie (7 potworów doszło), cała noc na bagnie i na polanie bez błędów, pięć rozmiarów ekranu.
+
 ## Co Claude zrobi, zanim przyjdą obrazy
 
 - Przełączanie map w `swiat.js`, bo dziś polana jest jedyną mapą, ze stałymi `SZER`, `WYS` i drogą.

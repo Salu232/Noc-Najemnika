@@ -352,7 +352,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     ogienBlask = rysunek('ogien_00', OGNISKO.x, OGNISKO.y + 4, 80); ogienBlask.zIndex = OGNISKO.y + 0.4; ogienBlask.blendMode = P.BLEND_MODES.ADD;
     aktorzy.addChild(ogien, ogienBlask);
   }
-  // Kępy i plamy na ziemi; krzaki stoją jak drzewa (sortowane po y), ale bez zderzeń.
+  // Kępy i plamy na ziemi; krzaki stoją jak drzewa (sortowane po y) i od 28 XI mają zderzenia (swiat.js, KRZAKI).
   const ozdobyS = [];
   if (R) for (const o of OZDOBY) {
     if (!R[o.rys]) continue;
@@ -1056,8 +1056,10 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       chataW.alpha = 1 - iw; chataW.visible = iw < 1;
       if (wnetrzeW) { wnetrzeW.alpha = iw; wnetrzeW.visible = iw > 0; }
       if (izbaWPrzod) {
-        izbaWPrzod.alpha = iw; izbaWPrzod.visible = iw > 0; izbaWPrzod.zIndex = b.y + 1;               // stoi przed bohaterem w izbie
-        lataZamknieta.alpha = iw * (1 - otw); lataZamknieta.visible = lataZamknieta.alpha > 0.01; lataZamknieta.zIndex = b.y + 1.1;
+        // stoi przed bohaterem i przed potworami w izbie (28 XI: potwór w izbie bliżej ściany niż bohater wychodził na ścianę)
+        let przedY = b.y; for (const e of gra.wrogowie) if (e.y > przedY && wIzbieWiedzmy(e)) przedY = e.y;
+        izbaWPrzod.alpha = iw; izbaWPrzod.visible = iw > 0; izbaWPrzod.zIndex = przedY + 1;
+        lataZamknieta.alpha = iw * (1 - otw); lataZamknieta.visible = lataZamknieta.alpha > 0.01; lataZamknieta.zIndex = przedY + 1.1;
         lataOtwarta.alpha = (1 - iw) * otw; lataOtwarta.visible = lataOtwarta.alpha > 0.01;
       }
     }
@@ -1173,7 +1175,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     const zg = Math.exp(-dt * 16); stanRys.kop.x *= zg; stanRys.kop.y *= zg; stanRys.ucisk = Math.max(0, stanRys.ucisk - dt * 5);
     const zz = zoom * (1 + 0.045 * stanRys.ucisk * stanRys.ucisk);   // mocny cios: kamera na chwilę się przybliża
     const pw = vw / 2 / zz, ph = vh / 2 / zz;
-    const kx = ogr(kam.x, pw, SZER - pw), ky = ogr(kam.y, ph, WYS - ph);
+    // telefon w pionie (28 XI): przy dolnym brzegu mapy (start na grobli) bohater stał pod przyciskami. Kamera schodzi wtedy niżej niż mapa.
+    const zapas = vh > vw * 1.2 ? ph * 0.45 : 0;
+    const kx = ogr(kam.x, pw, SZER - pw), ky = ogr(kam.y, ph, WYS - ph + zapas);
     const drz = gra.wstrzas * 0.8;
     const ox = Math.round((vw / 2 - kx * zz + ((Math.random() - 0.5) * drz + stanRys.kop.x) * zz) * 2) / 2;
     const oy = Math.round((vh / 2 - ky * zz + ((Math.random() - 0.5) * drz + stanRys.kop.y) * zz) * 2) / 2;

@@ -1,6 +1,6 @@
 // Logika walki: bohater, wrogowie, etapy nocy. Nic tu nie rysuje — rysowanie jest w rysowanie.js.
 import { BOHATER, BRONIE, DOMYSLNA_BRON, MOCNY, KLATWA, WROGOWIE, ETAPY, NOC, CHATA_ODPOCZYNEK, TOTEM, LUP, OGIEN, ULEPSZENIA, KARTKI, KARTKA, PRZEMIANA, WSTEP, PRZEDMIOTY, STOL, STOL_NA_POLANIE, HANDLARZ, GROSZE, PORTAL, ZIOLA, LATARNIA, DARY, ROZMOWA_WIEDZMY } from './dane.js';
-import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY, wGlebokiej, dlaBohatera, PROG_BOHATERA, wIzbieWiedzmy, SZER, WYS } from './swiat.js';
+import { START, CHATA, odDrogiPolnoc, DROGA_SZER, OGNISKO, TOTEMY, STOS_DREWNA, MIEJSCA, DROGA, MIEJSCE_HANDLARZA, wIzbie, zderzenia, punktWMgle, BAGNO, wPlytkiej, punktZWody, KARTKA_START, LATARNIE, punktNaWyspie, WYSPY, CHATA_WIEDZMY, wGlebokiej, dlaBohatera, PROG_BOHATERA, wIzbieWiedzmy, SZER, WYS, drogaPotwora } from './swiat.js';
 // Topielce na bagnie: ile w każdej fali (wychodzą z wody, oprócz potworów z portali)
 // Płytka woda na bagnie: bohater brnie wolniej, potwory też (topielec nie, to jego woda)
 const BRODZI = 0.62, BRODZI_WROG = 0.72;
@@ -14,6 +14,7 @@ const PION = 0.8;
 
 export function nowaGra(bron = DOMYSLNA_BRON) {
   if (BAGNO) dlaBohatera(START);                                          // siatka lądu bohatera liczy się tu, a nie w środku walki
+  drogaPotwora(START, START);                                              // mapa wolnych pól dla potworów (0,1 s) też tu, a nie przy pierwszym potworze
   const gra = {
     bronKlucz: BRONIE[bron] ? bron : DOMYSLNA_BRON, bron: BRONIE[BRONIE[bron] ? bron : DOMYSLNA_BRON],
     czas: 0, zatrzymanie: 0, wstrzas: 0, mroczek: WSTEP.zmierzch,
@@ -859,7 +860,9 @@ function aktualizujWrogow(gra, dt) {
       }
     } else if (e.stan === 'idzie') {
       if (bohaterZywy) {
-        ax = dx / d * szyb; ay = dy / d * szyb;
+        const droga = typ.duch ? null : drogaPotwora(e, b);              // obchodzi drzewa, kłody i chatę zamiast stać pod ścianą
+        if (droga) { const ux = droga.x - e.x, uy = droga.y - e.y, ud = Math.hypot(ux, uy) || 1; ax = ux / ud * szyb; ay = uy / ud * szyb; }
+        else { ax = dx / d * szyb; ay = dy / d * szyb; }
         if (typ.ataki) {                                                      // boss: wybiera jeden z dwóch ataków swojej fazy
           // wściekłość (Patryk, 26 XI 0:56): poniżej 25% życia krócej odpoczywa, poniżej 10% jeszcze krócej; doskok częściej, ale nie dwa razy pod rząd
           const wsc = e.zycie / e.zycieMax < 0.1 ? 2 : e.zycie / e.zycieMax < 0.25 ? 1 : 0;
@@ -868,13 +871,13 @@ function aktualizujWrogow(gra, dt) {
             const l = typ.ataki[e.faza].filter(a => a !== e.ostatni), dsk = l.find(a => a.leci);
             e.nast = dsk && wsc && Math.random() < 0.4 ? dsk : l[(Math.random() * l.length) | 0];
           }
-          if (d < e.nast.zasieg + b.promien) {
+          if (d < e.nast.zasieg + b.promien && !droga) {
             e.at = e.ostatni = e.nast; e.nast = null; e.stan = 'zamach'; e.t = 0; e.kat = doBoh;
             e.cel = e.at.leci ? { x: e.x + Math.cos(doBoh) * Math.min(d, 300), y: e.y + Math.sin(doBoh) * Math.min(d, 300) }   // doskok: krąg tam, gdzie stoi bohater
               : { x: e.x + Math.cos(doBoh) * e.at.cel, y: e.y + Math.sin(doBoh) * e.at.cel };
             e.odpoczynek = e.at.odpoczynek * e.mOdp * [1, 0.7, 0.45][wsc];
           }
-        } else if (d < typ.zasiegAtaku + b.promien) {
+        } else if (d < typ.zasiegAtaku + b.promien && !droga) {           // !droga: nie atakuje przez ścianę chaty (28 XI: bestia skakała na bohatera za chatą)
           e.stan = 'zamach'; e.t = 0; e.kat = doBoh;
           if (typ.ciezki) e.cel = { x: e.x + Math.cos(doBoh) * 62, y: e.y + Math.sin(doBoh) * 62 };
         }
@@ -965,7 +968,7 @@ function aktualizujPociski(gra, dt) {
   for (const p of gra.pociski) {
     p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += (45 - p.z) * Math.min(1, dt * 3);
     if (p.t > p.zycie) { p.zgas = true; continue; }
-    const q = { x: p.x, y: p.y }; zderzenia(q, 2);
+    const q = { x: p.x, y: p.y }; zderzenia(q, 2, true);   // true: nad głęboką wodą leci dalej (28 XI: gasła nad każdym rozlewiskiem)
     if (Math.hypot(q.x - p.x, q.y - p.y) > 0.5) { p.zgas = true; gra.zdarzenia.push({ typ: 'pocisk_zgasl', x: p.x, y: p.y - p.z }); continue; }
     if (b.stan !== 'upadl' && Math.hypot(b.x - p.x, b.y - p.y) < b.promien + p.promien) {
       if (b.nietykalny > 0) continue;                                      // unik: kula przelatuje
@@ -1246,6 +1249,12 @@ function bagno(gra, dt, w) {
     cw.drzwiOtwarte = D.o > 0.7;
     const przy = b.stan === 'wolny' && Math.abs(b.x - sx) < 50 && Math.abs(b.y - dr.y) < 56;
     const wProgu = b.x > dr.x0 - 6 && b.x < dr.x1 + 6 && Math.abs(b.y - dr.y) < b.promien;
+    // w walce potwór, który stoi pod zamkniętymi drzwiami, wyważa je po chwili (bez tego izba była kryjówką na całą falę)
+    if (gra.faza === 'walka' && !D.otwarte) {
+      const pod = gra.wrogowie.some(e => !e.typ.pocisk && !e.typ.duch && e.stan !== 'martwy' && Math.abs(e.x - sx) < 45 && e.y > dr.y && e.y - dr.y < 55);
+      D.wywaz = pod ? (D.wywaz || 0) + dt : 0;
+      if (D.wywaz > 1.5) { D.otwarte = true; D.wywaz = 0; gra.zdarzenia.push({ typ: 'drzwi', otwarte: true }); gra.wstrzas = Math.max(gra.wstrzas, 8); if (wIzbieWiedzmy(b)) powiedz(gra, 'Wyważyli drzwi!', 2); }
+    }
     if (przy && !gra.akcja) {
       if (!D.otwarte) gra.akcja = 'otworz'; else if (!wProgu) gra.akcja = 'zamknij';
       if (w.akcja && gra.akcja) { D.otwarte = gra.akcja === 'otworz'; w.akcja = false; gra.zdarzenia.push({ typ: 'drzwi', otwarte: D.otwarte }); }

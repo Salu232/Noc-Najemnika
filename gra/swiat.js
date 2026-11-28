@@ -79,9 +79,9 @@ export const MGLY = {
 // 27 XI (Patryk: „nie wiem, czy te totemy w ogóle są potrzebne”): potwory przychodzą z portali, więc zostaje jeden totem z czaszką,
 // jako znak dawnego mieszkańca (wstęp: „Kość i pióra na palu”). Rogi, obelisk i kamień zdjęte.
 export const TOTEMY = BAGNO ? [
-  { mgla: 'wschod', rys: 'totem_czaszka', x: 2580, y: 1050, wys: 175, promien: 22 },   // bagno: kamień ze znakiem (na razie rysunek totemu)
+  { mgla: 'wschod', rys: 'totem_czaszka', x: 2580, y: 1050, wys: 175, promien: 30 },   // bagno: kamień ze znakiem (na razie rysunek totemu)
 ] : [
-  { mgla: 'zachod', rys: 'totem_czaszka', x: MGLY.zachod.x, y: MGLY.zachod.y, wys: 175, promien: 22 },
+  { mgla: 'zachod', rys: 'totem_czaszka', x: MGLY.zachod.x, y: MGLY.zachod.y, wys: 175, promien: 30 },
 ];
 
 // ---------- Bagno (27 XI, Patryk: „inna mapa ma być”) ----------
@@ -364,7 +364,10 @@ for (const d of DRZEWA) if (d.rys === 'kloda') {
   const k = d.h / (209 * 0.943), sx = d.lustro ? -1 : 1;
   for (let i = 0; i <= 5; i++) { const t = i / 5, px = 45 + 190 * t - 52.5, py = 180 - 95 * t - 197; KLODY.push({ x: d.x + sx * px * k, y: d.y + py * k, promien: 26 * k }); }
 }
-for (const d of [...DRZEWA, ...KLODY]) { const k = ((d.x / KOM) | 0) * 1000 + ((d.y / KOM) | 0); (siatka.get(k) || siatka.set(k, []).get(k)).push(d); }
+// Krzaki (28 XI, Patryk: „każdy obiekt ma być fizyczny a nie grafika”): przechodziło się przez nie. Kółko w dolnej części krzaka,
+// mniejsze niż rysunek, żeby bohater chował się za gałęziami, a nie odbijał od powietrza (rysunek 78 j. szerokości razy skala).
+const KRZAKI = OZDOBY.filter(o => o.stoi).map(o => ({ x: o.x, y: o.y - 8 * o.skala, promien: 19 * o.skala }));
+for (const d of [...DRZEWA, ...KLODY, ...KRZAKI]) { const k = ((d.x / KOM) | 0) * 1000 + ((d.y / KOM) | 0); (siatka.get(k) || siatka.set(k, []).get(k)).push(d); }
 
 // Wypycha koło o promieniu r z prostokąta najkrótszą drogą (także gdy środek jest już w środku prostokąta).
 function odepchnijOdProstokata(p, s, r) {
@@ -442,6 +445,62 @@ export function zderzenia(p, r, plywa = false, prog = 1) {   // plywa: potwory n
   const o = Math.hypot(p.x - OGNISKO.x, p.y - OGNISKO.y), mo = r + OGNISKO.promien;
   if (o < mo && o > 0.001) { p.x = OGNISKO.x + (p.x - OGNISKO.x) / o * mo; p.y = OGNISKO.y + (p.y - OGNISKO.y) / o * mo; }
   p.x = Math.max(30, Math.min(SZER - 30, p.x)); p.y = Math.max(60, Math.min(WYS - 30, p.y));
+}
+
+// Droga potworów (28 XI, Patryk: „potwory jak debile”, „przez domek przechodzą”): szły prosto na bohatera i stawały pod ścianą,
+// za kłodą albo pod chatą, gdy bohater był w izbie. Teraz mapa wolnych pól co 20 jednostek (drzewa, kłody, ściany, dom wiedźmy;
+// drzwi izby liczą się jako przejście, bo potwory je wyważają) i odległość od bohatera liczona falą. Potwór, który nie widzi
+// bohatera wprost, idzie w dół tej odległości: obchodzi przeszkody i wchodzi do izby drzwiami.
+const DP = 20, PW = Math.ceil(SZER / DP), PH = Math.ceil(WYS / DP);
+let wolneP = null, odlP = null, odlKom = -1;
+function policzWolneP() {
+  wolneP = new Uint8Array(PW * PH);
+  const cw = CHATA_WIEDZMY, bylo = cw && cw.drzwiOtwarte;
+  if (cw) cw.drzwiOtwarte = false;                       // drzwi zamknięte; ich odcinek zdejmujemy niżej, żeby było przejście
+  const odc = cw && cw.drzwiOdc; if (cw) cw.drzwiOdc = [{ x: -9999, y: -9999 }, { x: -9998, y: -9999 }];
+  for (let j = 0; j < PH; j++) for (let i = 0; i < PW; i++) {
+    const x = (i + 0.5) * DP, y = (j + 0.5) * DP; if (x < 30 || y < 60 || x > SZER - 30 || y > WYS - 30) continue;
+    const q = { x, y }; zderzenia(q, 12, true);
+    if (Math.hypot(q.x - x, q.y - y) < 3) wolneP[j * PW + i] = 1;
+  }
+  if (cw) { cw.drzwiOdc = odc; cw.drzwiOtwarte = bylo; }
+}
+const SASIEDZI = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+function krok(i, j, a, b) { const n = (j + b) * PW + i + a; if (i + a < 0 || j + b < 0 || i + a >= PW || j + b >= PH || !wolneP[n]) return -1; if (a && b && (!wolneP[j * PW + i + a] || !wolneP[(j + b) * PW + i])) return -1; return n; }
+function policzOdl(bi, bj) {
+  odlP = odlP || new Int16Array(PW * PH); odlP.fill(-1);
+  const kol = [];
+  for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++) { const i = bi + a, j = bj + b; if (i >= 0 && j >= 0 && i < PW && j < PH && wolneP[j * PW + i] && odlP[j * PW + i] < 0) { odlP[j * PW + i] = 0; kol.push(j * PW + i); } }
+  for (let h = 0; h < kol.length; h++) {
+    const c = kol[h], i = c % PW, j = (c / PW) | 0;
+    for (const [a, b] of SASIEDZI) { const n = krok(i, j, a, b); if (n >= 0 && odlP[n] < 0) { odlP[n] = odlP[c] + 1; kol.push(n); } }
+  }
+}
+function widac(ax, ay, bx, by) {                          // prosta od potwora do bohatera idzie tylko po wolnych polach
+  const d = Math.hypot(bx - ax, by - ay), n = Math.ceil(d / 10);
+  for (let k = 1; k < n; k++) { const x = ax + (bx - ax) * k / n, y = ay + (by - ay) * k / n; if (!wolneP[((y / DP) | 0) * PW + ((x / DP) | 0)]) return false; }
+  return true;
+}
+// Punkt, ku któremu potwór ma iść, albo null: wtedy prosto na bohatera.
+export function drogaPotwora(e, b) {
+  if (!wolneP) policzWolneP();
+  const bi = (b.x / DP) | 0, bj = (b.y / DP) | 0;
+  if (bj * PW + bi !== odlKom) { odlKom = bj * PW + bi; policzOdl(bi, bj); }
+  const i = (e.x / DP) | 0, j = (e.y / DP) | 0, c = j * PW + i;
+  if (i < 0 || j < 0 || i >= PW || j >= PH) return null;
+  if (odlP[c] < 0) {                                       // stoi na polu zajętym (przy ścianie, pod pniem): idzie na najlepsze wolne pole obok
+    let naj = -1;
+    for (let bb = -2; bb <= 2; bb++) for (let a = -2; a <= 2; a++) { const x = i + a, y = j + bb, n = y * PW + x; if (x >= 0 && y >= 0 && x < PW && y < PH && odlP[n] >= 0 && (naj < 0 || odlP[n] < odlP[naj])) naj = n; }
+    return naj < 0 ? null : { x: (naj % PW + 0.5) * DP, y: (((naj / PW) | 0) + 0.5) * DP };
+  }
+  if (odlP[c] <= 2 || widac(e.x, e.y, b.x, b.y)) return null;
+  let k = c, ki = i, kj = j;
+  for (let s = 0; s < 3; s++) {                           // trzy pola w dół odległości: gładszy skręt niż pole po polu
+    let naj = -1;
+    for (const [a, bb] of SASIEDZI) { const n = krok(ki, kj, a, bb); if (n >= 0 && odlP[n] >= 0 && odlP[n] < odlP[k] && (naj < 0 || odlP[n] < odlP[naj])) naj = n; }
+    if (naj < 0) break; k = naj; ki = k % PW; kj = (k / PW) | 0;
+  }
+  return k === c ? null : { x: (ki + 0.5) * DP, y: (kj + 0.5) * DP };
 }
 
 // Potwór wychodzi spod totemu tej strony (przed nim, w stronę polany).

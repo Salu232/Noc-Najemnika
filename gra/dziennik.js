@@ -17,7 +17,7 @@ export function kierunek(b, cel) {
 
 const duza = s => s.charAt(0).toUpperCase() + s.slice(1);
 // Miejsca w izbie: trzeba wiedzieć, że do środka wchodzi się drzwiami
-const wIzbie = (id, dotyk) => BAGNO ? (id === 'chata' ? 'W izbie na palach: wejdź drzwiami z pomostu.' : '') : (id === 'palenisko' || id === 'poslanie' ? `W izbie chaty: podejdź do drzwi, otwórz je (${dotyk ? 'napis na dole' : 'E'}) i wejdź.` : '');
+const wIzbie = (id, dotyk) => BAGNO ? (id === 'chata' ? `W izbie na palach: drzwi są na pomoście, otwórz je (${dotyk ? 'napis na dole' : 'E'}) i wejdź.` : '') : (id === 'palenisko' || id === 'poslanie' ? `W izbie chaty: podejdź do drzwi, otwórz je (${dotyk ? 'napis na dole' : 'E'}) i wejdź.` : '');
 
 // Zadania na teraz. dotyk: telefon (przycisk zamiast klawisza E).
 export function dziennik(gra, dotyk = false) {
@@ -44,7 +44,7 @@ export function dziennik(gra, dotyk = false) {
     }
     if (gra.kartki < 1) {
       const k = gra.kartka || KARTKA_START || CHATA.palenisko;
-      dodaj('Znajdź pierwszą kartkę', BAGNO ? 'Leży w izbie wiedźmy, przy stole. Wejdź drzwiami z pomostu i podejdź do niej, podniesie się sama.' : `Leży na podłodze w izbie chaty. Otwórz drzwi (${dotyk ? 'napis na dole' : 'E'}), wejdź i podejdź do niej, podniesie się sama.`, k);
+      dodaj('Znajdź pierwszą kartkę', BAGNO ? `Leży w izbie wiedźmy, przy stole. Otwórz drzwi na pomoście (${dotyk ? 'napis na dole' : 'E'}), wejdź i podejdź do niej, podniesie się sama.` : `Leży na podłodze w izbie chaty. Otwórz drzwi (${dotyk ? 'napis na dole' : 'E'}), wejdź i podejdź do niej, podniesie się sama.`, k);
     }
     if (totem && !gra.odkryte.includes('totem')) {
       const gotowy = gra.kartki >= 1 && reszta.every(m => gra.odkryte.includes(m.id));
