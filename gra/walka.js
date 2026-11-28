@@ -21,7 +21,7 @@ export function nowaGra(bron = DOMYSLNA_BRON) {
     etap: 0, faza: 'wstep', fazaCzas: NOC.przerwa, walkaCzas: 0, kolejka: [],
     odkryte: [], odkryj: null,                                           // wstęp: obejrzane miejsca (swiat.js, MIEJSCA)
     mysl: { tekst: '', czas: 0 },
-    drzwi: { otwarte: false, o: 0 },   // drzwi chaty: czy otwarte i jak daleko obrócone (0 zamknięte, 1 otwarte)
+    drzwi: { otwarte: false, o: 0 }, drzwiW: { otwarte: false, o: 0 },   // drzwiW: chata wiedźmy na bagnie   // drzwi chaty: czy otwarte i jak daleko obrócone (0 zamknięte, 1 otwarte)
     statystyki: { zabici: 0, upadki: 0, parowania: 0, czas: 0, totemy: 0 },
     // cele nocy (24 XI 18:41): totemy do rozbicia, łup, gasnące ognisko, ulepszenia między falami
     totemy: TOTEMY.map((t, i) => ({ i, mgla: t.mgla, x: t.x, y: t.y, promien: t.promien, zycie: TOTEM.zycie, flash: 0, zniszczony: false })),
@@ -1239,6 +1239,18 @@ function rozsiejZiola(gra) {
 }
 function bagno(gra, dt, w) {
   const b = gra.bohater, wolny = b.stan === 'wolny' && !b.spi && !b.wChacie;
+  // drzwi chaty wiedźmy: E otwiera i zamyka, jak na polanie (Patryk, 28 XI 02:41: „tu nawet dzwi normalnie nie otwierasz”).
+  // Na bagnie same się nie zamykają w walce, żeby nikt nie został zamknięty w izbie.
+  { const D = gra.drzwiW, cw = CHATA_WIEDZMY, dr = cw.drzwi, sx = (dr.x0 + dr.x1) / 2;
+    D.o = Math.max(0, Math.min(1, D.o + (D.otwarte ? 1 : -1) * dt / 0.45));
+    cw.drzwiOtwarte = D.o > 0.7;
+    const przy = b.stan === 'wolny' && Math.abs(b.x - sx) < 50 && Math.abs(b.y - dr.y) < 56;
+    const wProgu = b.x > dr.x0 - 6 && b.x < dr.x1 + 6 && Math.abs(b.y - dr.y) < b.promien;
+    if (przy && !gra.akcja) {
+      if (!D.otwarte) gra.akcja = 'otworz'; else if (!wProgu) gra.akcja = 'zamknij';
+      if (w.akcja && gra.akcja) { D.otwarte = gra.akcja === 'otworz'; w.akcja = false; gra.zdarzenia.push({ typ: 'drzwi', otwarte: D.otwarte }); }
+    }
+  }
   if (!gra.ziolaZasiane) { gra.ziolaZasiane = true; rozsiejZiola(gra); }    // pierwsze rosną już o zmierzchu
   // pochodnie: mgła z wody gasi je szybciej w walce niż w ciszy
   LATARNIE.forEach((l, i) => {

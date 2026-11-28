@@ -125,11 +125,23 @@ export const KLADKI = BAGNO ? [
 export const CHATA_WIEDZMY = BAGNO ? (() => {
   const X0 = 1208, Y0 = 288, s = 0.4, w = (ix, iy) => ({ x: X0 + s * ix, y: Y0 + s * iy });
   const pomost = [w(405, 1172), w(986, 1425), w(1700, 1252), w(1695, 1165), w(1450, 1148), w(1330, 1212), w(1014, 1252), w(443, 1158)];
-  const izba = [{ x: 1400, y: 625 }, { x: 1790, y: 625 }, { x: 1790, y: 748 }, { x: 1740, y: 772 }, { x: 1614, y: 790 }, { x: 1560, y: 782 }, { x: 1400, y: 745 }];
+  // Podłoga izby tylko po deskach, które widać na obrazie wnętrza (Patryk, 28 XI 02:36: stał na stole, na półkach i na ścianie).
+  // Od tyłu półki i świeca, z lewej stół i ściana, z prawej beczki i dzbany, z przodu ściana frontowa z drzwiami.
+  const izba = [w(885, 888), w(1015, 888), w(1015, 930), w(1095, 930), w(1095, 888), w(1250, 882), w(1262, 960), w(1268, 1085), w(1320, 1125),
+    w(1440, 1128), w(1440, 1152), w(1330, 1212), w(1135, 1245), w(1000, 1250), w(880, 1230), w(880, 1000)];
   return {
     X0, Y0, s, w, x: 1630, y: 790,
     izba, pomost,
-    drzwi: { x0: 1594, x1: 1662, y: 788 },
+    // cały dom od ściany do ściany (Patryk, 28 XI 02:45: potwory przechodziły przez chatę): poza izbą nikt tu nie wejdzie
+    dom: [w(430, 800), w(1475, 800), w(1475, 1144), w(1330, 1206), w(1135, 1239), w(1000, 1244), w(436, 1152)],   // przód tuż za podłogą izby: przez próg nie ma szczeliny
+    drzwi: { x0: 1608, x1: 1657, y: 788 },                             // otwór między skrzydłem a słupem
+    drzwiOdc: [w(985, 1252), w(1140, 1245)],                           // zamknięte drzwi: ściana; otwiera i zamyka E (walka.js)
+    skrzydlo: [w(905, 1365), w(990, 1272)],                            // otwarte skrzydło stoi na pomoście, po lewej od otworu
+    // obrazy (współrzędne obrazu 2048): łata drzwi i to, co w izbie stoi przed bohaterem (rysowanie.js)
+    lataDrzwi: [[870, 1060], [972, 972], [1122, 960], [1122, 1262], [995, 1292], [905, 1378], [868, 1352]],
+    przod: [[[400, 1000], [490, 930], [870, 1060], [972, 978], [995, 985], [995, 1290], [905, 1372], [840, 1352], [440, 1160], [400, 1140]],
+      [[1120, 912], [1180, 912], [1180, 1168], [1208, 1168], [1208, 1250], [1180, 1262], [1120, 1265]],
+      [[1208, 1200], [1455, 1085], [1455, 640], [1600, 640], [1600, 1150], [1460, 1140], [1208, 1252]]],
     kladka: { a: w(1170, 1390), b: w(1500, 1870), szer: 40 },           // kładka z pomostu na wyspę (jest na obrazie)
     sciany: [[w(443, 1158), w(1000, 1250)], [w(1135, 1245), w(1330, 1212), w(1450, 1148)],   // frontowa: lewa i prawa od drzwi
       [w(443, 1158), w(470, 1050), w(480, 840)], [w(1450, 1148), w(1460, 1060), w(1460, 840)]],   // boczne: do izby wchodzi się tylko drzwiami (27 XI: wszedł bokiem przy kotle)
@@ -145,8 +157,17 @@ export const CHATA_WIEDZMY = BAGNO ? (() => {
 })() : null;
 const wWielokacie = (x, y, w) => { let c = false; for (let i = 0, j = w.length - 1; i < w.length; j = i++) { const a = w[i], b = w[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; };
 const odWielokata = (x, y, w) => { if (wWielokacie(x, y, w)) return 0; let m = Infinity; for (let i = 0, j = w.length - 1; i < w.length; j = i++) m = Math.min(m, odOdcinka(x, y, w[j], w[i])); return m; };
-export const wIzbieWiedzmy = (p) => !!CHATA_WIEDZMY && wWielokacie(p.x, p.y, CHATA_WIEDZMY.izba);
+export const wIzbieWiedzmy = (p) => !!CHATA_WIEDZMY && (wWielokacie(p.x, p.y, CHATA_WIEDZMY.izba) || odWielokata(p.x, p.y, CHATA_WIEDZMY.izba) < 5);   // z zapasem: przy samej ścianie też w izbie (28 XI: w rogu znikał pod dachem)
 const szumBrzegu = (x, y) => 0.5 * Math.sin(x * 0.013 + y * 0.007) + 0.3 * Math.sin(x * 0.031 - y * 0.023) + 0.2 * Math.sin(-x * 0.05 + y * 0.061);
+const najblizszyNaBrzegu = (p, w) => {                                // najbliższy punkt na obwodzie wielokąta
+  let n = { x: p.x, y: p.y, d: Infinity };
+  for (let i = 0, j = w.length - 1; i < w.length; j = i++) {
+    const a = w[j], b = w[i], dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy;
+    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L)), x = a.x + t * dx, y = a.y + t * dy, d = Math.hypot(p.x - x, p.y - y);
+    if (d < n.d) n = { x, y, d };
+  }
+  return n;
+};
 const odOdcinka = (x, y, a, b) => { const dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy; let t = ((x - a.x) * dx + (y - a.y) * dy) / L; t = Math.max(0, Math.min(1, t)); return Math.hypot(x - a.x - t * dx, y - a.y - t * dy); };
 const PAS_PLYTKI = 0.35;                        // szerokość płytkiej wody za brzegiem, jako część promienia wyspy
 function naWyspie(x, y) { let q = 99; for (const w of WYSPY) { const dx = (x - w.x) / w.rx, dy = (y - w.y) / w.ry; q = Math.min(q, Math.sqrt(dx * dx + dy * dy)); } return q; }
@@ -176,6 +197,7 @@ export function punktZWody(cel, unikaj = []) {                          // unika
     const a = Math.random() * Math.PI * 2, r = 180 + Math.random() * 240, p = { x: cel.x + Math.cos(a) * r, y: cel.y + Math.sin(a) * r * 0.8 };
     if (p.x < 40 || p.y < 70 || p.x > SZER - 40 || p.y > WYS - 40) continue;
     if (unikaj.some(u => Math.hypot(u.x - p.x, u.y - p.y) < u.r)) continue;
+    if (BAGNO && p.x > 1340 && p.x < 1930 && p.y > 400 && p.y < 1080) continue;   // nie spod chaty ani spod pomostu (28 XI 02:45)
     const g = glebia(p.x, p.y);
     if (g > 1.02 && g < 1.6) return p;
     if (g > 1 && (!naj || g < naj.g)) naj = { ...p, g };
@@ -278,7 +300,13 @@ export const MIEJSCE_HANDLARZA = BAGNO ? { x: 1380, y: 1250 } : (() => {
   const i = Math.round(0.7 * (DROGA.length - 1)), p = DROGA[i], q = DROGA[i + 1], dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1;
   return { x: p.x + dy / d * 78, y: p.y - dx / d * 78 };
 })();
-export const RZECZY = BAGNO ? [] : [
+// Na bagnie (28 XI 02:50): miejsca „stos” i „wóz” były tylko napisem, bez rysunku i bez zderzeń. Stos to rysunek drewna;
+// wozu nie ma w żadnym arkuszu, więc do czasu obrazu stoi beczka z tym samym herbem (docs/bagno.md, lista obrazów).
+export const RZECZY = BAGNO ? [
+  { rys: 'drewno', x: 1395, y: 1085, szer: 78, promien: 22 },
+  { rys: 'beczka', x: 765, y: 1012, szer: 40, promien: 17 },
+  { rys: 'beczka', x: 737, y: 1034, szer: 36, promien: 15, lustro: true },
+] : [
   { rys: 'drewno', f: 0.52, bok: 1, od: 82, szer: 78, promien: 22 },
   { rys: 'beczka', f: 0.86, bok: -1, od: 82, szer: 40, promien: 17 },
   { rys: 'beczka', f: 0.835, bok: -1, od: 112, szer: 38, promien: 16, lustro: true },
@@ -329,7 +357,14 @@ if (BAGNO) for (let i = 0, n = 0; i < 20000 && n < 260; i++) {
 
 // Siatka drzew, żeby szybko sprawdzać zderzenia.
 const KOM = 128, siatka = new Map();
-for (const d of DRZEWA) { const k = ((d.x / KOM) | 0) * 1000 + ((d.y / KOM) | 0); (siatka.get(k) || siatka.set(k, []).get(k)).push(d); }
+// Kłoda leży, więc nie wystarczy jej jedno kółko u nasady (28 XI: przechodziło się przez jej pień). Kółka wzdłuż osi
+// z rysunku (grafika/rekwizyty.webp, „kloda” 265×209, nasada w 0.198, 0.943): od (45, 180) do (235, 85) px rysunku.
+const KLODY = [];
+for (const d of DRZEWA) if (d.rys === 'kloda') {
+  const k = d.h / (209 * 0.943), sx = d.lustro ? -1 : 1;
+  for (let i = 0; i <= 5; i++) { const t = i / 5, px = 45 + 190 * t - 52.5, py = 180 - 95 * t - 197; KLODY.push({ x: d.x + sx * px * k, y: d.y + py * k, promien: 26 * k }); }
+}
+for (const d of [...DRZEWA, ...KLODY]) { const k = ((d.x / KOM) | 0) * 1000 + ((d.y / KOM) | 0); (siatka.get(k) || siatka.set(k, []).get(k)).push(d); }
 
 // Wypycha koło o promieniu r z prostokąta najkrótszą drogą (także gdy środek jest już w środku prostokąta).
 function odepchnijOdProstokata(p, s, r) {
@@ -387,6 +422,14 @@ export function zderzenia(p, r, plywa = false, prog = 1) {   // plywa: potwory n
       const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L)), qx = a.x + t * dx, qy = a.y + t * dy, e = Math.hypot(p.x - qx, p.y - qy), m = r * 0.8;
       if (e < m && e > 0.001) { p.x = qx + (p.x - qx) / e * m; p.y = qy + (p.y - qy) / e * m; }
     }
+    if (wWielokacie(p.x, p.y, cw.dom) && !wWielokacie(p.x, p.y, cw.izba)) {   // w ścianach, meblach albo pod domem: na najbliższy brzeg izby albo na zewnątrz
+      const a = najblizszyNaBrzegu(p, cw.izba), z = najblizszyNaBrzegu(p, cw.dom), q = a.d < z.d ? a : z;
+      const dx = q.x - p.x, dy = q.y - p.y, L = Math.hypot(dx, dy) || 1;
+      p.x = q.x + dx / L * 1.5; p.y = q.y + dy / L * 1.5;                  // za brzeg, w stronę, w którą już szedł
+    }
+    { const [a, b2] = cw.drzwiOtwarte ? cw.skrzydlo : cw.drzwiOdc, dx = b2.x - a.x, dy = b2.y - a.y, L = dx * dx + dy * dy;   // drzwi albo otwarte skrzydło
+      const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L)), qx = a.x + t * dx, qy = a.y + t * dy, e = Math.hypot(p.x - qx, p.y - qy), m = r * 0.8;
+      if (e < m && e > 0.001) { p.x = qx + (p.x - qx) / e * m; p.y = qy + (p.y - qy) / e * m; } }
     { const dx = p.x - cw.kociol.x, dy = p.y - cw.kociol.y, q = Math.hypot(dx, dy), m = r + cw.kociol.promien; if (q < m && q > 0.001) { p.x = cw.kociol.x + dx / q * m; p.y = cw.kociol.y + dy / q * m; } }
     for (const l of cw.slupy) { const dx = p.x - l.x, dy = p.y - l.y, q = Math.hypot(dx, dy), m = r + 7; if (q < m && q > 0.001) { p.x = l.x + dx / q * m; p.y = l.y + dy / q * m; } }   // słupy chaty
     for (const l of LATARNIE) { const dx = p.x - l.x, dy = p.y - l.y, q = Math.hypot(dx, dy), m = r + 8; if (q < m && q > 0.001) { p.x = l.x + dx / q * m; p.y = l.y + dy / q * m; } }   // pal pochodni
@@ -431,10 +474,10 @@ export const KARTKA_START = BAGNO ? { x: 1640, y: 705 } : null;   // pierwsza ka
 export const MIEJSCA = BAGNO ? [
   { id: 'ognisko', nazwa: 'ognisko', x: OGNISKO.x, y: OGNISKO.y + 20, mysl: 'Ognisko na wyspie, kamienie mokre od mgły. Jedyne suche miejsce w okolicy.', wsk: 'Na wyspie ktoś ułożył kamienie pod ogień.' },
   { id: 'kociol', nazwa: 'kocioł', x: CHATA_WIEDZMY.kociol.x - 10, y: CHATA_WIEDZMY.kociol.y + 30, mysl: 'Kocioł nad żarem. W środku coś gęstego, jeszcze ciepłe. Pachnie ziołami i krwią.', wsk: 'Na pomoście przed chatą coś bulgocze. Ktoś tu gotował.' },
-  { id: 'chata', nazwa: 'izbę wiedźmy', x: 1560, y: 690, mysl: 'Słoje, zioła, czaszki na półkach. Na stole otwarta księga. Świeca jeszcze się pali, a wiedźmy nie ma.', wsk: 'Drzwi chaty na palach są uchylone. Ktoś w niej mieszka?' },
-  { id: 'stos', nazwa: 'drewno', x: STOS_DREWNA.x, y: STOS_DREWNA.y, mysl: 'Suche drewno pod daszkiem z trzciny. Tutaj suche jest cenniejsze od złota.', wsk: 'Ogień pod kotłem trzeba czymś karmić.' },
+  { id: 'chata', nazwa: 'izbę wiedźmy', x: 1560, y: 690, mysl: 'Słoje, zioła, czaszki na półkach. Na stole otwarta księga. Świeca jeszcze się pali, a wiedźmy nie ma.', wsk: 'Chata na palach, drzwi zamknięte. Ktoś w niej mieszka?' },
+  { id: 'stos', nazwa: 'drewno', x: STOS_DREWNA.x, y: STOS_DREWNA.y, mysl: 'Suche polana złożone na wyspie. Tutaj suche jest cenniejsze od złota.', wsk: 'Ogień pod kotłem trzeba czymś karmić.' },
   { id: 'kladka', nazwa: 'kładkę', x: 1100, y: 1068, mysl: 'Deski śliskie, jedna złamana. Coś pod nimi przepłynęło. Duże.', wsk: 'Na zachód prowadzą deski nad wodą.' },
-  { id: 'woz', nazwa: 'wóz', x: 720, y: 1010, mysl: 'Wóz w błocie po osie. Na burcie herb: ten sam, co na pancerzu rycerza. Był tu przede mną.', wsk: 'Na zachodniej wyspie coś stoi w błocie. Wóz?' },
+  { id: 'woz', nazwa: 'beczki', x: 752, y: 1072, mysl: 'Beczki w błocie, rozbite. Na denku wypalony herb: ten sam, co na pancerzu rycerza. Był tu przede mną.', wsk: 'Na zachodniej wyspie coś leży w błocie.' },
   { id: 'totem', nazwa: 'kamień ze znakiem', x: 2580 - 30, y: 1050 + 25, mysl: 'Półksiężyc i trzcina wyryte w kamieniu. Znak z amuletu. Ręka płonie, woda wokół się burzy.', wsk: 'Na wschodniej wyspie stoi kamień. Amulet ciąży w dłoni.' },
 ] : [
   { id: 'ognisko', nazwa: 'ognisko', x: OGNISKO.x, y: OGNISKO.y + 20, mysl: 'Kamienie ułożone równo, jeden przy drugim. Ktoś dbał, żeby ten ogień nie zgasł.' },

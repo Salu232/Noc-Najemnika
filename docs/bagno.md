@@ -46,6 +46,8 @@
 
 ## Lista obrazów i filmów do zrobienia
 
+**Brakujący obraz (28 XI):** wóz rycerza utopiony w błocie, z herbem na burcie, ten sam styl co arkusz rekwizytów bagna (`materialy/bagno-rekwizyty.jpg`), widok z góry pod kątem, białe tło. Do tego czasu w jego miejscu stoją beczki.
+
 **Limit Veo (Patryk, 27 XI 22:28–22:29):** zostało 6 animacji, limit odnawia się dopiero 22 grudnia. Najpierw poprawki po opiniach graczy; nowe potwory (upiór) najpierw w kodzie na zastępczej grafice, filmy dopiero, gdy się sprawdzą. Obrazy z Gemini limitu Veo nie zjadają. Patryk, 22:32: *„przemek ma dużo do wykorzystania, więc go będziemy męczyć”*, czyli filmy robi Patryk u Przemka (22:32: „ja będę musiał tam wbić, żeby to zrobić, bo wiem, jak to animować”).
 
 Kolejność według tego, co odblokowuje najwięcej pracy. Każdy potwór robimy tak jak ghula i kolosa ([grafika.md](grafika.md), punkt 10): najpierw jeden obraz z bohaterem jako wzorem stylu, potem z tego obrazu cztery filmy w Veo.
@@ -124,6 +126,14 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
 - **28 XI: dziennik zadań** (Jozz: *„typowy quest log w grach”*): na bagnie pokazuje miejsca do obejrzenia, kartkę w izbie i kamień ze znakiem na koniec; w nocy ziele do kotła, zgasłe pochodnie, handlarza przy ognisku i ile potworów zostało. Kod: `gra/dziennik.js`, test: `node testy/dziennik.mjs bagno`.
 - **28 XI 02:30 (Jozz przez Patryka):** wiedźma-boss nie wychodzi z izby, tylko od razu stoi na wyspie u stóp kładki do chaty (*„nie powinna respić się w domku, tylko odrazu na polanie przed nim”*). Do izby wchodzi się tylko przez drzwi: boki chaty mają ściany. Przy rogu pomostu bohater nie zsuwa się już do wody.
 - **Postać na środku kolizji** (Jozz: *„nie musisz zmieniać animacji, tylko jej offset”*): `python3 narzedzia/srodki-bohatera.py` mierzy w każdej klatce bohatera środek tułowia i zapisuje przesunięcie do `gra/srodki-bohatera.js`. Po nowych klatkach trzeba go uruchomić jeszcze raz.
+
+- **28 XI 03:30, przegląd całego bagna po zrzutach Patryka:**
+  - izba: podłoga tylko po deskach (`izba` w `gra/swiat.js`, obrys na obrazie wnętrza); przednia ściana, skrzydło drzwi, słup i prawa ściana są osobnym obrazem nad bohaterem (`przod`); drzwi otwiera i zamyka E (`gra.drzwiW`), zamknięte są ścianą, otwarte skrzydło stoi na pomoście; łata `lataDrzwi` pokazuje otwarte drzwi z zewnątrz i zamknięte ze środka;
+  - cały dom (`dom`) jest twardy: potwory nie przechodzą przez chatę, a topielce nie wychodzą spod chaty ani pomostu;
+  - kłoda ma kółka zderzeń wzdłuż całego pnia, nie tylko u nasady;
+  - „stos drewna” i „wóz” były tylko napisem. Stoi drewno z arkusza i dwie rozbite beczki z herbem rycerza. **Wozu nie ma w żadnym arkuszu; jest na liście obrazów do zrobienia**;
+  - potwory w wodzie są ucięte na linii wody (po kolana w płytkiej, po pas w głębokiej) i wynurzają się spod niej;
+  - jak to sprawdzić: siatka miejsc, na których da się stanąć, na obrazie mapy (`testy/przegladarka/`), przejście bohaterem po kładkach i wyspach, izba w 12 punktach.
 
 ## Co Claude zrobi, zanim przyjdą obrazy
 

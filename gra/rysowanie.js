@@ -283,7 +283,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   aktorzy.addChild(chata, izbaPrzod);
   // Chata wiedźmy na palach z Gemini (27 XI 16:55): z dachem stoi między aktorami (za nią to, co dalej na północ),
   // a gdy bohater wejdzie do izby, dach gaśnie i widać wnętrze. Oba obrazy mają ten sam kadr. Bez obrazów: prostokąty kodem.
-  let chataW = null, wnetrzeW = null;
+  let chataW = null, wnetrzeW = null, izbaWPrzod = null, lataOtwarta = null, lataZamknieta = null;
   if (BAGNO) {
     const cw = CHATA_WIEDZMY;
     if (obrazChatyWiedzmy) {
@@ -293,6 +293,18 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       if (obrazWnetrzaWiedzmy) {
         wnetrzeW = new P.Sprite(P.Texture.from(obrazWnetrzaWiedzmy)); wnetrzeW.position.set(cw.X0, cw.Y0); wnetrzeW.scale.set(cw.s * 2048 / obrazWnetrzaWiedzmy.width);
         wnetrzeW.zIndex = -1; wnetrzeW.alpha = 0; wnetrzeW.visible = false; aktorzy.addChild(wnetrzeW);
+        // To, co w izbie stoi przed bohaterem (ściana frontowa, skrzydło drzwi, słup, deska, prawa ściana), osobno nad nim,
+        // i łaty drzwi: otwarte widziane z zewnątrz, zamknięte widziane ze środka (Patryk, 28 XI 02:41).
+        const wytnijWiele = (obraz, wielokaty) => {
+          const c = document.createElement('canvas'); c.width = obraz.width; c.height = obraz.height;
+          const g = c.getContext('2d'), k = obraz.width / 2048; g.beginPath();
+          for (const pk of wielokaty) { pk.forEach(([x, y], i) => i ? g.lineTo(x * k, y * k) : g.moveTo(x * k, y * k)); g.closePath(); }
+          g.clip(); g.drawImage(obraz, 0, 0); return c;
+        };
+        const nowy = (obraz, wielokaty) => { const sp = new P.Sprite(P.Texture.from(wytnijWiele(obraz, wielokaty))); sp.position.set(cw.X0, cw.Y0); sp.scale.set(cw.s * 2048 / obraz.width); sp.visible = false; aktorzy.addChild(sp); return sp; };
+        izbaWPrzod = nowy(obrazWnetrzaWiedzmy, cw.przod);
+        lataOtwarta = nowy(obrazWnetrzaWiedzmy, [cw.lataDrzwi]); lataOtwarta.zIndex = cw.podstawa + 0.01;
+        lataZamknieta = nowy(obrazChatyWiedzmy, [cw.lataDrzwi]);
       }
     } else {
       const g = new P.Graphics(); g.zIndex = cw.podstawa;
@@ -912,6 +924,17 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   // ---------- potwory z filmów Przemka ----------
   // Klatka zależy od stanu z walka.js: zamach i skok idą za czasem ataku, chód za przebytą drogą,
   // trafienie (rozpoznane po błysku) przerywa chód krótkim wstrząsem, ogłuszenie pokazuje cały film trafienia.
+  // Potwory w wodzie (Patryk, 28 XI 02:45: „potwory jak debile się wynurzają z wody”): stały i chodziły po wodzie całe,
+  // a wynurzanie było przesunięciem całej postaci. Teraz klatka jest ucięta na linii wody: widać tylko to, co nad nią.
+  // W płytkiej wodzie po kolana, w głębokiej po pas; wynurzający się wychodzi spod tej linii.
+  const ucieteKlatki = new Map();
+  function ucieta(k, czesc) {                                            // czesc: jaka część wysokości (stopy → czubek) jest pod wodą
+    const st = Math.min(15, Math.round(czesc * 16)); if (st <= 0) return null;
+    let l = ucieteKlatki.get(k.t); if (!l) ucieteKlatki.set(k.t, l = []);
+    if (!l[st]) { const fr = k.t.frame; l[st] = new P.Texture(k.t.baseTexture, new P.Rectangle(fr.x, fr.y, fr.width, Math.max(2, fr.height * k.ay * (1 - st / 16)))); }
+    return l[st];
+  }
+  let dtKl = 1 / 60;
   function rysujWrogaZFilmu(e, fw, b, gra) {
     const typ = e.typ;
     const sx = Math.cos(typ.pancerz && e.kier !== undefined ? e.kier : e.stan === 'idzie' || e.stan === 'wynurza' || e.stan === 'przemiana' || (e.stan === 'odpoczynek' && !typ.boss) ? Math.atan2(b.y - e.y, b.x - e.x) : e.kat) >= 0 ? 1 : -1;   // pełzacz patrzy tam, gdzie się obrócił
@@ -939,21 +962,31 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     if (typ.doskok && e.stan === 'skok') wzlot = 18 * Math.sin(Math.PI * Math.min(1, e.t / typ.skok));
     const sp = pulaWrogow.wez();
     sp.texture = k.t; sp.anchor.set(k.ax, k.ay); sp.scale.set(fw.skala * zn * skx, fw.skala * sky); sp.rotation = rot;
-    if (e.zWody && e.stan === 'wynurza') wzlot = -50 * (1 - e.widac);       // topielec wyłazi z wody: zaczyna niżej, jakby po pas w mule
-    sp.position.set(e.x + (e.drzy || 0), e.y - wzlot); sp.zIndex = e.y; sp.alpha = e.stan === 'wynurza' || e.stan === 'mgla' ? e.widac : 1;
+    let zan = 0;
+    if (BAGNO && wzlot <= 0) {
+      const g = glebia(e.x, e.y), cel = g <= 0 ? 0 : g < 1 ? 0.06 + 0.22 * g : 0.36;
+      e._zan = e._zan === undefined ? cel : e._zan + (cel - e._zan) * Math.min(1, dtKl * 6);
+      zan = e._zan;
+      if (e.zWody && e.stan === 'wynurza') zan = Math.max(zan, 0.94 * (1 - e.widac));   // wyłazi spod wody
+    }
+    const tz = zan > 0.03 ? ucieta(k, zan) : null;
+    if (tz) { sp.texture = tz; sp.anchor.set(k.ax, 1); }                  // linia wody w miejscu stóp
+    const widac = e.stan === 'wynurza' && e.zWody && BAGNO ? Math.min(1, e.widac * 3) : e.widac;
+    sp.position.set(e.x + (e.drzy || 0), e.y - wzlot); sp.zIndex = e.y; sp.alpha = e.stan === 'wynurza' || e.stan === 'mgla' ? widac : 1;
     sp.tint = fw.zastepczy || 0xffffff;                                                   // z filmu każdy ma własne kolory (kolor topielca jest tylko dla zastępczego ghula)
     if (nast && przenik > 0.02) {
       const s2 = pulaWrogow.wez(); s2.tint = sp.tint; s2.texture = nast.t; s2.anchor.set(nast.ax, nast.ay); s2.scale.copyFrom(sp.scale); s2.rotation = rot;
       s2.position.copyFrom(sp.position); s2.zIndex = e.y + 0.005; s2.alpha = przenik; sp.alpha = 1 - 0.6 * przenik;
     }
     if (e.flash > 0) {                                                     // rozbłysk przy trafieniu
-      const bl = pulaBlyskow.wez(); bl.texture = k.t; bl.anchor.set(k.ax, k.ay); bl.scale.copyFrom(sp.scale); bl.rotation = rot;
+      const bl = pulaBlyskow.wez(); bl.texture = sp.texture; bl.anchor.copyFrom(sp.anchor); bl.scale.copyFrom(sp.scale); bl.rotation = rot;
       bl.position.copyFrom(sp.position); bl.zIndex = e.y + 0.01; bl.alpha = 0.6 * e.flash / 0.12;
     }
-    const cs = pulaCieni.wez(); cs.position.set(e.x, e.y + 1); cs.width = e.promien * fw.cien; cs.height = e.promien * 1.3; cs.alpha = sp.alpha;
-    if (oczy) {                                                            // oczy świecą w ciemności; przed atakiem rozbłyskują
+    const cs = pulaCieni.wez(); cs.position.set(e.x, e.y + 1); cs.width = e.promien * fw.cien; cs.height = e.promien * 1.3; cs.alpha = sp.alpha * Math.max(0, 1 - zan * 4);   // w wodzie bez cienia
+    const zanY = zan * k.t.frame.height * k.ay * fw.skala;                 // o tyle głowa jest niżej
+    if (oczy && zan < 0.8) {                                                            // oczy świecą w ciemności; przed atakiem rozbłyskują
       const oko = pulaOczu.wez(); oko.texture = typ.ciezki ? T.okoBursztyn : T.okoCzerwone;
-      oko.position.set(e.x + (e.drzy || 0) + sx * fw.oko.x, e.y + fw.oko.y);
+      oko.position.set(e.x + (e.drzy || 0) + sx * fw.oko.x, e.y + fw.oko.y + zanY);
       const mocOka = e.stan === 'zamach' ? 1.7 + Math.sin(czas * 40) * 0.3 : 1;
       oko.width = oko.height = (typ.ciezki ? 16 : 11) * mocOka; oko.alpha = sp.alpha * 0.8; oko.tint = typ.pocisk ? 0xc890ff : 0xffffff;   // wiedźma ma fioletowe oczy
     }
@@ -1007,6 +1040,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   }
 
   function rysuj(gra, dt, zdarzenia) {
+    dtKl = dt;
     czas += dt;
     // bagno: deszcz i bąble robią kręgi na głębokiej wodzie
     if (BAGNO && pierscienie.length < 40) for (let i = 0; i < 3; i++) if (Math.random() < dt * 4) {
@@ -1015,10 +1049,17 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
     }
     const b = gra.bohater;
     if (chataW) {                                                      // izba wiedźmy: dach gaśnie w ćwierć sekundy
-      const wI = wIzbieWiedzmy(b) || (Math.abs(b.y - CHATA_WIEDZMY.drzwi.y) < 14 && b.x > CHATA_WIEDZMY.drzwi.x0 && b.x < CHATA_WIEDZMY.drzwi.x1);
+      const otw = gra.drzwiW ? gra.drzwiW.o : 1, dr = CHATA_WIEDZMY.drzwi;
+      const wI = wIzbieWiedzmy(b) || (otw > 0.5 && b.y < dr.y + 10 && b.y > dr.y - 14 && b.x > dr.x0 && b.x < dr.x1);   // w progu otwartych drzwi dach już gaśnie
       stanRys.izbaW = ogr((stanRys.izbaW || 0) + (wI ? 1 : -1) * dt * 4, 0, 1);
-      chataW.alpha = 1 - stanRys.izbaW; chataW.visible = stanRys.izbaW < 1;
-      if (wnetrzeW) { wnetrzeW.alpha = stanRys.izbaW; wnetrzeW.visible = stanRys.izbaW > 0; }
+      const iw = stanRys.izbaW;
+      chataW.alpha = 1 - iw; chataW.visible = iw < 1;
+      if (wnetrzeW) { wnetrzeW.alpha = iw; wnetrzeW.visible = iw > 0; }
+      if (izbaWPrzod) {
+        izbaWPrzod.alpha = iw; izbaWPrzod.visible = iw > 0; izbaWPrzod.zIndex = b.y + 1;               // stoi przed bohaterem w izbie
+        lataZamknieta.alpha = iw * (1 - otw); lataZamknieta.visible = lataZamknieta.alpha > 0.01; lataZamknieta.zIndex = b.y + 1.1;
+        lataOtwarta.alpha = (1 - iw) * otw; lataOtwarta.visible = lataOtwarta.alpha > 0.01;
+      }
     }
     // kałuża po wiedźmie wsiąka w ziemię: po 20 s blednie przez 4 s i znika (Patryk, 25 XI 16:57)
     // każde inne ciało po WSIAKA s ciemnieje, spłaszcza się i znika; krew pod nim zostaje
