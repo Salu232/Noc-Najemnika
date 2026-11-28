@@ -283,7 +283,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
   aktorzy.addChild(chata, izbaPrzod);
   // Chata wiedźmy na palach z Gemini (27 XI 16:55): z dachem stoi między aktorami (za nią to, co dalej na północ),
   // a gdy bohater wejdzie do izby, dach gaśnie i widać wnętrze. Oba obrazy mają ten sam kadr. Bez obrazów: prostokąty kodem.
-  let chataW = null, wnetrzeW = null, izbaWPrzod = null, lataOtwarta = null, lataZamknieta = null;
+  let chataW = null, wnetrzeW = null, izbaWPrzod = null, lataOtwarta = null, lataZamknieta = null, kociolZ = null, kociolW = null;
   if (BAGNO) {
     const cw = CHATA_WIEDZMY;
     if (obrazChatyWiedzmy) {
@@ -305,6 +305,9 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
         izbaWPrzod = nowy(obrazWnetrzaWiedzmy, cw.przod);
         lataOtwarta = nowy(obrazWnetrzaWiedzmy, [cw.lataDrzwi]); lataOtwarta.zIndex = cw.podstawa + 0.01;
         lataZamknieta = nowy(obrazChatyWiedzmy, [cw.lataDrzwi]);
+        // kocioł z obu obrazów osobno, z głębią podstawy: kto stoi za nim, jest za nim (28 XI, Patryk: „koleny”, stał na kotle)
+        kociolZ = nowy(obrazChatyWiedzmy, [cw.obrysKotla]); kociolZ.zIndex = cw.kociol.y; kociolZ.visible = true;
+        kociolW = nowy(obrazWnetrzaWiedzmy, [cw.obrysKotla]); kociolW.zIndex = cw.kociol.y + 0.01;
       }
     } else {
       const g = new P.Graphics(); g.zIndex = cw.podstawa;
@@ -1055,6 +1058,7 @@ export function przygotujRysowanie(cv, obrazChaty, { wymusProcesor = false, obra
       const iw = stanRys.izbaW;
       chataW.alpha = 1 - iw; chataW.visible = iw < 1;
       if (wnetrzeW) { wnetrzeW.alpha = iw; wnetrzeW.visible = iw > 0; }
+      if (kociolW) { kociolW.alpha = iw; kociolW.visible = iw > 0; }   // pod spodem kocioł z obrazu z dachem, zawsze cały
       if (izbaWPrzod) {
         // stoi przed bohaterem i przed potworami w izbie (28 XI: potwór w izbie bliżej ściany niż bohater wychodził na ścianę)
         let przedY = b.y; for (const e of gra.wrogowie) if (e.y > przedY && wIzbieWiedzmy(e)) przedY = e.y;

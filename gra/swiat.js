@@ -126,11 +126,14 @@ export const KLADKI = BAGNO ? [
 // Wielokąty obrysowane na obrazie, w jednostkach świata. Ściana frontowa oddziela izbę od pomostu, z przerwą na drzwi.
 export const CHATA_WIEDZMY = BAGNO ? (() => {
   const X0 = 1208, Y0 = 288, s = 0.4, w = (ix, iy) => ({ x: X0 + s * ix, y: Y0 + s * iy });
-  const pomost = [w(405, 1172), w(986, 1425), w(1700, 1252), w(1695, 1165), w(1450, 1148), w(1330, 1212), w(1014, 1252), w(443, 1158)];
+  // przed kotłem pomost kończy się na kamieniach (28 XI: przechodził przodem przez ogień), za kotłem jest przejście
+  const pomost = [w(405, 1172), w(986, 1425), w(1345, 1338), w(1372, 1292), w(1525, 1278), w(1545, 1290), w(1700, 1252), w(1695, 1165), w(1450, 1148), w(1330, 1212), w(1014, 1252), w(443, 1158)];
   // Podłoga izby tylko po deskach, które widać na obrazie wnętrza (Patryk, 28 XI 02:36: stał na stole, na półkach i na ścianie).
   // Od tyłu półki i świeca, z lewej stół i ściana, z prawej beczki i dzbany, z przodu ściana frontowa z drzwiami.
-  const izba = [w(885, 888), w(1015, 888), w(1015, 930), w(1095, 930), w(1095, 888), w(1250, 882), w(1262, 960), w(1268, 1085), w(1320, 1125),
-    w(1440, 1128), w(1440, 1152), w(1330, 1212), w(1135, 1245), w(1000, 1250), w(880, 1230), w(880, 1000)];
+  // 28 XI 11:30 (Patryk, zrzut: stał przy stole i wyglądał, jakby stał na nim): obrys liczy środek bohatera, a on ma 18 j. szerokości w każdą
+  // stronę. Przy stole, beczkach i dzbanie brzeg jest więc o pół bohatera dalej od rysunku, żeby postać nie wchodziła na meble.
+  const izba = [w(965, 905), w(1015, 905), w(1015, 935), w(1095, 935), w(1095, 905), w(1210, 900), w(1215, 1080), w(1290, 1150),
+    w(1440, 1150), w(1440, 1160), w(1330, 1212), w(1135, 1245), w(1000, 1250), w(880, 1230), w(890, 1110), w(940, 1060), w(965, 995)];   // koniec stołu z korzeniami sięga x 912, noga y 986
   return {
     X0, Y0, s, w, x: 1630, y: 790,
     izba, pomost,
@@ -147,7 +150,11 @@ export const CHATA_WIEDZMY = BAGNO ? (() => {
     kladka: { a: w(1170, 1390), b: w(1500, 1870), szer: 40 },           // kładka z pomostu na wyspę (jest na obrazie)
     sciany: [[w(443, 1158), w(1000, 1250)], [w(1135, 1245), w(1330, 1212), w(1450, 1148)],   // frontowa: lewa i prawa od drzwi
       [w(443, 1158), w(470, 1050), w(480, 840)], [w(1450, 1148), w(1460, 1060), w(1460, 840)]],   // boczne: do izby wchodzi się tylko drzwiami (27 XI: wszedł bokiem przy kotle)
-    kociol: { ...w(1425, 1192), promien: 20 },
+    // kocioł stoi na kamieniach (obraz: misa 1130–1240, kamienie i ogień 1245–1295). 28 XI 11:30 (Patryk, „koleny”: stał na kotle):
+    // podstawa i zderzenie to plama kamieni, spłaszczona jak podłoga w rzucie z góry; obraz kotła osobno, przed tym, kto stoi za nim.
+    kociol: { ...w(1445, 1265), promien: 34, plaski: 2.4 },
+    obrysKotla: [[1415, 1080], [1475, 1080], [1478, 1126], [1502, 1134], [1514, 1160], [1510, 1238], [1520, 1262], [1506, 1292], [1440, 1302],
+      [1392, 1296], [1370, 1288], [1360, 1270], [1368, 1200], [1360, 1165], [1374, 1134], [1412, 1126]],
     // Pod pomostem (Patryk, 27 XI 23:30: „ja chodze po tych słupkach jak po powiezchni”): ląd wyspy wchodził między słupy.
     // Ten pas jest teraz wodą, a pomost i kładka zostają do chodzenia. Obrys od przedniej krawędzi pomostu do podstaw słupów z zapasem.
     pod: [w(360, 1150), w(990, 1440), w(1730, 1240), w(1750, 1600), w(1680, 1830), w(1360, 1960), w(1210, 1880), w(1010, 1830), w(880, 1760), w(660, 1640), w(480, 1520), w(360, 1300)],
@@ -282,6 +289,13 @@ export const DROGA = (() => {
     : [{ x: 820, y: WYS + 60 }, { x: 980, y: 2080 }, { x: 1180, y: 1760 }, { x: 1330, y: 1480 }, { x: 1470, y: 1290 }, { x: furtka.x - 40, y: furtka.y + 40 }, { x: furtka.x, y: furtka.y - 10 }];
   return gladka(P);
 })();
+// Rysunek drogi na bagnie sięga dalej niż grobla: aż pod ognisko, a ostatnie DROGA_ZANIK jednostek koleiny i brzegi gasną w ubitej ziemi
+// (Patryk, 28 XI 11:33, zrzut: „tu droga musi się kończyć inaczej”: urywała się prostą krawędzią w pół drogi do ogniska).
+export const DROGA_ZANIK = BAGNO ? 170 : 0;
+export const DROGA_RYS = BAGNO ? (() => {
+  const a = DROGA[DROGA.length - 1], k = { x: OGNISKO.x + 4, y: OGNISKO.y + 62 }, n = Math.ceil(Math.hypot(k.x - a.x, k.y - a.y) / 12);
+  return [...DROGA, ...Array.from({ length: n }, (_, i) => ({ x: a.x + (k.x - a.x) * (i + 1) / n, y: a.y + (k.y - a.y) * (i + 1) / n }))];
+})() : DROGA;
 // Droga na bagno (Patryk, 27 XI 17:19: „zrobić drogę na polanie do góry i do góry idziemy do chatki”): z polany obok chaty,
 // przez las na północ, do górnego brzegu mapy. Po świcie bohater idzie nią, a na jej końcu wczytuje się bagno.
 export const DROGA_POLNOC = BAGNO ? [] : gladka([{ x: 1900, y: 1215 }, { x: 2010, y: 1080 }, { x: 2090, y: 860 }, { x: 2130, y: 620 }, { x: 2090, y: 380 }, { x: 2150, y: 160 }, { x: 2170, y: -60 }]);
@@ -298,7 +312,8 @@ if (BAGNO) for (let i = DRZEWA.length - 1; i >= 0; i--) { const d = DRZEWA[i]; i
 // bok to strona (-1 lewa, 1 prawa, patrząc ku chacie), od to odległość od środka drogi. szer: szerokość w świecie,
 // promien: zderzenie (0 = przechodzi się przez nie).
 // Handlarz stoi przy drodze, po lewej idąc ku chacie, kawałek przed ogniskiem.
-export const MIEJSCE_HANDLARZA = BAGNO ? { x: 1380, y: 1250 } : (() => {
+// Na bagnie (Patryk, 28 XI 11:43: „handlarz w innym miejscu musi stać”: stał w zwalonej kłodzie) przy końcu grobli, po lewej, na czystej ziemi.
+export const MIEJSCE_HANDLARZA = BAGNO ? { x: 1505, y: 1268 } : (() => {
   const i = Math.round(0.7 * (DROGA.length - 1)), p = DROGA[i], q = DROGA[i + 1], dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1;
   return { x: p.x + dy / d * 78, y: p.y - dx / d * 78 };
 })();
@@ -435,7 +450,7 @@ export function zderzenia(p, r, plywa = false, prog = 1) {   // plywa: potwory n
     { const [a, b2] = cw.drzwiOtwarte ? cw.skrzydlo : cw.drzwiOdc, dx = b2.x - a.x, dy = b2.y - a.y, L = dx * dx + dy * dy;   // drzwi albo otwarte skrzydło
       const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L)), qx = a.x + t * dx, qy = a.y + t * dy, e = Math.hypot(p.x - qx, p.y - qy), m = r * 0.8;
       if (e < m && e > 0.001) { p.x = qx + (p.x - qx) / e * m; p.y = qy + (p.y - qy) / e * m; } }
-    { const dx = p.x - cw.kociol.x, dy = p.y - cw.kociol.y, q = Math.hypot(dx, dy), m = r + cw.kociol.promien; if (q < m && q > 0.001) { p.x = cw.kociol.x + dx / q * m; p.y = cw.kociol.y + dy / q * m; } }
+    { const k = cw.kociol, dx = p.x - k.x, dy = p.y - k.y, q = Math.hypot(dx, dy * k.plaski), m = r + k.promien; if (q < m && q > 0.001) { p.x = k.x + dx / q * m; p.y = k.y + dy / q * m; } }   // kocioł: elipsa
     for (const l of cw.slupy) { const dx = p.x - l.x, dy = p.y - l.y, q = Math.hypot(dx, dy), m = r + 7; if (q < m && q > 0.001) { p.x = l.x + dx / q * m; p.y = l.y + dy / q * m; } }   // słupy chaty
     for (const l of LATARNIE) { const dx = p.x - l.x, dy = p.y - l.y, q = Math.hypot(dx, dy), m = r + 8; if (q < m && q > 0.001) { p.x = l.x + dx / q * m; p.y = l.y + dy / q * m; } }   // pal pochodni
     // głęboka woda: krok po kroku pod spadek głębokości, aż do płycizny
@@ -534,7 +549,7 @@ export function punktWMgle(nazwa, stan = null) {
 export const KARTKA_START = BAGNO ? { x: 1640, y: 705 } : null;   // pierwsza kartka na bagnie: w izbie wiedźmy, przy stole
 export const MIEJSCA = BAGNO ? [
   { id: 'ognisko', nazwa: 'ognisko', x: OGNISKO.x, y: OGNISKO.y + 20, mysl: 'Ognisko na wyspie, kamienie mokre od mgły. Jedyne suche miejsce w okolicy.', wsk: 'Na wyspie ktoś ułożył kamienie pod ogień.' },
-  { id: 'kociol', nazwa: 'kocioł', x: CHATA_WIEDZMY.kociol.x - 10, y: CHATA_WIEDZMY.kociol.y + 30, mysl: 'Kocioł nad żarem. W środku coś gęstego, jeszcze ciepłe. Pachnie ziołami i krwią.', wsk: 'Na pomoście przed chatą coś bulgocze. Ktoś tu gotował.' },
+  { id: 'kociol', nazwa: 'kocioł', x: CHATA_WIEDZMY.kociol.x, y: CHATA_WIEDZMY.kociol.y + 12, mysl: 'Kocioł nad żarem. W środku coś gęstego, jeszcze ciepłe. Pachnie ziołami i krwią.', wsk: 'Na pomoście przed chatą coś bulgocze. Ktoś tu gotował.' },
   { id: 'chata', nazwa: 'izbę wiedźmy', x: 1560, y: 690, mysl: 'Słoje, zioła, czaszki na półkach. Na stole otwarta księga. Świeca jeszcze się pali, a wiedźmy nie ma.', wsk: 'Chata na palach, drzwi zamknięte. Ktoś w niej mieszka?' },
   { id: 'stos', nazwa: 'drewno', x: STOS_DREWNA.x, y: STOS_DREWNA.y, mysl: 'Suche polana złożone na wyspie. Tutaj suche jest cenniejsze od złota.', wsk: 'Ogień pod kotłem trzeba czymś karmić.' },
   { id: 'kladka', nazwa: 'kładkę', x: 1100, y: 1068, mysl: 'Deski śliskie, jedna złamana. Coś pod nimi przepłynęło. Duże.', wsk: 'Na zachód prowadzą deski nad wodą.' },

@@ -1,7 +1,7 @@
 // Obrazki rysowane kodem, dopóki nie ma grafik z Gemini: ziemia, sosny, ghule, kolos, światło, mgła.
 // Wszystko jest w kolorach dnia. Noc dokłada silnik (ciemność z wyciętym światłem), tak jak ustaliliśmy w Próbie chaty.
 
-import { SZER, WYS, CHATA, OGNISKO, MGLY, DROGA as DROGA_GLOWNA, DROGA_SZER } from './swiat.js';
+import { SZER, WYS, CHATA, OGNISKO, MGLY, DROGA_RYS as DROGA_GLOWNA, DROGA_SZER, DROGA_ZANIK } from './swiat.js';
 
 const TAU = Math.PI * 2;
 export const PX = 2;                       // ile pikseli obrazka na jednostkę świata
@@ -82,7 +82,19 @@ export function ramkaDrogi(D) {
 export const RAMKA_DROGI = ramkaDrogi(DROGA_GLOWNA);
 // lata: łata nawierzchni z rysunku ziemi Przemka (grafika/droga.webp, narzedzia/kafel-drogi.py). Kładziona wzdłuż drogi
 // pod losowymi kątami, żeby się nie powtarzała jak kafel, i przycinana miękko do kształtu drogi. Bez niej: sama farba.
-export function obrazDrogi(lata = null, kafel = null, DROGA = DROGA_GLOWNA, ziarno = 7) {
+export function obrazDrogi(lata = null, kafel = null, DROGA = DROGA_GLOWNA, ziarno = 7, zanik = DROGA === DROGA_GLOWNA ? DROGA_ZANIK : 0) {
+  // koniec drogi gaśnie (zanik > 0): gumka z gradientem wzdłuż ostatniego odcinka, od 0 do pełnej na samym końcu
+  const E = DROGA[DROGA.length - 1], doKonca = new Array(DROGA.length).fill(0);
+  for (let i = DROGA.length - 2; i >= 0; i--) doKonca[i] = doKonca[i + 1] + Math.hypot(DROGA[i + 1].x - DROGA[i].x, DROGA[i + 1].y - DROGA[i].y);
+  const gumka = (ctx, od, za) => {                                    // od: ile przed końcem zaczyna gasnąć, za: gdzie już nic nie ma (ujemne: za końcem)
+    if (!zanik) return;
+    const j = doKonca.findIndex(d => d <= od), S = DROGA[Math.max(0, j)], dx = E.x - S.x, dy = E.y - S.y, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+    const A = { x: E.x - ux * od, y: E.y - uy * od }, B = { x: E.x - ux * za, y: E.y - uy * za };
+    const gr = ctx.createLinearGradient(A.x, A.y, B.x, B.y);
+    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.45, 'rgba(0,0,0,0.35)'); gr.addColorStop(0.8, 'rgba(0,0,0,0.85)'); gr.addColorStop(1, 'rgba(0,0,0,1)');
+    ctx.save(); ctx.globalCompositeOperation = 'destination-out'; ctx.filter = 'none'; ctx.fillStyle = gr;
+    ctx.beginPath(); ctx.arc(E.x, E.y, od + 160, 0, TAU); ctx.fill(); ctx.restore();
+  };
   const RAMKA_DROGI = ramkaDrogi(DROGA);
   const s = SKALA_DROGI, c = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s), r = losowe(ziarno);
   let g = c.getContext('2d');
@@ -98,12 +110,14 @@ export function obrazDrogi(lata = null, kafel = null, DROGA = DROGA_GLOWNA, ziar
     g.stroke();
   };
   g.filter = 'blur(20px)'; linia(0, DROGA_SZER * 1.5, 'rgba(70,58,44,0.45)');      // miękki pas wydeptanej ziemi
+  gumka(g, zanik * 0.45, -50);                                           // ubita ziemia sięga dalej niż koleiny i rozmywa się pod ogniskiem
   if (kafel) {
     // Kafel drogi z Gemini (Patryk, 25 XI): koleiny biegną w nim pionowo, więc kładziemy go pasami wzdłuż drogi,
     // obróconymi w jej kierunku, a wysokość kafla odmierzamy długością przebytej drogi. Potem miękko przycinamy do kształtu.
     const glowne = g, w = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s), maska = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s);
     g = maska.getContext('2d'); g.scale(1 / s, 1 / s); g.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y);  g.lineCap = 'round'; g.lineJoin = 'round';
     g.filter = 'blur(10px)'; linia(0, DROGA_SZER * 1.08, '#fff'); g.filter = 'none';
+    gumka(g, zanik, 25);                                                 // koleiny gasną przed ogniskiem
     const gw = w.getContext('2d'); gw.scale(1 / s, 1 / s); gw.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y); 
     const szerK = DROGA_SZER * 1.35, k = szerK / kafel.width, wysK = kafel.height * k;
     let v = 0;
@@ -126,6 +140,7 @@ export function obrazDrogi(lata = null, kafel = null, DROGA = DROGA_GLOWNA, ziar
     const glowne = g, w = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s), maska = plotno(RAMKA_DROGI.w / s, RAMKA_DROGI.h / s);
     g = maska.getContext('2d'); g.scale(1 / s, 1 / s); g.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y);  g.lineCap = 'round'; g.lineJoin = 'round';
     g.filter = 'blur(12px)'; linia(0, DROGA_SZER * 1.12, '#fff'); g.filter = 'none';
+    gumka(g, zanik, 25);
     const gw = w.getContext('2d'); gw.scale(1 / s, 1 / s); gw.translate(-RAMKA_DROGI.x, -RAMKA_DROGI.y); 
     const sk = 0.36;
     for (let i = 0; i < DROGA.length; i += 3) {
@@ -144,6 +159,7 @@ export function obrazDrogi(lata = null, kafel = null, DROGA = DROGA_GLOWNA, ziar
   g.strokeStyle = 'rgba(18,14,12,0.55)'; g.lineWidth = 1.4;
   for (let i = 1; i < DROGA.length - 1; i++) {
     const p = DROGA[i], q = DROGA[i + 1], o = DROGA[i - 1], dx = q.x - o.x, dy = q.y - o.y, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+    if (zanik && doKonca[i] < zanik && r() > doKonca[i] / zanik * 0.9) continue;   // przy końcu kresek ubywa
     for (const strona of [-1, 1]) if (r() < 0.8) {
       const w = DROGA_SZER * (0.46 + r() * 0.12) * strona, x = p.x + nx * w, y = p.y + ny * w, dl = 6 + r() * 12;
       g.beginPath(); g.moveTo(x, y); g.lineTo(x + dx / d * dl + nx * strona * 3, y + dy / d * dl + ny * strona * 3); g.stroke();

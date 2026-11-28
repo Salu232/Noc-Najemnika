@@ -143,6 +143,12 @@ Do okna kotła wystarczą ikony z dotychczasowego arkusza przedmiotów i z arkus
 
 - **28 XI przed południem (v137, przed testem z Przemkiem):** gra znów zaczyna się na polanie (`START_NA_BAGNIE = false`; na bagno od razu: przycisk „Zacznij od bagna”). Dwie wysepki na północy (zachodnia i wschodnia) dostały kładki, bo wyglądały na ląd bez wejścia. Ekran startowy bagna opisuje drzwi, pochodnie i kocioł zamiast posłania z polany. Cała gra przeszła w przeglądarce jednym ciągiem (polana, świt, droga klawiszami, bagno, rozmowa z wiedźmą), bez błędów w konsoli.
 
+- **28 XI koło południa (v138, zrzuty Patryka):**
+  - Stół w izbie (*„tu jest bład znów”*): obrys podłogi liczy środek bohatera, a koniec stołu z korzeniami sięga x 912 obrazu. Lewy brzeg obrysu przy stole jest teraz na x 965, więc postać nie wchodzi na stół.
+  - Kocioł (*„koleny”*): był częścią obrazu chaty, więc bohater zawsze był rysowany nad nim. Teraz kocioł jest wycięty z obu obrazów (`obrysKotla`) i stoi w głębi swojej podstawy (kamienie, y 1265 obrazu). Zderzenie to spłaszczona elipsa na kamieniach. Przed kotłem pomost kończy się na kamieniach, przejście jest za kotłem.
+  - Droga (*„tu droga musi się konczyc inaczej”*): urywała się prostą krawędzią w pół drogi do ogniska. Rysunek sięga teraz pod ognisko (`DROGA_RYS`), a ostatnie 170 j. koleiny i kreski gasną w ubitej ziemi. Grobla do chodzenia bez zmian.
+  - Handlarz (*„handlarz w innym miejscu musi stać”*): stał w zwalonej kłodzie na zachód od ogniska. Teraz stoi przy końcu grobli, po lewej, na czystej ziemi (1505, 1268).
+
 ## Co Claude zrobi, zanim przyjdą obrazy
 
 - Przełączanie map w `swiat.js`, bo dziś polana jest jedyną mapą, ze stałymi `SZER`, `WYS` i drogą.
