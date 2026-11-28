@@ -122,7 +122,9 @@ const POCHOD = [[73.42, [146.8, 174.6, 220]], [73.42, [146.8, 174.6, 220]], [58.
 let muz = null;
 // Utwór Patryka do walki (Suno, „Blood on the Frozen River”, 27 XI). Gdy się wczyta, gra go zamiast muzyki składanej w kodzie.
 // Fala zaczyna go od początku (cichy wstęp narasta z falą). Przerwa między potworami do 6 s go nie urywa, tylko ścisza.
-let utwor = null, granie = null;
+// Druga muzyka (Patryk, 28 XI 21:04, Flow Music: „wygenerowałem tak na szybko pod walkę z wiedźmą”): „Starcie z Wiedźmą”, 3:00,
+// gra na ostatniej nocy bagna zamiast utworu z polany. Głośność jak walka.mp3 (oba -14,7 LUFS), więc te same poziomy.
+let utwor = null, utworWiedzmy = null, granie = null;
 // Głosy z filmów Patryka (27 XI 22:00, Patryk: „trzeba dźwięk dodawać, fajny jest”): wiedźma bagna rzuca, jęczy i pada.
 // Wycięte z dźwięku filmów Veo do dzwiek/wiedzma-*.mp3. Jeśli się nie wczytają, zostają dźwięki z kodu.
 const probki = {}, ostatnio = {};
@@ -142,11 +144,16 @@ function probka(n, glos = 0.8, odstep = 0.3) {
 function wczytajUtwor() {
   fetch(new URL('../dzwiek/walka.mp3', import.meta.url).href).then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))
     .then(b => new Promise((ok, zle) => ac.decodeAudioData(b, ok, zle))).then(b => { utwor = b; }).catch(() => { /* zostaje muzyka z kodu */ });
+  fetch(new URL('../dzwiek/wiedzma-walka.mp3', import.meta.url).href).then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))
+    .then(b => new Promise((ok, zle) => ac.decodeAudioData(b, ok, zle))).then(b => { utworWiedzmy = b; }).catch(() => { /* zostaje walka.mp3 */ });
 }
-function muzykaUtworu(moc) {
-  const t = ac.currentTime, gra_ = wlaczony && moc > 0;
+function muzykaUtworu(moc, wiedzma) {
+  const t = ac.currentTime, gra_ = wlaczony && moc > 0, bufor = wiedzma && utworWiedzmy ? utworWiedzmy : utwor;
+  if (granie && gra_ && granie.zr.buffer !== bufor) {                // inny utwór (fala z wiedźmą): stary gaśnie w 2 s, nowy rusza od początku
+    const { zr, g } = granie; g.gain.cancelScheduledValues(t); g.gain.setTargetAtTime(0.0001, t, 0.6); zr.stop(t + 2.5); granie = null;
+  }
   if (gra_ && !granie) {
-    const zr = ac.createBufferSource(); zr.buffer = utwor; zr.loop = true;
+    const zr = ac.createBufferSource(); zr.buffer = bufor; zr.loop = true;
     const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t);
     const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5500;   // ciszej i ciemniej, żeby siedziała pod ciosami (Patryk, 27 XI 11:41: „wtopić, nie tak głośno”)
     zr.connect(lp); lp.connect(g); g.connect(glosnosc); zr.start(t);
@@ -160,9 +167,9 @@ function muzykaUtworu(moc) {
   }
 }
 
-export function muzyka(moc) {
+export function muzyka(moc, wiedzma = false) {
   if (!ac || ac.state !== 'running') return;
-  if (utwor) { muzykaUtworu(moc); return; }
+  if (utwor) { muzykaUtworu(moc, wiedzma); return; }
   if (!muz) { const g = ac.createGain(); g.gain.value = 0.0001; g.connect(glosnosc); g.connect(poglos()); muz = { g, nast: ac.currentTime + 0.1, krok: 0 }; }
   const cel = wlaczony && moc > 0 ? (moc > 1 ? 0.62 : 0.5) : 0.0001;
   muz.g.gain.setTargetAtTime(cel, ac.currentTime, moc > 0 ? 0.6 : 1.4);

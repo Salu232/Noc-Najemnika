@@ -233,7 +233,7 @@ async function start() {
     if (!pauza && gra.faza !== 'koniec') aktualizuj(gra, dt, w);
     const zd = gra.zdarzenia.splice(0);
     for (const z of zd) { zagraj(z); if (z.typ === 'koniec') setTimeout(pokazKoniec, 900); if (z.typ === 'na-bagno') odejdzNaBagno(); }
-    muzyka(!pauza && gra.faza === 'walka' && gra.wrogowie.length ? (gra.etap >= 3 ? 2 : 1) : 0);
+    muzyka(!pauza && gra.faza === 'walka' && gra.wrogowie.length ? (gra.etap >= 3 ? 2 : 1) : 0, BAGNO && gra.etap >= 3);   // ostatnia noc bagna: „Starcie z Wiedźmą”
     { const b = gra.bohater, d = Math.hypot(b.x - OGNISKO.x, b.y - OGNISKO.y);
       otoczenie({ gra: zaczeta && !pauza && gra.faza !== 'koniec', wIzbie: !!b.wChacie, walka: gra.faza === 'walka', ogien: b.wChacie ? 0 : Math.max(0, 1 - d / 420) * (0.35 + 0.65 * (gra.ogien ?? 1)), napiecie: gra.faza === 'przerwa' && gra.etap > 0 && gra.fazaCzas < 12 ? 1 : 0 }); }
     rys.rysuj(gra, dt, zd);
